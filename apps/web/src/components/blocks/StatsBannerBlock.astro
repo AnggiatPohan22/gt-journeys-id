@@ -2,7 +2,7 @@
 import type { Page } from '@shared/types/payload-types'
 import Icon from '@components/common/Icon.astro'
 import {
-  resolveAlignment, resolveContainer, resolvePadding,
+  resolveContainer, resolvePadding,
   resolveEntryAnimation,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
@@ -16,8 +16,6 @@ const b = block as any
 const bg = typeof block.backgroundImage === 'object' ? block.backgroundImage : null
 const bgUrl = bg?.sizes?.hero?.url ?? bg?.url ?? ''
 
-// Advanced tab (no background group — see CMS notes)
-const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth)
 const paddingClass = resolvePadding(b.sectionPadding)
 const entry = resolveEntryAnimation(b.entryAnimation)
@@ -27,10 +25,25 @@ const eyebrowColor = resolveTextColor(ts.eyebrowColor)
 const eyebrowAnim = resolveTextAnimIn(ts.eyebrowAnimIn)
 const hColor = resolveTextColor(ts.headingColor)
 const hAnim = resolveTextAnimIn(ts.headingAnimIn)
-const labelColor = resolveTextColor(ts.labelColor) // for item.value (big number)
+const labelColor = resolveTextColor(ts.labelColor)
 const labelAnim = resolveTextAnimIn(ts.labelAnimIn)
-const captionColor = resolveTextColor(ts.captionColor) // for item.caption
+const captionColor = resolveTextColor(ts.captionColor)
 const captionAnim = resolveTextAnimIn(ts.captionAnimIn)
+
+// Dynamic grid — CMS allows 2-6 items. Hardcoded md:grid-cols-4 dulu
+// bikin row terakhir pincang saat count = 3, 5, 6. Class strings ditulis
+// literal supaya Tailwind JIT bisa detect.
+const itemCount = block.items?.length ?? 0
+const gridColsClass = (() => {
+  switch (itemCount) {
+    case 2: return 'grid-cols-2'
+    case 3: return 'grid-cols-1 sm:grid-cols-3'
+    case 4: return 'grid-cols-2 md:grid-cols-4'
+    case 5: return 'grid-cols-2 md:grid-cols-5'
+    case 6: return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6'
+    default: return 'grid-cols-2 md:grid-cols-4'
+  }
+})()
 ---
 
 <section class:list={['relative bg-ocean text-white overflow-hidden', paddingClass]} data-animate={entry.dataAnimate}>
@@ -40,24 +53,31 @@ const captionAnim = resolveTextAnimIn(ts.captionAnimIn)
     </div>
   )}
 
-  <div class:list={['relative mx-auto', containerClass, align.text, entry.className]}>
+  <div class:list={['relative mx-auto text-center', containerClass, entry.className]}>
     {block.eyebrow && (
       <p class:list={['text-xs uppercase tracking-widest mb-2', eyebrowColor || 'text-white/70', eyebrowAnim]} data-animate="reveal">
         {block.eyebrow}
       </p>
     )}
-    <h2 class:list={['font-display text-3xl md:text-4xl mb-12', hColor || 'text-white', hAnim]} data-animate="reveal">
+    <h2 class:list={['font-display text-2xl md:text-3xl mb-12', hColor || 'text-white', hAnim]} data-animate="reveal">
       {block.heading}
     </h2>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8" data-animate="stagger">
-      {block.items.map((item) => (
-        <div>
-          <div class="inline-flex mb-4 text-white/90">
-            <Icon name={item.iconName} class="w-12 h-12" strokeWidth={1.5} />
+    <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center', gridColsClass]} data-animate="stagger">
+      {block.items.map((item, i) => (
+        <div class:list={[
+          'w-full px-2 md:px-4',
+          // Vertical divider between stats on md+ (editorial feel). Skip
+          // first item, and skip items that start a new row on md — but
+          // we can't cheaply know row breaks per breakpoint, so apply
+          // uniformly and let visual density handle it.
+          i > 0 && 'md:border-l md:border-white/15',
+        ]}>
+          <div class="inline-flex mx-auto mb-3 text-white/90">
+            <Icon name={item.iconName} class="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
           </div>
-          <p class:list={['font-display text-3xl md:text-4xl font-bold mb-1', labelColor, labelAnim]}>{item.value}</p>
-          <p class:list={['text-sm', captionColor || 'text-white/80', captionAnim]}>{item.caption}</p>
+          <p class:list={['font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-2 leading-none', labelColor, labelAnim]}>{item.value}</p>
+          <p class:list={['text-xs md:text-sm uppercase tracking-widest', captionColor || 'text-white/70', captionAnim]}>{item.caption}</p>
         </div>
       ))}
     </div>
