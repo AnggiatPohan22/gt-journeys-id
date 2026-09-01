@@ -1,17 +1,17 @@
 ## Phase: 4.23 — Stat Banner Cleanup + 2-Theme System
 **Tanggal**: 2026-09-01
-**Status**: ✅ Part A merged to `feature/phase4-polish-launch` · ✅ Part B code done on `feature/stat-banner-themes` (menunggu merge + CMS schema push)
+**Status**: ✅ **COMPLETE** — Part A + Part B merged to `feature/phase4-polish-launch`, SQLite schema pushed, Theme 1 & Theme 2 both verified rendering on web dev
 **Dikerjakan oleh**: Claude Code
 **Branches**:
-- `fix/stat-banner-cleanup` → merged into `feature/phase4-polish-launch` (commit `ea31379`)
-- `feature/stat-banner-themes` (aktif) — akan di-merge ke `feature/phase4-polish-launch`, **bukan** ke `main`
+- `fix/stat-banner-cleanup` → merged into `feature/phase4-polish-launch` (commit `ea31379`, merge `7e95d7a`)
+- `feature/stat-banner-themes` → merged into `feature/phase4-polish-launch` (commit `73f25d4`, merge `72e43ec`)
+- Semua tertahan di `feature/phase4-polish-launch` sampai Phase 4 selesai — **belum di-merge ke `main`** (sesuai keputusan owner)
 
 ### Ringkasan
-Diagnosis penyebab tampilan Stat Banner "berantakan" pada live frontend, dan
-proposal 2-theme system (dipilih per-instance dari CMS) untuk menggantikan
-single-look yang sekarang. Tidak ada perubahan kode dalam laporan ini —
-menunggu approval owner sebelum implementasi surgical fix (Part A) maupun
-theme selector (Part B).
+1. Diagnosis penyebab Stat Banner "berantakan" (grid hardcoded 4-col, angka & heading sama besar, icon lari kiri).
+2. Part A: surgical fix — dynamic grid by item count, angka 2× lebih besar dari heading, icon centered, editorial dividers.
+3. Part B: field `theme` per-instance di CMS (`theme-1` default = Editorial Grid = Part A baseline; `theme-2` = Feature Cards glass-on-dark).
+4. Post-merge: audit dan fix CMS 500 error (schema push tidak jalan otomatis karena dev sudah running) — kolom `theme` ditambahkan manual ke 9 collection table via ALTER TABLE. DB backup: `apps/cms/cms.db.bak-4.23-pre-theme`.
 
 ---
 
@@ -252,13 +252,22 @@ laporan ini. Kalau nanti Part A/B implemented:
 3. ✅ Schema change (kolom `theme`) — approved
 4. ✅ Urutan: Part A → merge → Part B (all ke `feature/phase4-polish-launch`, bukan `main`)
 
-**Implementasi selesai:**
-- Part A: [StatsBannerBlock.astro](../../apps/web/src/components/blocks/StatsBannerBlock.astro) di-refactor, verified di dev (4-item, heading 30px vs value 60px, dividers on items 1-3, icons centered)
-- Part B: field `theme` ditambahkan di [apps/cms/src/blocks/index.ts](../../apps/cms/src/blocks/index.ts) `StatsBanner`, component branch on `block.theme` → Theme 2 render sebagai icon-left glass cards
+**Implementasi selesai + finalisasi (post-merge audit):**
+- ✅ Part A: [StatsBannerBlock.astro](../../apps/web/src/components/blocks/StatsBannerBlock.astro) di-refactor, verified di dev (4-item, heading 30px vs value 60px, dividers on items 1-3, icons centered)
+- ✅ Part B: field `theme` ditambahkan di [apps/cms/src/blocks/index.ts](../../apps/cms/src/blocks/index.ts) `StatsBanner`, component branch on `block.theme` → Theme 2 render sebagai icon-left glass cards
+- ✅ Types regenerated: `packages/shared/src/types/payload-types.ts` include `theme?: 'theme-1' | 'theme-2' | null`
+- ✅ **SQLite schema pushed** (manual via ALTER TABLE): kolom `theme text DEFAULT 'theme-1'` ditambahkan pada 9 tabel — `{pages,tours,accommodations,water_activities,yachts,restaurants,venues,rentals,spa}_blocks_stats_banner`. Backup DB: `apps/cms/cms.db.bak-4.23-pre-theme`.
+- ✅ **CMS API health verified**: 11/11 collection endpoint respond 200 (sebelum fix: 5/11 return 500 karena Drizzle SELECT column yang tidak ada di DB).
+- ✅ **Theme 1 verified rendering** — homepage `/` di web dev menampilkan markup `md:border-l md:border-white/15` + `font-display text-4xl md:text-5xl lg:text-6xl` (Editorial Grid).
+- ✅ **Theme 2 verified rendering** — sementara flip 1 block ke `theme='theme-2'` di DB, homepage menampilkan `rounded-2xl bg-white/5 backdrop-blur` + `font-display text-3xl md:text-4xl font-bold leading-none` (Feature Cards); di-reset kembali ke `theme-1` setelah verify.
 
-**Sisa yang perlu dilakukan (owner / next session):**
-- Jalankan `pnpm dev` di CMS → Drizzle akan prompt `+ create column theme` → jawab **create** (bukan rename). Kolom target: `pages_blocks_stats_banner_theme` (well under 63-char limit).
-- Regenerate types: `cd apps/cms && pnpm generate:types` → `packages/shared/types/payload-types.ts` akan otomatis include `theme` field
-- Visual verify Theme 2 di CMS admin: buat/pakai 1 page test, set block `Stats Banner` field `theme` = `theme-2`, save, load di web dev
-- Assign theme per existing page instance (jangan biarkan semua stuck di default silent) — owner keputusan mana Theme 1 mana Theme 2
-- Merge `feature/stat-banner-themes` → `feature/phase4-polish-launch` (setelah visual verify pass)
+### Root cause 500 error (post-merge audit)
+Payload/Drizzle **hanya menjalankan schema push saat CMS start/restart** — bukan pada file save. Karena CMS dev sudah running saat block config diedit, hot-reload me-regenerate `payload-types.ts` tapi **tidak** push schema baru ke SQLite. Akibatnya code baru me-request `SELECT theme` dari tabel yang belum punya kolom itu → error `SQLITE_ERROR: no such column: theme` yang di-mask jadi generic 500 "Something went wrong".
+
+**Fix yang di-apply:** manual `ALTER TABLE "<t>" ADD COLUMN "theme" text DEFAULT 'theme-1'` untuk 9 tabel via one-shot script (script sudah dihapus setelah run). Kolom name = `theme` (5 char), full table+col = `pages_blocks_stats_banner_theme` = 31 char — sama untuk prod deploy nanti, tidak melewati 63-char Postgres/D1 limit.
+
+**Lesson (calon update di `docs/DB-SCHEMA-CHANGES.md`):** setelah menambah field di block/collection config, **restart CMS dev** — jangan andalkan hot-reload untuk push schema. Kalau CMS tidak boleh direstart, fallback: ALTER TABLE manual + verify column presence via `PRAGMA table_info(...)`. Symptom "500 di beberapa collection saja" adalah tanda field baru cuma di code, belum di DB.
+
+**Sisa (post-Phase 4.23, opsional — bukan blocker):**
+- Owner assign `theme` per existing page instance via CMS admin (mana yang mau Theme 2). Semua default aman di `theme-1` = Part A baseline, jadi tidak ada page yang broken kalau tidak di-touch.
+- Prod deploy (Phase 5): CMS dideploy fresh → Payload push schema otomatis ke D1. Kalau in-place upgrade, jalankan `wrangler d1 execute cms-db --command "ALTER TABLE ..."` dengan 9 ALTER yang sama, atau restart CMS Worker cukup (belum diverifikasi di prod path).

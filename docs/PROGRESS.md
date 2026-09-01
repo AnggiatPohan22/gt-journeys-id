@@ -56,7 +56,7 @@ Current phase:     Phase 3.24 (header/footer template system) CODE selesai → b
 | 4.21 | Block Spacing Refactor — centralized gap system + outlier fixes | ✅ Done · Astro build 50 pages OK · ⏳ CMS schema push + visual verify | [phase-4.21-block-spacing-refactor.md](phases/phase-4.21-block-spacing-refactor.md) |
 | 4.21b | Block Spacing Bugfix — last-block footer gap restored | ✅ Done · Astro build 50 pages OK · ⏳ visual verify | [phase-4.21-block-spacing-bugfix.md](phases/phase-4.21-block-spacing-bugfix.md) |
 | 4.22 | Spacing System v2 — sibling-margin + beforeFooter + per-block spacingOverride | ✅ Done (Phase 1+2 code) · ⏳ CMS schema push + visual verify | [phase-4.22-spacing-v2.md](phases/phase-4.22-spacing-v2.md) |
-| 4.23 | Stat Banner Cleanup + 2-Theme System — audit + Part A surgical fix (Editorial Grid baseline) + Part B per-instance theme selector (Theme 1 / Theme 2 Feature Cards) | ✅ Part A done (merged to phase4 branch) · ✅ Part B code done (feature/stat-banner-themes) · ⏳ CMS schema push + visual verify Theme 2 | [phase-4.23-stat-banner-audit.md](phases/phase-4.23-stat-banner-audit.md) |
+| 4.23 | Stat Banner Cleanup + 2-Theme System — audit + Part A surgical fix (Editorial Grid baseline) + Part B per-instance theme selector (Theme 1 / Theme 2 Feature Cards) + post-merge schema fix | ✅ **Complete** · Part A + B merged ke `feature/phase4-polish-launch` · schema pushed manual (9 tables) · CMS API 11/11 green · Theme 1 & Theme 2 verified rendering di web dev | [phase-4.23-stat-banner-audit.md](phases/phase-4.23-stat-banner-audit.md) |
 | 5 | Production Deploy (+ 6 Packaging) | ⬜ Not Started | [phase-5-deploy.md](phases/phase-5-deploy.md) |
 
 **Legenda:** ✅ Complete · 🔨 In Progress · 📋 Planned · ⬜ Not Started · ⏸️ Paused
