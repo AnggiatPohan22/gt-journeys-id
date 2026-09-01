@@ -51,12 +51,17 @@ export const resolveContainer = (v?: string) => {
   }
 }
 
-// ── Section padding preset (top-only — inter-block gap handled by BlockRenderer) ──
+// ── Section padding preset (Phase 4.24 — SYMMETRIC top+bottom) ─────
+// Sebelumnya top-only sehingga adjacent-block rhythm asimetris
+// (0 pb + gap + 96 pt). Sekarang preset selalu simetris; default
+// (undefined) menggunakan CSS variable dari SiteSettings.layout.blockPadding
+// via class `block-pad-default` — value di-emit di BlockRenderer wrapper.
 export const resolvePadding = (v?: string) => {
   switch (v) {
-    case 'compact':  return 'pt-8 md:pt-12'
-    case 'spacious': return 'pt-24 md:pt-32'
-    default:         return 'pt-16 md:pt-24'
+    case 'none':     return ''
+    case 'compact':  return 'pt-8 pb-8 md:pt-12 md:pb-12'      // 32/48 both sides
+    case 'spacious': return 'pt-20 pb-20 md:pt-24 md:pb-24'    // 80/96 both sides
+    default:         return 'block-pad-default'                 // consumes CSS vars from .block-stack
   }
 }
 

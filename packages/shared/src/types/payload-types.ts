@@ -25297,6 +25297,31 @@ export interface SiteSetting {
      * Jarak antara block terakhir dan footer. Kalau kosong, ikut Block Gap.
      */
     beforeFooter?: ('compact' | 'normal' | 'spacious') | null;
+    /**
+     * Padding internal atas/bawah untuk semua block. Default 48 mobile / 64 desktop, simetris. Override per-block via Advanced tab.
+     */
+    blockPadding?: {
+      top?: {
+        /**
+         * px, <768px
+         */
+        mobile?: number | null;
+        /**
+         * px, ≥768px
+         */
+        desktop?: number | null;
+      };
+      bottom?: {
+        /**
+         * px, <768px
+         */
+        mobile?: number | null;
+        /**
+         * px, ≥768px
+         */
+        desktop?: number | null;
+      };
+    };
   };
   /**
    * Copy untuk header listing di halaman section (villa, tour, dll) — layout hero-immersive.
@@ -25622,6 +25647,22 @@ export interface SiteSettingsSelect<T extends boolean = true> {
     | {
         blockGap?: T;
         beforeFooter?: T;
+        blockPadding?:
+          | T
+          | {
+              top?:
+                | T
+                | {
+                    mobile?: T;
+                    desktop?: T;
+                  };
+              bottom?:
+                | T
+                | {
+                    mobile?: T;
+                    desktop?: T;
+                  };
+            };
       };
   sectionPages?:
     | T

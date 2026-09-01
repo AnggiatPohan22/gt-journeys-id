@@ -73,7 +73,7 @@ const gridColsClass = (() => {
       // section modern-friendly. Tidak pakai divider (card itself already
       // provides visual separation).
       // ── Theme 2 — Feature Cards ─────────────────────────────────────
-      <div class:list={['grid gap-4 md:gap-6 pb-8 md:pb-12', gridColsClass]} data-animate="stagger">
+      <div class:list={['grid gap-4 md:gap-6', gridColsClass]} data-animate="stagger">
         {block.items.map((item) => (
           <div class="flex items-center gap-4 rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-5 md:p-6 text-left h-full">
             <div class="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-coral/15 text-coral">
@@ -88,7 +88,7 @@ const gridColsClass = (() => {
       </div>
     ) : (
       // ── Theme 1 — Editorial Grid (default, Part A baseline) ─────────
-      <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center items-center pb-8 md:pb-12', gridColsClass]} data-animate="stagger">
+      <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center items-center', gridColsClass]} data-animate="stagger">
         {block.items.map((item, i) => (
           <div class:list={[
             'w-full px-2 md:px-4 py-4 flex flex-col justify-center items-center text-center',
