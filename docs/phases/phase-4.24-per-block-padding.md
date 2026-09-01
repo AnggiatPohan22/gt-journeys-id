@@ -1,8 +1,12 @@
 ## Phase: 4.24 — Per-Block Padding System
 **Tanggal**: 2026-09-01
-**Status**: 📋 Part A audit selesai (read-only) · ⏳ Part B plan pending · ⏳ Part C implementation menunggu approval
+**Status**: ✅ **Code complete** (Part A + B + C Phase 1 + C Phase 2 on `feature/per-block-padding`) · ⏳ CMS restart + final visual verify Phase 2 (existing pages unchanged expected)
 **Dikerjakan oleh**: Claude Code
-**Branch**: `feature/per-block-padding` (cut dari `feature/phase4-polish-launch`, commit `ff68b0f`)
+**Branch**: `feature/per-block-padding` (cut dari `feature/phase4-polish-launch`, commit `ff68b0f`) — akan di-merge ke `feature/phase4-polish-launch`, bukan `main`
+**Commits**:
+- `ca642a8` [docs] audit + plan
+- `065ea9f` [web][cms] Phase 1 — unified symmetric padding (verified owner sign-off 2026-09-01)
+- `811cf31` [web][cms] Phase 2 — per-block paddingOverride field
 
 ### Ringkasan
 Audit internal top/bottom padding di tiap block untuk mendiagnosis "ketimpangan" visual yang masih terasa setelah Phase 4.20–4.22 memperbaiki inter-block gap. Hipotesis awal: setiap block hardcode padding sendiri, sehingga rhythm tetap tidak konsisten walaupun gap antar block sudah uniform. **Audit ini konfirmasi hipotesis dengan twist penting** — lihat diagnosis di bawah.
@@ -293,14 +297,59 @@ Recommendation tetap **A**. Kalau owner pilih B/C/D/E, tinggal ganti angka — s
 - DROP COLUMN untuk setiap `*_pad_*` kolom di semua collection tables (bulk script, sama pola dengan Phase 4.23 fix)
 
 ## Part C — Implementation
-**Status**: ⏳ blocked oleh approval owner untuk Part B.1 (default value) dan B.2 (schema — terutama column-count concern dan `enabled=false` default). Setelah approve, Phase 1 dulu → review → Phase 2.
 
----
+### Approvals received (2026-09-01)
+1. ✅ B.1 default = Option A (48/64 symmetric)
+2. ✅ B.2 schema = Payload group fields
+3. ✅ StatsBanner `pb-8 md:pb-12` rollback
+4. ✅ HeroBlock opt-out
+5. ✅ ValuePropsBanner overlap opt-out
 
-### Approvals dibutuhkan sebelum Part C
+### Phase 1 — Unification (commit `065ea9f`)
 
-1. **B.1 default value** — approve rekomendasi A (48/64 symmetric), atau pilih B/C/D/E, atau nilai kustom?
-2. **B.2 schema** — approve pakai group fields (~1000 kolom baru), atau minta pakai JSON single-column (~160 kolom)?
-3. **Konfirmasi rollback pb-8 pada StatsBanner polish (commit `ff68b0f`)** dianggap OK karena akan diganti dengan unified padding? (Visual endpoint sama — StatsBanner tetap punya bottom breathing, hanya sourcenya berpindah dari hardcode ke global.)
-4. **HeroBlock opt-out**: ✅ approved (2026-09-01)
-5. **ValuePropsBanner overlap opt-out**: ✅ approved (2026-09-01)
+**CMS**
+- Added `SiteSettings.layout.blockPadding` group (top.mobile/top.desktop/bottom.mobile/bottom.desktop, numeric px, defaults 48/64/48/64). Column names `layout_block_padding_{top,bottom}_{mobile,desktop}` under 63-char limit.
+
+**Web**
+- `resolvePadding` refactored: `compact` → `pt-8 pb-8 md:pt-12 md:pb-12` (32/48 symmetric); `spacious` → `pt-20 pb-20 md:pt-24 md:pb-24` (80/96 symmetric); `none` → empty (new opt-out preset); default → `block-pad-default` class.
+- [BlockRenderer.astro](../../apps/web/src/components/blocks/BlockRenderer.astro) emits `--block-pt-m/-d/--block-pb-m/-d` inline on `.block-stack` wrapper from `settings.layout.blockPadding`. Global `.block-pad-default` rule reads those vars with mobile/desktop media queries.
+- [HeroBlock.astro](../../apps/web/src/components/blocks/HeroBlock.astro) opt-out: `paddingClass` only applied when editor sets `sectionPadding` explicitly.
+- [StatsBannerBlock.astro](../../apps/web/src/components/blocks/StatsBannerBlock.astro) rollback: removed hardcoded `pb-8 md:pb-12` from both Theme 1 and Theme 2 interior grids.
+- 12 regular blocks unchanged component-wise — automatically picked up the new resolver output.
+
+**Schema push**: 4 numeric columns added to `site_settings` via ALTER (one-shot script deleted).
+
+**Verified**: on homepage `/` — 4 CSS vars emitted with correct values (48/48/64/64), 9 blocks carrying `block-pad-default`, zero occurrences of removed `pb-8 md:pb-12`. Owner sign-off received.
+
+### Phase 2 — Per-block override (commit `811cf31`)
+
+**CMS**
+- Added `pad` group to [advancedStyle.ts](../../apps/cms/src/fields/advancedStyle.ts) `commonAdvancedFields` (inherited by all blocks using `advancedStyleFields` / `advancedStyleFieldsNoButton`).
+- Fields: `enabled` (checkbox, default false), `top` (select), `bottom` (select), plus 4 optional custom-px numbers.
+- Preset options per side: `inherit / none / compact / normal / spacious / custom`. Preset px values in web resolver match Phase 1 global scale.
+- Short group name `pad` chosen so deepest column `water_activities_blocks_testimonials_carousel_pad_top_desk_px` = 61 chars, under 63-char Drizzle limit.
+
+**Web**
+- [`blockStyles.ts`](../../apps/web/src/lib/blockStyles.ts): `resolvePadding` overloaded to accept a block object. When `block.pad.enabled` = true, always returns `block-pad-default` so inline CSS vars from `resolvePaddingOverrideStyle` shadow the globals.
+- New `resolvePaddingOverrideStyle(block)` returns inline `--block-pt-m/-d/--block-pb-m/-d` for the side(s) explicitly set (a side left at `inherit` is not emitted, so partial overrides keep the global default on the other side).
+- 13 blocks updated: `resolvePadding(b.sectionPadding)` → `resolvePadding(b)`, added `const padOverrideStyle = resolvePaddingOverrideStyle(b)`, applied `style={padOverrideStyle}` on `<section>` root.
+
+**Schema push**: 826 columns added across 119 tables (all `*_blocks_*` tables that have `section_padding` marker). 7 columns per table: `pad_enabled` (integer default false), `pad_top` / `pad_bottom` (text default 'inherit'), 4 numeric custom-px cols (default NULL). One-shot script deleted post-run.
+
+**Existing pages: no visual change expected.** `pad.enabled` defaults to false → resolver takes non-override path → wrapper's global vars keep driving padding.
+
+### ServiceListingHeroImmersive — deferred
+
+Not touched by Phase 1 or Phase 2. Reason: bypasses `resolvePadding` entirely with hardcoded `py-16 md:py-20` on hero-inner div + `py-12 md:py-16` on listing content. Full refactor deserves its own pass because the file is complex (hero + listing composed in one section). Flagged for a Phase 4.24b or similar follow-up.
+
+### Rollback
+
+- Phase 2 only: `git revert 811cf31` on `feature/per-block-padding`. DB cleanup optional (script equivalent: `ALTER TABLE "<t>" DROP COLUMN pad_*` across 119 tables — Payload will noop when the field is gone).
+- Phase 1: `git revert 065ea9f`. DB cleanup: `ALTER TABLE "site_settings" DROP COLUMN layout_block_padding_*` (4 columns) — optional.
+- Whole phase: `git revert 811cf31 065ea9f ca642a8` + DB cleanup.
+
+### Pending owner action
+
+1. **Restart CMS dev** — Payload/Drizzle detects the config change and blocks on interactive prompt; DB columns are already pushed, so on restart Drizzle should noop and continue. (Same known pattern as Phase 4.23.)
+2. **Visual verify Phase 2** — after CMS is back up: load any existing page → no visual change expected (all overrides `enabled=false`). Then in CMS admin, open one block → Advanced tab should show new "Padding Override (internal)" collapsible → toggle it on, set `top = spacious`, save, reload → that block only should render with 80/96 top padding instead of 48/64.
+3. **Merge decision** — when verified, merge `feature/per-block-padding` → `feature/phase4-polish-launch` (not `main`).
