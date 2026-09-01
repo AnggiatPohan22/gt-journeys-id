@@ -2,7 +2,7 @@
 import type { Page, Media } from '@shared/types/payload-types'
 import {
   resolveFitClass, resolvePosClass, resolveAlignment, resolveContainer,
-  resolvePadding, resolveEntryAnimation, resolveBackground, resolveButtonClasses,
+  resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground, resolveButtonClasses,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
@@ -53,7 +53,8 @@ const hasMedia = (mediaType === 'single' && !!mediaUrl) || isScrollCols || isDua
 // ── Advanced styling ─────────────────────────────────────────
 const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 const entry = resolveEntryAnimation(b.entryAnimation)
 const bgResolved = resolveBackground(b.background, 'bg-sand')
 
@@ -112,7 +113,8 @@ const descColorClass = descTextColor || defaultDesc
     isScrollCols && 'bg-midnight',
   ]}
   data-animate={entry.dataAnimate}
->
+
+  style={padOverrideStyle}>
   {/* Background image (from Advanced tab) — only when no media background */}
   {!isBg && !isScrollCols && bgResolved.imageUrl && (
     <>

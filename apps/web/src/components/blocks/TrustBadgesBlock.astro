@@ -2,7 +2,7 @@
 import type { Page } from '@shared/types/payload-types'
 import Icon from '@components/common/Icon.astro'
 import {
-  resolveContainer, resolvePadding, resolveEntryAnimation, resolveBackground,
+  resolveContainer, resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
@@ -13,7 +13,8 @@ const { block } = Astro.props
 const b = block as any
 
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 const entry = resolveEntryAnimation(b.entryAnimation)
 const bgResolved = resolveBackground(b.background)
 
@@ -28,7 +29,7 @@ const badges = Array.isArray(b.badges) ? b.badges : []
 const isExternal = (u?: string) => (u ?? '').startsWith('http')
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />

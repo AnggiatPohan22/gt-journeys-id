@@ -2,7 +2,7 @@
 import type { Page } from '@shared/types/payload-types'
 import {
   resolveFitClass, resolvePosClass, resolveAlignment, resolveContainer,
-  resolvePadding, resolveEntryAnimation, resolveBackground,
+  resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
@@ -36,7 +36,8 @@ const fitClass = resolveFitClass(b.imageFit)
 const posClass = resolvePosClass(b.imagePosition)
 const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 const entry = resolveEntryAnimation(b.entryAnimation)
 const bgResolved = resolveBackground(b.background)
 
@@ -45,7 +46,7 @@ const captionColor = resolveTextColor(ts.captionColor)
 const captionAnim = resolveTextAnimIn(ts.captionAnimIn)
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />

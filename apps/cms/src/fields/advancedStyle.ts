@@ -223,6 +223,53 @@ const commonAdvancedFields: Field[] = [
     ],
   },
 
+  // ── Padding Override (Phase 4.24 Part 2) ─────────────────────
+  // Override internal top/bottom padding untuk block ini. Default OFF =
+  // pakai global SiteSettings.layout.blockPadding. Nama field pendek (`pad`)
+  // supaya total table+column name (mis water_activities_blocks_stats_banner_
+  // pad_top_desk_px) tetap di bawah 63-char limit Drizzle.
+  {
+    name: 'pad',
+    label: 'Padding Override (internal)',
+    type: 'group',
+    admin: { description: 'Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.' },
+    fields: [
+      { name: 'enabled', type: 'checkbox', defaultValue: false, label: 'Enable Padding Override' },
+      {
+        type: 'row',
+        admin: { condition: (_: any, s: any) => s?.enabled === true },
+        fields: [
+          { name: 'top',    type: 'select', label: 'Top',    defaultValue: 'inherit', admin: { width: '50%', description: '"Inherit" = ikut global.' }, options: [
+            { label: 'Inherit (pakai global)', value: 'inherit' },
+            { label: 'None (0)', value: 'none' },
+            { label: 'Compact (~32/48)', value: 'compact' },
+            { label: 'Normal (~48/64)', value: 'normal' },
+            { label: 'Spacious (~80/96)', value: 'spacious' },
+            { label: 'Custom (isi px di bawah)', value: 'custom' },
+          ]},
+          { name: 'bottom', type: 'select', label: 'Bottom', defaultValue: 'inherit', admin: { width: '50%' }, options: [
+            { label: 'Inherit (pakai global)', value: 'inherit' },
+            { label: 'None (0)', value: 'none' },
+            { label: 'Compact (~32/48)', value: 'compact' },
+            { label: 'Normal (~48/64)', value: 'normal' },
+            { label: 'Spacious (~80/96)', value: 'spacious' },
+            { label: 'Custom (isi px di bawah)', value: 'custom' },
+          ]},
+        ],
+      },
+      {
+        type: 'row',
+        admin: { condition: (_: any, s: any) => s?.enabled === true && (s?.top === 'custom' || s?.bottom === 'custom') },
+        fields: [
+          { name: 'topMobPx',  type: 'number', label: 'Top Custom Mobile (px)',  min: 0, max: 400, admin: { width: '25%', condition: (_: any, s: any) => s?.top === 'custom' } },
+          { name: 'topDeskPx', type: 'number', label: 'Top Custom Desktop (px)', min: 0, max: 400, admin: { width: '25%', condition: (_: any, s: any) => s?.top === 'custom' } },
+          { name: 'btmMobPx',  type: 'number', label: 'Bottom Custom Mobile (px)',  min: 0, max: 400, admin: { width: '25%', condition: (_: any, s: any) => s?.bottom === 'custom' } },
+          { name: 'btmDeskPx', type: 'number', label: 'Bottom Custom Desktop (px)', min: 0, max: 400, admin: { width: '25%', condition: (_: any, s: any) => s?.bottom === 'custom' } },
+        ],
+      },
+    ],
+  },
+
   // ── Spacing Override (Phase 4.22) ────────────────────────────
   {
     name: 'spacingOverride',

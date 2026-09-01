@@ -17,7 +17,7 @@ import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
 import SpaCard from '@components/cards/SpaCard.astro'
 import {
-  resolveContainer, resolvePadding, resolveEntryAnimation, resolveBackground,
+  resolveContainer, resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
@@ -173,7 +173,8 @@ const filterDestinations = enableDestFilter
 
 // ── Advanced styling ────────────────────────────────────────────
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 const entry = resolveEntryAnimation(b.entryAnimation)
 const bgResolved = resolveBackground(b.background)
 
@@ -197,7 +198,7 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
 
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
