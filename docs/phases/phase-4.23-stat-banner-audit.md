@@ -1,8 +1,10 @@
-## Phase: 4.23 — Stat Banner Cleanup + 2-Theme System (Audit + Plan)
+## Phase: 4.23 — Stat Banner Cleanup + 2-Theme System
 **Tanggal**: 2026-09-01
-**Status**: Part A audit selesai (read-only) · Part B plan menunggu approval
+**Status**: ✅ Part A merged to `feature/phase4-polish-launch` · ✅ Part B code done on `feature/stat-banner-themes` (menunggu merge + CMS schema push)
 **Dikerjakan oleh**: Claude Code
-**Branch**: (belum di-cut — audit-only, tidak ada code change)
+**Branches**:
+- `fix/stat-banner-cleanup` → merged into `feature/phase4-polish-launch` (commit `ea31379`)
+- `feature/stat-banner-themes` (aktif) — akan di-merge ke `feature/phase4-polish-launch`, **bukan** ke `main`
 
 ### Ringkasan
 Diagnosis penyebab tampilan Stat Banner "berantakan" pada live frontend, dan
@@ -244,10 +246,19 @@ laporan ini. Kalau nanti Part A/B implemented:
 - [ ] `docs/02-DATABASE-SCHEMA.md` — update saat Part B implemented (kolom baru)
 
 ### Next Steps
-**Menunggu keputusan owner:**
-1. Approve/tolak arah visual Theme 1 (Editorial Grid) & Theme 2 (Feature Cards)?
-2. Default theme = `theme-1` atau `theme-2`?
-3. Approve schema change (tambah kolom `theme`)?
-4. Urutan: Part A dulu (fix cepat, single-look) → Part B (2-theme)? Atau langsung Part B (skip surgical fix karena akan jadi Theme 1 juga)?
+**Owner approvals sudah masuk (2026-09-01):**
+1. ✅ Theme 1 (Editorial Grid) & Theme 2 (Feature Cards) — approved
+2. ✅ Default = `theme-1`
+3. ✅ Schema change (kolom `theme`) — approved
+4. ✅ Urutan: Part A → merge → Part B (all ke `feature/phase4-polish-launch`, bukan `main`)
 
-Setelah keputusan masuk, cut branch sesuai Section 12 dan implement small-step.
+**Implementasi selesai:**
+- Part A: [StatsBannerBlock.astro](../../apps/web/src/components/blocks/StatsBannerBlock.astro) di-refactor, verified di dev (4-item, heading 30px vs value 60px, dividers on items 1-3, icons centered)
+- Part B: field `theme` ditambahkan di [apps/cms/src/blocks/index.ts](../../apps/cms/src/blocks/index.ts) `StatsBanner`, component branch on `block.theme` → Theme 2 render sebagai icon-left glass cards
+
+**Sisa yang perlu dilakukan (owner / next session):**
+- Jalankan `pnpm dev` di CMS → Drizzle akan prompt `+ create column theme` → jawab **create** (bukan rename). Kolom target: `pages_blocks_stats_banner_theme` (well under 63-char limit).
+- Regenerate types: `cd apps/cms && pnpm generate:types` → `packages/shared/types/payload-types.ts` akan otomatis include `theme` field
+- Visual verify Theme 2 di CMS admin: buat/pakai 1 page test, set block `Stats Banner` field `theme` = `theme-2`, save, load di web dev
+- Assign theme per existing page instance (jangan biarkan semua stuck di default silent) — owner keputusan mana Theme 1 mana Theme 2
+- Merge `feature/stat-banner-themes` → `feature/phase4-polish-launch` (setelah visual verify pass)

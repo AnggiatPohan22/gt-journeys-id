@@ -694,6 +694,18 @@ const StatsBanner: Block = {
         {
           label: 'Content',
           fields: [
+            {
+              name: 'theme',
+              type: 'select',
+              defaultValue: 'theme-1',
+              options: [
+                { label: 'Editorial Grid — big centered numbers + dividers (default)', value: 'theme-1' },
+                { label: 'Feature Cards — icon-left card with glass background', value: 'theme-2' },
+              ],
+              admin: {
+                description: 'Visual style. Pilih per-instance. Ganti tanpa mengubah data items.',
+              },
+            },
             { name: 'eyebrow', type: 'text', defaultValue: 'Why Choose Us' },
             { name: 'heading', type: 'text', required: true, defaultValue: 'Your Journey is Our Priority' },
             {

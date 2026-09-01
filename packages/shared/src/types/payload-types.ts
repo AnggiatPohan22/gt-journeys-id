@@ -1431,6 +1431,10 @@ export interface Page {
             blockType: 'valuePropsBanner';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -3856,6 +3860,10 @@ export interface Tour {
             blockType: 'valuePropsBanner';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -5889,6 +5897,10 @@ export interface Accommodation {
             blockType: 'spacer';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -7431,6 +7443,10 @@ export interface WaterActivity {
             blockType: 'spacer';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -8960,6 +8976,10 @@ export interface Yacht {
             blockType: 'valuePropsBanner';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -10891,6 +10911,10 @@ export interface Restaurant {
             blockType: 'spacer';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -12768,6 +12792,10 @@ export interface Venue {
             blockType: 'valuePropsBanner';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -14799,6 +14827,10 @@ export interface Rental {
             blockType: 'valuePropsBanner';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -16830,6 +16862,10 @@ export interface Spa {
             blockType: 'valuePropsBanner';
           }
         | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
             eyebrow?: string | null;
             heading: string;
             items: {
@@ -18260,6 +18296,7 @@ export interface PagesSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -19260,6 +19297,7 @@ export interface ToursSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -20113,6 +20151,7 @@ export interface AccommodationsSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -20776,6 +20815,7 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -21444,6 +21484,7 @@ export interface YachtsSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -22263,6 +22304,7 @@ export interface RestaurantsSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -23078,6 +23120,7 @@ export interface VenuesSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -23936,6 +23979,7 @@ export interface RentalsSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:
@@ -24794,6 +24838,7 @@ export interface SpaSelect<T extends boolean = true> {
         statsBanner?:
           | T
           | {
+              theme?: T;
               eyebrow?: T;
               heading?: T;
               items?:

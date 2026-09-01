@@ -30,9 +30,13 @@ const labelAnim = resolveTextAnimIn(ts.labelAnimIn)
 const captionColor = resolveTextColor(ts.captionColor)
 const captionAnim = resolveTextAnimIn(ts.captionAnimIn)
 
-// Dynamic grid — CMS allows 2-6 items. Hardcoded md:grid-cols-4 dulu
-// bikin row terakhir pincang saat count = 3, 5, 6. Class strings ditulis
-// literal supaya Tailwind JIT bisa detect.
+// Phase 4.23 Part B — 2 themes selectable per-instance from CMS.
+// Default `theme-1` (Editorial Grid) matches Part A baseline byte-for-byte,
+// jadi existing instances tidak berubah tampilan tanpa aksi editor.
+const theme = (b.theme ?? 'theme-1') as 'theme-1' | 'theme-2'
+
+// Dynamic grid — CMS allows 2-6 items. Berlaku sama untuk kedua tema.
+// Class strings ditulis literal supaya Tailwind JIT bisa detect.
 const itemCount = block.items?.length ?? 0
 const gridColsClass = (() => {
   switch (itemCount) {
@@ -63,23 +67,40 @@ const gridColsClass = (() => {
       {block.heading}
     </h2>
 
-    <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center', gridColsClass]} data-animate="stagger">
-      {block.items.map((item, i) => (
-        <div class:list={[
-          'w-full px-2 md:px-4',
-          // Vertical divider between stats on md+ (editorial feel). Skip
-          // first item, and skip items that start a new row on md — but
-          // we can't cheaply know row breaks per breakpoint, so apply
-          // uniformly and let visual density handle it.
-          i > 0 && 'md:border-l md:border-white/15',
-        ]}>
-          <div class="inline-flex mx-auto mb-3 text-white/90">
-            <Icon name={item.iconName} class="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+    {theme === 'theme-2' ? (
+      // ── Theme 2 — Feature Cards ─────────────────────────────────────
+      // Icon-left card, glass-on-dark. Cocok untuk service detail page /
+      // section modern-friendly. Tidak pakai divider (card itself already
+      // provides visual separation).
+      <div class:list={['grid gap-4 md:gap-6', gridColsClass]} data-animate="stagger">
+        {block.items.map((item) => (
+          <div class="flex items-start gap-4 rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-5 md:p-6 text-left">
+            <div class="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-coral/15 text-coral">
+              <Icon name={item.iconName} class="w-7 h-7" strokeWidth={1.75} />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class:list={['font-display text-3xl md:text-4xl font-bold leading-none mb-1', labelColor || 'text-white', labelAnim]}>{item.value}</p>
+              <p class:list={['text-sm', captionColor || 'text-white/70', captionAnim]}>{item.caption}</p>
+            </div>
           </div>
-          <p class:list={['font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-2 leading-none', labelColor, labelAnim]}>{item.value}</p>
-          <p class:list={['text-xs md:text-sm uppercase tracking-widest', captionColor || 'text-white/70', captionAnim]}>{item.caption}</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    ) : (
+      // ── Theme 1 — Editorial Grid (default, Part A baseline) ─────────
+      <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center', gridColsClass]} data-animate="stagger">
+        {block.items.map((item, i) => (
+          <div class:list={[
+            'w-full px-2 md:px-4',
+            i > 0 && 'md:border-l md:border-white/15',
+          ]}>
+            <div class="inline-flex mx-auto mb-3 text-white/90">
+              <Icon name={item.iconName} class="w-8 h-8 md:w-10 md:h-10" strokeWidth={1.5} />
+            </div>
+            <p class:list={['font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-2 leading-none', labelColor, labelAnim]}>{item.value}</p>
+            <p class:list={['text-xs md:text-sm uppercase tracking-widest', captionColor || 'text-white/70', captionAnim]}>{item.caption}</p>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
 </section>
