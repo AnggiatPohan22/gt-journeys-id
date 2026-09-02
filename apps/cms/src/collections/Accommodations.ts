@@ -126,7 +126,16 @@ export const Accommodations: CollectionConfig = {
               label: s.media.sections.gallery.label,
               admin: { initCollapsed: s.media.sections.gallery.initCollapsed, className: sectionClass(s.media.color, s.media.sections.gallery.icon) },
               fields: [
-                { name: 'gallery', type: 'array', admin: { description: 'Additional photos. First 2 = side bento. Sisanya diakses via "Show all photos".' }, fields: [
+                {
+                  name: 'galleryBulkUpload',
+                  type: 'ui',
+                  admin: {
+                    components: {
+                      Field: '/admin/GalleryBulkUpload#default',
+                    },
+                  },
+                },
+                { name: 'gallery', type: 'array', maxRows: 10, admin: { description: 'Additional photos (max 10). First 2 = side bento. Sisanya diakses via "Show all photos".' }, fields: [
                   { name: 'image', type: 'upload', relationTo: 'media', required: true },
                   { name: 'caption', type: 'text' },
                 ]},
