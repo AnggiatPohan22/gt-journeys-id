@@ -36,6 +36,11 @@ import './users-editor.css'
 // collapsibles get colored left borders, icon badges, and accordion
 // behavior (open one → close others in same tab).
 import './accordion-sections.css'
+// Phase 4.26b — Accommodations gallery: transform default array-row
+// stack into a 4-per-row thumbnail grid. Scoped via `dnj-gallery-grid`
+// className on the array field; other array fields untouched. Pairs
+// with GalleryCardOverlay for reorder/delete overlay controls.
+import './gallery-grid.css'
 import AccordionSections from './AccordionSections'
 
 const AdminStyles: React.FC<{ children?: React.ReactNode }> = ({ children }) => {

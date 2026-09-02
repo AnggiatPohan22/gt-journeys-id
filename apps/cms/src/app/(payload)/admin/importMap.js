@@ -30,6 +30,7 @@ import { ParagraphFeatureClient as ParagraphFeatureClient_e70f5e05f09f93e00b997e
 import { default as default_da3b373a276c153dce234a7b6af2f237 } from '../../../components/IconPickerField'
 import { default as default_51a6c3a6d17463139b3a0c8a76281abf } from '../../../admin/cells/StatusCell'
 import { default as default_bdf34549d93d2f3ad9f92f8d63d4ab79 } from '../../../admin/GalleryBulkUpload'
+import { default as default_3a7d44fe2aab16c97f094f6129c976c6 } from '../../../admin/GalleryCardOverlay'
 import { MenuChildRowLabel as MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d } from '../../../components/MenuChildRowLabel'
 import { MenuItemRowLabel as MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091 } from '../../../components/MenuItemRowLabel'
 import { default as default_68a1ee296a4d669462449170f13ac89f } from '../../../admin/cells/UserAvatarCell'
@@ -83,6 +84,7 @@ export const importMap = {
   "/components/IconPickerField#default": default_da3b373a276c153dce234a7b6af2f237,
   "/admin/cells/StatusCell#default": default_51a6c3a6d17463139b3a0c8a76281abf,
   "/admin/GalleryBulkUpload#default": default_bdf34549d93d2f3ad9f92f8d63d4ab79,
+  "/admin/GalleryCardOverlay#default": default_3a7d44fe2aab16c97f094f6129c976c6,
   "/components/MenuChildRowLabel#MenuChildRowLabel": MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d,
   "/components/MenuItemRowLabel#MenuItemRowLabel": MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091,
   "/admin/cells/UserAvatarCell#default": default_68a1ee296a4d669462449170f13ac89f,

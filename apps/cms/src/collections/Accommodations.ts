@@ -135,10 +135,29 @@ export const Accommodations: CollectionConfig = {
                     },
                   },
                 },
-                { name: 'gallery', type: 'array', maxRows: 10, admin: { description: 'Additional photos (max 10). First 2 = side bento. Sisanya diakses via "Show all photos".' }, fields: [
-                  { name: 'image', type: 'upload', relationTo: 'media', required: true },
-                  { name: 'caption', type: 'text' },
-                ]},
+                {
+                  name: 'gallery',
+                  type: 'array',
+                  maxRows: 10,
+                  admin: {
+                    description: 'Additional photos (max 10). First 2 = side bento. Sisanya diakses via "Show all photos". Klik thumbnail untuk edit/ganti gambar (drawer Payload). Arrow ← → untuk reorder, 🗑 untuk hapus.',
+                    className: 'dnj-gallery-grid',
+                  },
+                  fields: [
+                    {
+                      name: 'image',
+                      type: 'upload',
+                      relationTo: 'media',
+                      required: true,
+                      admin: {
+                        components: {
+                          beforeInput: ['/admin/GalleryCardOverlay#default'],
+                        },
+                      },
+                    },
+                    { name: 'caption', type: 'text' },
+                  ],
+                },
               ],
             },
           ],

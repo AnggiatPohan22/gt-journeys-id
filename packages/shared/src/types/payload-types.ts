@@ -5041,7 +5041,7 @@ export interface Accommodation {
    */
   featuredImage: number | Media;
   /**
-   * Additional photos (max 10). First 2 = side bento. Sisanya diakses via "Show all photos".
+   * Additional photos (max 10). First 2 = side bento. Sisanya diakses via "Show all photos". Klik thumbnail untuk edit/ganti gambar (drawer Payload). Arrow ← → untuk reorder, 🗑 untuk hapus.
    */
   gallery?:
     | {
