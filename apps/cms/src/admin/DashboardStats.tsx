@@ -1,6 +1,6 @@
 import React from 'react'
-import { createRequire } from 'module'
 import type { ServerProps } from 'payload'
+import cmsPkg from '../../package.json' with { type: 'json' }
 
 // Admin polish styles — scoped `.dnj-dash` (lihat custom.css), aman di-import
 // global lewat komponen ini (tidak menyentuh UI inti Payload).
@@ -25,14 +25,11 @@ import './custom.css'
 type Payload = ServerProps['payload']
 type Role = 'editor' | 'admin' | 'super-admin'
 
-// Versi Payload (best-effort, tidak pernah melempar error).
-let PAYLOAD_VERSION = '3.x'
-try {
-  const req = createRequire(import.meta.url)
-  PAYLOAD_VERSION = req('payload/package.json')?.version ?? '3.x'
-} catch {
-  /* fallback */
-}
+// Payload version — dibaca dari dependencies apps/cms/package.json (yang
+// kita kontrol) bukan dari `payload/package.json` (di-block oleh exports
+// field di payload@3, memicu resolver warning di Next dev tiap render).
+const PAYLOAD_VERSION = ((cmsPkg as { dependencies?: Record<string, string> }).dependencies?.payload ?? '3.x')
+  .replace(/^[\^~>=<\s]+/, '')
 
 // ── Brand palette ────────────────────────────────────────
 const BRAND = { ocean: '#1b3a4b', coral: '#e07a5f', leaf: '#6b9080', stone: '#3d405b' }
