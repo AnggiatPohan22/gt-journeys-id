@@ -4,7 +4,7 @@
 > Konten detail lama (1067 baris) diarsipkan utuh di
 > [`docs/archive/progress-archive-2026-08-23.md`](archive/progress-archive-2026-08-23.md).
 >
-> **Last updated:** 2026-08-31
+> **Last updated:** 2026-09-02
 
 ## Project Overview
 
@@ -59,6 +59,7 @@ Current phase:     Phase 3.24 (header/footer template system) CODE selesai → b
 | 4.23 | Stat Banner Cleanup + 2-Theme System — audit + Part A surgical fix (Editorial Grid baseline) + Part B per-instance theme selector (Theme 1 / Theme 2 Feature Cards) + post-merge schema fix | ✅ **Complete** · Part A + B merged ke `feature/phase4-polish-launch` · schema pushed manual (9 tables) · CMS API 11/11 green · Theme 1 & Theme 2 verified rendering di web dev | [phase-4.23-stat-banner-audit.md](phases/phase-4.23-stat-banner-audit.md) |
 | 4.24 | Per-Block Padding System — unify internal top/bottom padding across all blocks (root cause of remaining ketimpangan setelah Phase 4.22), CMS global default + per-block override | ✅ **Complete** — Phase 1 & Phase 2 code done, schema pushed, post-merge hotfix untuk 8 tabel trust_badges yang terlewat, 9/9 collection API 200, web 200. Merged ke `feature/phase4-polish-launch` · ServiceListingHeroImmersive deferred | [phase-4.24-per-block-padding.md](phases/phase-4.24-per-block-padding.md) |
 | 4.25 | CMS Cold-Start Fix — hilangkan `payload/package.json` resolver warning di dashboard + fix duplicate-index race (2-3 error 500 di boot lalu normal) via `push:false` + instrumentation warm-up singleton | ✅ **Complete** — 2 commits fokus, cold-start 3× test pass, tidak ada regresi | [phase-4.25-cms-cold-start-fix.md](phases/phase-4.25-cms-cold-start-fix.md) |
+| 4.26 | Gallery Bulk Upload (CMS) + Photo Viewer UX (villa detail) — Pilot Accommodations only. A: custom Admin UI component `GalleryBulkUpload.tsx` (max 10, append-preserving), B1: `overflow-hidden` fix main bento cell, B2: reusable `PhotoLightbox.astro` (touch swipe, mobile arrows, hero in-place swipe) — no npm deps | ✅ **Code complete (pilot)** — 3 commits, B1+B2 dev-browser verified, A compile+register verified · ⏳ owner-login CMS end-to-end | [phase-4.26-gallery-bulk-upload-photo-viewer.md](phases/phase-4.26-gallery-bulk-upload-photo-viewer.md) |
 | 5 | Production Deploy (+ 6 Packaging) | ⬜ Not Started | [phase-5-deploy.md](phases/phase-5-deploy.md) |
 
 **Legenda:** ✅ Complete · 🔨 In Progress · 📋 Planned · ⬜ Not Started · ⏸️ Paused
