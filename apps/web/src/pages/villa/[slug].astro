@@ -13,6 +13,7 @@ import { siteConfig } from '@config/site'
 import { lexicalToPlainText } from '@lib/lexical'
 import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import StructuredData from '@components/common/StructuredData.astro'
+import PhotoLightbox from '@components/gallery/PhotoLightbox.astro'
 import { serviceItemSchema } from '@lib/structuredData'
 import type { Accommodation, Media } from '@shared/types/payload-types'
 
@@ -40,12 +41,24 @@ const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
 const heroAlt = heroImg?.alt ?? item.name
 
 // Gallery: first 3 for bento (main + 2 side). Rest for lightbox trigger count.
-const galleryImages = (item.gallery ?? [])
-  .map((g) => asMedia(g.image))
-  .filter((m): m is Media => !!m)
+const galleryEntries = (item.gallery ?? [])
+  .map((g) => ({ media: asMedia(g.image), caption: g.caption ?? undefined }))
+  .filter((g): g is { media: Media; caption?: string } => !!g.media)
+const galleryImages = galleryEntries.map((g) => g.media)
 const sideImg1 = galleryImages[0]
 const sideImg2 = galleryImages[1]
 const totalPhotos = 1 + galleryImages.length
+
+// Photos for lightbox + hero swipe: [hero, ...gallery]. Use hero-size url
+// so the big-view is sharp; alt falls back to villa name.
+const allPhotos = [
+  { url: heroUrl, alt: heroAlt, caption: undefined as string | undefined },
+  ...galleryEntries.map((g) => ({
+    url: g.media.sizes?.hero?.url ?? g.media.url ?? '',
+    alt: g.media.alt ?? '',
+    caption: g.caption,
+  })),
+].filter((p) => !!p.url)
 
 // Pricing
 const rooms = item.roomTypes ?? []
@@ -156,19 +169,29 @@ const itemSchema = serviceItemSchema({
   <section class="container-content pt-8 md:pt-12 mb-12 md:mb-16">
     <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 md:gap-4 h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-lg">
       {/* Main big image */}
-      <div class="md:col-span-3 row-span-2 relative group overflow-hidden">
+      <div
+        id="villa-hero-cell"
+        class="md:col-span-3 row-span-2 relative group overflow-hidden cursor-pointer touch-pan-y"
+        role="button"
+        tabindex="0"
+        aria-label="Open photo gallery"
+        data-open-lightbox="villa-photos"
+        data-index="0"
+      >
         {heroUrl ? (
-          <img src={heroUrl} alt={heroAlt}
-               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-               loading="eager" fetchpriority="high" />
+          <img id="villa-hero-img" src={heroUrl} alt={heroAlt}
+               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+               loading="eager" fetchpriority="high" draggable="false" />
         ) : (
           <div class="w-full h-full bg-sand flex items-center justify-center text-stone-light">No image</div>
         )}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
+        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 pointer-events-none"></div>
       </div>
 
       {/* Side 1 (desktop only) */}
-      <div class="hidden md:block relative group overflow-hidden">
+      <div class="hidden md:block relative group overflow-hidden cursor-pointer"
+           data-open-lightbox={sideImg1 ? 'villa-photos' : undefined}
+           data-index={sideImg1 ? '1' : undefined}>
         {sideImg1 ? (
           <img src={sideImg1.sizes?.card?.url ?? sideImg1.url ?? ''}
                alt={sideImg1.alt ?? ''}
@@ -177,11 +200,13 @@ const itemSchema = serviceItemSchema({
         ) : (
           <div class="w-full h-full bg-sand"></div>
         )}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
+        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 pointer-events-none"></div>
       </div>
 
       {/* Side 2 with "Show all photos" overlay */}
-      <div class="hidden md:block relative group overflow-hidden">
+      <div class="hidden md:block relative group overflow-hidden cursor-pointer"
+           data-open-lightbox={sideImg2 ? 'villa-photos' : undefined}
+           data-index={sideImg2 ? '2' : undefined}>
         {sideImg2 ? (
           <img src={sideImg2.sizes?.card?.url ?? sideImg2.url ?? ''}
                alt={sideImg2.alt ?? ''}
@@ -190,16 +215,97 @@ const itemSchema = serviceItemSchema({
         ) : (
           <div class="w-full h-full bg-sand"></div>
         )}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
+        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 pointer-events-none"></div>
         {galleryImages.length > 2 && (
-          <a href="#gallery-all"
-             class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-semibold gap-2 no-underline">
+          <button type="button"
+             data-open-lightbox="villa-photos" data-index="0"
+             class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-semibold gap-2 border-0 cursor-pointer">
             <Icon name="filter_list" class="w-5 h-5" /> Show all {totalPhotos} photos
-          </a>
+          </button>
         )}
       </div>
     </div>
+
+    {/* Mobile-only "Show all photos" button (hover overlay is desktop-only) */}
+    {totalPhotos > 1 && (
+      <div class="md:hidden mt-3 flex justify-center">
+        <button type="button"
+                data-open-lightbox="villa-photos" data-index="0"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-sand-dark/30 text-ocean text-sm font-semibold shadow-sm">
+          <Icon name="filter_list" class="w-4 h-4" /> Show all {totalPhotos} photos
+        </button>
+      </div>
+    )}
   </section>
+
+  <PhotoLightbox id="villa-photos" photos={allPhotos} />
+
+  <script is:inline define:vars={{ heroPhotos: allPhotos }}>
+    // Hero in-place swipe (Option 1): swipe cycles the main image; tap opens lightbox.
+    // Mobile-primary — desktop still has hover-zoom + click-to-open.
+    (function () {
+      const cell = document.getElementById('villa-hero-cell');
+      const img = document.getElementById('villa-hero-img');
+      if (!cell || !img || !Array.isArray(heroPhotos) || heroPhotos.length < 2) return;
+
+      let idx = 0;
+      let startX = null, startY = null, startT = 0, moved = false;
+
+      const setPhoto = (i) => {
+        idx = ((i % heroPhotos.length) + heroPhotos.length) % heroPhotos.length;
+        const p = heroPhotos[idx];
+        img.src = p.url;
+        img.alt = p.alt || '';
+        cell.setAttribute('data-index', String(idx));
+      };
+
+      cell.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startT = Date.now();
+        moved = false;
+      }, { passive: true });
+
+      cell.addEventListener('touchmove', (e) => {
+        if (startX === null) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) moved = true;
+      }, { passive: true });
+
+      cell.addEventListener('touchend', (e) => {
+        if (startX === null) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - startX;
+        const dy = t.clientY - startY;
+        const dt = Date.now() - startT;
+        startX = startY = null;
+
+        // Horizontal swipe → cycle in-place
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          e.preventDefault();
+          setPhoto(dx < 0 ? idx + 1 : idx - 1);
+          return;
+        }
+        // Tap (no meaningful movement, short duration) → open lightbox at current idx
+        if (!moved && dt < 400) {
+          e.preventDefault();
+          const w = window;
+          if (w.__openPhotoLightbox) w.__openPhotoLightbox('villa-photos', idx);
+        }
+      });
+
+      // Keyboard accessibility on the cell (desktop)
+      cell.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const w = window;
+          if (w.__openPhotoLightbox) w.__openPhotoLightbox('villa-photos', idx);
+        }
+      });
+    })();
+  </script>
 
   {/* ═══ MAIN LAYOUT: LEFT DETAIL + RIGHT STICKY BOOKING ═══ */}
   <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-24">
@@ -328,7 +434,7 @@ const itemSchema = serviceItemSchema({
 
       {/* Room Types (if any, list) */}
       {rooms.length > 0 && (
-        <div class="mb-12" id="gallery-all">
+        <div class="mb-12">
           <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Room Options</h2>
           <div class="space-y-4">
             {rooms.map((r) => (
