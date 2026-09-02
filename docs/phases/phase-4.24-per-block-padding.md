@@ -1,12 +1,23 @@
 ## Phase: 4.24 — Per-Block Padding System
-**Tanggal**: 2026-09-01
-**Status**: ✅ **Code complete** (Part A + B + C Phase 1 + C Phase 2 on `feature/per-block-padding`) · ⏳ CMS restart + final visual verify Phase 2 (existing pages unchanged expected)
+**Tanggal**: 2026-09-02
+**Status**: ✅ **COMPLETE** — Phase 1 + Phase 2 code done, all CMS collections respond 200, web dev 200, ready to merge ke `feature/phase4-polish-launch` (bukan `main`)
 **Dikerjakan oleh**: Claude Code
-**Branch**: `feature/per-block-padding` (cut dari `feature/phase4-polish-launch`, commit `ff68b0f`) — akan di-merge ke `feature/phase4-polish-launch`, bukan `main`
+**Branch**: `feature/per-block-padding` (cut dari `feature/phase4-polish-launch`, commit `ff68b0f`)
 **Commits**:
 - `ca642a8` [docs] audit + plan
-- `065ea9f` [web][cms] Phase 1 — unified symmetric padding (verified owner sign-off 2026-09-01)
+- `065ea9f` [web][cms] Phase 1 — unified symmetric padding (owner sign-off 2026-09-01)
 - `811cf31` [web][cms] Phase 2 — per-block paddingOverride field
+- `fbb4a5e` [docs] mark code-complete + Phase 2 implementation notes
+- (post-fix, docs-only) — hotfix note untuk 8 tabel trust_badges yang terlewat migration
+
+### Post-merge hotfix (2026-09-02)
+Setelah CMS di-restart untuk verify Phase 2, 8 dari 9 collection (`pages`, `tours`, `accommodations`, `yachts`, `restaurants`, `venues`, `rentals`, `spa`) return 500 di API. Water_activities 200 — outlier karena kebetulan tidak punya tabel `trust_badges` (tidak pernah dipakai instansi block itu di collection tersebut).
+
+**Root cause**: pola LIKE `%_badges` di `_add-pad-cols.mjs` script Phase 2 salah — dimaksudkan untuk melewati sub-tabel array `*_trust_badges_badges`, tapi juga menangkap tabel parent `*_blocks_trust_badges` sendiri. Akibatnya 8 tabel `*_blocks_trust_badges` yang butuh `pad_*` cols tidak dapat migration.
+
+**Fix (2026-09-02)**: script one-shot kedua menargetkan **semua tabel dengan `section_padding` tapi tanpa `pad_enabled`**, menemukan tepat 8 tabel target, tambah 56 kolom total (7 pad_* per tabel). Script dihapus post-run. Verified: 9/9 collection endpoints return 200, web dev homepage 200 (1.25s).
+
+**Lesson**: LIKE pattern `%_badges` melebar ke parent table. Untuk exclude sub-tabel array, gunakan lookup `EXISTS(pragma_table_info)` untuk marker column (mis `section_padding`) — bukan name filter. Fix script menggunakan pendekatan yang benar (dan lebih idiomatis) ini.
 
 ### Ringkasan
 Audit internal top/bottom padding di tiap block untuk mendiagnosis "ketimpangan" visual yang masih terasa setelah Phase 4.20–4.22 memperbaiki inter-block gap. Hipotesis awal: setiap block hardcode padding sendiri, sehingga rhythm tetap tidak konsisten walaupun gap antar block sudah uniform. **Audit ini konfirmasi hipotesis dengan twist penting** — lihat diagnosis di bawah.
