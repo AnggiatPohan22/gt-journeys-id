@@ -1,186 +1,115 @@
 /*
- * DnJourneysBali — Gallery thumbnail grid (Phase 4.26b, pilot).
+ * DnJourneysBali — Gallery grid (Phase 4.26c rewrite).
  *
- * Scoped to `.dnj-gallery-grid.array-field` (set via admin.className on
- * the Accommodations `gallery` array). Turns Payload's vertical row
- * list into a 4-per-row thumbnail grid WITHOUT touching form state or
- * removing Payload's upload cell (so Edit / Choose-from-library /
- * drawer popups keep working for free).
+ * Two responsibilities:
+ *   1. Hide Payload's default array UI for our field (scoped via
+ *      `.dnj-gallery-grid`), because 4.26b's attempt to restyle it
+ *      couldn't defeat AnimateHeight's inline height:0 and always-
+ *      collapsed rows.
+ *   2. Style our own grid rendered by <GalleryGrid />: `.dnj-gg`.
  *
- * Rules never leak: every selector starts with `.dnj-gallery-grid`.
+ * All selectors here are scoped — either under `.dnj-gallery-grid`
+ * (so other array fields are never affected) or under `.dnj-gg`
+ * (our own component's classes).
  */
 
-/* ── Turn the rows list into a responsive grid ── */
+/* ── 1. Hide Payload's default array UI for the gallery field ── */
+.dnj-gallery-grid.array-field > .array-field__header {
+  display: none;
+}
 .dnj-gallery-grid.array-field .array-field__draggable-rows {
+  display: none !important;
+}
+.dnj-gallery-grid.array-field .array-field__add-row {
+  display: none !important;
+}
+/* Payload validation banners about min-rows / required stay visible
+   (they render inside .array-field__draggable-rows above, so if
+   errors need to show, they'd be hidden — that's OK for pilot since
+   the field is optional). If we later need them, we render our own
+   error surface. */
+
+/* ── 2. Our grid + card styles ── */
+.dnj-gg {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
   align-items: stretch;
+  margin-top: 0.5rem;
 }
 @media (max-width: 899px) {
-  .dnj-gallery-grid.array-field .array-field__draggable-rows {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .dnj-gg { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 639px) {
-  .dnj-gallery-grid.array-field .array-field__draggable-rows {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .dnj-gg { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 479px) {
-  .dnj-gallery-grid.array-field .array-field__draggable-rows {
-    grid-template-columns: 1fr;
-  }
+  .dnj-gg { grid-template-columns: 1fr; }
 }
 
-/* ── Each row becomes a compact card ── */
-.dnj-gallery-grid.array-field .array-field__row {
+.dnj-gg--empty {
+  display: block;
+  padding: 1.25rem;
+  border: 1px dashed var(--theme-elevation-150);
+  border-radius: 0.5rem;
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-500);
+  text-align: center;
+  font-size: 0.85rem;
+}
+.dnj-gg--empty p { margin: 0; }
+
+/* ── Card ── */
+.dnj-gg__card {
   position: relative;
-  margin: 0;
-  border: 1px solid var(--theme-elevation-100);
+  aspect-ratio: 4 / 3;
   border-radius: 0.5rem;
   overflow: hidden;
-  background: var(--theme-elevation-50);
-  aspect-ratio: 4 / 3;
-  min-height: 0;
+  background: var(--theme-elevation-100);
+  border: 1px solid var(--theme-elevation-150);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.dnj-gg__card[data-missing] {
+  border-color: var(--theme-warning-500, #d90);
+  background: var(--theme-warning-50, rgba(220, 160, 0, 0.08));
 }
 
-/* Hide the row header ("Gallery NN" label + drag handle + collapse toggle).
-   Our overlay component supplies index + delete/reorder buttons instead. */
-.dnj-gallery-grid.array-field .array-field__row-header,
-.dnj-gallery-grid.array-field .collapsible__toggle-wrap,
-.dnj-gallery-grid.array-field .collapsible__toggle {
-  display: none !important;
-}
-
-/* Make the collapsible body fill the card (Payload wraps row body in
-   .collapsible__content — force it always visible + full-size). */
-.dnj-gallery-grid.array-field .collapsible__content {
-  display: block !important;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-}
-.dnj-gallery-grid.array-field .collapsible {
-  height: 100%;
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-}
-.dnj-gallery-grid.array-field .array-field__fields {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  gap: 0;
-}
-
-/* Upload cell fills the card. The upload cell itself is Payload's
-   UploadInput; we style its outer + inner to fit our card. */
-.dnj-gallery-grid.array-field .field-type.upload {
-  height: 100%;
-  margin: 0;
-}
-.dnj-gallery-grid.array-field .upload__wrap,
-.dnj-gallery-grid.array-field .upload__dropzoneAndUpload,
-.dnj-gallery-grid.array-field .upload {
-  height: 100%;
-  margin: 0;
-}
-/* Thumbnail cover-fits the card */
-.dnj-gallery-grid.array-field .thumbnail img,
-.dnj-gallery-grid.array-field .file-details__preview img,
-.dnj-gallery-grid.array-field .upload img {
+.dnj-gg__thumb {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-/* Hide the file-details textual meta (name/size) — thumbnail is the id */
-.dnj-gallery-grid.array-field .file-details__main-detail,
-.dnj-gallery-grid.array-field .file-details__meta,
-.dnj-gallery-grid.array-field .file-meta {
-  display: none;
-}
-
-/* Hide the caption input inside each row (Option A — clean grid) */
-.dnj-gallery-grid.array-field .field-type[id*="caption"],
-.dnj-gallery-grid.array-field .field-type.text[class*="caption"] {
-  display: none;
-}
-/* Also hide anything named "caption" as a field wrapper (Payload uses
-   .field-type--text with an id like `field-gallery__0__caption`) */
-.dnj-gallery-grid.array-field [id$="__caption"],
-.dnj-gallery-grid.array-field [id$=".caption"] {
-  display: none !important;
-}
-
-/* Hide "Add row" button — bulk upload is the only add path */
-.dnj-gallery-grid.array-field .array-field__add-row {
-  display: none !important;
-}
-
-/* Hide the outer array header ("Gallery" title + count) — bulk upload
-   panel above the array already labels the section. */
-.dnj-gallery-grid.array-field > .array-field__header {
-  display: none;
-}
-
-/* ── Overlay controls (rendered by GalleryCardOverlay via beforeInput) ── */
-.dnj-gallery-grid.array-field .dnj-card-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 5;
-}
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn {
-  pointer-events: auto;
-  position: absolute;
-  display: inline-flex;
+.dnj-gg__thumb--placeholder {
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  cursor: pointer;
-  transition: background 120ms, transform 120ms, opacity 120ms;
-  padding: 0;
-  font-size: 14px;
-  line-height: 1;
-  user-select: none;
-}
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.8);
-  transform: scale(1.06);
-}
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn:focus-visible {
-  outline: 2px solid var(--theme-success-500, #4c8);
-  outline-offset: 2px;
-}
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn--prev { left: 8px; bottom: 8px; }
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn--next { right: 8px; bottom: 8px; }
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn--delete {
-  right: 8px;
-  top: 8px;
-  background: rgba(180, 30, 30, 0.85);
-  border-color: rgba(255, 255, 255, 0.35);
-}
-.dnj-gallery-grid.array-field .dnj-card-overlay__btn--delete:hover:not(:disabled) {
-  background: rgba(220, 40, 40, 0.95);
+  color: var(--theme-elevation-500);
+  font-size: 0.75rem;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      var(--theme-elevation-100) 0 8px,
+      var(--theme-elevation-150) 8px 16px
+    );
 }
 
-.dnj-gallery-grid.array-field .dnj-card-overlay__badge {
-  pointer-events: none;
+/* ── Overlay layer ── */
+/* Delete/Edit stack — top-right, 12px between them */
+.dnj-gg__tr-actions {
   position: absolute;
-  left: 8px;
   top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 12px;
+  z-index: 3;
+}
+
+/* Index badge — top-left */
+.dnj-gg__badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
   min-width: 24px;
   height: 24px;
   padding: 0 6px;
@@ -193,17 +122,58 @@
   align-items: center;
   justify-content: center;
   letter-spacing: 0.02em;
+  z-index: 3;
+  pointer-events: none;
 }
 
-/* Payload's row-actions popup (three-dot menu) stays functional but
-   we push it out of the way — actions live in overlay now. */
-.dnj-gallery-grid.array-field .array-field__row .array-actions,
-.dnj-gallery-grid.array-field .array-field__row .popup {
-  display: none;
+/* Reorder buttons — bottom corners */
+.dnj-gg__btn--prev { position: absolute; left: 8px; bottom: 8px; z-index: 3; }
+.dnj-gg__btn--next { position: absolute; right: 8px; bottom: 8px; z-index: 3; }
+
+/* Shared button style */
+.dnj-gg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  transition: background 120ms, transform 120ms, opacity 120ms;
+  backdrop-filter: blur(2px);
+}
+.dnj-gg__btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.85);
+  transform: scale(1.06);
+}
+.dnj-gg__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.dnj-gg__btn:focus-visible {
+  outline: 2px solid var(--theme-success-500, #4c8);
+  outline-offset: 2px;
+}
+.dnj-gg__btn--delete {
+  background: rgba(180, 30, 30, 0.85);
+}
+.dnj-gg__btn--delete:hover:not(:disabled) {
+  background: rgba(220, 40, 40, 0.98);
+}
+.dnj-gg__btn--edit {
+  background: rgba(30, 90, 180, 0.85);
+}
+.dnj-gg__btn--edit:hover:not(:disabled) {
+  background: rgba(40, 110, 220, 0.98);
 }
 
-/* Payload sometimes renders drag-handle wrappers even when we hide row
-   header. Neutralize any lingering pointer capture. */
-.dnj-gallery-grid.array-field .drag-handle {
-  display: none;
-}
+/* On touch devices, buttons stay always-visible (default).
+   On desktop, keep them always-visible too — they read as UI, not
+   noise, and match Payload's own visual density on cards. */
