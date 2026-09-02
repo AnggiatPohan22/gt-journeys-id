@@ -104,6 +104,12 @@ export default buildConfig({
     client: {
       url: process.env.DATABASE_URI || `file:${path.resolve(dirname, '../cms.db')}`,
     },
+    // Dev schema-push disabled: cold-start bisa memicu 2+ init paralel
+    // (Payload's own getPayload cache tidak fully race-safe di boot),
+    // dan dua `pushDevSchema` konkuren → "index already exists" 500.
+    // Schema push kita jalankan manual/via migrasi (lihat docs/DB-SCHEMA-
+    // CHANGES.md). Prod deploy tetap pakai migrations (PAYLOAD_MIGRATING).
+    push: false,
   }),
 
   // ── Collections ─────────────────────────────
