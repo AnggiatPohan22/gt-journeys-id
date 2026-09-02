@@ -112,7 +112,13 @@ const posterUrl = videoPoster?.sizes?.hero?.url ?? videoPoster?.url ?? ''
 const posterAlt = videoPoster?.alt ?? block.heading ?? ''
 
 // ── Advanced styling resolution ──────────────────────────────
-const paddingClass = `${resolveBlockPadding(block.sectionPadding)} min-h-[calc(100vh-5rem)]`
+// Phase 4.24 — Hero opt-out from unified block padding system. Viewport
+// min-height + flex-center drives Hero's vertical rhythm, adding pt/pb
+// would double-count. Editor can still set sectionPadding preset (compact/
+// spacious) if they want explicit padding on top of viewport height —
+// falsy default = no extra padding.
+const heroPaddingRaw = block.sectionPadding ? resolveBlockPadding(block.sectionPadding) : ''
+const paddingClass = `${heroPaddingRaw} min-h-[calc(100vh-5rem)]`
 
 const contentAlignment = (b.contentAlignment ?? 'center') as 'left' | 'center' | 'right'
 const alignTextClass =

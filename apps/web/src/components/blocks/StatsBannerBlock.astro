@@ -2,7 +2,7 @@
 import type { Page } from '@shared/types/payload-types'
 import Icon from '@components/common/Icon.astro'
 import {
-  resolveContainer, resolvePadding,
+  resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
   resolveEntryAnimation,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
@@ -17,7 +17,8 @@ const bg = typeof block.backgroundImage === 'object' ? block.backgroundImage : n
 const bgUrl = bg?.sizes?.hero?.url ?? bg?.url ?? ''
 
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 const entry = resolveEntryAnimation(b.entryAnimation)
 
 const ts = b.ts ?? {}
@@ -50,7 +51,7 @@ const gridColsClass = (() => {
 })()
 ---
 
-<section class:list={['relative bg-ocean text-white overflow-hidden', paddingClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative bg-ocean text-white overflow-hidden', paddingClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
   {bgUrl && (
     <div class="absolute inset-0 opacity-10">
       <img src={bgUrl} alt="" class="w-full h-full object-cover" />
@@ -73,7 +74,7 @@ const gridColsClass = (() => {
       // section modern-friendly. Tidak pakai divider (card itself already
       // provides visual separation).
       // ── Theme 2 — Feature Cards ─────────────────────────────────────
-      <div class:list={['grid gap-4 md:gap-6 pb-8 md:pb-12', gridColsClass]} data-animate="stagger">
+      <div class:list={['grid gap-4 md:gap-6', gridColsClass]} data-animate="stagger">
         {block.items.map((item) => (
           <div class="flex items-center gap-4 rounded-2xl bg-white/5 backdrop-blur border border-white/10 p-5 md:p-6 text-left h-full">
             <div class="shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-coral/15 text-coral">
@@ -88,7 +89,7 @@ const gridColsClass = (() => {
       </div>
     ) : (
       // ── Theme 1 — Editorial Grid (default, Part A baseline) ─────────
-      <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center items-center pb-8 md:pb-12', gridColsClass]} data-animate="stagger">
+      <div class:list={['grid gap-y-10 gap-x-6 md:gap-x-8 justify-items-center items-center', gridColsClass]} data-animate="stagger">
         {block.items.map((item, i) => (
           <div class:list={[
             'w-full px-2 md:px-4 py-4 flex flex-col justify-center items-center text-center',

@@ -51,13 +51,62 @@ export const resolveContainer = (v?: string) => {
   }
 }
 
-// ── Section padding preset (top-only — inter-block gap handled by BlockRenderer) ──
-export const resolvePadding = (v?: string) => {
+// ── Section padding preset (Phase 4.24 — SYMMETRIC top+bottom) ─────
+// Sebelumnya top-only sehingga adjacent-block rhythm asimetris
+// (0 pb + gap + 96 pt). Sekarang preset selalu simetris; default
+// (undefined) menggunakan CSS variable dari SiteSettings.layout.blockPadding
+// via class `block-pad-default` — value di-emit di BlockRenderer wrapper.
+// Overload: accept preset string (backward compat) atau block object.
+// Kalau block.pad.enabled → paksa `block-pad-default` supaya inline style
+// dari resolvePaddingOverrideStyle bisa shadow global vars.
+const resolvePresetPadding = (v?: string): string => {
   switch (v) {
-    case 'compact':  return 'pt-8 md:pt-12'
-    case 'spacious': return 'pt-24 md:pt-32'
-    default:         return 'pt-16 md:pt-24'
+    case 'none':     return ''
+    case 'compact':  return 'pt-8 pb-8 md:pt-12 md:pb-12'
+    case 'spacious': return 'pt-20 pb-20 md:pt-24 md:pb-24'
+    default:         return 'block-pad-default'
   }
+}
+export const resolvePadding = (input?: string | Record<string, any> | null): string => {
+  if (input == null || typeof input === 'string') return resolvePresetPadding(input as string | undefined)
+  const block = input
+  if (block?.pad?.enabled) return 'block-pad-default'
+  return resolvePresetPadding(block?.sectionPadding)
+}
+
+// Phase 4.24 Part 2 — per-block padding override.
+// Returns inline `--block-pt-m/-d/--block-pb-m/-d` CSS variables that
+// shadow the wrapper's globals. Only emits sides where the override
+// is explicit (top/bottom = inherit → no emit for that side, keeping
+// global default). Preset values must stay in sync with
+// SiteSettings preset labels (compact ~32/48, normal ~48/64, spacious ~80/96).
+const padPresetPx: Record<string, [number, number]> = {
+  none:     [0, 0],
+  compact:  [32, 48],
+  normal:   [48, 64],
+  spacious: [80, 96],
+}
+export const resolvePaddingOverrideStyle = (block: any): string | undefined => {
+  const pad = block?.pad
+  if (!pad?.enabled) return undefined
+  const resolveSide = (side: 'top' | 'bottom'): [number, number] | null => {
+    const val = pad[side]
+    if (!val || val === 'inherit') return null
+    if (val === 'custom') {
+      const m = side === 'top' ? pad.topMobPx : pad.btmMobPx
+      const d = side === 'top' ? pad.topDeskPx : pad.btmDeskPx
+      if (m == null && d == null) return null
+      return [Number(m ?? 0), Number(d ?? 0)]
+    }
+    return padPresetPx[val] ?? null
+  }
+  const top = resolveSide('top')
+  const btm = resolveSide('bottom')
+  if (!top && !btm) return undefined
+  const parts: string[] = []
+  if (top) parts.push(`--block-pt-m:${top[0]}px`, `--block-pt-d:${top[1]}px`)
+  if (btm) parts.push(`--block-pb-m:${btm[0]}px`, `--block-pb-d:${btm[1]}px`)
+  return parts.join(';')
 }
 
 // ── Block gap (kept for backward compat; BlockRenderer now uses CSS sibling margin) ─

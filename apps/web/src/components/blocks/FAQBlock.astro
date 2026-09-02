@@ -2,7 +2,7 @@
 import type { Page } from '@shared/types/payload-types'
 import { lexicalToHtml } from '@lib/lexical'
 import {
-  resolveAlignment, resolveContainer, resolvePadding,
+  resolveAlignment, resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
   resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
@@ -15,7 +15,8 @@ const b = block as any
 
 const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth ?? 'narrow')
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 const entry = resolveEntryAnimation(b.entryAnimation)
 const bgResolved = resolveBackground(b.background)
 
@@ -26,7 +27,7 @@ const qColor = resolveTextColor(ts.quoteColor)
 const qAnim = resolveTextAnimIn(ts.quoteAnimIn)
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />

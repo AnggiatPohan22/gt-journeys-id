@@ -50,10 +50,21 @@ const layout = (settings as any)?.layout
 const blockGap = layout?.blockGap ?? 'normal'
 const beforeFooter = layout?.beforeFooter ?? blockGap
 
+// Phase 4.24 — global block padding (internal top/bottom for every block).
+// Emitted as CSS variables on the wrapper so per-block .block-pad-default
+// (returned by resolvePadding for the default preset) can pick them up
+// without every block component needing to know the numbers.
+const bp = layout?.blockPadding ?? {}
+const padTopM = Number(bp?.top?.mobile  ?? 48)
+const padTopD = Number(bp?.top?.desktop ?? 64)
+const padBtmM = Number(bp?.bottom?.mobile  ?? 48)
+const padBtmD = Number(bp?.bottom?.desktop ?? 64)
+const padVarStyle = `--block-pt-m:${padTopM}px;--block-pt-d:${padTopD}px;--block-pb-m:${padBtmM}px;--block-pb-d:${padBtmD}px`
+
 const soStyles = (blocks ?? []).map((b) => resolveSpacingOverride(b))
 ---
 
-<div class="flex flex-col block-stack" data-block-gap={blockGap} data-before-footer={beforeFooter}>
+<div class="flex flex-col block-stack" data-block-gap={blockGap} data-before-footer={beforeFooter} style={padVarStyle}>
 {blocks?.map((block: PageBlock, i: number) => {
   const so = soStyles[i]
   switch (block.blockType) {
@@ -114,5 +125,19 @@ const soStyles = (blocks ?? []).map((b) => resolveSpacingOverride(b))
      block overrides this rule through normal CSS cascade. */
   .block-stack > * + * {
     margin-top: var(--block-gap, 2rem);
+  }
+
+  /* Phase 4.24 — default block padding via CSS variables set on
+     .block-stack. Applied to any element with class `block-pad-default`
+     (returned by resolvePadding when sectionPadding is unset). */
+  .block-pad-default {
+    padding-top: var(--block-pt-m, 48px);
+    padding-bottom: var(--block-pb-m, 48px);
+  }
+  @media (min-width: 768px) {
+    .block-pad-default {
+      padding-top: var(--block-pt-d, 64px);
+      padding-bottom: var(--block-pb-d, 64px);
+    }
   }
 </style>

@@ -56,6 +56,19 @@ export const SiteSettings: GlobalConfig = {
         { label: 'Normal', value: 'normal' },
         { label: 'Spacious', value: 'spacious' },
       ]},
+      // Phase 4.24 — Global default internal top/bottom padding untuk semua
+      // block regular. Angka dalam pixel; per-block override via Advanced tab
+      // (Phase 2). Symmetric default 48/64 approved 2026-09-01.
+      { name: 'blockPadding', type: 'group', label: 'Block Padding (internal)', admin: { description: 'Padding internal atas/bawah untuk semua block. Default 48 mobile / 64 desktop, simetris. Override per-block via Advanced tab.' }, fields: [
+        { name: 'top', type: 'group', label: 'Top', fields: [
+          { name: 'mobile',  type: 'number', defaultValue: 48, min: 0, max: 200, admin: { description: 'px, <768px' }},
+          { name: 'desktop', type: 'number', defaultValue: 64, min: 0, max: 200, admin: { description: 'px, ≥768px' }},
+        ]},
+        { name: 'bottom', type: 'group', label: 'Bottom', fields: [
+          { name: 'mobile',  type: 'number', defaultValue: 48, min: 0, max: 200, admin: { description: 'px, <768px' }},
+          { name: 'desktop', type: 'number', defaultValue: 64, min: 0, max: 200, admin: { description: 'px, ≥768px' }},
+        ]},
+      ]},
     ]},
     // ── Section pages (listing headers) ────────────────────────────────
     { name: 'sectionPages', type: 'group', label: 'Section Pages', admin: { description: 'Copy untuk header listing di halaman section (villa, tour, dll) — layout hero-immersive.' }, fields: [

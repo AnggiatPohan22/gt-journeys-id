@@ -1,6 +1,6 @@
 ---
 import type { Page } from '@shared/types/payload-types'
-import { resolvePadding } from '@lib/blockStyles'
+import { resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
 
 type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'embed' }>
 interface Props { block: Block }
@@ -12,10 +12,12 @@ const type = block.embedType ?? 'custom'
 const isUrl = /^https?:\/\//.test(block.embedCode.trim())
 const iframeSrc = isUrl ? block.embedCode.trim() : ''
 
-const paddingClass = resolvePadding(b.sectionPadding)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 ---
 
-<section class:list={[paddingClass]} data-animate="reveal">
+<section class:list={[paddingClass]} data-animate="reveal"
+  style={padOverrideStyle}>
   <div class="container-content max-w-4xl">
     {isUrl && (type === 'youtube' || type === 'map') ? (
       <div class="aspect-video rounded-xl overflow-hidden bg-sand">
