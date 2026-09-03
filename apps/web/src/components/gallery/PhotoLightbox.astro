@@ -61,7 +61,11 @@ const dataId = `photo-lightbox-${id}`
   </button>
 
   <div class="lb-inner max-w-[95vw] max-h-[92vh] w-full h-full flex flex-col items-center justify-center gap-3 px-4">
-    <img class="lb-img max-w-full max-h-[80vh] object-contain rounded-lg select-none" src="" alt="" draggable="false" />
+    {/* 4.27: fixed 16:9 frame — matches Featured Image aspect. Dual-layer crossfade. */}
+    <div class="lb-frame relative w-full max-w-[min(90vw,calc(80vh*16/9))] rounded-lg overflow-hidden bg-black/40" style="aspect-ratio: 16 / 9;">
+      <img class="lb-img lb-img--a absolute inset-0 w-full h-full object-cover select-none" src="" alt="" draggable="false" />
+      <img class="lb-img lb-img--b absolute inset-0 w-full h-full object-cover select-none" src="" alt="" aria-hidden="true" draggable="false" />
+    </div>
     <p class="lb-caption text-white/80 text-sm text-center max-w-2xl min-h-[1.25rem]"></p>
   </div>
 </div>
@@ -73,14 +77,20 @@ const dataId = `photo-lightbox-${id}`
     display: flex;
     animation: lbFadeIn 220ms ease-out both;
   }
-  .photo-lightbox.is-open .lb-img {
-    animation: lbImgIn 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
   @keyframes lbFadeIn { from{opacity:0} to{opacity:1} }
-  @keyframes lbImgIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+
+  /* 4.27 — dual-layer crossfade for nav. Frame (lb-frame) is fixed 16:9,
+     images cover-fill so the frame never resizes per image. */
+  .lb-img {
+    opacity: 0;
+    transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity;
+  }
+  .lb-img.is-visible { opacity: 1; }
+
   @media (prefers-reduced-motion: reduce) {
-    .photo-lightbox.is-open,
-    .photo-lightbox.is-open .lb-img { animation: none; }
+    .photo-lightbox.is-open { animation: none; }
+    .lb-img { transition: none; }
   }
 </style>
 
@@ -100,7 +110,8 @@ const dataId = `photo-lightbox-${id}`
       const photos: LightboxPhoto[] = dataEl ? JSON.parse(dataEl.textContent || '[]') : []
       if (photos.length === 0) return
 
-      const imgEl = box.querySelector<HTMLImageElement>('.lb-img')!
+      const layerA = box.querySelector<HTMLImageElement>('.lb-img--a')!
+      const layerB = box.querySelector<HTMLImageElement>('.lb-img--b')!
       const capEl = box.querySelector<HTMLElement>('.lb-caption')!
       const counterEl = box.querySelector<HTMLElement>('.lb-counter')!
       const closeBtn = box.querySelector<HTMLElement>('.lb-close')!
@@ -108,21 +119,50 @@ const dataId = `photo-lightbox-${id}`
       const nextBtn = box.querySelector<HTMLElement>('.lb-next')!
       const innerEl = box.querySelector<HTMLElement>('.lb-inner')!
 
-      let current = 0
+      let current = -1
+      let active: HTMLImageElement = layerA
+      let inactive: HTMLImageElement = layerB
+      let swapping = false
 
       const show = (idx: number) => {
-        current = ((idx % photos.length) + photos.length) % photos.length
-        const p = photos[current]
-        imgEl.src = p.url
-        imgEl.alt = p.alt || ''
+        const target = ((idx % photos.length) + photos.length) % photos.length
+        if (target === current || swapping) return
+        const p = photos[target]
+
+        // Caption + counter update immediately (fast text).
         const cap = p.caption || ''
         capEl.textContent = cap
         capEl.style.visibility = cap ? 'visible' : 'hidden'
-        counterEl.textContent = `${current + 1} / ${photos.length}`
-        // re-trigger image-in animation
-        imgEl.style.animation = 'none'
-        void imgEl.offsetWidth
-        imgEl.style.animation = ''
+        counterEl.textContent = `${target + 1} / ${photos.length}`
+
+        // First render (nothing visible yet): skip crossfade, just set A.
+        if (current === -1) {
+          active.src = p.url
+          active.alt = p.alt || ''
+          requestAnimationFrame(() => active.classList.add('is-visible'))
+          current = target
+          return
+        }
+
+        swapping = true
+        const preload = new Image()
+        const commit = () => {
+          inactive.src = p.url
+          inactive.alt = p.alt || ''
+          requestAnimationFrame(() => {
+            inactive.classList.add('is-visible')
+            active.classList.remove('is-visible')
+            const prev = active
+            active = inactive
+            inactive = prev
+            current = target
+            window.setTimeout(() => { swapping = false }, 380)
+          })
+        }
+        preload.onload = commit
+        preload.onerror = commit
+        preload.src = p.url
+        window.setTimeout(() => { if (swapping && inactive.src !== p.url) commit() }, 400)
       }
       const open = (idx: number) => {
         show(idx)

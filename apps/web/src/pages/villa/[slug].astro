@@ -168,7 +168,7 @@ const itemSchema = serviceItemSchema({
   {/* ═══ HERO BENTO GALLERY ═══ */}
   <section class="container-content pt-8 md:pt-12 mb-12 md:mb-16">
     <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 md:gap-4 h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-lg">
-      {/* Main big image */}
+      {/* Main big image — dual-layer crossfade */}
       <div
         id="villa-hero-cell"
         class="md:col-span-3 row-span-2 relative group overflow-hidden cursor-pointer touch-pan-y"
@@ -179,9 +179,14 @@ const itemSchema = serviceItemSchema({
         data-index="0"
       >
         {heroUrl ? (
-          <img id="villa-hero-img" src={heroUrl} alt={heroAlt}
-               class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
-               loading="eager" fetchpriority="high" draggable="false" />
+          <>
+            <img id="villa-hero-a" src={heroUrl} alt={heroAlt}
+                 class="villa-hero-layer villa-hero-layer--visible absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                 loading="eager" fetchpriority="high" draggable="false" />
+            <img id="villa-hero-b" src="" alt=""
+                 class="villa-hero-layer villa-hero-layer--hidden absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                 aria-hidden="true" draggable="false" />
+          </>
         ) : (
           <div class="w-full h-full bg-sand flex items-center justify-center text-stone-light">No image</div>
         )}
@@ -240,23 +245,64 @@ const itemSchema = serviceItemSchema({
 
   <PhotoLightbox id="villa-photos" photos={allPhotos} />
 
+  <style is:global>
+    /* Phase 4.27 — hero crossfade layers */
+    .villa-hero-layer {
+      transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity;
+    }
+    .villa-hero-layer--visible { opacity: 1; }
+    .villa-hero-layer--hidden  { opacity: 0; }
+    @media (prefers-reduced-motion: reduce) {
+      .villa-hero-layer { transition: none; }
+    }
+  </style>
+
   <script is:inline define:vars={{ heroPhotos: allPhotos }}>
     // Hero in-place swipe (Option 1): swipe cycles the main image; tap opens lightbox.
     // Mobile-primary — desktop still has hover-zoom + click-to-open.
+    // 4.27: dual-layer crossfade between images. Frame stays locked.
     (function () {
       const cell = document.getElementById('villa-hero-cell');
-      const img = document.getElementById('villa-hero-img');
-      if (!cell || !img || !Array.isArray(heroPhotos) || heroPhotos.length < 2) return;
+      const layerA = document.getElementById('villa-hero-a');
+      const layerB = document.getElementById('villa-hero-b');
+      if (!cell || !layerA || !layerB || !Array.isArray(heroPhotos) || heroPhotos.length < 2) return;
 
       let idx = 0;
+      let active = layerA; // starts visible
+      let inactive = layerB;
       let startX = null, startY = null, startT = 0, moved = false;
+      let swapping = false;
 
       const setPhoto = (i) => {
-        idx = ((i % heroPhotos.length) + heroPhotos.length) % heroPhotos.length;
-        const p = heroPhotos[idx];
-        img.src = p.url;
-        img.alt = p.alt || '';
-        cell.setAttribute('data-index', String(idx));
+        const target = ((i % heroPhotos.length) + heroPhotos.length) % heroPhotos.length;
+        if (target === idx || swapping) return;
+        const p = heroPhotos[target];
+        swapping = true;
+        const preload = new Image();
+        const done = () => {
+          inactive.src = p.url;
+          inactive.alt = p.alt || '';
+          // Force a frame so the transition kicks in from opacity:0.
+          requestAnimationFrame(() => {
+            inactive.classList.remove('villa-hero-layer--hidden');
+            inactive.classList.add('villa-hero-layer--visible');
+            active.classList.remove('villa-hero-layer--visible');
+            active.classList.add('villa-hero-layer--hidden');
+            const prev = active;
+            active = inactive;
+            inactive = prev;
+            idx = target;
+            cell.setAttribute('data-index', String(idx));
+            // Clear swap lock after the transition finishes.
+            window.setTimeout(() => { swapping = false; }, 380);
+          });
+        };
+        preload.onload = done;
+        preload.onerror = done;
+        preload.src = p.url;
+        // Fallback: if load event never fires (cache oddities), swap anyway.
+        window.setTimeout(() => { if (swapping && inactive.src !== p.url) done(); }, 400);
       };
 
       cell.addEventListener('touchstart', (e) => {
