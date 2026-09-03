@@ -108,76 +108,79 @@ const Card: React.FC<{
 
   return (
     <div className="dnj-gg__card" data-missing={missing || undefined}>
-      {/* Thumbnail (or placeholder) */}
-      {thumb ? (
-        <img className="dnj-gg__thumb" src={thumb} alt={alt} loading="lazy" draggable={false} />
-      ) : (
-        <div className="dnj-gg__thumb dnj-gg__thumb--placeholder">
-          <span>{missing ? 'Missing media' : 'Loading…'}</span>
-        </div>
-      )}
-
-      {/* Index badge (top-left) */}
-      <span className="dnj-gg__badge" aria-label={`Photo ${row.index + 1} of ${total}`}>
-        {row.index + 1}
-      </span>
-
-      {/* Top-right action stack: Edit + Delete (12px gap) */}
-      <div className="dnj-gg__tr-actions">
-        {row.mediaId ? (
-          <DocumentDrawerToggler
-            className="dnj-gg__btn dnj-gg__btn--edit"
-            title="Edit / replace this photo"
-            aria-label="Edit photo"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
-            </svg>
-          </DocumentDrawerToggler>
-        ) : null}
-        <button
-          type="button"
-          className="dnj-gg__btn dnj-gg__btn--delete"
-          title="Remove this photo"
-          aria-label="Remove photo"
-          onClick={() => onRemove(row.index)}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M3 6h18" />
-            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6" />
-            <path d="M14 11v6" />
-          </svg>
-        </button>
+      {/* Image zone (top): thumbnail + number badge overlay */}
+      <div className="dnj-gg__image">
+        {thumb ? (
+          <img className="dnj-gg__thumb" src={thumb} alt={alt} loading="lazy" draggable={false} />
+        ) : (
+          <div className="dnj-gg__thumb dnj-gg__thumb--placeholder">
+            <span>{missing ? 'Missing media' : 'Loading…'}</span>
+          </div>
+        )}
+        <span className="dnj-gg__badge" aria-label={`Photo ${row.index + 1} of ${total}`}>
+          {row.index + 1}
+        </span>
       </div>
 
-      {/* Bottom-left: reorder left. Bottom-right: reorder right. Wide gap between them. */}
-      <button
-        type="button"
-        className="dnj-gg__btn dnj-gg__btn--prev"
-        title="Move left"
-        aria-label="Move photo left"
-        onClick={() => onMove(row.index, row.index - 1)}
-        disabled={isFirst}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        className="dnj-gg__btn dnj-gg__btn--next"
-        title="Move right"
-        aria-label="Move photo right"
-        onClick={() => onMove(row.index, row.index + 1)}
-        disabled={isLast}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </button>
+      {/* Toolbar (bottom): left = reorder nav, right = edit + delete */}
+      <div className="dnj-gg__toolbar">
+        <div className="dnj-gg__group dnj-gg__group--nav">
+          <button
+            type="button"
+            className="dnj-gg__btn dnj-gg__btn--nav"
+            title="Move left"
+            aria-label="Move photo left"
+            onClick={() => onMove(row.index, row.index - 1)}
+            disabled={isFirst}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="dnj-gg__btn dnj-gg__btn--nav"
+            title="Move right"
+            aria-label="Move photo right"
+            onClick={() => onMove(row.index, row.index + 1)}
+            disabled={isLast}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="dnj-gg__group dnj-gg__group--actions">
+          {row.mediaId ? (
+            <DocumentDrawerToggler
+              className="dnj-gg__btn dnj-gg__btn--edit"
+              title="Edit / replace this photo"
+              aria-label="Edit photo"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
+              </svg>
+            </DocumentDrawerToggler>
+          ) : null}
+          <button
+            type="button"
+            className="dnj-gg__btn dnj-gg__btn--delete"
+            title="Remove this photo"
+            aria-label="Remove photo"
+            onClick={() => onRemove(row.index)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+            </svg>
+          </button>
+        </div>
+      </div>
 
       {/* The drawer itself (mounted when open) */}
       {row.mediaId ? (

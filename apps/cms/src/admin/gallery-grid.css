@@ -1,16 +1,15 @@
 /*
- * DnJourneysBali — Gallery grid (Phase 4.26c rewrite).
+ * DnJourneysBali — Gallery grid (Phase 4.26d framed cards).
  *
  * Two responsibilities:
  *   1. Hide Payload's default array UI for our field (scoped via
- *      `.dnj-gallery-grid`), because 4.26b's attempt to restyle it
- *      couldn't defeat AnimateHeight's inline height:0 and always-
- *      collapsed rows.
+ *      `.dnj-gallery-grid`) — see 4.26c commit for why the pure
+ *      CSS-restyle approach was abandoned.
  *   2. Style our own grid rendered by <GalleryGrid />: `.dnj-gg`.
  *
- * All selectors here are scoped — either under `.dnj-gallery-grid`
- * (so other array fields are never affected) or under `.dnj-gg`
- * (our own component's classes).
+ * 4.26d change: card is now a vertical flex frame with two clear
+ * zones — image (top) + toolbar (bottom). Reorder / edit / delete
+ * moved from over-image absolutes into the toolbar.
  */
 
 /* ── 1. Hide Payload's default array UI for the gallery field ── */
@@ -23,13 +22,8 @@
 .dnj-gallery-grid.array-field .array-field__add-row {
   display: none !important;
 }
-/* Payload validation banners about min-rows / required stay visible
-   (they render inside .array-field__draggable-rows above, so if
-   errors need to show, they'd be hidden — that's OK for pilot since
-   the field is optional). If we later need them, we render our own
-   error surface. */
 
-/* ── 2. Our grid + card styles ── */
+/* ── 2. Our grid ── */
 .dnj-gg {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -59,19 +53,27 @@
 }
 .dnj-gg--empty p { margin: 0; }
 
-/* ── Card ── */
+/* ── Card (framed: image on top, toolbar on bottom) ── */
 .dnj-gg__card {
-  position: relative;
-  aspect-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
   border-radius: 0.5rem;
   overflow: hidden;
-  background: var(--theme-elevation-100);
+  background: var(--theme-elevation-50);
   border: 1px solid var(--theme-elevation-150);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .dnj-gg__card[data-missing] {
   border-color: var(--theme-warning-500, #d90);
   background: var(--theme-warning-50, rgba(220, 160, 0, 0.08));
+}
+
+/* ── Image zone ── */
+.dnj-gg__image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--theme-elevation-100);
 }
 
 .dnj-gg__thumb {
@@ -94,64 +96,71 @@
     );
 }
 
-/* ── Overlay layer ── */
-/* Delete/Edit stack — top-right, 12px between them */
-.dnj-gg__tr-actions {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  gap: 12px;
-  z-index: 3;
-}
-
-/* Index badge — top-left */
+/* Number badge — over image, framed for contrast on any background */
 .dnj-gg__badge {
   position: absolute;
   top: 8px;
   left: 8px;
   min-width: 24px;
   height: 24px;
-  padding: 0 6px;
+  padding: 0 8px;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.72);
   color: #fff;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   letter-spacing: 0.02em;
-  z-index: 3;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  z-index: 2;
   pointer-events: none;
 }
 
-/* Reorder buttons — bottom corners */
-.dnj-gg__btn--prev { position: absolute; left: 8px; bottom: 8px; z-index: 3; }
-.dnj-gg__btn--next { position: absolute; right: 8px; bottom: 8px; z-index: 3; }
+/* ── Toolbar zone (below image, inside card frame) ── */
+.dnj-gg__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  min-height: 44px;
+  background: var(--theme-elevation-100);
+  border-top: 1px solid var(--theme-elevation-150);
+}
 
-/* Shared button style */
+.dnj-gg__group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Toolbar buttons (theme-aware; live on a light band, not on the image) ── */
 .dnj-gg__btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
+  border-radius: 8px;
+  border: 1px solid var(--theme-elevation-200);
+  background: var(--theme-elevation-0, #fff);
+  color: var(--theme-text);
   cursor: pointer;
   padding: 0;
   font-size: 14px;
   line-height: 1;
   user-select: none;
-  transition: background 120ms, transform 120ms, opacity 120ms;
-  backdrop-filter: blur(2px);
+  transition: background 120ms, border-color 120ms, color 120ms, transform 120ms, opacity 120ms;
 }
 .dnj-gg__btn:hover:not(:disabled) {
-  background: rgba(0, 0, 0, 0.85);
-  transform: scale(1.06);
+  background: var(--theme-elevation-200);
+  transform: translateY(-1px);
+}
+.dnj-gg__btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .dnj-gg__btn:disabled {
   opacity: 0.35;
@@ -161,19 +170,19 @@
   outline: 2px solid var(--theme-success-500, #4c8);
   outline-offset: 2px;
 }
-.dnj-gg__btn--delete {
-  background: rgba(180, 30, 30, 0.85);
+
+/* Variant colours — subtle tint on hover so the button stays neutral
+   at rest, then reveals intent on interaction. */
+.dnj-gg__btn--edit:hover:not(:disabled) {
+  color: var(--theme-success-700, #2f6a3a);
+  border-color: var(--theme-success-500, #4c8);
+  background: var(--theme-success-50, rgba(76, 200, 136, 0.12));
 }
 .dnj-gg__btn--delete:hover:not(:disabled) {
-  background: rgba(220, 40, 40, 0.98);
+  color: var(--theme-error-700, #a22);
+  border-color: var(--theme-error-500, #c33);
+  background: var(--theme-error-50, rgba(204, 51, 51, 0.12));
 }
-.dnj-gg__btn--edit {
-  background: rgba(30, 90, 180, 0.85);
+.dnj-gg__btn--nav {
+  /* nav is neutral — no colour variant */
 }
-.dnj-gg__btn--edit:hover:not(:disabled) {
-  background: rgba(40, 110, 220, 0.98);
-}
-
-/* On touch devices, buttons stay always-visible (default).
-   On desktop, keep them always-visible too — they read as UI, not
-   noise, and match Payload's own visual density on cards. */
