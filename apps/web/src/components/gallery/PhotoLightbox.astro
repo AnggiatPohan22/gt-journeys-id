@@ -63,8 +63,8 @@ const dataId = `photo-lightbox-${id}`
   <div class="lb-inner max-w-[95vw] max-h-[92vh] w-full h-full flex flex-col items-center justify-center gap-3 px-4">
     {/* 4.27: fixed 16:9 frame — matches Featured Image aspect. Dual-layer crossfade. */}
     <div class="lb-frame relative w-full max-w-[min(90vw,calc(80vh*16/9))] rounded-lg overflow-hidden bg-black/40" style="aspect-ratio: 16 / 9;">
-      <img class="lb-img lb-img--a absolute inset-0 w-full h-full object-cover select-none" src="" alt="" draggable="false" />
-      <img class="lb-img lb-img--b absolute inset-0 w-full h-full object-cover select-none" src="" alt="" aria-hidden="true" draggable="false" />
+      <img class="lb-img lb-img--a absolute inset-0 w-full h-full object-cover select-none" src="" alt="" style="opacity:0" draggable="false" />
+      <img class="lb-img lb-img--b absolute inset-0 w-full h-full object-cover select-none" src="" alt="" style="opacity:0" aria-hidden="true" draggable="false" />
     </div>
     <p class="lb-caption text-white/80 text-sm text-center max-w-2xl min-h-[1.25rem]"></p>
   </div>
@@ -80,13 +80,13 @@ const dataId = `photo-lightbox-${id}`
   @keyframes lbFadeIn { from{opacity:0} to{opacity:1} }
 
   /* 4.27 — dual-layer crossfade for nav. Frame (lb-frame) is fixed 16:9,
-     images cover-fill so the frame never resizes per image. */
+     images cover-fill so the frame never resizes per image. Opacity is
+     driven by inline style from JS (guaranteed to win specificity);
+     only the transition timing lives here. */
   .lb-img {
-    opacity: 0;
     transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1);
     will-change: opacity;
   }
-  .lb-img.is-visible { opacity: 1; }
 
   @media (prefers-reduced-motion: reduce) {
     .photo-lightbox.is-open { animation: none; }
@@ -139,25 +139,28 @@ const dataId = `photo-lightbox-${id}`
         if (current === -1) {
           active.src = p.url
           active.alt = p.alt || ''
-          requestAnimationFrame(() => active.classList.add('is-visible'))
+          window.setTimeout(() => { active.style.opacity = '1' }, 0)
           current = target
           return
         }
 
         swapping = true
+        let settled = false
         const preload = new Image()
         const commit = () => {
+          if (settled) return
+          settled = true
           inactive.src = p.url
           inactive.alt = p.alt || ''
-          requestAnimationFrame(() => {
-            inactive.classList.add('is-visible')
-            active.classList.remove('is-visible')
+          window.setTimeout(() => {
+            inactive.style.opacity = '1'
+            active.style.opacity = '0'
             const prev = active
             active = inactive
             inactive = prev
             current = target
             window.setTimeout(() => { swapping = false }, 380)
-          })
+          }, 0)
         }
         preload.onload = commit
         preload.onerror = commit

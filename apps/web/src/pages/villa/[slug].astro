@@ -181,10 +181,12 @@ const itemSchema = serviceItemSchema({
         {heroUrl ? (
           <>
             <img id="villa-hero-a" src={heroUrl} alt={heroAlt}
-                 class="villa-hero-layer villa-hero-layer--visible absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                 class="villa-hero-layer absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                 style="opacity:1"
                  loading="eager" fetchpriority="high" draggable="false" />
             <img id="villa-hero-b" src="" alt=""
-                 class="villa-hero-layer villa-hero-layer--hidden absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                 class="villa-hero-layer absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+                 style="opacity:0"
                  aria-hidden="true" draggable="false" />
           </>
         ) : (
@@ -246,13 +248,13 @@ const itemSchema = serviceItemSchema({
   <PhotoLightbox id="villa-photos" photos={allPhotos} />
 
   <style is:global>
-    /* Phase 4.27 — hero crossfade layers */
+    /* Phase 4.27 — hero crossfade layers. Opacity set inline (JS
+       flips it); only the transition timing lives in CSS so a
+       later fade doesn't fight with a specificity-losing rule. */
     .villa-hero-layer {
       transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1);
       will-change: opacity;
     }
-    .villa-hero-layer--visible { opacity: 1; }
-    .villa-hero-layer--hidden  { opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
       .villa-hero-layer { transition: none; }
     }
@@ -279,16 +281,18 @@ const itemSchema = serviceItemSchema({
         if (target === idx || swapping) return;
         const p = heroPhotos[target];
         swapping = true;
+        let settled = false;
         const preload = new Image();
         const done = () => {
+          if (settled) return;
+          settled = true;
           inactive.src = p.url;
           inactive.alt = p.alt || '';
-          // Force a frame so the transition kicks in from opacity:0.
-          requestAnimationFrame(() => {
-            inactive.classList.remove('villa-hero-layer--hidden');
-            inactive.classList.add('villa-hero-layer--visible');
-            active.classList.remove('villa-hero-layer--visible');
-            active.classList.add('villa-hero-layer--hidden');
+          // Yield one tick so src change lands as a paint before opacity
+          // flips (setTimeout, not rAF — rAF is throttled in background tabs).
+          window.setTimeout(() => {
+            inactive.style.opacity = '1';
+            active.style.opacity = '0';
             const prev = active;
             active = inactive;
             inactive = prev;
@@ -296,7 +300,7 @@ const itemSchema = serviceItemSchema({
             cell.setAttribute('data-index', String(idx));
             // Clear swap lock after the transition finishes.
             window.setTimeout(() => { swapping = false; }, 380);
-          });
+          }, 0);
         };
         preload.onload = done;
         preload.onerror = done;
