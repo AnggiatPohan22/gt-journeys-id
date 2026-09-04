@@ -1,0 +1,279 @@
+---
+/**
+ * DnJourneysBali — Shared hero bento gallery (Phase 4.28 rollout).
+ *
+ * Extracted from villa/[slug].astro's post-pilot code (commits
+ * 98df149, d98ad5b, 778a765, 474573e). Rendered by every service
+ * detail page so featured + gallery share one viewer sequence with
+ * consistent frame + smooth crossfade transitions.
+ *
+ * What this component owns:
+ *   - Bento layout (1 big cell + 2 side thumbnails on desktop).
+ *   - Dual-layer crossfade on the main cell + swipe/tap script.
+ *   - Warm-preload of all photos on init.
+ *   - Mobile-only "Show all N photos" pill (desktop uses hover
+ *     overlay on side cell 2).
+ *   - PhotoLightbox mount for the sequence.
+ *   - CSS for the crossfade layers (opacity + hover-zoom both listed,
+ *     to avoid shorthand collision from 4.27a).
+ *
+ * Data contract:
+ *   - `heroImg` (Media | null): from item.featuredImage. Displayed
+ *     as photo #1 in the sequence.
+ *   - `gallery` (array of { image: Media | null, caption?: string | null }):
+ *     from item.gallery. Displayed as photos #2..N. Captions carry
+ *     into the lightbox.
+ *   - `id` (string): unique per page (e.g. "villa-photos",
+ *     "tour-photos"). Used as the lightbox slug + as a suffix on
+ *     internal element ids so multiple instances on one page never
+ *     collide.
+ *   - `heroAlt` (string, optional): alt-text fallback when the
+ *     featured Media has no alt.
+ *
+ * CMS data model is untouched — featured and gallery stay as
+ * separate CMS fields; unification happens here at render time.
+ */
+import type { Media } from '@shared/types/payload-types'
+import Icon from '@components/common/Icon.astro'
+import PhotoLightbox from '@components/gallery/PhotoLightbox.astro'
+
+interface Props {
+  id: string
+  heroImg: Media | null
+  heroAlt?: string
+  gallery?: Array<{ image?: Media | null; caption?: string | null } | null | undefined> | null
+}
+
+const { id, heroImg, heroAlt: heroAltProp, gallery } = Astro.props
+
+const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
+const heroAlt = heroImg?.alt ?? heroAltProp ?? ''
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+
+const galleryEntries = (gallery ?? [])
+  .filter((g): g is { image?: Media | null; caption?: string | null } => !!g)
+  .map((g) => ({ media: asMedia(g.image), caption: g.caption ?? undefined }))
+  .filter((g): g is { media: Media; caption?: string } => !!g.media)
+
+const galleryImages = galleryEntries.map((g) => g.media)
+const sideImg1 = galleryImages[0]
+const sideImg2 = galleryImages[1]
+const totalPhotos = (heroUrl ? 1 : 0) + galleryImages.length
+
+// Unified sequence for hero swipe + lightbox: [featured, ...gallery].
+// Featured is always index 0.
+const allPhotos = [
+  ...(heroUrl ? [{ url: heroUrl, alt: heroAlt, caption: undefined as string | undefined }] : []),
+  ...galleryEntries.map((g) => ({
+    url: g.media.sizes?.hero?.url ?? g.media.url ?? '',
+    alt: g.media.alt ?? '',
+    caption: g.caption,
+  })),
+].filter((p) => !!p.url)
+
+// Element ids scoped by prop id so multiple instances never collide.
+const cellId = `hero-bento-${id}-cell`
+const layerAId = `hero-bento-${id}-a`
+const layerBId = `hero-bento-${id}-b`
+---
+
+<section class="container-content pt-8 md:pt-12 mb-12 md:mb-16">
+  <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 md:gap-4 h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-lg">
+    {/* Main big image — dual-layer crossfade */}
+    <div
+      id={cellId}
+      class="md:col-span-3 row-span-2 relative group overflow-hidden cursor-pointer touch-pan-y"
+      role="button"
+      tabindex="0"
+      aria-label="Open photo gallery"
+      data-open-lightbox={id}
+      data-index="0"
+    >
+      {heroUrl ? (
+        <>
+          <img id={layerAId} src={heroUrl} alt={heroAlt}
+               class="hero-bento-layer absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+               style="opacity:1"
+               loading="eager" fetchpriority="high" draggable="false" />
+          <img id={layerBId} src="" alt=""
+               class="hero-bento-layer absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 select-none"
+               style="opacity:0"
+               aria-hidden="true" draggable="false" />
+        </>
+      ) : (
+        <div class="w-full h-full bg-sand flex items-center justify-center text-stone-light">No image</div>
+      )}
+      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 pointer-events-none"></div>
+    </div>
+
+    {/* Side 1 (desktop only) */}
+    <div class="hidden md:block relative group overflow-hidden cursor-pointer"
+         data-open-lightbox={sideImg1 ? id : undefined}
+         data-index={sideImg1 ? '1' : undefined}>
+      {sideImg1 ? (
+        <img src={sideImg1.sizes?.card?.url ?? sideImg1.url ?? ''}
+             alt={sideImg1.alt ?? ''}
+             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+             loading="lazy" />
+      ) : (
+        <div class="w-full h-full bg-sand"></div>
+      )}
+      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 pointer-events-none"></div>
+    </div>
+
+    {/* Side 2 with "Show all photos" overlay (desktop) */}
+    <div class="hidden md:block relative group overflow-hidden cursor-pointer"
+         data-open-lightbox={sideImg2 ? id : undefined}
+         data-index={sideImg2 ? '2' : undefined}>
+      {sideImg2 ? (
+        <img src={sideImg2.sizes?.card?.url ?? sideImg2.url ?? ''}
+             alt={sideImg2.alt ?? ''}
+             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+             loading="lazy" />
+      ) : (
+        <div class="w-full h-full bg-sand"></div>
+      )}
+      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500 pointer-events-none"></div>
+      {galleryImages.length > 2 && (
+        <button type="button"
+           data-open-lightbox={id} data-index="0"
+           class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-semibold gap-2 border-0 cursor-pointer">
+          <Icon name="filter_list" class="w-5 h-5" /> Show all {totalPhotos} photos
+        </button>
+      )}
+    </div>
+  </div>
+
+  {/* Mobile-only "Show all photos" button (hover overlay is desktop-only) */}
+  {totalPhotos > 1 && (
+    <div class="md:hidden mt-3 flex justify-center">
+      <button type="button"
+              data-open-lightbox={id} data-index="0"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-sand-dark/30 text-ocean text-sm font-semibold shadow-sm">
+        <Icon name="filter_list" class="w-4 h-4" /> Show all {totalPhotos} photos
+      </button>
+    </div>
+  )}
+</section>
+
+<PhotoLightbox id={id} photos={allPhotos} />
+
+<style is:global>
+  /* Hero bento crossfade layers — opacity set inline (JS flips it);
+     both properties listed to keep hover-zoom smooth (4.27a fix).
+     Class is generic (.hero-bento-layer) so all service pages share. */
+  .hero-bento-layer {
+    transition:
+      opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-bento-layer { transition: none; }
+  }
+</style>
+
+<script is:inline define:vars={{ heroPhotos: allPhotos, cellId, layerAId, layerBId, lightboxId: id }}>
+  // Hero in-place swipe: swipe cycles the main image; tap opens lightbox.
+  // Mobile-primary — desktop still has hover-zoom + click-to-open.
+  // Dual-layer crossfade between images; frame stays locked.
+  (function () {
+    const cell = document.getElementById(cellId);
+    const layerA = document.getElementById(layerAId);
+    const layerB = document.getElementById(layerBId);
+    if (!cell || !layerA || !layerB || !Array.isArray(heroPhotos) || heroPhotos.length < 2) return;
+
+    // Warm-preload every allPhotos URL so the FIRST swipe out of featured
+    // feels the same as any subsequent swipe (no cold-cache pause).
+    // Also prime layer B with photos[1] so first swipe finds it loaded.
+    for (const p of heroPhotos) {
+      if (!p || !p.url) continue;
+      const w = new Image();
+      w.src = p.url;
+    }
+    if (heroPhotos[1] && heroPhotos[1].url) {
+      layerB.src = heroPhotos[1].url;
+      layerB.alt = heroPhotos[1].alt || '';
+      // layerB stays opacity:0 — user doesn't see it until crossfade.
+    }
+
+    let idx = 0;
+    let active = layerA;
+    let inactive = layerB;
+    let startX = null, startY = null, startT = 0, moved = false;
+    let swapping = false;
+
+    const setPhoto = (i) => {
+      const target = ((i % heroPhotos.length) + heroPhotos.length) % heroPhotos.length;
+      if (target === idx || swapping) return;
+      const p = heroPhotos[target];
+      swapping = true;
+      let settled = false;
+      const preload = new Image();
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        inactive.src = p.url;
+        inactive.alt = p.alt || '';
+        window.setTimeout(() => {
+          inactive.style.opacity = '1';
+          active.style.opacity = '0';
+          const prev = active;
+          active = inactive;
+          inactive = prev;
+          idx = target;
+          cell.setAttribute('data-index', String(idx));
+          window.setTimeout(() => { swapping = false; }, 380);
+        }, 0);
+      };
+      preload.onload = done;
+      preload.onerror = done;
+      preload.src = p.url;
+      window.setTimeout(() => { if (swapping && inactive.src !== p.url) done(); }, 400);
+    };
+
+    cell.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startT = Date.now();
+      moved = false;
+    }, { passive: true });
+
+    cell.addEventListener('touchmove', (e) => {
+      if (startX === null) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dx) > 10 || Math.abs(dy) > 10) moved = true;
+    }, { passive: true });
+
+    cell.addEventListener('touchend', (e) => {
+      if (startX === null) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      const dt = Date.now() - startT;
+      startX = startY = null;
+
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        e.preventDefault();
+        setPhoto(dx < 0 ? idx + 1 : idx - 1);
+        return;
+      }
+      if (!moved && dt < 400) {
+        e.preventDefault();
+        const w = window;
+        if (w.__openPhotoLightbox) w.__openPhotoLightbox(lightboxId, idx);
+      }
+    });
+
+    cell.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const w = window;
+        if (w.__openPhotoLightbox) w.__openPhotoLightbox(lightboxId, idx);
+      }
+    });
+  })();
+</script>
