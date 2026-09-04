@@ -250,10 +250,16 @@ const itemSchema = serviceItemSchema({
   <style is:global>
     /* Phase 4.27 — hero crossfade layers. Opacity set inline (JS
        flips it); only the transition timing lives in CSS so a
-       later fade doesn't fight with a specificity-losing rule. */
+       later fade doesn't fight with a specificity-losing rule.
+       4.27a: shorthand `transition: opacity …` was overriding
+       Tailwind's `transition-transform duration-700` → hover
+       group-hover:scale-105 snapped instantly (kaku). Fix: list
+       BOTH properties so hover-zoom keeps its 700ms ease. */
     .villa-hero-layer {
-      transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1);
-      will-change: opacity;
+      transition:
+        opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 700ms cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: opacity, transform;
     }
     @media (prefers-reduced-motion: reduce) {
       .villa-hero-layer { transition: none; }
