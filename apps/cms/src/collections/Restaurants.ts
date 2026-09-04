@@ -108,10 +108,31 @@ export const Restaurants: CollectionConfig = {
               label: s.media.sections.gallery.label,
               admin: { initCollapsed: s.media.sections.gallery.initCollapsed, className: sectionClass(s.media.color, s.media.sections.gallery.icon) },
               fields: [
-                { name: 'gallery', type: 'array', fields: [
-                  { name: 'image', type: 'upload', relationTo: 'media', required: true },
-                  { name: 'caption', type: 'text' },
-                ]},
+                {
+                  name: 'galleryBulkUpload',
+                  type: 'ui',
+                  admin: {
+                    components: {
+                      Field: '/admin/GalleryBulkUpload#default',
+                    },
+                  },
+                },
+                {
+                  name: 'gallery',
+                  type: 'array',
+                  maxRows: 10,
+                  admin: {
+                    description: 'Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.',
+                    className: 'dnj-gallery-grid',
+                    components: {
+                      afterInput: ['/admin/GalleryGrid#default'],
+                    },
+                  },
+                  fields: [
+                    { name: 'image', type: 'upload', relationTo: 'media', required: true },
+                    { name: 'caption', type: 'text' },
+                  ],
+                },
               ],
             },
           ],
