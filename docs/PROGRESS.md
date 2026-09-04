@@ -4,7 +4,7 @@
 > Konten detail lama (1067 baris) diarsipkan utuh di
 > [`docs/archive/progress-archive-2026-08-23.md`](archive/progress-archive-2026-08-23.md).
 >
-> **Last updated:** 2026-09-04
+> **Last updated:** 2026-09-05
 
 ## Project Overview
 
@@ -67,6 +67,7 @@ Current phase:     Phase 3.24 (header/footer template system) CODE selesai → b
 | 4.27 | Frontend Gallery — Consistent Frame + Crossfade Transitions (villa pilot) — dual-layer opacity crossfade (350ms cubic-bezier soft), fixed 16:9 lightbox frame with object-cover (no letterbox / no resize on nav), warm-preload of allPhotos + prime layer B, first-open of lightbox now fades in (not snap). 3 commits (base + fix + uniform behavior) | ✅ **Complete** — dev-browser verified; frame stable 1024×576 across 3 nav clicks | [phase-4.27-frontend-gallery-crossfade.md](phases/phase-4.27-frontend-gallery-crossfade.md) |
 | 4.27a | Hero Hover-Zoom "Kaku" Fix — my 4.27 CSS `transition:` shorthand silently reset Tailwind's `transition-transform duration-700` → hover scale snapped instantly. Fix: list BOTH `opacity 350ms` AND `transform 700ms` explicitly; hover-zoom now matches side cells exactly | ✅ **Complete** — computed style verified: hero transition-property "opacity, transform" | [phase-4.27a-hero-zoom-fix.md](phases/phase-4.27a-hero-zoom-fix.md) |
 | 4.28 | HeroBentoGallery Rollout — extract shared `HeroBentoGallery.astro` from villa's post-pilot code + refactor villa (parity gate) + roll out to 7 other service detail pages (tour, restaurant, water-activity, venue, yacht, rental, spa). 8 commits total (1 prep + 7 rollouts). Broken `#options` anchor + B1 zoom overflow fixed on all 7 as a side-effect. Data model unchanged | ✅ **Complete** — villa parity verified, tour+yacht spot-checked in browser pane · ⏳ owner UAT with populated gallery data per page | [phase-4.28-hero-bento-gallery-rollout.md](phases/phase-4.28-hero-bento-gallery-rollout.md) |
+| 4.29 | CMS Gallery Rollout — apply the pilot bulk-upload + framed grid (from 4.26 → 4.26d, Accommodations) to the 7 remaining service collections (Tours, Restaurants, WaterActivities, Venues, Yachts, Rentals, Spa). Zero code duplication: both shared Admin components already work at path 'gallery'; rollout is config wiring only. maxRows: 10 enforced consistently across all. 8 commits (7 collection + 1 types regen). No DB / data-shape / dependency changes | ✅ **Complete** — code + types regen clean · ⏳ owner UAT per collection | [phase-4.29-cms-gallery-rollout.md](phases/phase-4.29-cms-gallery-rollout.md) |
 | 5 | Production Deploy (+ 6 Packaging) | ⬜ Not Started | [phase-5-deploy.md](phases/phase-5-deploy.md) |
 
 **Legenda:** ✅ Complete · 🔨 In Progress · 📋 Planned · ⬜ Not Started · ⏸️ Paused
