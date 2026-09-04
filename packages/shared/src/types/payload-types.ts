@@ -2697,6 +2697,9 @@ export interface Tour {
    * Main hero image.
    */
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
@@ -6838,6 +6841,9 @@ export interface WaterActivity {
       }[]
     | null;
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
@@ -8445,6 +8451,9 @@ export interface Yacht {
       }[]
     | null;
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
@@ -10696,6 +10705,9 @@ export interface Restaurant {
       }[]
     | null;
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
@@ -12660,6 +12672,9 @@ export interface Venue {
     maxGuests?: number | null;
   };
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
@@ -14936,6 +14951,9 @@ export interface Rental {
       }[]
     | null;
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
@@ -17196,6 +17214,9 @@ export interface Spa {
       }[]
     | null;
   featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
