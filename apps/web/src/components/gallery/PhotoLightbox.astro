@@ -135,21 +135,28 @@ const dataId = `photo-lightbox-${id}`
         capEl.style.visibility = cap ? 'visible' : 'hidden'
         counterEl.textContent = `${target + 1} / ${photos.length}`
 
-        // First render (nothing visible yet): skip crossfade, just set A.
-        if (current === -1) {
-          active.src = p.url
-          active.alt = p.alt || ''
-          window.setTimeout(() => { active.style.opacity = '1' }, 0)
-          current = target
-          return
-        }
-
+        // 4.27b: unified path — every image switch (including the very
+        // first open at any index) preloads → fades in with the same
+        // 350ms timing. On first open there's no previous image so the
+        // "crossfade" reduces to a plain fade-in of the active layer,
+        // but the perceived timing matches subsequent nav.
         swapping = true
         let settled = false
         const preload = new Image()
+        const firstRender = current === -1
         const commit = () => {
           if (settled) return
           settled = true
+          if (firstRender) {
+            active.src = p.url
+            active.alt = p.alt || ''
+            window.setTimeout(() => {
+              active.style.opacity = '1'
+              current = target
+              window.setTimeout(() => { swapping = false }, 380)
+            }, 0)
+            return
+          }
           inactive.src = p.url
           inactive.alt = p.alt || ''
           window.setTimeout(() => {

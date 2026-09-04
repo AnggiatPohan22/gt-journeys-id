@@ -270,6 +270,22 @@ const itemSchema = serviceItemSchema({
       const layerB = document.getElementById('villa-hero-b');
       if (!cell || !layerA || !layerB || !Array.isArray(heroPhotos) || heroPhotos.length < 2) return;
 
+      // 4.27b: warm-preload every allPhotos URL so the FIRST swipe out of
+      // featured feels the same as any subsequent swipe (no cold-cache
+      // pause). Browsers deprioritize new Image() but it's enough for a
+      // ≤11-photo villa page. Also prime layer B with photos[1] so the
+      // very first swipe has an already-loaded second layer.
+      for (const p of heroPhotos) {
+        if (!p || !p.url) continue;
+        const w = new Image();
+        w.src = p.url;
+      }
+      if (heroPhotos[1] && heroPhotos[1].url) {
+        layerB.src = heroPhotos[1].url;
+        layerB.alt = heroPhotos[1].alt || '';
+        // layerB stays opacity:0 — user doesn't see it until crossfade.
+      }
+
       let idx = 0;
       let active = layerA; // starts visible
       let inactive = layerB;
