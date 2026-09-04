@@ -13,6 +13,7 @@ import { siteConfig } from '@config/site'
 import { lexicalToPlainText } from '@lib/lexical'
 import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import StructuredData from '@components/common/StructuredData.astro'
+import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
 import { serviceItemSchema } from '@lib/structuredData'
 import type { Venue, Media } from '@shared/types/payload-types'
 
@@ -33,9 +34,7 @@ const dest = typeof item.destination === 'object' ? item.destination : null
 const heroImg = asMedia(item.featuredImage)
 const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
 const heroAlt = heroImg?.alt ?? item.name
-const galleryImages = (item.gallery ?? []).map((g) => asMedia(g.image)).filter((m): m is Media => !!m)
-const sideImg1 = galleryImages[0], sideImg2 = galleryImages[1]
-const totalPhotos = 1 + galleryImages.length
+// Hero + gallery merge lives inside <HeroBentoGallery /> — see 4.28.
 
 const descriptionText = lexicalToPlainText(item.description)
 const features = ((item as any).features ?? []) as Array<{ name: string; icon?: string }>
@@ -104,23 +103,8 @@ const itemSchema = serviceItemSchema({
 <PageLayout title={title} description={description} ogType="product" ogImage={heroUrl || undefined}>
   <Breadcrumbs items={crumbs} />
   <StructuredData schema={itemSchema} />
-  <section class="container-content pt-8 md:pt-12 mb-12 md:mb-16">
-    <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 md:gap-4 h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-lg">
-      <div class="md:col-span-3 row-span-2 relative group">
-        {heroUrl ? <img src={heroUrl} alt={heroAlt} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="eager" fetchpriority="high" /> : <div class="w-full h-full bg-sand flex items-center justify-center text-stone-light">No image</div>}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-      </div>
-      <div class="hidden md:block relative group overflow-hidden">
-        {sideImg1 ? <img src={sideImg1.sizes?.card?.url ?? sideImg1.url ?? ''} alt={sideImg1.alt ?? ''} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" /> : <div class="w-full h-full bg-sand"></div>}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-      </div>
-      <div class="hidden md:block relative group overflow-hidden">
-        {sideImg2 ? <img src={sideImg2.sizes?.card?.url ?? sideImg2.url ?? ''} alt={sideImg2.alt ?? ''} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" /> : <div class="w-full h-full bg-sand"></div>}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-        {galleryImages.length > 2 && <a href="#options" class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-semibold gap-2 no-underline"><Icon name="filter_list" class="w-5 h-5" /> Show all {totalPhotos} photos</a>}
-      </div>
-    </div>
-  </section>
+  {/* ═══ HERO BENTO GALLERY (shared component — 4.28) ═══ */}
+  <HeroBentoGallery id="venue-photos" heroImg={heroImg} heroAlt={heroAlt} gallery={item.gallery} />
 
   <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-24">
     <div class="lg:col-span-8">
