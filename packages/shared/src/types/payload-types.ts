@@ -28538,95 +28538,166 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface SiteSetting {
   id: number;
+  /**
+   * Appears in the browser tab, default SEO titles, and as the fallback for footer copyright.
+   */
   siteName: string;
+  /**
+   * Short brand line shown under the logo (where enabled) and used as a default SEO description fallback.
+   */
   tagline?: string | null;
+  /**
+   * Primary logo used on light navbars/sections. SVG preferred; PNG accepted at 2× (e.g. 400×120).
+   */
   logo?: (number | null) | Media;
+  /**
+   * Optional. Used on dark navbar/footer variants. Falls back to the main Logo if empty.
+   */
   logoDark?: (number | null) | Media;
+  /**
+   * Small icon shown in the browser tab. Square image, recommended 64×64 (PNG or SVG).
+   */
   favicon?: (number | null) | Media;
+  /**
+   * Primary contact channels. Used by the header, footer, floating WhatsApp button, and every service detail page.
+   */
   contact?: {
+    /**
+     * Public contact email address.
+     */
     email?: string | null;
+    /**
+     * Display phone number for the footer. Include country code, e.g. +62 812 3456 7890.
+     */
     phone?: string | null;
     /**
-     * Include country code e.g. 6281234567890
+     * Primary WhatsApp number used across the whole site (header button, floating button, service enquiries). Digits only with country code, no + or spaces, e.g. 6281234567890.
      */
     whatsapp?: string | null;
+    /**
+     * Physical or mailing address shown in the footer and on the contact page.
+     */
     address?: string | null;
+    /**
+     * Paste ONLY the `src` URL from a Google Maps "Embed a map" iframe (starts with https://www.google.com/maps/embed?…). Do not paste the full <iframe> tag.
+     */
     mapEmbed?: string | null;
   };
+  /**
+   * Extra settings for the floating WhatsApp button only. The number above (Contact Details → WhatsApp Number) is always used first — the fallback here only takes over if that field is empty.
+   */
+  whatsappDefaults?: {
+    /**
+     * Optional. Used only by the floating WhatsApp button if the primary WhatsApp Number above is empty. Same format: 6281234567890.
+     */
+    defaultNumber?: string | null;
+    /**
+     * Pre-filled message opened when a guest taps the floating WhatsApp button on a page that does not define its own template.
+     */
+    greetingMessage?: string | null;
+    /**
+     * Shown in the footer under WhatsApp. Free text, one line per day, e.g. "Mon–Fri 09:00–18:00 (WITA)".
+     */
+    businessHours?: string | null;
+  };
+  /**
+   * Full profile URLs (not just handles). Leave blank to hide the icon in the footer.
+   */
   socialMedia?: {
+    /**
+     * Full URL, e.g. https://instagram.com/dnjourneysbali
+     */
     instagram?: string | null;
+    /**
+     * Full URL, e.g. https://facebook.com/dnjourneysbali
+     */
     facebook?: string | null;
+    /**
+     * Full URL, e.g. https://tiktok.com/@dnjourneysbali
+     */
     tiktok?: string | null;
+    /**
+     * Full URL, e.g. https://youtube.com/@dnjourneysbali
+     */
     youtube?: string | null;
+    /**
+     * Full URL to the TripAdvisor listing.
+     */
     tripadvisor?: string | null;
   };
+  /**
+   * These values are used when a page or service does not define its own SEO. Analytics IDs are optional.
+   */
   defaultSeo?: {
+    /**
+     * Default browser-tab / search-result title. Aim for 50–60 characters.
+     */
     metaTitle?: string | null;
+    /**
+     * Default snippet shown in search results. Max 160 characters.
+     */
     metaDescription?: string | null;
+    /**
+     * Default image used when the site is shared on social media. Recommended 1200×630.
+     */
     ogImage?: (number | null) | Media;
     /**
-     * GA4 Measurement ID, contoh: G-XXXXXXXXXX
+     * GA4 Measurement ID, e.g. G-XXXXXXXXXX. Leave empty to disable GA.
      */
     googleAnalyticsId?: string | null;
     /**
-     * Site token dari Cloudflare Web Analytics (privacy-first, cookieless). Bisa dipakai bareng GA.
+     * Site token from Cloudflare Web Analytics (privacy-first, cookieless). Can be used alongside Google Analytics.
      */
     cloudflareWebAnalyticsToken?: string | null;
   };
-  whatsappDefaults?: {
-    defaultNumber?: string | null;
-    greetingMessage?: string | null;
-    businessHours?: string | null;
-  };
-  footer?: {
-    copyrightText?: string | null;
-    additionalScripts?: string | null;
-  };
   /**
-   * Pengaturan layout global — jarak antar block, dll.
+   * Vertical rhythm between blocks and internal padding defaults used across all pages.
    */
   layout?: {
     /**
-     * Jarak vertikal antar block di halaman. Compact = rapat, Normal = standar, Spacious = longgar.
+     * Vertical space between page blocks. Compact = tight, Normal = standard, Spacious = airy.
      */
     blockGap?: ('compact' | 'normal' | 'spacious') | null;
     /**
-     * Jarak antara block terakhir dan footer. Kalau kosong, ikut Block Gap.
+     * Space between the last block on a page and the footer. If left empty, follows the Gap Between Blocks setting.
      */
     beforeFooter?: ('compact' | 'normal' | 'spacious') | null;
     /**
-     * Padding internal atas/bawah untuk semua block. Default 48 mobile / 64 desktop, simetris. Override per-block via Advanced tab.
+     * Internal top/bottom padding applied inside every block. Default is 48px mobile / 64px desktop, symmetric. Individual blocks can override via their Advanced tab.
      */
     blockPadding?: {
       top?: {
         /**
-         * px, <768px
+         * Pixels, screens under 768px.
          */
         mobile?: number | null;
         /**
-         * px, ≥768px
+         * Pixels, screens 768px and up.
          */
         desktop?: number | null;
       };
       bottom?: {
         /**
-         * px, <768px
+         * Pixels, screens under 768px.
          */
         mobile?: number | null;
         /**
-         * px, ≥768px
+         * Pixels, screens 768px and up.
          */
         desktop?: number | null;
       };
     };
   };
   /**
-   * Copy untuk header listing di halaman section (villa, tour, dll) — layout hero-immersive.
+   * Headline copy for service listing pages (villa, tour, etc.) using the immersive hero layout. The subtitle is appended after the live result count.
    */
   sectionPages?: {
+    /**
+     * Main heading shown on the listing hero.
+     */
     listingTitle?: string | null;
     /**
-     * Ditampilkan setelah angka jumlah hasil (live count). Contoh hasil: "12 properties available in Bali & surrounding islands".
+     * Shown after the live result count. Example output: "12 properties available in Bali & surrounding islands".
      */
     listingSubtitle?: string | null;
   };
@@ -28648,22 +28719,62 @@ export interface SiteSetting {
     showExploreAll?: boolean | null;
   };
   /**
-   * Copy untuk halaman 404 dan Coming Soon pages.
+   * Copy for the 404 page and any temporary "coming soon" placeholder pages.
    */
   errorPages?: {
     notFound?: {
+      /**
+       * Main heading on the 404 page.
+       */
       title?: string | null;
+      /**
+       * Body text explaining what happened.
+       */
       message?: string | null;
+      /**
+       * Label for the button that returns to the homepage.
+       */
       buttonText?: string | null;
     };
     propertyComingSoon?: {
+      /**
+       * Small label above the main title.
+       */
       eyebrow?: string | null;
+      /**
+       * Main heading of the placeholder page.
+       */
       title?: string | null;
+      /**
+       * Explanatory paragraph shown to visitors.
+       */
       description?: string | null;
+      /**
+       * Pre-filled WhatsApp message when the primary button is tapped.
+       */
       whatsappMessage?: string | null;
+      /**
+       * Label for the WhatsApp CTA button.
+       */
       primaryButtonText?: string | null;
+      /**
+       * Label for the secondary "back to home" button.
+       */
       secondaryButtonText?: string | null;
     };
+  };
+  /**
+   * Footer copyright line and any additional HTML/JS injected before </body>.
+   */
+  footer?: {
+    /**
+     * Free text shown at the bottom of the footer. Example: "© 2026 DnJourneysBali. All rights reserved."
+     */
+    copyrightText?: string | null;
+    /**
+     * ⚠️ DANGER ZONE. Pasted HTML/JS is injected verbatim before </body> on every page. Only paste code from trusted providers (Meta Pixel, Hotjar, etc.). Hostile code here can steal visitor data. Leave empty if unsure.
+     */
+    additionalScripts?: string | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -28908,6 +29019,13 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         address?: T;
         mapEmbed?: T;
       };
+  whatsappDefaults?:
+    | T
+    | {
+        defaultNumber?: T;
+        greetingMessage?: T;
+        businessHours?: T;
+      };
   socialMedia?:
     | T
     | {
@@ -28925,19 +29043,6 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         ogImage?: T;
         googleAnalyticsId?: T;
         cloudflareWebAnalyticsToken?: T;
-      };
-  whatsappDefaults?:
-    | T
-    | {
-        defaultNumber?: T;
-        greetingMessage?: T;
-        businessHours?: T;
-      };
-  footer?:
-    | T
-    | {
-        copyrightText?: T;
-        additionalScripts?: T;
       };
   layout?:
     | T
@@ -28997,6 +29102,12 @@ export interface SiteSettingsSelect<T extends boolean = true> {
               primaryButtonText?: T;
               secondaryButtonText?: T;
             };
+      };
+  footer?:
+    | T
+    | {
+        copyrightText?: T;
+        additionalScripts?: T;
       };
   updatedAt?: T;
   createdAt?: T;
