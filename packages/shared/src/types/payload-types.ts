@@ -28558,9 +28558,6 @@ export interface SiteSetting {
    * Small icon shown in the browser tab. Square image, recommended 64×64 (PNG or SVG).
    */
   favicon?: (number | null) | Media;
-  /**
-   * Primary contact channels. Used by the header, footer, floating WhatsApp button, and every service detail page.
-   */
   contact?: {
     /**
      * Public contact email address.
@@ -28583,9 +28580,6 @@ export interface SiteSetting {
      */
     mapEmbed?: string | null;
   };
-  /**
-   * Extra settings for the floating WhatsApp button only. The number above (Contact Details → WhatsApp Number) is always used first — the fallback here only takes over if that field is empty.
-   */
   whatsappDefaults?: {
     /**
      * Optional. Used only by the floating WhatsApp button if the primary WhatsApp Number above is empty. Same format: 6281234567890.
@@ -28600,9 +28594,6 @@ export interface SiteSetting {
      */
     businessHours?: string | null;
   };
-  /**
-   * Full profile URLs (not just handles). Leave blank to hide the icon in the footer.
-   */
   socialMedia?: {
     /**
      * Full URL, e.g. https://instagram.com/dnjourneysbali
@@ -28662,9 +28653,6 @@ export interface SiteSetting {
      * Space between the last block on a page and the footer. If left empty, follows the Gap Between Blocks setting.
      */
     beforeFooter?: ('compact' | 'normal' | 'spacious') | null;
-    /**
-     * Internal top/bottom padding applied inside every block. Default is 48px mobile / 64px desktop, symmetric. Individual blocks can override via their Advanced tab.
-     */
     blockPadding?: {
       top?: {
         /**
@@ -28688,9 +28676,6 @@ export interface SiteSetting {
       };
     };
   };
-  /**
-   * Headline copy for service listing pages (villa, tour, etc.) using the immersive hero layout. The subtitle is appended after the live result count.
-   */
   sectionPages?: {
     /**
      * Main heading shown on the listing hero.
@@ -28718,9 +28703,6 @@ export interface SiteSetting {
     selectionMode?: ('same_type' | 'same_destination' | 'random') | null;
     showExploreAll?: boolean | null;
   };
-  /**
-   * Copy for the 404 page and any temporary "coming soon" placeholder pages.
-   */
   errorPages?: {
     notFound?: {
       /**
