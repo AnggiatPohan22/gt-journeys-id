@@ -1,6 +1,14 @@
-import type { GlobalConfig } from 'payload'
-import { isAdmin } from '../access/roles'
+import type { GlobalConfig, Condition, GroupField } from 'payload'
+import { isAdmin, superAdminFieldAccess } from '../access/roles'
 import { relatedServicesGlobalFields } from '../fields/relatedServices'
+
+/** Client-side condition: only render for super-admin (UI hiding only — server-side enforcement is via field-level `access`). */
+const superAdminOnly: Condition = (_data, _siblingData, { user }) => user?.role === 'super-admin'
+
+/** Field-level access: read stays public (frontend needs it); update restricted to super-admin. */
+const superAdminUpdateOnly = {
+  update: superAdminFieldAccess,
+}
 
 /**
  * Site Settings — global configuration for the whole site.
@@ -389,13 +397,15 @@ export const SiteSettings: GlobalConfig = {
               admin: {
                 initCollapsed: false,
                 description: 'Headline copy for service listing pages (villa, tour, etc.) using the immersive hero layout.',
+                condition: superAdminOnly,
               },
               fields: [
                 {
                   name: 'sectionPages',
                   type: 'group',
                   label: 'Listing Page Headline',
-                  admin: { hideGutter: true },
+                  access: superAdminUpdateOnly,
+                  admin: { hideGutter: true, condition: superAdminOnly },
                   fields: [
                     {
                       name: 'listingTitle',
@@ -424,8 +434,21 @@ export const SiteSettings: GlobalConfig = {
                 initCollapsed: true,
                 description:
                   'Default block config for the "Related Services" section on every service detail page. Overridable per Service Type and per individual service (Phase 4.17 cascade).',
+                condition: superAdminOnly,
               },
-              fields: [relatedServicesGlobalFields()],
+              fields: [
+                // Augment the shared factory's returned group with super-admin-only
+                // access.update + admin.condition. Shape/name unchanged; the factory
+                // stays reusable elsewhere without the restriction.
+                (() => {
+                  const f = relatedServicesGlobalFields() as GroupField
+                  return {
+                    ...f,
+                    access: { ...(f.access ?? {}), ...superAdminUpdateOnly },
+                    admin: { ...(f.admin ?? {}), condition: superAdminOnly },
+                  } as GroupField
+                })(),
+              ],
             },
             {
               type: 'collapsible',
@@ -433,13 +456,15 @@ export const SiteSettings: GlobalConfig = {
               admin: {
                 initCollapsed: true,
                 description: 'Copy for the 404 page and any temporary "coming soon" placeholder pages.',
+                condition: superAdminOnly,
               },
               fields: [
                 {
                   name: 'errorPages',
                   type: 'group',
                   label: 'Error & Placeholder Pages',
-                  admin: { hideGutter: true },
+                  access: superAdminUpdateOnly,
+                  admin: { hideGutter: true, condition: superAdminOnly },
                   fields: [
                     {
                       type: 'collapsible',
@@ -498,15 +523,17 @@ export const SiteSettings: GlobalConfig = {
               name: 'footer',
               type: 'group',
               label: 'Footer & Tracking',
+              access: superAdminUpdateOnly,
               admin: {
                 description: 'Footer copyright line and any additional HTML/JS injected before </body>.',
                 hideGutter: true,
+                condition: superAdminOnly,
               },
               fields: [
                 {
                   type: 'collapsible',
                   label: 'Footer Copyright',
-                  admin: { initCollapsed: false, description: 'Copy shown at the bottom of every page footer.' },
+                  admin: { initCollapsed: false, description: 'Copy shown at the bottom of every page footer.', condition: superAdminOnly },
                   fields: [
                     {
                       name: 'copyrightText',
@@ -522,6 +549,7 @@ export const SiteSettings: GlobalConfig = {
                   admin: {
                     initCollapsed: true,
                     description: '⚠️ DANGER ZONE — HTML/JS injected verbatim before </body>. Only paste code from trusted providers.',
+                    condition: superAdminOnly,
                   },
                   fields: [
                     {
