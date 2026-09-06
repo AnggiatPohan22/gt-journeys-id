@@ -29,105 +29,134 @@ export const SiteFeatures: GlobalConfig = {
     update: isSuperAdmin,
   },
   fields: [
-    // ── Modul Layanan (7 service modules) ────────────────────────────────
     {
-      name: 'modules',
-      type: 'group',
-      label: 'Modul Layanan',
-      admin: {
-        description: 'Matikan modul → hilang dari navigasi, homepage, sitemap, dan URL-nya 404.',
-      },
-      fields: [
+      type: 'tabs',
+      tabs: [
+        // ══ Tab 1: Modul Layanan ═════════════════════════════════════════
         {
-          type: 'row',
+          label: 'Modul Layanan',
+          description: 'Master on/off untuk 8 modul layanan utama.',
           fields: [
-            { name: 'tours', type: 'checkbox', label: 'Tours & Activities', defaultValue: true, admin: { width: '50%' } },
-            { name: 'accommodations', type: 'checkbox', label: 'Villas & Hotels', defaultValue: true, admin: { width: '50%' } },
+            {
+              name: 'modules',
+              type: 'group',
+              label: 'Modul Layanan',
+              admin: {
+                description: 'Matikan modul → hilang dari navigasi, homepage, sitemap, dan URL-nya 404.',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'tours', type: 'checkbox', label: 'Tours & Activities', defaultValue: true, admin: { width: '50%' } },
+                    { name: 'accommodations', type: 'checkbox', label: 'Villas & Hotels', defaultValue: true, admin: { width: '50%' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'waterActivities', type: 'checkbox', label: 'Water Activities', defaultValue: true, admin: { width: '50%' } },
+                    { name: 'yacht', type: 'checkbox', label: 'Private Yacht', defaultValue: true, admin: { width: '50%' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'restaurants', type: 'checkbox', label: 'Restaurants', defaultValue: true, admin: { width: '50%' } },
+                    { name: 'weddings', type: 'checkbox', label: 'Weddings & Events', defaultValue: true, admin: { width: '50%' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'rentals', type: 'checkbox', label: 'Rental Service', defaultValue: true, admin: { width: '50%' } },
+                    { name: 'spa', type: 'checkbox', label: 'Spa & Wellness', defaultValue: true, admin: { width: '50%' } },
+                  ],
+                },
+              ],
+            },
           ],
         },
-        {
-          type: 'row',
-          fields: [
-            { name: 'waterActivities', type: 'checkbox', label: 'Water Activities', defaultValue: true, admin: { width: '50%' } },
-            { name: 'yacht', type: 'checkbox', label: 'Private Yacht', defaultValue: true, admin: { width: '50%' } },
-          ],
-        },
-        {
-          type: 'row',
-          fields: [
-            { name: 'restaurants', type: 'checkbox', label: 'Restaurants', defaultValue: true, admin: { width: '50%' } },
-            { name: 'weddings', type: 'checkbox', label: 'Weddings & Events', defaultValue: true, admin: { width: '50%' } },
-          ],
-        },
-        {
-          type: 'row',
-          fields: [
-            { name: 'rentals', type: 'checkbox', label: 'Rental Service', defaultValue: true, admin: { width: '50%' } },
-            { name: 'spa', type: 'checkbox', label: 'Spa & Wellness', defaultValue: true, admin: { width: '50%' } },
-          ],
-        },
-      ],
-    },
 
-    // ── Section Halaman ──────────────────────────────────────────────────
-    {
-      name: 'sections',
-      type: 'group',
-      label: 'Section Halaman',
-      admin: {
-        description: 'Toggle section besar di homepage / landing pages.',
-      },
-      fields: [
-        { name: 'testimonials', type: 'checkbox', label: 'Testimonials', defaultValue: true },
-        { name: 'faq', type: 'checkbox', label: 'FAQ Section', defaultValue: true },
-        // reserved — komponennya belum dirender
-        { name: 'promoBanner', type: 'checkbox', label: 'Banner Promo (reserved — Phase 4)', defaultValue: false },
-        { name: 'newsletter', type: 'checkbox', label: 'Newsletter Signup (reserved — Phase 4)', defaultValue: false },
-      ],
-    },
-
-    // ── Destinasi ────────────────────────────────────────────────────────
-    {
-      name: 'destinations',
-      type: 'group',
-      label: 'Destinasi',
-      admin: {
-        description: 'Kontrol perilaku filter destinasi di listing service.',
-      },
-      fields: [
+        // ══ Tab 2: Section Halaman ═══════════════════════════════════════
         {
-          name: 'hierarchicalFilter',
-          type: 'checkbox',
-          label: 'Hierarchical Destinations',
-          defaultValue: false,
-          admin: {
-            description: 'Kalau aktif: hanya destinasi "core" (Core Destination di collection Destinations) yang jadi tab filter; sub-lokasi (child) disembunyikan tapi ikut cocok saat core-nya dipilih atau dicari. Kalau non-aktif: semua destinasi tampil flat (perilaku lama).',
-          },
+          label: 'Section Halaman',
+          description: 'Toggle section besar di homepage / landing pages.',
+          fields: [
+            {
+              name: 'sections',
+              type: 'group',
+              label: 'Section Halaman',
+              admin: {
+                description: 'Toggle section besar di homepage / landing pages.',
+              },
+              fields: [
+                { name: 'testimonials', type: 'checkbox', label: 'Testimonials', defaultValue: true },
+                { name: 'faq', type: 'checkbox', label: 'FAQ Section', defaultValue: true },
+                // reserved — komponennya belum dirender
+                { name: 'promoBanner', type: 'checkbox', label: 'Banner Promo (reserved — Phase 4)', defaultValue: false },
+                { name: 'newsletter', type: 'checkbox', label: 'Newsletter Signup (reserved — Phase 4)', defaultValue: false },
+              ],
+            },
+          ],
         },
-        {
-          name: 'destinationTypesEnabled',
-          type: 'checkbox',
-          label: 'Destination Types Management',
-          defaultValue: true,
-          admin: {
-            description: 'Phase 3.23. Kalau aktif: Admin boleh edit collection Destination Types. Kalau non-aktif: hanya Super Admin yang bisa edit (data tetap utuh). Type = taksonomi internal, tidak tampil di frontend.',
-          },
-        },
-      ],
-    },
 
-    // ── Fitur Opsional ───────────────────────────────────────────────────
-    {
-      name: 'features',
-      type: 'group',
-      label: 'Fitur Opsional',
-      admin: {
-        description: 'Toggle floating widget & fitur global lain.',
-      },
-      fields: [
-        { name: 'whatsappFloat', type: 'checkbox', label: 'WhatsApp Floating Button', defaultValue: true },
-        // reserved
-        { name: 'announcementBar', type: 'checkbox', label: 'Announcement Bar (reserved — Phase 4)', defaultValue: false },
+        // ══ Tab 3: Destinasi ═════════════════════════════════════════════
+        {
+          label: 'Destinasi',
+          description: 'Kontrol perilaku filter destinasi di listing service.',
+          fields: [
+            {
+              name: 'destinations',
+              type: 'group',
+              label: 'Destinasi',
+              admin: {
+                description: 'Kontrol perilaku filter destinasi di listing service.',
+              },
+              fields: [
+                {
+                  name: 'hierarchicalFilter',
+                  type: 'checkbox',
+                  label: 'Hierarchical Destinations',
+                  defaultValue: false,
+                  admin: {
+                    description: 'Kalau aktif: hanya destinasi "core" (Core Destination di collection Destinations) yang jadi tab filter; sub-lokasi (child) disembunyikan tapi ikut cocok saat core-nya dipilih atau dicari. Kalau non-aktif: semua destinasi tampil flat (perilaku lama).',
+                  },
+                },
+                {
+                  name: 'destinationTypesEnabled',
+                  type: 'checkbox',
+                  label: 'Destination Types Management',
+                  defaultValue: true,
+                  admin: {
+                    description: 'Phase 3.23. Kalau aktif: Admin boleh edit collection Destination Types. Kalau non-aktif: hanya Super Admin yang bisa edit (data tetap utuh). Type = taksonomi internal, tidak tampil di frontend.',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+
+        // ══ Tab 4: Fitur Opsional ════════════════════════════════════════
+        {
+          label: 'Fitur Opsional',
+          description: 'Toggle floating widget & fitur global lain.',
+          fields: [
+            {
+              name: 'features',
+              type: 'group',
+              label: 'Fitur Opsional',
+              admin: {
+                description: 'Toggle floating widget & fitur global lain.',
+              },
+              fields: [
+                { name: 'whatsappFloat', type: 'checkbox', label: 'WhatsApp Floating Button', defaultValue: true },
+                // reserved
+                { name: 'announcementBar', type: 'checkbox', label: 'Announcement Bar (reserved — Phase 4)', defaultValue: false },
+              ],
+            },
+          ],
+        },
       ],
     },
   ],
