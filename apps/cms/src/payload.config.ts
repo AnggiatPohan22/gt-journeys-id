@@ -44,6 +44,7 @@ import { HeaderSettings } from './globals/HeaderSettings'
 import { FooterSettings } from './globals/FooterSettings'
 import { SiteFeatures } from './globals/SiteFeatures'
 import { HomepageContent } from './globals/HomepageContent'
+import { AnnouncementBar } from './globals/AnnouncementBar'
 
 export default buildConfig({
   // ── Editor ──────────────────────────────────
@@ -140,7 +141,7 @@ export default buildConfig({
   ],
 
   // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures],
+  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar],
 
   // ── Admin ───────────────────────────────────
   admin: {
