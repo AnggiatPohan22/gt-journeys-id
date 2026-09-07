@@ -1,0 +1,210 @@
+---
+/**
+ * PromoBannerModal — Phase 4.33.
+ *
+ * Timed pop-up modal. Gated by:
+ *   - Site Features → sections.promoBanner (master on/off)
+ *   - PromoBanner global → headline (content must exist)
+ *   - Optional startDate/endDate window
+ *
+ * Two themes:
+ *   - theme1-with-image: image left / copy right (stacks on mobile)
+ *   - theme2-text-only : centered copy + CTA (no image)
+ *
+ * Trigger: setTimeout(triggerDelay*1000) after page-load. If
+ * `suppressAfterScroll` is ON and the visitor is already >50% down
+ * the page before the timer fires, the modal is skipped.
+ *
+ * Frequency: localStorage["dnj:promo:lastShown"] holds the timestamp
+ * of last close/CTA. Skipped if within `displayFrequencyDays` days.
+ *
+ * A11y: role=dialog, aria-modal, ESC closes, backdrop click closes,
+ * focus moves into modal on open, restored to previously-focused el
+ * on close.
+ */
+import { isSectionEnabled } from '@lib/features'
+import { getPromoBanner } from '@lib/payload'
+
+const featureEnabled = await isSectionEnabled('promoBanner')
+
+let promo: any = null
+try { promo = await getPromoBanner() } catch { /* fallback: no render */ }
+
+const now = Date.now()
+const inWindow =
+  (!promo?.startDate || now >= new Date(promo.startDate).getTime()) &&
+  (!promo?.endDate || now <= new Date(promo.endDate).getTime())
+
+const hasHeadline = !!promo?.headline
+
+const showOnHomepageOnly: boolean = promo?.showOnHomepageOnly !== false
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/'
+const isHomepage = currentPath === '/'
+const scopeMatches = !showOnHomepageOnly || isHomepage
+
+const shouldRender = featureEnabled && hasHeadline && inWindow && scopeMatches
+
+const theme: 'theme1-with-image' | 'theme2-text-only' = promo?.theme ?? 'theme1-with-image'
+const headline: string = promo?.headline ?? ''
+const subheadline: string = promo?.subheadline ?? ''
+const imageObj = promo?.image
+const imageUrl: string = typeof imageObj === 'object' && imageObj?.url ? imageObj.url : ''
+const imageAlt: string = typeof imageObj === 'object' && imageObj?.alt ? imageObj.alt : headline
+const cta = promo?.cta ?? {}
+const ctaLabel: string = cta?.label ?? 'Learn More'
+const ctaUrl: string = cta?.url ?? '#'
+const ctaNewTab: boolean = !!cta?.newTab
+
+const triggerDelaySec: number = typeof promo?.triggerDelay === 'number' ? promo.triggerDelay : 5
+const frequencyDays: number = typeof promo?.displayFrequencyDays === 'number' ? promo.displayFrequencyDays : 1
+const suppressAfterScroll: boolean = promo?.suppressAfterScroll !== false
+
+// Theme 1 requires an image; if none provided, degrade to theme 2 layout.
+const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text-only' : theme
+---
+
+{shouldRender && (
+  <div
+    class="promo-modal-root fixed inset-0 z-[60] hidden items-center justify-center p-4 sm:p-6"
+    data-trigger-delay={String(triggerDelaySec)}
+    data-frequency-days={String(frequencyDays)}
+    data-suppress-scroll={suppressAfterScroll ? '1' : '0'}
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="promo-modal-title"
+  >
+    {/* Backdrop */}
+    <div class="promo-modal-backdrop absolute inset-0 bg-[#0D1B2A]/60 backdrop-blur-[2px] opacity-0 transition-opacity duration-200"></div>
+
+    {/* Panel */}
+    <div class:list={[
+      'promo-modal-panel relative bg-[#F5F0E8] text-[#1B3A4B] rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-200 ease-out',
+      effectiveTheme === 'theme1-with-image'
+        ? 'w-full max-w-3xl grid grid-cols-1 md:grid-cols-2'
+        : 'w-full max-w-lg px-6 sm:px-10 py-10 sm:py-14 text-center',
+    ]}>
+      {/* × Close */}
+      <button
+        type="button"
+        class="promo-modal-close absolute top-3 right-3 w-9 h-9 rounded-full bg-[#1B3A4B]/10 hover:bg-[#1B3A4B]/20 text-[#1B3A4B] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#E07A5F] z-10"
+        aria-label="Close promotion"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+        </svg>
+      </button>
+
+      {effectiveTheme === 'theme1-with-image' && (
+        <div class="aspect-[4/3] md:aspect-auto md:min-h-[320px] bg-[#1B3A4B]/5">
+          <img src={imageUrl} alt={imageAlt} class="w-full h-full object-cover" loading="lazy" />
+        </div>
+      )}
+
+      <div class:list={[
+        effectiveTheme === 'theme1-with-image'
+          ? 'p-6 sm:p-8 flex flex-col justify-center'
+          : '',
+      ]}>
+        <h2 id="promo-modal-title" class="font-display text-2xl sm:text-3xl font-semibold leading-tight mb-3">
+          {headline}
+        </h2>
+        {subheadline && (
+          <p class="text-sm sm:text-base text-[#1B3A4B]/75 mb-6 leading-relaxed">
+            {subheadline}
+          </p>
+        )}
+        <a
+          href={ctaUrl}
+          target={ctaNewTab ? '_blank' : undefined}
+          rel={ctaNewTab ? 'noopener noreferrer' : undefined}
+          class:list={[
+            'promo-modal-cta inline-flex items-center justify-center h-12 px-6 rounded-lg bg-[#E07A5F] hover:bg-[#c8674c] text-[#F5F0E8] font-semibold transition-colors',
+            effectiveTheme === 'theme2-text-only' ? 'mx-auto' : 'self-start',
+          ]}
+        >
+          {ctaLabel}
+        </a>
+      </div>
+    </div>
+  </div>
+)}
+
+<script>
+  const LAST_KEY = 'dnj:promo:lastShown'
+  const DAY_MS = 86_400_000
+
+  const init = () => {
+    const root = document.querySelector<HTMLElement>('.promo-modal-root')
+    if (!root || root.dataset.bound === '1') return
+    root.dataset.bound = '1'
+
+    const delaySec = Number(root.dataset.triggerDelay ?? '5')
+    const frequencyDays = Number(root.dataset.frequencyDays ?? '1')
+    const suppressScroll = root.dataset.suppressScroll === '1'
+
+    // Frequency check
+    try {
+      const last = Number(localStorage.getItem(LAST_KEY) ?? '0')
+      if (last && Date.now() - last < frequencyDays * DAY_MS) return
+    } catch { /* localStorage blocked — proceed once */ }
+
+    const backdrop = root.querySelector<HTMLElement>('.promo-modal-backdrop')
+    const panel = root.querySelector<HTMLElement>('.promo-modal-panel')
+    const closeBtn = root.querySelector<HTMLButtonElement>('.promo-modal-close')
+    const ctaLink = root.querySelector<HTMLAnchorElement>('.promo-modal-cta')
+    if (!backdrop || !panel || !closeBtn) return
+
+    let previouslyFocused: HTMLElement | null = null
+
+    const scrolledPast50 = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight
+      if (scrollable <= 0) return false
+      return window.scrollY / scrollable > 0.5
+    }
+
+    const open = () => {
+      if (suppressScroll && scrolledPast50()) return
+      previouslyFocused = document.activeElement as HTMLElement | null
+      root.classList.remove('hidden')
+      root.classList.add('flex')
+      // Next frame → fade in
+      requestAnimationFrame(() => {
+        backdrop.style.opacity = '1'
+        panel.style.opacity = '1'
+        panel.style.transform = 'scale(1)'
+      })
+      closeBtn.focus()
+      document.addEventListener('keydown', onKey)
+    }
+
+    const close = (recordShown = true) => {
+      if (recordShown) {
+        try { localStorage.setItem(LAST_KEY, String(Date.now())) } catch { /* ignore */ }
+      }
+      backdrop.style.opacity = '0'
+      panel.style.opacity = '0'
+      panel.style.transform = 'scale(0.95)'
+      root.addEventListener('transitionend', () => {
+        root.classList.add('hidden')
+        root.classList.remove('flex')
+      }, { once: true })
+      document.removeEventListener('keydown', onKey)
+      previouslyFocused?.focus?.()
+    }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close()
+    }
+
+    closeBtn.addEventListener('click', () => close())
+    backdrop.addEventListener('click', () => close())
+    ctaLink?.addEventListener('click', () => close())
+
+    const timer = window.setTimeout(open, Math.max(0, delaySec) * 1000)
+    // Cancel timer if the visitor navigates away before it fires
+    document.addEventListener('astro:before-preparation', () => window.clearTimeout(timer), { once: true })
+  }
+
+  document.addEventListener('astro:page-load', init)
+  init()
+</script>

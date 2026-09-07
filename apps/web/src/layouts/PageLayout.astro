@@ -5,6 +5,8 @@ import Header from '@components/navigation/HeaderRenderer.astro'
 import Footer from '@components/navigation/FooterRenderer.astro'
 // Phase 4.33 — slim site-wide announcement above the header.
 import AnnouncementBar from '@components/common/AnnouncementBar.astro'
+// Phase 4.33 — timed promo modal (self-gates on homepage-only vs site-wide via CMS).
+import PromoBannerModal from '@components/common/PromoBannerModal.astro'
 
 interface Props {
   title?: string
@@ -30,4 +32,6 @@ const { title, description, ogImage, transparentHeader = false, canonical, ogTyp
   </main>
 
   <Footer />
+
+  <PromoBannerModal />
 </BaseLayout>
