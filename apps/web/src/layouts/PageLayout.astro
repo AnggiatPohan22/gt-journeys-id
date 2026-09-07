@@ -3,6 +3,8 @@ import BaseLayout from './BaseLayout.astro'
 // Phase 3.24 — dispatch template Header/Footer berdasarkan pilihan CMS.
 import Header from '@components/navigation/HeaderRenderer.astro'
 import Footer from '@components/navigation/FooterRenderer.astro'
+// Phase 4.33 — slim site-wide announcement above the header.
+import AnnouncementBar from '@components/common/AnnouncementBar.astro'
 
 interface Props {
   title?: string
@@ -20,6 +22,7 @@ const { title, description, ogImage, transparentHeader = false, canonical, ogTyp
 <BaseLayout title={title} description={description} ogImage={ogImage} canonical={canonical} ogType={ogType} noindex={noindex}>
   <slot name="head" slot="head" />
 
+  <AnnouncementBar />
   <Header transparent={transparentHeader} />
 
   <main>

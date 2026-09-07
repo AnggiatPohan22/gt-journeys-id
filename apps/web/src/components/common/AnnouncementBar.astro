@@ -1,0 +1,132 @@
+---
+/**
+ * AnnouncementBar — Phase 4.33.
+ *
+ * Slim site-wide bar rendered in-flow above the header. Gated by:
+ *   - Site Features → features.announcementBar (master on/off)
+ *   - AnnouncementBar global → message (content must exist)
+ *   - Optional startDate/endDate window
+ *
+ * Dismiss persistence: localStorage["dnj:ab-dismissed:{version}"]. The
+ * version is auto-hashed from the message text by the CMS beforeChange
+ * hook, so any message edit auto-invalidates prior dismissals.
+ *
+ * Zero-flash on repeat visitors: BaseLayout has an inline is:inline
+ * script in <head> that reads the same key and stamps
+ * <html data-ab-hidden="true"> before body paint. CSS hides the bar
+ * before it can render.
+ */
+import { isFeatureEnabled } from '@lib/features'
+import { getAnnouncementBar } from '@lib/payload'
+
+const featureEnabled = await isFeatureEnabled('announcementBar')
+
+let bar: any = null
+try { bar = await getAnnouncementBar() } catch { /* fallback: no render */ }
+
+const now = Date.now()
+const inWindow =
+  (!bar?.startDate || now >= new Date(bar.startDate).getTime()) &&
+  (!bar?.endDate || now <= new Date(bar.endDate).getTime())
+
+const hasMessage = !!bar?.message
+const shouldRender = featureEnabled && hasMessage && inWindow
+
+const message: string = bar?.message ?? ''
+const theme: 'ocean' | 'coral' | 'leaf' | 'sand' = bar?.theme ?? 'ocean'
+const dismissible: boolean = bar?.dismissible !== false
+const version: string = bar?.version ?? 'v0'
+
+const link = bar?.link
+const linkEnabled = !!link?.enabled && !!link?.url
+const linkLabel: string = link?.label ?? 'Learn more'
+const linkUrl: string = link?.url ?? '#'
+const linkNewTab: boolean = !!link?.newTab
+
+const themeClasses: Record<string, string> = {
+  ocean: 'bg-[#1B3A4B] text-[#F5F0E8]',
+  coral: 'bg-[#E07A5F] text-[#F5F0E8]',
+  leaf:  'bg-[#6B9080] text-[#F5F0E8]',
+  sand:  'bg-[#F5F0E8] text-[#1B3A4B]',
+}
+const themeClass = themeClasses[theme] ?? themeClasses.ocean
+---
+
+{shouldRender && (
+  <div
+    class:list={['announcement-bar w-full text-xs sm:text-sm font-body overflow-hidden transition-[max-height,opacity] duration-200 ease-out', themeClass]}
+    data-ab-version={version}
+    data-ab-dismissible={dismissible ? '1' : '0'}
+    role="region"
+    aria-label="Site announcement"
+  >
+    <div class="max-w-[1440px] mx-auto flex items-center justify-center gap-3 sm:gap-4 px-4 py-2 min-h-[36px]">
+      <span class="flex-1 text-center leading-snug">
+        {message}
+        {linkEnabled && (
+          <>
+            {' '}
+            <a
+              href={linkUrl}
+              target={linkNewTab ? '_blank' : undefined}
+              rel={linkNewTab ? 'noopener noreferrer' : undefined}
+              class="underline underline-offset-2 hover:opacity-80 font-semibold"
+            >
+              {linkLabel}
+            </a>
+          </>
+        )}
+      </span>
+      {dismissible && (
+        <button
+          type="button"
+          class="ab-dismiss shrink-0 -mr-1 w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-white/40 transition-colors"
+          aria-label="Dismiss announcement"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+          </svg>
+        </button>
+      )}
+    </div>
+  </div>
+)}
+
+<script>
+  const DISMISS_KEY_PREFIX = 'dnj:ab-dismissed:'
+
+  const init = () => {
+    const bar = document.querySelector<HTMLElement>('.announcement-bar')
+    if (!bar) return
+
+    const version = bar.dataset.abVersion ?? 'v0'
+    const key = DISMISS_KEY_PREFIX + version
+
+    // Second-pass hide (in case head script missed / was blocked)
+    try {
+      if (localStorage.getItem(key) === '1') {
+        bar.style.display = 'none'
+        return
+      }
+    } catch { /* localStorage blocked — render as normal */ }
+
+    const btn = bar.querySelector<HTMLButtonElement>('.ab-dismiss')
+    btn?.addEventListener('click', () => {
+      try { localStorage.setItem(key, '1') } catch { /* ignore */ }
+      bar.style.maxHeight = bar.offsetHeight + 'px'
+      // Force layout before transitioning
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      bar.offsetHeight
+      bar.style.maxHeight = '0px'
+      bar.style.opacity = '0'
+      bar.addEventListener(
+        'transitionend',
+        () => { bar.style.display = 'none' },
+        { once: true },
+      )
+    })
+  }
+
+  document.addEventListener('astro:page-load', init)
+  init()
+</script>

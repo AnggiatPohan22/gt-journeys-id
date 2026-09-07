@@ -1,5 +1,5 @@
 ---
-import { getSiteSettings } from '@lib/payload'
+import { getSiteSettings, getAnnouncementBar } from '@lib/payload'
 import type { Media } from '@shared/types/payload-types'
 
 interface Props {
@@ -51,6 +51,17 @@ const faviconMime = faviconMedia?.mimeType ?? 'image/svg+xml'
 // Analytics — both providers optional & independent
 const gaId = settings?.defaultSeo?.googleAnalyticsId as string | undefined
 const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as string | undefined
+
+// Phase 4.33 — Announcement Bar zero-flash dismissal check.
+// Read the version SSR, inline a tiny script in <head> that stamps
+// data-ab-hidden on <html> before body paint if the visitor already
+// dismissed this exact message. CSS hides .announcement-bar under that
+// attribute so it never flickers on repeat visits.
+let abVersion = ''
+try {
+  const bar = await getAnnouncementBar()
+  abVersion = (bar as any)?.version ?? ''
+} catch { /* absent = no head script needed */ }
 ---
 
 <!doctype html>
@@ -84,6 +95,17 @@ const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as st
     <!-- Preload fonts -->
     <link rel="preload" href="/fonts/plus-jakarta-sans-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/fraunces-variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    {abVersion && (
+      <script is:inline set:html={`
+        try {
+          if (localStorage.getItem('dnj:ab-dismissed:${abVersion}') === '1') {
+            document.documentElement.setAttribute('data-ab-hidden', 'true');
+          }
+        } catch (_) {}
+      `}></script>
+    )}
+    <style is:global>{`html[data-ab-hidden] .announcement-bar { display: none !important; }`}</style>
 
     {/* Google Analytics 4 — only if measurement ID set in CMS */}
     {gaId && (
