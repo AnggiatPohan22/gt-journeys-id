@@ -1,0 +1,162 @@
+import type { GlobalConfig } from 'payload'
+import { isSuperAdmin } from '../access/roles'
+
+/**
+ * Promo Banner — Phase 4.33.
+ *
+ * Timed pop-up modal. Master on/off in Site Features (`sections.promoBanner`).
+ * By default renders on the homepage only. Trigger timing and per-visitor
+ * display frequency are super-admin adjustable.
+ *
+ * Two themes:
+ *   - theme1-with-image: image + copy + CTA (side-by-side)
+ *   - theme2-text-only : centered copy + CTA (no image)
+ *
+ * Read: public. Update: Super Admin only.
+ */
+export const PromoBanner: GlobalConfig = {
+  slug: 'promo-banner',
+  label: 'Promo Banner',
+  admin: {
+    group: 'Settings',
+    description: 'Timed pop-up modal. Master on/off in Site Features → Section Halaman → Banner Promo.',
+    hidden: ({ user }) => user?.role !== 'super-admin',
+  },
+  access: {
+    read: () => true,
+    update: isSuperAdmin,
+  },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        // ══ Tab 1: Content & Theme ═══════════════════════════════════════
+        {
+          label: 'Content & Theme',
+          description: 'Copy and visual variant for the modal.',
+          fields: [
+            {
+              name: 'theme',
+              type: 'select',
+              required: true,
+              defaultValue: 'theme1-with-image',
+              options: [
+                { label: 'Theme 1 — With image (side-by-side)', value: 'theme1-with-image' },
+                { label: 'Theme 2 — Text only (centered)', value: 'theme2-text-only' },
+              ],
+              admin: { description: 'Layout variant. Theme 1 requires an image; Theme 2 renders headline + CTA only.' },
+            },
+            {
+              name: 'headline',
+              type: 'text',
+              required: true,
+              maxLength: 80,
+              admin: { description: 'Main heading (max 80 chars).' },
+            },
+            {
+              name: 'subheadline',
+              type: 'textarea',
+              maxLength: 240,
+              admin: { description: 'Optional supporting copy (max 240 chars).' },
+            },
+            {
+              name: 'image',
+              type: 'upload',
+              relationTo: 'media',
+              admin: {
+                description: 'Required when Theme 1 is selected. Recommended 800×600 or landscape.',
+                condition: (data) => data?.theme === 'theme1-with-image',
+              },
+            },
+            {
+              name: 'cta',
+              type: 'group',
+              label: 'Call to Action',
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'label', type: 'text', required: true, defaultValue: 'Learn More', admin: { width: '40%' } },
+                    { name: 'url', type: 'text', required: true, admin: { width: '50%', description: 'Absolute or relative URL' } },
+                    { name: 'newTab', type: 'checkbox', defaultValue: false, admin: { width: '10%' } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+
+        // ══ Tab 2: Trigger & Behavior ════════════════════════════════════
+        {
+          label: 'Trigger & Behavior',
+          description: 'When the modal appears and how often the same visitor sees it.',
+          fields: [
+            {
+              name: 'triggerDelay',
+              type: 'number',
+              required: true,
+              defaultValue: 5,
+              min: 0,
+              max: 60,
+              admin: {
+                description: 'Seconds to wait after page load before showing the modal. Range 0 – 60. Default 5.',
+                step: 1,
+              },
+            },
+            {
+              name: 'displayFrequencyDays',
+              type: 'number',
+              required: true,
+              defaultValue: 1,
+              min: 1,
+              max: 90,
+              admin: {
+                description: 'Days to wait before showing the modal again to a visitor who dismissed or converted. Range 1 – 90. Default 1.',
+                step: 1,
+              },
+            },
+            {
+              name: 'suppressAfterScroll',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description: 'When ON: do not trigger the modal if the visitor has scrolled past ~50% of the page before the delay elapses (they are already engaged). Recommended.',
+              },
+            },
+          ],
+        },
+
+        // ══ Tab 3: Schedule ══════════════════════════════════════════════
+        {
+          label: 'Schedule',
+          description: 'Auto show/hide inside a date window (optional).',
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                { name: 'startDate', type: 'date', admin: { width: '50%', description: 'Do not show before this date.' } },
+                { name: 'endDate', type: 'date', admin: { width: '50%', description: 'Auto-hide after this date.' } },
+              ],
+            },
+          ],
+        },
+
+        // ══ Tab 4: Advanced ══════════════════════════════════════════════
+        {
+          label: 'Advanced',
+          description: 'Rarely-changed placement controls.',
+          fields: [
+            {
+              name: 'showOnHomepageOnly',
+              type: 'checkbox',
+              defaultValue: true,
+              admin: {
+                description: 'When ON (default): modal only triggers on the homepage. When OFF: modal triggers site-wide on every page (frequency cookie still applies). Site-wide can hurt conversion on detail pages — keep this ON unless running a very short campaign.',
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}

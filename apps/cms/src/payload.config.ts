@@ -45,6 +45,7 @@ import { FooterSettings } from './globals/FooterSettings'
 import { SiteFeatures } from './globals/SiteFeatures'
 import { HomepageContent } from './globals/HomepageContent'
 import { AnnouncementBar } from './globals/AnnouncementBar'
+import { PromoBanner } from './globals/PromoBanner'
 
 export default buildConfig({
   // ── Editor ──────────────────────────────────
@@ -141,7 +142,7 @@ export default buildConfig({
   ],
 
   // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar],
+  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner],
 
   // ── Admin ───────────────────────────────────
   admin: {
