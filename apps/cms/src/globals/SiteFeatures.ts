@@ -10,8 +10,10 @@ import { isSuperAdmin } from '../access/roles'
  * - Global ini cuma menentukan `enabled` per modul, dan on/off untuk
  *   section & fitur opsional yang ada di frontend.
  *
- * Section/features tertentu diberi label "(reserved)" — checkbox sudah
- * tersedia untuk phase depan tapi komponennya belum dirender di frontend.
+ * Phase 4.33: Banner Promo, Newsletter Signup, and Announcement Bar are
+ * now live features — their content lives in dedicated globals (Promo
+ * Banner, Announcement Bar) and in Footer Settings (Newsletter group).
+ * Toggles here act as master kill-switches.
  *
  * Read: publik (frontend butuh fetch tanpa auth).
  * Update: Super Admin only — toggle modul = keputusan owner, bukan editor.
@@ -93,9 +95,20 @@ export const SiteFeatures: GlobalConfig = {
               fields: [
                 { name: 'testimonials', type: 'checkbox', label: 'Testimonials', defaultValue: true },
                 { name: 'faq', type: 'checkbox', label: 'FAQ Section', defaultValue: true },
-                // reserved — komponennya belum dirender
-                { name: 'promoBanner', type: 'checkbox', label: 'Banner Promo (reserved — Phase 4)', defaultValue: false },
-                { name: 'newsletter', type: 'checkbox', label: 'Newsletter Signup (reserved — Phase 4)', defaultValue: false },
+                {
+                  name: 'promoBanner',
+                  type: 'checkbox',
+                  label: 'Banner Promo',
+                  defaultValue: false,
+                  admin: { description: 'Master switch for the timed promo modal. Content in Settings → Promo Banner.' },
+                },
+                {
+                  name: 'newsletter',
+                  type: 'checkbox',
+                  label: 'Newsletter Signup',
+                  defaultValue: false,
+                  admin: { description: 'Master switch for the footer newsletter signup. Content in Settings → Footer Settings → Newsletter.' },
+                },
               ],
             },
           ],
@@ -151,8 +164,13 @@ export const SiteFeatures: GlobalConfig = {
               },
               fields: [
                 { name: 'whatsappFloat', type: 'checkbox', label: 'WhatsApp Floating Button', defaultValue: true },
-                // reserved
-                { name: 'announcementBar', type: 'checkbox', label: 'Announcement Bar (reserved — Phase 4)', defaultValue: false },
+                {
+                  name: 'announcementBar',
+                  type: 'checkbox',
+                  label: 'Announcement Bar',
+                  defaultValue: false,
+                  admin: { description: 'Master switch for the slim site-wide bar above the header. Content in Settings → Announcement Bar.' },
+                },
               ],
             },
           ],
