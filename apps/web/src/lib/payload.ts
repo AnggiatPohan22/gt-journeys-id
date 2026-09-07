@@ -202,5 +202,7 @@ export const getHeaderSettings = () => fetchGlobal<any>('header-settings')
 export const getFooterSettings = () => fetchGlobal<any>('footer-settings')
 export const getSiteFeatures = () => fetchGlobal<any>('site-features')
 export const getHomepageContent = () => fetchGlobal<any>('homepage-content')
+export const getAnnouncementBar = () => fetchGlobal<any>('announcement-bar')
+export const getPromoBanner = () => fetchGlobal<any>('promo-banner')
 export const getTestimonials = (opts?: Partial<FetchOptions>) =>
   fetchCollection<any>({ collection: 'testimonials', sort: 'sortOrder', ...opts })

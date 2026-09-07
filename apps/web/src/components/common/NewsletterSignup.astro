@@ -1,0 +1,143 @@
+---
+/**
+ * NewsletterSignup — Phase 4.33.
+ *
+ * Footer signup section. Gated by:
+ *   - Site Features → sections.newsletter (master on/off)
+ *   - FooterSettings → newsletter.heading (content must exist)
+ *
+ * Submits to /api/newsletter-subscribe. Honeypot field name: "website".
+ */
+import { isSectionEnabled } from '@lib/features'
+import { getFooterSettings } from '@lib/payload'
+
+const featureEnabled = await isSectionEnabled('newsletter')
+
+let footerCfg: any = null
+try { footerCfg = await getFooterSettings() } catch { /* fallback: no render */ }
+
+const nl = footerCfg?.newsletter
+const hasContent = !!nl?.heading
+
+const shouldRender = featureEnabled && hasContent
+
+const theme: 'ocean' | 'sand' | 'leaf' = nl?.theme ?? 'ocean'
+const heading = nl?.heading ?? ''
+const description = nl?.description ?? ''
+const placeholder = nl?.placeholderText ?? 'your@email.com'
+const buttonLabel = nl?.buttonLabel ?? 'Subscribe'
+const successMessage = nl?.successMessage ?? "Thanks! We'll be in touch."
+const errorMessage = nl?.errorMessage ?? 'Something went wrong. Please try again.'
+
+// Theme → tailwind classes (design tokens: ocean #1B3A4B, sand #F5F0E8, leaf #6B9080)
+const themeClasses: Record<string, { section: string; heading: string; body: string; input: string; button: string }> = {
+  ocean: {
+    section: 'bg-[#1B3A4B] text-[#F5F0E8]',
+    heading: 'text-[#F5F0E8]',
+    body: 'text-[#F5F0E8]/80',
+    input: 'bg-white/10 border-white/20 text-[#F5F0E8] placeholder:text-[#F5F0E8]/50 focus:border-[#E07A5F]',
+    button: 'bg-[#E07A5F] hover:bg-[#c8674c] text-[#F5F0E8]',
+  },
+  sand: {
+    section: 'bg-[#F5F0E8] text-[#1B3A4B]',
+    heading: 'text-[#1B3A4B]',
+    body: 'text-[#1B3A4B]/70',
+    input: 'bg-white border-[#1B3A4B]/20 text-[#1B3A4B] placeholder:text-[#1B3A4B]/40 focus:border-[#E07A5F]',
+    button: 'bg-[#1B3A4B] hover:bg-[#122a37] text-[#F5F0E8]',
+  },
+  leaf: {
+    section: 'bg-[#6B9080] text-[#F5F0E8]',
+    heading: 'text-[#F5F0E8]',
+    body: 'text-[#F5F0E8]/80',
+    input: 'bg-white/15 border-white/25 text-[#F5F0E8] placeholder:text-[#F5F0E8]/50 focus:border-[#F5F0E8]',
+    button: 'bg-[#F5F0E8] hover:bg-white text-[#1B3A4B]',
+  },
+}
+const t = themeClasses[theme] ?? themeClasses.ocean
+---
+
+{shouldRender && (
+  <section class:list={['newsletter-signup py-10 sm:py-14 px-6 sm:px-10', t.section]} data-success-msg={successMessage} data-error-msg={errorMessage}>
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class:list={['font-display text-2xl sm:text-3xl font-semibold mb-3', t.heading]}>{heading}</h2>
+      {description && <p class:list={['text-sm sm:text-base mb-6 max-w-xl mx-auto', t.body]}>{description}</p>}
+
+      <form class="newsletter-form flex flex-col sm:flex-row gap-3 max-w-xl mx-auto" novalidate>
+        <label class="sr-only" for="newsletter-email">Email address</label>
+        <input
+          id="newsletter-email"
+          type="email"
+          name="email"
+          required
+          autocomplete="email"
+          placeholder={placeholder}
+          class:list={['flex-1 h-12 px-4 rounded-lg border-2 text-base font-body focus:outline-none focus:ring-0 transition-colors', t.input]}
+        />
+        {/* Honeypot: hidden from real users, catches bots that fill every field */}
+        <input type="text" name="website" tabindex="-1" autocomplete="off" class="absolute opacity-0 pointer-events-none -left-[9999px] top-0" aria-hidden="true" />
+        <button
+          type="submit"
+          class:list={['newsletter-submit h-12 px-6 rounded-lg font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed', t.button]}
+        >
+          <span class="submit-label">{buttonLabel}</span>
+          <span class="submit-loading hidden">…</span>
+        </button>
+      </form>
+
+      <p class="newsletter-message mt-4 text-sm min-h-[1.25rem]" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+)}
+
+<script>
+  const init = () => {
+    document.querySelectorAll<HTMLElement>('.newsletter-signup').forEach((section) => {
+      const form = section.querySelector<HTMLFormElement>('.newsletter-form')
+      if (!form || form.dataset.bound === '1') return
+      form.dataset.bound = '1'
+
+      const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]')
+      const honeypot = form.querySelector<HTMLInputElement>('input[name="website"]')
+      const button = form.querySelector<HTMLButtonElement>('.newsletter-submit')
+      const labelSpan = form.querySelector<HTMLElement>('.submit-label')
+      const loadingSpan = form.querySelector<HTMLElement>('.submit-loading')
+      const message = section.querySelector<HTMLElement>('.newsletter-message')
+      if (!emailInput || !button || !message) return
+
+      const setBusy = (busy: boolean) => {
+        button.disabled = busy
+        labelSpan?.classList.toggle('hidden', busy)
+        loadingSpan?.classList.toggle('hidden', !busy)
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        message.textContent = ''
+        setBusy(true)
+        try {
+          const res = await fetch('/api/newsletter-subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: emailInput.value,
+              website: honeypot?.value ?? '',
+            }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (res.ok && data?.ok) {
+            message.textContent = section.dataset.successMsg ?? 'Thanks!'
+            form.reset()
+          } else {
+            message.textContent = section.dataset.errorMsg ?? 'Something went wrong.'
+          }
+        } catch {
+          message.textContent = section.dataset.errorMsg ?? 'Something went wrong.'
+        } finally {
+          setBusy(false)
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', init)
+  init()
+</script>

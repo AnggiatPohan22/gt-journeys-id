@@ -3,6 +3,7 @@ import { siteConfig } from '@config/site'
 import { getResolvedServiceTypes } from '@lib/serviceTypes'
 import { getSiteSettings, getFooterSettings } from '@lib/payload'
 import Icon from '@components/common/Icon.astro'
+import NewsletterSignup from '@components/common/NewsletterSignup.astro'
 import type { Media, SiteSetting } from '@shared/types/payload-types'
 
 // Fetch: SiteSettings (branding/contact/social/copyright) + FooterSettings (menu columns)
@@ -98,6 +99,8 @@ const bottomRight = footerCfg?.bottomBarRightText || 'Designed with ♥ in Bali'
 
 const currentYear = new Date().getFullYear()
 ---
+
+<NewsletterSignup />
 
 <footer class="bg-ocean text-white/85">
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
