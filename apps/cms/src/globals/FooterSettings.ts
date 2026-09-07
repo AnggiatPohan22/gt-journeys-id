@@ -113,12 +113,53 @@ export const FooterSettings: GlobalConfig = {
       ],
     },
 
-    // ── Slot: newsletterToggle (footer-1) ───────────────────────────────
+    // ── Slot: newsletter (Phase 4.33) ───────────────────────────────────
+    // Content for the footer Newsletter Signup section. The master on/off
+    // stays in Site Features (`sections.newsletter`); this group carries
+    // the editorial copy and theme.
     {
-      name: 'showNewsletter',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: { condition: supports('newsletterToggle'), description: 'Reserved — newsletter signup (Phase 4).' },
+      type: 'collapsible',
+      label: 'Newsletter Signup',
+      admin: {
+        condition: supports('newsletterToggle'),
+        description: 'Editorial copy for the footer newsletter form. Master on/off lives in Site Features → Section Halaman → Newsletter Signup.',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'newsletter',
+          type: 'group',
+          label: 'Newsletter',
+          fields: [
+            {
+              type: 'row',
+              fields: [
+                { name: 'heading', type: 'text', required: true, defaultValue: 'Get Bali Travel Inspiration', admin: { width: '60%', description: 'Section heading.' } },
+                { name: 'theme', type: 'select', required: true, defaultValue: 'ocean', options: [
+                  { label: 'Ocean (deep blue)', value: 'ocean' },
+                  { label: 'Sand (warm cream)', value: 'sand' },
+                  { label: 'Leaf (tropical green)', value: 'leaf' },
+                ], admin: { width: '40%', description: 'Background theme.' } },
+              ],
+            },
+            { name: 'description', type: 'textarea', admin: { description: 'Optional sub-copy under the heading.' } },
+            {
+              type: 'row',
+              fields: [
+                { name: 'placeholderText', type: 'text', required: true, defaultValue: 'your@email.com', admin: { width: '50%' } },
+                { name: 'buttonLabel', type: 'text', required: true, defaultValue: 'Subscribe', admin: { width: '50%' } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'successMessage', type: 'text', required: true, defaultValue: "Thanks! We'll be in touch.", admin: { width: '50%', description: 'Shown after a successful signup.' } },
+                { name: 'errorMessage', type: 'text', required: true, defaultValue: 'Something went wrong. Please try again.', admin: { width: '50%', description: 'Shown when the signup fails.' } },
+              ],
+            },
+          ],
+        },
+      ],
     },
 
     // ── Slot: legalLinks (footer-3 minimal) ─────────────────────────────

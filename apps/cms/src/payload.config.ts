@@ -36,6 +36,7 @@ import { Menus } from './collections/Menus'
 import { Testimonials } from './collections/Testimonials'
 import { ServiceTypes } from './collections/ServiceTypes'
 import { Spa } from './collections/Spa'
+import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
 
 // Globals
 import { SiteSettings } from './globals/SiteSettings'
@@ -135,6 +136,7 @@ export default buildConfig({
     Media,
     // Administration
     Users,
+    NewsletterSubscribers,
   ],
 
   // ── Globals (Settings) ─────────────────────
