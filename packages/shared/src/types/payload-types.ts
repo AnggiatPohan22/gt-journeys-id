@@ -84,6 +84,7 @@ export interface Config {
     menus: Menu;
     media: Media;
     users: User;
+    'newsletter-subscribers': NewsletterSubscriber;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -108,6 +109,7 @@ export interface Config {
     menus: MenusSelect<false> | MenusSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -123,6 +125,8 @@ export interface Config {
     'footer-settings': FooterSetting;
     'homepage-content': HomepageContent;
     'site-features': SiteFeature;
+    'announcement-bar': AnnouncementBar;
+    'promo-banner': PromoBanner;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
@@ -130,6 +134,8 @@ export interface Config {
     'footer-settings': FooterSettingsSelect<false> | FooterSettingsSelect<true>;
     'homepage-content': HomepageContentSelect<false> | HomepageContentSelect<true>;
     'site-features': SiteFeaturesSelect<false> | SiteFeaturesSelect<true>;
+    'announcement-bar': AnnouncementBarSelect<false> | AnnouncementBarSelect<true>;
+    'promo-banner': PromoBannerSelect<false> | PromoBannerSelect<true>;
   };
   locale: null;
   widgets: {
@@ -19519,6 +19525,41 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Emails collected via the site Newsletter Signup form. Read-only for editors.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletter-subscribers".
+ */
+export interface NewsletterSubscriber {
+  id: number;
+  /**
+   * Subscriber email. Unique.
+   */
+  email: string;
+  /**
+   * Lifecycle status. Set to "unsubscribed" if the person opts out.
+   */
+  status: 'active' | 'unsubscribed' | 'bounced';
+  /**
+   * URL path where signup happened (auto-filled by the API).
+   */
+  source?: string | null;
+  /**
+   * Browser UA at signup time (diagnostic).
+   */
+  userAgent?: string | null;
+  /**
+   * SHA-256(ip + salt). GDPR-friendly; used only for spam forensics.
+   */
+  ipHash?: string | null;
+  /**
+   * Internal admin notes. Not visible to the subscriber.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -19609,6 +19650,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'newsletter-subscribers';
+        value: number | NewsletterSubscriber;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -28494,6 +28539,20 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletter-subscribers_select".
+ */
+export interface NewsletterSubscribersSelect<T extends boolean = true> {
+  email?: T;
+  status?: T;
+  source?: T;
+  userAgent?: T;
+  ipHash?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -28866,10 +28925,30 @@ export interface FooterSetting {
   servicesMenu?: (number | null) | Menu;
   showContactColumn?: boolean | null;
   contactColumnLabel?: string | null;
-  /**
-   * Reserved — newsletter signup (Phase 4).
-   */
-  showNewsletter?: boolean | null;
+  newsletter: {
+    /**
+     * Section heading.
+     */
+    heading: string;
+    /**
+     * Background theme.
+     */
+    theme: 'ocean' | 'sand' | 'leaf';
+    /**
+     * Optional sub-copy under the heading.
+     */
+    description?: string | null;
+    placeholderText: string;
+    buttonLabel: string;
+    /**
+     * Shown after a successful signup.
+     */
+    successMessage: string;
+    /**
+     * Shown when the signup fails.
+     */
+    errorMessage: string;
+  };
   /**
    * Menu link legal (Privacy, Terms) untuk footer minimal.
    */
@@ -28956,7 +29035,13 @@ export interface SiteFeature {
   sections?: {
     testimonials?: boolean | null;
     faq?: boolean | null;
+    /**
+     * Master switch for the timed promo modal. Content in Settings → Promo Banner.
+     */
     promoBanner?: boolean | null;
+    /**
+     * Master switch for the footer newsletter signup. Content in Settings → Footer Settings → Newsletter.
+     */
     newsletter?: boolean | null;
   };
   /**
@@ -28977,8 +29062,120 @@ export interface SiteFeature {
    */
   features?: {
     whatsappFloat?: boolean | null;
+    /**
+     * Master switch for the slim site-wide bar above the header. Content in Settings → Announcement Bar.
+     */
     announcementBar?: boolean | null;
   };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Slim site-wide bar shown above the header. Master on/off in Site Features → Fitur Opsional.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcement-bar".
+ */
+export interface AnnouncementBar {
+  id: number;
+  /**
+   * Single-line announcement (max 140 chars).
+   */
+  message: string;
+  /**
+   * Background color from the brand palette.
+   */
+  theme: 'ocean' | 'coral' | 'leaf' | 'sand';
+  /**
+   * Show an "×" button so visitors can dismiss the bar. Dismissal is remembered in the browser until the message text changes.
+   */
+  dismissible?: boolean | null;
+  link?: {
+    enabled?: boolean | null;
+    /**
+     * e.g. "Learn more"
+     */
+    label?: string | null;
+    /**
+     * Absolute or relative URL
+     */
+    url?: string | null;
+    /**
+     * Open in a new tab.
+     */
+    newTab?: boolean | null;
+  };
+  /**
+   * Do not show before this date.
+   */
+  startDate?: string | null;
+  /**
+   * Auto-hide after this date.
+   */
+  endDate?: string | null;
+  /**
+   * Auto-generated hash of the message. Do not edit — it is used to invalidate visitor dismissals.
+   */
+  version?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Timed pop-up modal. Master on/off in Site Features → Section Halaman → Banner Promo.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-banner".
+ */
+export interface PromoBanner {
+  id: number;
+  /**
+   * Layout variant. Theme 1 requires an image; Theme 2 renders headline + CTA only.
+   */
+  theme: 'theme1-with-image' | 'theme2-text-only';
+  /**
+   * Main heading (max 80 chars).
+   */
+  headline: string;
+  /**
+   * Optional supporting copy (max 240 chars).
+   */
+  subheadline?: string | null;
+  /**
+   * Required when Theme 1 is selected. Recommended 800×600 or landscape.
+   */
+  image?: (number | null) | Media;
+  cta: {
+    label: string;
+    /**
+     * Absolute or relative URL
+     */
+    url: string;
+    newTab?: boolean | null;
+  };
+  /**
+   * Seconds to wait after page load before showing the modal. Range 0 – 60. Default 5.
+   */
+  triggerDelay: number;
+  /**
+   * Days to wait before showing the modal again to a visitor who dismissed or converted. Range 1 – 90. Default 1.
+   */
+  displayFrequencyDays: number;
+  /**
+   * When ON: do not trigger the modal if the visitor has scrolled past ~50% of the page before the delay elapses (they are already engaged). Recommended.
+   */
+  suppressAfterScroll?: boolean | null;
+  /**
+   * Do not show before this date.
+   */
+  startDate?: string | null;
+  /**
+   * Auto-hide after this date.
+   */
+  endDate?: string | null;
+  /**
+   * When ON (default): modal only triggers on the homepage. When OFF: modal triggers site-wide on every page (frequency cookie still applies). Site-wide can hurt conversion on detail pages — keep this ON unless running a very short campaign.
+   */
+  showOnHomepageOnly?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -29139,7 +29336,17 @@ export interface FooterSettingsSelect<T extends boolean = true> {
   servicesMenu?: T;
   showContactColumn?: T;
   contactColumnLabel?: T;
-  showNewsletter?: T;
+  newsletter?:
+    | T
+    | {
+        heading?: T;
+        theme?: T;
+        description?: T;
+        placeholderText?: T;
+        buttonLabel?: T;
+        successMessage?: T;
+        errorMessage?: T;
+      };
   legalLinks?: T;
   bottomBarRightText?: T;
   updatedAt?: T;
@@ -29220,6 +29427,55 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
         whatsappFloat?: T;
         announcementBar?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcement-bar_select".
+ */
+export interface AnnouncementBarSelect<T extends boolean = true> {
+  message?: T;
+  theme?: T;
+  dismissible?: T;
+  link?:
+    | T
+    | {
+        enabled?: T;
+        label?: T;
+        url?: T;
+        newTab?: T;
+      };
+  startDate?: T;
+  endDate?: T;
+  version?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-banner_select".
+ */
+export interface PromoBannerSelect<T extends boolean = true> {
+  theme?: T;
+  headline?: T;
+  subheadline?: T;
+  image?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        newTab?: T;
+      };
+  triggerDelay?: T;
+  displayFrequencyDays?: T;
+  suppressAfterScroll?: T;
+  startDate?: T;
+  endDate?: T;
+  showOnHomepageOnly?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
