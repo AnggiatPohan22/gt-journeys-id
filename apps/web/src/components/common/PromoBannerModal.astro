@@ -174,9 +174,30 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
       return window.scrollY / scrollable > 0.5
     }
 
+    // Scroll-lock: preserve original body inline styles so we can
+    // restore them precisely on close. Also compensate for the
+    // scrollbar width so removing overflow doesn't shift the layout.
+    const savedBodyStyle = { overflow: '', paddingRight: '' }
+
+    const lockScroll = () => {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      savedBodyStyle.overflow = document.body.style.overflow
+      savedBodyStyle.paddingRight = document.body.style.paddingRight
+      document.body.style.overflow = 'hidden'
+      if (scrollbarWidth > 0) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`
+      }
+    }
+
+    const unlockScroll = () => {
+      document.body.style.overflow = savedBodyStyle.overflow
+      document.body.style.paddingRight = savedBodyStyle.paddingRight
+    }
+
     const open = () => {
       if (suppressScroll && scrolledPast50()) return
       previouslyFocused = document.activeElement as HTMLElement | null
+      lockScroll()
       root.classList.remove('hidden')
       root.classList.add('flex')
       // Next frame → fade in
@@ -201,6 +222,7 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
       root.addEventListener('transitionend', () => {
         root.classList.add('hidden')
         root.classList.remove('flex')
+        unlockScroll()
       }, { once: true })
       document.removeEventListener('keydown', onKey)
       previouslyFocused?.focus?.()
