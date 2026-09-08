@@ -105,7 +105,9 @@ try {
         } catch (_) {}
       `}></script>
     )}
-    <style is:global>{`html[data-ab-hidden] .announcement-bar { display: none !important; }`}</style>
+    <style is:global>
+      html[data-ab-hidden] .announcement-bar { display: none !important; }
+    </style>
 
     {/* Google Analytics 4 — only if measurement ID set in CMS */}
     {gaId && (
