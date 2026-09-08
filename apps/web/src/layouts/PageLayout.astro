@@ -24,8 +24,8 @@ const { title, description, ogImage, transparentHeader = false, canonical, ogTyp
 <BaseLayout title={title} description={description} ogImage={ogImage} canonical={canonical} ogType={ogType} noindex={noindex}>
   <slot name="head" slot="head" />
 
-  <AnnouncementBar />
   <Header transparent={transparentHeader} />
+  <AnnouncementBar />
 
   <main>
     <slot />
