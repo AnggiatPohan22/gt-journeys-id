@@ -56,8 +56,13 @@ const ctaUrl: string = cta?.url ?? '#'
 const ctaNewTab: boolean = !!cta?.newTab
 
 const triggerDelaySec: number = typeof promo?.triggerDelay === 'number' ? promo.triggerDelay : 5
-const frequencyDays: number = typeof promo?.displayFrequencyDays === 'number' ? promo.displayFrequencyDays : 1
+// displayFrequency is stored as a preset string of MINUTES:
+// '30' | '60' | '360' | '720' | '1440'. Fallback: 1440 (1 day).
+const frequencyMinutes: number = Number(promo?.displayFrequency ?? '1440') || 1440
 const suppressAfterScroll: boolean = promo?.suppressAfterScroll !== false
+// Version keys the visitor cookie — any CMS save (content edit or
+// resetVisitorCookies toggle) bumps this hash, invalidating cookies.
+const version: string = promo?.version ?? 'v0'
 
 // Theme 1 requires an image; if none provided, degrade to theme 2 layout.
 const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text-only' : theme
@@ -67,8 +72,9 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
   <div
     class="promo-modal-root fixed inset-0 z-[60] hidden items-center justify-center p-4 sm:p-6"
     data-trigger-delay={String(triggerDelaySec)}
-    data-frequency-days={String(frequencyDays)}
+    data-frequency-minutes={String(frequencyMinutes)}
     data-suppress-scroll={suppressAfterScroll ? '1' : '0'}
+    data-promo-version={version}
     role="dialog"
     aria-modal="true"
     aria-labelledby="promo-modal-title"
@@ -130,8 +136,8 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
 )}
 
 <script>
-  const LAST_KEY = 'dnj:promo:lastShown'
-  const DAY_MS = 86_400_000
+  const MINUTE_MS = 60_000
+  const OLD_KEY = 'dnj:promo:lastShown' // Phase 4.33 pre-version key — cleared on load
 
   const init = () => {
     const root = document.querySelector<HTMLElement>('.promo-modal-root')
@@ -139,13 +145,19 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
     root.dataset.bound = '1'
 
     const delaySec = Number(root.dataset.triggerDelay ?? '5')
-    const frequencyDays = Number(root.dataset.frequencyDays ?? '1')
+    const frequencyMinutes = Number(root.dataset.frequencyMinutes ?? '1440')
     const suppressScroll = root.dataset.suppressScroll === '1'
+    const version = root.dataset.promoVersion ?? 'v0'
+    const LAST_KEY = 'dnj:promo:lastShown:' + version
 
-    // Frequency check
+    // Frequency check — cookie is version-keyed, so any CMS save
+    // (content change or resetVisitorCookies) invalidates it.
     try {
+      // Clear legacy unversioned key so visitors from earlier releases
+      // don't carry a stale timestamp forward.
+      localStorage.removeItem(OLD_KEY)
       const last = Number(localStorage.getItem(LAST_KEY) ?? '0')
-      if (last && Date.now() - last < frequencyDays * DAY_MS) return
+      if (last && Date.now() - last < frequencyMinutes * MINUTE_MS) return
     } catch { /* localStorage blocked — proceed once */ }
 
     const backdrop = root.querySelector<HTMLElement>('.promo-modal-backdrop')
@@ -179,7 +191,9 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
 
     const close = (recordShown = true) => {
       if (recordShown) {
-        try { localStorage.setItem(LAST_KEY, String(Date.now())) } catch { /* ignore */ }
+        try {
+          localStorage.setItem(LAST_KEY, String(Date.now()))
+        } catch { /* ignore */ }
       }
       backdrop.style.opacity = '0'
       panel.style.opacity = '0'

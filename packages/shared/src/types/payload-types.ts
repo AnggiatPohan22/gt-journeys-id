@@ -29157,13 +29157,21 @@ export interface PromoBanner {
    */
   triggerDelay: number;
   /**
-   * Days to wait before showing the modal again to a visitor who dismissed or converted. Range 1 – 90. Default 1.
+   * How long to wait before showing the modal again to a visitor who dismissed or converted.
    */
-  displayFrequencyDays: number;
+  displayFrequency: '30' | '60' | '360' | '720' | '1440';
   /**
    * When ON: do not trigger the modal if the visitor has scrolled past ~50% of the page before the delay elapses (they are already engaged). Recommended.
    */
   suppressAfterScroll?: boolean | null;
+  /**
+   * Check this and Save to force the modal to reappear for every visitor (including yourself) on their next page load, regardless of the frequency setting above. Auto-unchecks after save. Any content edit (headline/CTA/image/theme) already triggers the same reset automatically, so use this only when you want to reset without changing the copy.
+   */
+  resetVisitorCookies?: boolean | null;
+  /**
+   * Auto-generated hash tied to the current content + reset counter. Do not edit — it keys the visitor localStorage cookie.
+   */
+  version?: string | null;
   /**
    * Do not show before this date.
    */
@@ -29471,8 +29479,10 @@ export interface PromoBannerSelect<T extends boolean = true> {
         newTab?: T;
       };
   triggerDelay?: T;
-  displayFrequencyDays?: T;
+  displayFrequency?: T;
   suppressAfterScroll?: T;
+  resetVisitorCookies?: T;
+  version?: T;
   startDate?: T;
   endDate?: T;
   showOnHomepageOnly?: T;

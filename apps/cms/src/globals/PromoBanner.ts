@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import crypto from 'crypto'
 import { isSuperAdmin } from '../access/roles'
 
 /**
@@ -25,6 +26,35 @@ export const PromoBanner: GlobalConfig = {
   access: {
     read: () => true,
     update: isSuperAdmin,
+  },
+  hooks: {
+    beforeChange: [
+      ({ data }) => {
+        // Version key that invalidates visitor localStorage frequency
+        // cookies. Two triggers:
+        //   1. Any content change → hash-of-content changes.
+        //   2. resetVisitorCookies checkbox ON → append current
+        //      timestamp so version changes even without content edit,
+        //      then auto-unset the checkbox.
+        const contentBits = [
+          data?.theme ?? '',
+          data?.headline ?? '',
+          data?.subheadline ?? '',
+          String(data?.image ?? ''),
+          data?.cta?.label ?? '',
+          data?.cta?.url ?? '',
+          data?.displayFrequency ?? '',
+        ].join('|')
+        const nonce = data?.resetVisitorCookies ? String(Date.now()) : ''
+        data.version = crypto
+          .createHash('sha256')
+          .update(contentBits + nonce)
+          .digest('hex')
+          .slice(0, 12)
+        if (data?.resetVisitorCookies) data.resetVisitorCookies = false
+        return data
+      },
+    ],
   },
   fields: [
     {
@@ -104,15 +134,19 @@ export const PromoBanner: GlobalConfig = {
               },
             },
             {
-              name: 'displayFrequencyDays',
-              type: 'number',
+              name: 'displayFrequency',
+              type: 'select',
               required: true,
-              defaultValue: 1,
-              min: 1,
-              max: 90,
+              defaultValue: '1440',
+              options: [
+                { label: '30 minutes',  value: '30' },
+                { label: '1 hour',      value: '60' },
+                { label: '6 hours',     value: '360' },
+                { label: '12 hours',    value: '720' },
+                { label: '1 day',       value: '1440' },
+              ],
               admin: {
-                description: 'Days to wait before showing the modal again to a visitor who dismissed or converted. Range 1 – 90. Default 1.',
-                step: 1,
+                description: 'How long to wait before showing the modal again to a visitor who dismissed or converted.',
               },
             },
             {
@@ -121,6 +155,23 @@ export const PromoBanner: GlobalConfig = {
               defaultValue: true,
               admin: {
                 description: 'When ON: do not trigger the modal if the visitor has scrolled past ~50% of the page before the delay elapses (they are already engaged). Recommended.',
+              },
+            },
+            {
+              name: 'resetVisitorCookies',
+              type: 'checkbox',
+              defaultValue: false,
+              admin: {
+                description: 'Check this and Save to force the modal to reappear for every visitor (including yourself) on their next page load, regardless of the frequency setting above. Auto-unchecks after save. Any content edit (headline/CTA/image/theme) already triggers the same reset automatically, so use this only when you want to reset without changing the copy.',
+              },
+            },
+            {
+              name: 'version',
+              type: 'text',
+              admin: {
+                description: 'Auto-generated hash tied to the current content + reset counter. Do not edit — it keys the visitor localStorage cookie.',
+                readOnly: true,
+                position: 'sidebar',
               },
             },
           ],
