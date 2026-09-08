@@ -7,6 +7,8 @@ import type { Media, SiteSetting } from '@shared/types/payload-types'
 import FooterTemplate1 from './templates/FooterTemplate1.astro'
 import FooterTemplate2 from './templates/FooterTemplate2.astro'
 import FooterTemplate3 from './templates/FooterTemplate3.astro'
+// Phase 4.33 — newsletter signup section above whichever footer template renders.
+import NewsletterSignup from '@components/common/NewsletterSignup.astro'
 
 let settings: SiteSetting | null = null
 let footerCfg: any = null
@@ -81,5 +83,6 @@ const TEMPLATES: Record<string, any> = { 'footer-1': FooterTemplate1, 'footer-2'
 const templateId = footerCfg?.template || defaultTemplateId('footer')
 const Template = TEMPLATES[templateId] ?? FooterTemplate1
 ---
+<NewsletterSignup />
 <Template {...ctx} />
 {additionalScripts && <Fragment set:html={additionalScripts} />}

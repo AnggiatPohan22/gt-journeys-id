@@ -44,20 +44,29 @@ const DEFAULT_FEATURES: SiteFeaturesShape = {
 
 let cache: SiteFeaturesShape | null = null
 
-/** Fetch & normalize toggle state dari CMS. Fallback ke DEFAULT saat gagal. */
+/**
+ * Fetch & normalize toggle state dari CMS. Fallback ke DEFAULT saat gagal.
+ *
+ * Cache: hanya aktif di production build. Di dev (`import.meta.env.DEV`)
+ * cache di-skip supaya toggle yang di-flip di CMS langsung tercermin di
+ * frontend tanpa perlu restart Astro dev server.
+ */
 export async function getFeatures(): Promise<SiteFeaturesShape> {
-  if (cache) return cache
+  const isDev = Boolean(import.meta.env?.DEV)
+  if (!isDev && cache) return cache
   try {
     const raw = await getSiteFeatures()
-    cache = {
+    const fresh: SiteFeaturesShape = {
       modules: { ...DEFAULT_FEATURES.modules, ...(raw?.modules ?? {}) },
       sections: { ...DEFAULT_FEATURES.sections, ...(raw?.sections ?? {}) },
       features: { ...DEFAULT_FEATURES.features, ...(raw?.features ?? {}) },
     }
+    if (!isDev) cache = fresh
+    return fresh
   } catch {
-    cache = DEFAULT_FEATURES
+    if (!isDev) cache = DEFAULT_FEATURES
+    return DEFAULT_FEATURES
   }
-  return cache
 }
 
 /** Cek apakah satu modul enabled (CMS-aware). */
