@@ -167,6 +167,37 @@ pnpm generate:types          # menambah interface Spa + slug 'spa' ke payload-ty
 > Butuh CMS bisa baca schema; jalankan setelah collection ter-register. Kalau perlu
 > schema push (tabel baru), stop `pnpm dev` dulu (SQLite lock).
 
+### Step A6: Push schema + fix Drizzle silent-skip
+
+Stop CMS dulu. Push schema (bikin tabel baru untuk collection service):
+
+```
+cd apps/cms
+pnpm tsx src/scripts/push-schema-loop.ts
+```
+
+Loop akan auto-drop duplicate index & retry. Kalau ada prompt "created or renamed?",
+jawab `+ create column` / `+ create table` untuk collection baru (safe: no existing data).
+
+**⚠️ WAJIB lanjut** — Drizzle-kit SQLite adapter punya bug: ADD COLUMN ke tabel FK-heavy
+(`payload_locked_documents_rels`) dan global besar (`site_features`) **di-skip diam-diam**
+(push finish hijau, error hanya muncul saat query). Jalankan helper:
+
+```
+pnpm tsx src/scripts/add-service-missing-cols.ts spa      # ganti "spa" dgn slug service anda
+```
+
+Helper akan audit + ALTER TABLE ADD COLUMN yang missing:
+- `site_features.modules_<snake>` (module toggle checkbox)
+- `payload_locked_documents_rels.<snake>_id` (+ FK index)
+
+Idempotent — aman di-jalankan berulang. Kalau nanti muncul error `no such column: X` di
+tabel lain, tambahkan ALTER di script itu untuk service ke-9 nanti.
+
+**Verifikasi cepat** — start `pnpm dev`, login CMS, buka Settings → Site Features.
+Kalau muncul "Nothing Found" atau terminal error `no such column: modules_<snake>`,
+helper belum jalan atau ada tabel lain yang missing.
+
 ---
 
 ## Bagian B — Frontend (apps/web)
@@ -460,6 +491,7 @@ menyalin **pemakaian** (`case`, `<Card>`, `item.field`) tapi **tidak** otomatis 
 | 3 | `apps/cms/src/collections/ServiceTypes.ts` | Add `key` option `spa` | ✅ |
 | 4 | `apps/cms/src/blocks/index.ts` | Add `spa` ke 2 select `serviceType` (ServiceGrid + ServiceListing) | ✅ |
 | 5 | `apps/cms/` → `pnpm generate:types` | Regen payload-types | ✅ |
+| 5b | `apps/cms/` → `pnpm tsx src/scripts/push-schema-loop.ts` + `add-service-missing-cols.ts <slug>` | Push schema + fix Drizzle silent-skip | ✅ |
 | 6 | `apps/web/src/config/modules.ts` | Add module `spa` (union + entry) | ✅ |
 | 7 | `apps/web/src/lib/features.ts` | Add `spa: true` ke `DEFAULT_FEATURES.modules` | ✅ |
 | 8 | `apps/web/src/lib/payload.ts` | Add `getSpas` + `getSpaBySlug` (`collection: 'spa'`) | ✅ |

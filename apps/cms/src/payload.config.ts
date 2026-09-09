@@ -36,6 +36,7 @@ import { Menus } from './collections/Menus'
 import { Testimonials } from './collections/Testimonials'
 import { ServiceTypes } from './collections/ServiceTypes'
 import { Spa } from './collections/Spa'
+import { FerryTickets } from './collections/FerryTickets'
 import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
 
 // Globals
@@ -46,6 +47,7 @@ import { SiteFeatures } from './globals/SiteFeatures'
 import { HomepageContent } from './globals/HomepageContent'
 import { AnnouncementBar } from './globals/AnnouncementBar'
 import { PromoBanner } from './globals/PromoBanner'
+
 
 export default buildConfig({
   // ── Editor ──────────────────────────────────
@@ -112,7 +114,7 @@ export default buildConfig({
     // dan dua `pushDevSchema` konkuren → "index already exists" 500.
     // Schema push kita jalankan manual/via migrasi (lihat docs/DB-SCHEMA-
     // CHANGES.md). Prod deploy tetap pakai migrations (PAYLOAD_MIGRATING).
-    push: false,
+    push: process.env.PAYLOAD_FORCE_PUSH === 'true' ? true : false,
   }),
 
   // ── Collections ─────────────────────────────
@@ -133,6 +135,7 @@ export default buildConfig({
     Venues,
     Rentals,
     Spa,
+    FerryTickets,
     // Site Builder
     Menus,
     Media,

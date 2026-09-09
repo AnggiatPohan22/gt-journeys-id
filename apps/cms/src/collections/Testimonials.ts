@@ -64,6 +64,7 @@ export const Testimonials: CollectionConfig = {
             { label: 'Weddings & Events', value: 'venues' },
             { label: 'Rentals', value: 'rentals' },
             { label: 'Spa & Wellness', value: 'spa' },
+            { label: 'Ferry Tickets', value: 'ferry-tickets' },
           ],
           defaultValue: 'general',
         },

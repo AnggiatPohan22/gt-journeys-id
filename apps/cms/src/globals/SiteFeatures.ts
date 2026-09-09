@@ -75,6 +75,12 @@ export const SiteFeatures: GlobalConfig = {
                     { name: 'spa', type: 'checkbox', label: 'Spa & Wellness', defaultValue: true, admin: { width: '50%' } },
                   ],
                 },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ferryTickets', type: 'checkbox', label: 'Ferry Tickets', defaultValue: true, admin: { width: '50%' } },
+                  ],
+                },
               ],
             },
           ],

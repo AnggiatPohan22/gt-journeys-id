@@ -122,7 +122,7 @@ const formatBytes = (bytes: number): string => {
 
 const SERVICE_COLLECTIONS = [
   'tours', 'accommodations', 'water-activities', 'yachts',
-  'restaurants', 'venues', 'rentals', 'spa',
+  'restaurants', 'venues', 'rentals', 'spa', 'ferry-tickets',
 ]
 
 const ACTIVITY_COLLECTIONS: { slug: string; titleField: string; label: string; icon: IconName }[] = [
@@ -137,6 +137,7 @@ const ACTIVITY_COLLECTIONS: { slug: string; titleField: string; label: string; i
   { slug: 'venues', titleField: 'name', label: 'Venue', icon: 'services' },
   { slug: 'rentals', titleField: 'title', label: 'Rental', icon: 'services' },
   { slug: 'spa', titleField: 'title', label: 'Spa', icon: 'services' },
+  { slug: 'ferry-tickets', titleField: 'title', label: 'Ferry Tickets', icon: 'services' },
   { slug: 'destinations', titleField: 'name', label: 'Destination', icon: 'map' },
   { slug: 'categories', titleField: 'title', label: 'Category', icon: 'category' },
   { slug: 'media', titleField: 'alt', label: 'Media', icon: 'image' },

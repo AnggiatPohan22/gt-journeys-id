@@ -81,6 +81,7 @@ export interface Config {
     venues: Venue;
     rentals: Rental;
     spa: Spa;
+    'ferry-tickets': FerryTicket;
     menus: Menu;
     media: Media;
     users: User;
@@ -106,6 +107,7 @@ export interface Config {
     venues: VenuesSelect<false> | VenuesSelect<true>;
     rentals: RentalsSelect<false> | RentalsSelect<true>;
     spa: SpaSelect<false> | SpaSelect<true>;
+    'ferry-tickets': FerryTicketsSelect<false> | FerryTicketsSelect<true>;
     menus: MenusSelect<false> | MenusSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -1057,6 +1059,7 @@ export interface Page {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -1198,7 +1201,15 @@ export interface Page {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -1776,6 +1787,7 @@ export interface Page {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -1950,7 +1962,15 @@ export interface Page {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -2491,7 +2511,16 @@ export interface ServiceType {
   /**
    * Pengikat ke collection listing. TETAP — jangan diubah setelah dibuat.
    */
-  key: 'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+  key:
+    | 'tours'
+    | 'accommodations'
+    | 'water-activities'
+    | 'yachts'
+    | 'restaurants'
+    | 'venues'
+    | 'rentals'
+    | 'spa'
+    | 'ferry-tickets';
   status?: ('active' | 'draft' | 'archived') | null;
   /**
    * Urutan tampil. Angka kecil di atas.
@@ -2557,7 +2586,16 @@ export interface Category {
   id: number;
   name: string;
   slug: string;
-  module: 'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+  module:
+    | 'tours'
+    | 'accommodations'
+    | 'water-activities'
+    | 'yachts'
+    | 'restaurants'
+    | 'venues'
+    | 'rentals'
+    | 'spa'
+    | 'ferry-tickets';
   /**
    * Optional — for subcategories
    */
@@ -2606,6 +2644,7 @@ export interface Testimonial {
         | 'venues'
         | 'rentals'
         | 'spa'
+        | 'ferry-tickets'
       )
     | null;
   /**
@@ -3714,6 +3753,7 @@ export interface Tour {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -3855,7 +3895,15 @@ export interface Tour {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -4433,6 +4481,7 @@ export interface Tour {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -4607,7 +4656,15 @@ export interface Tour {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -6074,6 +6131,7 @@ export interface Accommodation {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -6215,7 +6273,15 @@ export interface Accommodation {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -7803,6 +7869,7 @@ export interface WaterActivity {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -7944,7 +8011,15 @@ export interface WaterActivity {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -9406,6 +9481,7 @@ export interface Yacht {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -9547,7 +9623,15 @@ export interface Yacht {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -10125,6 +10209,7 @@ export interface Yacht {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -10299,7 +10384,15 @@ export interface Yacht {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -11667,6 +11760,7 @@ export interface Restaurant {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -11808,7 +11902,15 @@ export interface Restaurant {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -12263,7 +12365,15 @@ export interface Restaurant {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -13648,6 +13758,7 @@ export interface Venue {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -13789,7 +13900,15 @@ export interface Venue {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -14367,6 +14486,7 @@ export interface Venue {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -14541,7 +14661,15 @@ export interface Venue {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -15911,6 +16039,7 @@ export interface Rental {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -16052,7 +16181,15 @@ export interface Rental {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -16630,6 +16767,7 @@ export interface Rental {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -16804,7 +16942,15 @@ export interface Rental {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -18174,6 +18320,7 @@ export interface Spa {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -18315,7 +18462,15 @@ export interface Spa {
         | {
             heading?: string | null;
             serviceType:
-              'tours' | 'accommodations' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
@@ -18893,6 +19048,7 @@ export interface Spa {
                   | 'venues'
                   | 'rentals'
                   | 'spa'
+                  | 'ferry-tickets'
                 )
               | null;
             /**
@@ -19067,7 +19223,15 @@ export interface Spa {
             heading: string;
             description?: string | null;
             serviceType:
-              'accommodations' | 'tours' | 'water-activities' | 'yachts' | 'restaurants' | 'venues' | 'rentals' | 'spa';
+              | 'accommodations'
+              | 'tours'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
             /**
              * Filter subset accommodation types. Kosong = semua.
              */
@@ -19435,6 +19599,1700 @@ export interface Spa {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ferry-tickets".
+ */
+export interface FerryTicket {
+  id: number;
+  slug: string;
+  status?: ('draft' | 'published') | null;
+  /**
+   * Lower numbers appear first
+   */
+  sortOrder?: number | null;
+  /**
+   * Show on homepage and featured sections
+   */
+  isFeatured?: boolean | null;
+  title: string;
+  /**
+   * Short tagline (opsional)
+   */
+  subtitle?: string | null;
+  destination: number | Destination;
+  category?: (number | null) | Category;
+  /**
+   * Mis: "Full Day", "3 Hours"
+   */
+  duration?: string | null;
+  minParticipants?: number | null;
+  maxParticipants?: number | null;
+  description: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Max 4 stat cards.
+   */
+  quickSpecs?:
+    | {
+        iconName: string;
+        /**
+         * Mis: "6 Hours"
+         */
+        label: string;
+        subtitle?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Tour highlights (bullet points, max ~8).
+   */
+  highlights?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Main hero image.
+   */
+  featuredImage: number | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
+  gallery?:
+    | {
+        image: number | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * YouTube atau Vimeo URL
+   */
+  videoUrl?: string | null;
+  /**
+   * Urutan aktivitas tour (drag & drop untuk reorder).
+   */
+  itinerary?:
+    | {
+        /**
+         * Mis: "09:00" atau "1 hour"
+         */
+        time?: string | null;
+        title: string;
+        iconName?: string | null;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Meeting point info.
+   */
+  meetingPoint?: {
+    /**
+     * Mis: "Ubud Palace Main Gate"
+     */
+    name?: string | null;
+    /**
+     * Mis: "08:00"
+     */
+    time?: string | null;
+    address?: string | null;
+    /**
+     * Google Maps embed URL (opsional)
+     */
+    mapEmbed?: string | null;
+  };
+  /**
+   * Pickup service info (kalau ada).
+   */
+  pickupService?: {
+    /**
+     * Pickup service tersedia?
+     */
+    available?: boolean | null;
+    /**
+     * List area pickup (mis: "Ubud, Canggu, Seminyak, Kuta")
+     */
+    areas?: string | null;
+    /**
+     * Additional notes (mis: "Free pickup dalam 15km, di luar area kena charge")
+     */
+    notes?: string | null;
+  };
+  pricing?: {
+    adultPrice?: number | null;
+    childPrice?: number | null;
+    infantPrice?: number | null;
+    currency?: ('IDR' | 'USD') | null;
+    /**
+     * e.g. "per person", "per group", "per night"
+     */
+    priceNote?: string | null;
+    /**
+     * e.g. "Early Bird -10%", "Group Discount"
+     */
+    discountLabel?: string | null;
+  };
+  /**
+   * Template pesan WhatsApp yang akan terisi otomatis saat visitor klik tombol booking
+   */
+  whatsappMessage?: string | null;
+  includes?:
+    | {
+        item: string;
+        id?: string | null;
+      }[]
+    | null;
+  excludes?:
+    | {
+        item: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional info: dress code, restrictions, cancellation policy, dsb.
+   */
+  additionalInfo?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Pilih "Customize" untuk mengatur manual, atau "Nonaktifkan" untuk menyembunyikan section di halaman ini.
+   */
+  relatedOverride?: ('default' | 'customize' | 'disable') | null;
+  /**
+   * Kosong = otomatis per tipe layanan.
+   */
+  relatedSectionTitle?: string | null;
+  relatedCardStyle?: ('curated' | 'compact' | 'detailed') | null;
+  relatedMaxItems?: number | null;
+  relatedSelectionMode?: ('same_type' | 'same_destination' | 'random' | 'manual') | null;
+  relatedShowExploreAll?: boolean | null;
+  /**
+   * Pilih service spesifik yang ingin ditampilkan. Hanya aktif saat Mode Seleksi = Manual Pick.
+   */
+  relatedManualPicks?: (number | FerryTicket)[] | null;
+  /**
+   * Block dirender berurutan setelah main sections.
+   */
+  additionalBlocks?:
+    | (
+        | {
+            heading: string;
+            subheading?: string | null;
+            ctaText?: string | null;
+            ctaLink?: string | null;
+            mediaType: 'single' | 'multiple' | 'video' | 'none';
+            singleImage?: (number | null) | Media;
+            imageFit?: ('cover' | 'contain' | 'fill' | 'scale-down') | null;
+            imagePosition?:
+              | (
+                  | 'top-left'
+                  | 'top'
+                  | 'top-right'
+                  | 'left'
+                  | 'center'
+                  | 'right'
+                  | 'bottom-left'
+                  | 'bottom'
+                  | 'bottom-right'
+                )
+              | null;
+            /**
+             * 2–10 images. Urutan drag & drop = urutan tampil. Fit & position bisa diset per-slide.
+             */
+            imageSlider?:
+              | {
+                  image: number | Media;
+                  imageFit?: ('cover' | 'contain' | 'fill' | 'scale-down') | null;
+                  imagePosition?:
+                    | (
+                        | 'top-left'
+                        | 'top'
+                        | 'top-right'
+                        | 'left'
+                        | 'center'
+                        | 'right'
+                        | 'bottom-left'
+                        | 'bottom'
+                        | 'bottom-right'
+                      )
+                    | null;
+                  caption?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Animasi antar slide. Blur/Wipe/Parallax adalah preset premium untuk kesan cinematic.
+             */
+            imageTransition?: ('fade' | 'slide' | 'zoom' | 'blur' | 'wipe' | 'parallax' | 'none') | null;
+            /**
+             * Detik per slide (2–20).
+             */
+            transitionInterval?: number | null;
+            /**
+             * Jika ON, transisi pertama langsung jalan saat load (tidak menunggu interval penuh). Cocok untuk continuous Ken Burns / smooth crossfade.
+             */
+            sliderAutoStart?: boolean | null;
+            videoSource?: ('url' | 'file') | null;
+            /**
+             * YouTube (https://youtu.be/...), Vimeo, atau direct file URL (.mp4/.webm).
+             */
+            videoUrl?: string | null;
+            videoFile?: (number | null) | Media;
+            /**
+             * Fallback image sebelum video load. Rekomendasi: aspect ratio sama dgn video.
+             */
+            videoPoster?: (number | null) | Media;
+            videoOptions?: {
+              autoplay?: boolean | null;
+              /**
+               * WAJIB true kalau autoplay=true.
+               */
+              muted?: boolean | null;
+              loop?: boolean | null;
+              /**
+               * Tampilkan play/pause.
+               */
+              controls?: boolean | null;
+            };
+            /**
+             * Load media hanya saat mendekati viewport (recommended).
+             */
+            lazyLoad?: boolean | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Styling primary button (CTA). Kosongkan kalau block tidak punya button.
+             */
+            button?: {
+              variant?: ('solid' | 'outline' | 'ghost') | null;
+              color?: ('sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              radius?: ('sharp' | 'rounded' | 'pill') | null;
+              hoverAnimation?: ('scale' | 'fade' | 'underline' | 'none') | null;
+              /**
+               * Warna teks button. Default = auto kontras dari button color.
+               */
+              textColor?: ('default' | 'ocean' | 'white' | 'stone' | 'coral') | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna heading
+               */
+              headingColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk heading
+               */
+              headingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna subheading
+               */
+              subheadingColor?:
+                ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk subheading
+               */
+              subheadingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            backgroundImage?: (number | null) | Media;
+            overlayOpacity?: number | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'hero';
+          }
+        | {
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna paragraph
+               */
+              paragraphColor?:
+                ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk paragraph
+               */
+              paragraphAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            alignment?: ('left' | 'center' | 'right') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'richText';
+          }
+        | {
+            image: number | Media;
+            caption?: string | null;
+            size?: ('full' | 'half' | 'third') | null;
+            /**
+             * Auto = natural. Fixed ratio buat fit/position berlaku.
+             */
+            aspectRatio?: ('auto' | '16-9' | '4-3' | '1-1' | '3-4' | '21-9') | null;
+            imageFit?: ('cover' | 'contain' | 'fill' | 'scale-down') | null;
+            imagePosition?:
+              | (
+                  | 'top-left'
+                  | 'top'
+                  | 'top-right'
+                  | 'left'
+                  | 'center'
+                  | 'right'
+                  | 'bottom-left'
+                  | 'bottom'
+                  | 'bottom-right'
+                )
+              | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna caption
+               */
+              captionColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk caption
+               */
+              captionAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'image';
+          }
+        | {
+            images: {
+              image: number | Media;
+              imageFit?: ('cover' | 'contain' | 'fill' | 'scale-down') | null;
+              imagePosition?:
+                | (
+                    | 'top-left'
+                    | 'top'
+                    | 'top-right'
+                    | 'left'
+                    | 'center'
+                    | 'right'
+                    | 'bottom-left'
+                    | 'bottom'
+                    | 'bottom-right'
+                  )
+                | null;
+              caption?: string | null;
+              id?: string | null;
+            }[];
+            layout?: ('grid' | 'masonry' | 'slider') | null;
+            /**
+             * 🖥️ Desktop cols
+             */
+            desktopColumns?: number | null;
+            /**
+             * 💻 Tablet cols
+             */
+            tabletColumns?: number | null;
+            /**
+             * 📱 Mobile cols
+             */
+            mobileColumns?: number | null;
+            /**
+             * Klik gambar → modal lightbox dgn prev/next.
+             */
+            enableLightbox?: boolean | null;
+            /**
+             * Efek hover per-image.
+             */
+            hoverEffect?: ('none' | 'zoom' | 'lift' | 'overlay' | 'grayscale') | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna caption
+               */
+              captionColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk caption
+               */
+              captionAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            columns?: number | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'gallery';
+          }
+        | {
+            heading: string;
+            description?: string | null;
+            buttonText: string;
+            buttonLink: string;
+            mediaType: 'single' | 'multiple' | 'video' | 'none';
+            singleImage?: (number | null) | Media;
+            imageFit?: ('cover' | 'contain' | 'fill' | 'scale-down') | null;
+            imagePosition?:
+              | (
+                  | 'top-left'
+                  | 'top'
+                  | 'top-right'
+                  | 'left'
+                  | 'center'
+                  | 'right'
+                  | 'bottom-left'
+                  | 'bottom'
+                  | 'bottom-right'
+                )
+              | null;
+            /**
+             * 2–10 images. Urutan drag & drop = urutan tampil. Fit & position bisa diset per-slide.
+             */
+            imageSlider?:
+              | {
+                  image: number | Media;
+                  imageFit?: ('cover' | 'contain' | 'fill' | 'scale-down') | null;
+                  imagePosition?:
+                    | (
+                        | 'top-left'
+                        | 'top'
+                        | 'top-right'
+                        | 'left'
+                        | 'center'
+                        | 'right'
+                        | 'bottom-left'
+                        | 'bottom'
+                        | 'bottom-right'
+                      )
+                    | null;
+                  caption?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Animasi antar slide. Blur/Wipe/Parallax adalah preset premium untuk kesan cinematic.
+             */
+            imageTransition?: ('fade' | 'slide' | 'zoom' | 'blur' | 'wipe' | 'parallax' | 'none') | null;
+            /**
+             * Detik per slide (2–20).
+             */
+            transitionInterval?: number | null;
+            /**
+             * Jika ON, transisi pertama langsung jalan saat load (tidak menunggu interval penuh). Cocok untuk continuous Ken Burns / smooth crossfade.
+             */
+            sliderAutoStart?: boolean | null;
+            videoSource?: ('url' | 'file') | null;
+            /**
+             * YouTube (https://youtu.be/...), Vimeo, atau direct file URL (.mp4/.webm).
+             */
+            videoUrl?: string | null;
+            videoFile?: (number | null) | Media;
+            /**
+             * Fallback image sebelum video load. Rekomendasi: aspect ratio sama dgn video.
+             */
+            videoPoster?: (number | null) | Media;
+            videoOptions?: {
+              autoplay?: boolean | null;
+              /**
+               * WAJIB true kalau autoplay=true.
+               */
+              muted?: boolean | null;
+              loop?: boolean | null;
+              /**
+               * Tampilkan play/pause.
+               */
+              controls?: boolean | null;
+            };
+            /**
+             * Load media hanya saat mendekati viewport (recommended).
+             */
+            lazyLoad?: boolean | null;
+            /**
+             * Posisi media relatif ke konten text.
+             */
+            mediaLayout?:
+              ('background' | 'left' | 'right' | 'above' | 'below' | 'scrolling-columns' | 'dual-frames') | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Styling primary button (CTA). Kosongkan kalau block tidak punya button.
+             */
+            button?: {
+              variant?: ('solid' | 'outline' | 'ghost') | null;
+              color?: ('sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              radius?: ('sharp' | 'rounded' | 'pill') | null;
+              hoverAnimation?: ('scale' | 'fade' | 'underline' | 'none') | null;
+              /**
+               * Warna teks button. Default = auto kontras dari button color.
+               */
+              textColor?: ('default' | 'ocean' | 'white' | 'stone' | 'coral') | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna heading
+               */
+              headingColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk heading
+               */
+              headingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna description
+               */
+              descriptionColor?:
+                ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk description
+               */
+              descriptionAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            style?: ('primary' | 'outline' | 'whatsapp') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'cta';
+          }
+        | {
+            heading?: string | null;
+            items: {
+              question: string;
+              answer: {
+                root: {
+                  type: string;
+                  children: {
+                    type: any;
+                    version: number;
+                    [k: string]: unknown;
+                  }[];
+                  direction: ('ltr' | 'rtl') | null;
+                  format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                  indent: number;
+                  version: number;
+                };
+                [k: string]: unknown;
+              };
+              id?: string | null;
+            }[];
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna heading
+               */
+              headingColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk heading
+               */
+              headingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna quote
+               */
+              quoteColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk quote
+               */
+              quoteAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'faq';
+          }
+        | {
+            heading?: string | null;
+            /**
+             * Ambil testimonial dari mana. "Inline" = isi manual di block ini. "Collection" = ambil dari koleksi Testimonials (CMS).
+             */
+            source?: ('inline' | 'collection') | null;
+            /**
+             * Filter by service type.
+             */
+            svc?:
+              | (
+                  | 'all'
+                  | 'general'
+                  | 'tours'
+                  | 'accommodations'
+                  | 'water-activities'
+                  | 'yachts'
+                  | 'restaurants'
+                  | 'venues'
+                  | 'rentals'
+                  | 'spa'
+                  | 'ferry-tickets'
+                )
+              | null;
+            /**
+             * Jumlah maksimal ditampilkan.
+             */
+            maxItems?: number | null;
+            /**
+             * Filter by destination (opsional).
+             */
+            filterDest?: (number | null) | Destination;
+            /**
+             * Hanya testimonial Featured.
+             */
+            onlyFeatured?: boolean | null;
+            /**
+             * Inline testimonials (dipakai kalau source = Inline).
+             */
+            items?:
+              | {
+                  name: string;
+                  quote: string;
+                  photo?: (number | null) | Media;
+                  rating?: number | null;
+                  id?: string | null;
+                }[]
+              | null;
+            /**
+             * Show items in batches with pagination
+             */
+            paginate?: boolean | null;
+            pageMode?: ('load-more' | 'pages') | null;
+            /**
+             * Items per page / per batch
+             */
+            pageSize?: number | null;
+            moreText?: string | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna heading
+               */
+              headingColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk heading
+               */
+              headingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna quote
+               */
+              quoteColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk quote
+               */
+              quoteAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'testimonials';
+          }
+        | {
+            heading?: string | null;
+            serviceType:
+              | 'tours'
+              | 'accommodations'
+              | 'water-activities'
+              | 'yachts'
+              | 'restaurants'
+              | 'venues'
+              | 'rentals'
+              | 'spa'
+              | 'ferry-tickets';
+            limit?: number | null;
+            featuredOnly?: boolean | null;
+            /**
+             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             */
+            cardVariant?: ('compact' | 'detailed') | null;
+            /**
+             * Card presentation template. Curated is designed for the bottom of a service detail page.
+             */
+            template?: ('default' | 'curated') | null;
+            /**
+             * How items are chosen. Auto only works when the block is placed inside a service detail page (Tour/Villa/etc. Custom Sections).
+             */
+            selectionMode?: ('manual' | 'auto') | null;
+            /**
+             * Optional override for the section heading. Leave empty to use the default ("Curated Alternatives" / "More Yachts" etc. depending on serviceType).
+             */
+            sectionTitle?: string | null;
+            /**
+             * Tampilkan button?
+             */
+            showViewAll?: boolean | null;
+            /**
+             * Text button (default: "View all")
+             */
+            viewAllText?: string | null;
+            /**
+             * URL tujuan (kosong = auto by serviceType)
+             */
+            viewAllLink?: string | null;
+            /**
+             * Enable pagination
+             */
+            paginate?: boolean | null;
+            pageMode?: ('load-more' | 'pages') | null;
+            /**
+             * Items per page / per batch
+             */
+            pageSize?: number | null;
+            moreText?: string | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna heading
+               */
+              headingColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk heading
+               */
+              headingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'serviceGrid';
+          }
+        | {
+            showMap?: boolean | null;
+            showWhatsApp?: boolean | null;
+            additionalText?: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            } | null;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna paragraph
+               */
+              paragraphColor?:
+                ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk paragraph
+               */
+              paragraphAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'contact';
+          }
+        | {
+            embedType?: ('youtube' | 'map' | 'custom') | null;
+            embedCode: string;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Background section (default = theme bg dari block).
+             */
+            background?: {
+              type?: ('default' | 'color' | 'image') | null;
+              color?: ('default' | 'sand' | 'ocean' | 'coral' | 'leaf' | 'stone' | 'midnight' | 'white') | null;
+              image?: (number | null) | Media;
+              /**
+               * Overlay hitam opacity di atas image (0-100, default 40%). Buat teks terbaca.
+               */
+              overlayOpacity?: number | null;
+            };
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'embed';
+          }
+        | {
+            height?: ('sm' | 'md' | 'lg' | 'xl') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'spacer';
+          }
+        | {
+            /**
+             * Visual style. Pilih per-instance. Ganti tanpa mengubah data items.
+             */
+            theme?: ('theme-1' | 'theme-2') | null;
+            eyebrow?: string | null;
+            heading: string;
+            items: {
+              iconName: string;
+              /**
+               * Nilai besar (mis: "1000+", "24/7", "50+")
+               */
+              value: string;
+              /**
+               * Label bawah nilai (mis: "Happy Clients")
+               */
+              caption: string;
+              id?: string | null;
+            }[];
+            /**
+             * Opsional. Kalau diisi, dijadikan background subtle di stats section.
+             */
+            backgroundImage?: (number | null) | Media;
+            /**
+             * Vertical padding section.
+             */
+            sectionPadding?: ('compact' | 'normal' | 'spacious') | null;
+            /**
+             * Perataan konten (heading, teks, CTA).
+             */
+            contentAlignment?: ('left' | 'center' | 'right') | null;
+            /**
+             * Lebar max konten di dalam section.
+             */
+            containerWidth?: ('full' | 'wide' | 'normal' | 'narrow') | null;
+            /**
+             * Animasi masuk section saat mendekati viewport.
+             */
+            entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Override padding internal (top/bottom) block ini. Default OFF = pakai global Block Padding.
+             */
+            pad?: {
+              enabled?: boolean | null;
+              /**
+               * "Inherit" = ikut global.
+               */
+              top?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              bottom?: ('inherit' | 'none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topMobPx?: number | null;
+              topDeskPx?: number | null;
+              btmMobPx?: number | null;
+              btmDeskPx?: number | null;
+            };
+            /**
+             * Override jarak (margin) block ini terhadap block sebelum/sesudahnya. Default OFF = ikut global Block Gap.
+             */
+            spacingOverride?: {
+              enabled?: boolean | null;
+              mt?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              mb?: ('none' | 'compact' | 'normal' | 'spacious' | 'custom') | null;
+              topPx?: number | null;
+              btmPx?: number | null;
+            };
+            /**
+             * Warna & animasi masuk per-element. Default "Inherit" = pakai theme/block-level.
+             */
+            ts?: {
+              /**
+               * Warna eyebrow
+               */
+              eyebrowColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk eyebrow
+               */
+              eyebrowAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna heading
+               */
+              headingColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk heading
+               */
+              headingAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna label
+               */
+              labelColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk label
+               */
+              labelAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+              /**
+               * Warna caption
+               */
+              captionColor?: ('inherit' | 'ocean' | 'coral' | 'leaf' | 'sand' | 'stone' | 'midnight' | 'white') | null;
+              /**
+               * Animasi masuk caption
+               */
+              captionAnimIn?:
+                | (
+                    | 'inherit'
+                    | 'none'
+                    | 'fade'
+                    | 'fade-up'
+                    | 'fade-down'
+                    | 'zoom'
+                    | 'slide-left'
+                    | 'slide-right'
+                    | 'blur'
+                  )
+                | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'statsBanner';
+          }
+      )[]
+    | null;
+  seo?: {
+    /**
+     * Override the default page title for search engines
+     */
+    metaTitle?: string | null;
+    /**
+     * Recommended: 120-160 characters
+     */
+    metaDescription?: string | null;
+    /**
+     * Recommended: 1200x630px
+     */
+    ogImage?: (number | null) | Media;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "menus".
  */
 export interface Menu {
@@ -19638,6 +21496,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'spa';
         value: number | Spa;
+      } | null)
+    | ({
+        relationTo: 'ferry-tickets';
+        value: number | FerryTicket;
       } | null)
     | ({
         relationTo: 'menus';
@@ -28425,6 +30287,777 @@ export interface SpaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ferry-tickets_select".
+ */
+export interface FerryTicketsSelect<T extends boolean = true> {
+  slug?: T;
+  status?: T;
+  sortOrder?: T;
+  isFeatured?: T;
+  title?: T;
+  subtitle?: T;
+  destination?: T;
+  category?: T;
+  duration?: T;
+  minParticipants?: T;
+  maxParticipants?: T;
+  description?: T;
+  quickSpecs?:
+    | T
+    | {
+        iconName?: T;
+        label?: T;
+        subtitle?: T;
+        id?: T;
+      };
+  highlights?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  featuredImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  videoUrl?: T;
+  itinerary?:
+    | T
+    | {
+        time?: T;
+        title?: T;
+        iconName?: T;
+        description?: T;
+        id?: T;
+      };
+  meetingPoint?:
+    | T
+    | {
+        name?: T;
+        time?: T;
+        address?: T;
+        mapEmbed?: T;
+      };
+  pickupService?:
+    | T
+    | {
+        available?: T;
+        areas?: T;
+        notes?: T;
+      };
+  pricing?:
+    | T
+    | {
+        adultPrice?: T;
+        childPrice?: T;
+        infantPrice?: T;
+        currency?: T;
+        priceNote?: T;
+        discountLabel?: T;
+      };
+  whatsappMessage?: T;
+  includes?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  excludes?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  additionalInfo?: T;
+  relatedOverride?: T;
+  relatedSectionTitle?: T;
+  relatedCardStyle?: T;
+  relatedMaxItems?: T;
+  relatedSelectionMode?: T;
+  relatedShowExploreAll?: T;
+  relatedManualPicks?: T;
+  additionalBlocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              ctaText?: T;
+              ctaLink?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              button?:
+                | T
+                | {
+                    variant?: T;
+                    color?: T;
+                    radius?: T;
+                    hoverAnimation?: T;
+                    textColor?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    subheadingColor?: T;
+                    subheadingAnimIn?: T;
+                  };
+              backgroundImage?: T;
+              overlayOpacity?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richText?:
+          | T
+          | {
+              content?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    paragraphColor?: T;
+                    paragraphAnimIn?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        image?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              desktopColumns?: T;
+              tabletColumns?: T;
+              mobileColumns?: T;
+              enableLightbox?: T;
+              hoverEffect?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              buttonText?: T;
+              buttonLink?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              mediaLayout?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              button?:
+                | T
+                | {
+                    variant?: T;
+                    color?: T;
+                    radius?: T;
+                    hoverAnimation?: T;
+                    textColor?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              style?: T;
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        testimonials?:
+          | T
+          | {
+              heading?: T;
+              source?: T;
+              svc?: T;
+              maxItems?: T;
+              filterDest?: T;
+              onlyFeatured?: T;
+              items?:
+                | T
+                | {
+                    name?: T;
+                    quote?: T;
+                    photo?: T;
+                    rating?: T;
+                    id?: T;
+                  };
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        serviceGrid?:
+          | T
+          | {
+              heading?: T;
+              serviceType?: T;
+              limit?: T;
+              featuredOnly?: T;
+              cardVariant?: T;
+              template?: T;
+              selectionMode?: T;
+              sectionTitle?: T;
+              showViewAll?: T;
+              viewAllText?: T;
+              viewAllLink?: T;
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contact?:
+          | T
+          | {
+              showMap?: T;
+              showWhatsApp?: T;
+              additionalText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    paragraphColor?: T;
+                    paragraphAnimIn?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        embed?:
+          | T
+          | {
+              embedType?: T;
+              embedCode?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        spacer?:
+          | T
+          | {
+              height?: T;
+              id?: T;
+              blockName?: T;
+            };
+        statsBanner?:
+          | T
+          | {
+              theme?: T;
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    iconName?: T;
+                    value?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              backgroundImage?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    eyebrowColor?: T;
+                    eyebrowAnimIn?: T;
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    labelColor?: T;
+                    labelAnimIn?: T;
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "menus_select".
  */
 export interface MenusSelect<T extends boolean = true> {
@@ -29028,6 +31661,7 @@ export interface SiteFeature {
     weddings?: boolean | null;
     rentals?: boolean | null;
     spa?: boolean | null;
+    ferryTickets?: boolean | null;
   };
   /**
    * Toggle section besar di homepage / landing pages.
@@ -29426,6 +32060,7 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
         weddings?: T;
         rentals?: T;
         spa?: T;
+        ferryTickets?: T;
       };
   sections?:
     | T
