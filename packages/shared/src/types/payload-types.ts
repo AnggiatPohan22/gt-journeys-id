@@ -29071,7 +29071,7 @@ export interface SiteFeature {
   createdAt?: string | null;
 }
 /**
- * Slim site-wide bar shown above the header. Master on/off in Site Features → Fitur Opsional.
+ * Slim site-wide bar shown below the header. Master on/off in Site Features → Fitur Opsional.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "announcement-bar".
@@ -29087,7 +29087,7 @@ export interface AnnouncementBar {
    */
   theme: 'ocean' | 'coral' | 'leaf' | 'sand';
   /**
-   * Show an "×" button so visitors can dismiss the bar. Dismissal is remembered in the browser until the message text changes.
+   * Show an "×" button so visitors can dismiss the bar. Dismissal is remembered for the duration set in the Trigger & Behavior tab.
    */
   dismissible?: boolean | null;
   link?: {
@@ -29106,6 +29106,14 @@ export interface AnnouncementBar {
     newTab?: boolean | null;
   };
   /**
+   * After a visitor dismisses the bar, wait this long before showing it to them again.
+   */
+  displayFrequency: '30' | '60' | '360' | '720' | '1440';
+  /**
+   * Check this and Save to force the bar to reappear for every visitor (including yourself) on their next page load, regardless of the duration setting above. Auto-unchecks after save. Any content edit (message/link/theme/frequency) already triggers the same reset automatically.
+   */
+  resetVisitorCookies?: boolean | null;
+  /**
    * Do not show before this date.
    */
   startDate?: string | null;
@@ -29114,7 +29122,11 @@ export interface AnnouncementBar {
    */
   endDate?: string | null;
   /**
-   * Auto-generated hash of the message. Do not edit — it is used to invalidate visitor dismissals.
+   * When ON: bar only shows on the homepage. When OFF (default): bar shows site-wide on every page. Announcement bars are usually site-wide (that's their point), so leave this OFF unless you specifically want a homepage-only teaser.
+   */
+  showOnHomepageOnly?: boolean | null;
+  /**
+   * Auto-generated hash of the content + reset counter. Do not edit — it keys the visitor dismissal cookie.
    */
   version?: string | null;
   updatedAt?: string | null;
@@ -29455,8 +29467,11 @@ export interface AnnouncementBarSelect<T extends boolean = true> {
         url?: T;
         newTab?: T;
       };
+  displayFrequency?: T;
+  resetVisitorCookies?: T;
   startDate?: T;
   endDate?: T;
+  showOnHomepageOnly?: T;
   version?: T;
   updatedAt?: T;
   createdAt?: T;

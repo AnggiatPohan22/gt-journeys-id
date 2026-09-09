@@ -53,14 +53,21 @@ const gaId = settings?.defaultSeo?.googleAnalyticsId as string | undefined
 const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as string | undefined
 
 // Phase 4.33 — Announcement Bar zero-flash dismissal check.
-// Read the version SSR, inline a tiny script in <head> that stamps
-// data-ab-hidden on <html> before body paint if the visitor already
-// dismissed this exact message. CSS hides .announcement-bar under that
-// attribute so it never flickers on repeat visits.
+// Read the version + displayFrequency SSR; inline a tiny script in
+// <head> that stamps data-ab-hidden on <html> before body paint if
+// the visitor's stored dismissal timestamp is still within the
+// frequency window. CSS hides .announcement-bar under that attribute
+// so it never flickers on repeat visits. When the window elapses (or
+// the version changes because the CMS was edited or the reset
+// checkbox was ticked), the bar re-appears automatically.
 let abVersion = ''
+let abFrequencyMinutes = 1440
 try {
   const bar = await getAnnouncementBar()
   abVersion = (bar as any)?.version ?? ''
+  const rawFreq = (bar as any)?.displayFrequency
+  const parsedFreq = Number(rawFreq)
+  if (Number.isFinite(parsedFreq) && parsedFreq > 0) abFrequencyMinutes = parsedFreq
 } catch { /* absent = no head script needed */ }
 ---
 
@@ -99,8 +106,16 @@ try {
     {abVersion && (
       <script is:inline set:html={`
         try {
-          if (localStorage.getItem('dnj:ab-dismissed:${abVersion}') === '1') {
-            document.documentElement.setAttribute('data-ab-hidden', 'true');
+          var k = 'dnj:ab-dismissed:${abVersion}';
+          var raw = localStorage.getItem(k);
+          if (raw) {
+            var ts = Number(raw);
+            var freqMs = ${abFrequencyMinutes} * 60000;
+            if (raw === '1' || (isFinite(ts) && Date.now() - ts < freqMs)) {
+              document.documentElement.setAttribute('data-ab-hidden', 'true');
+            } else if (isFinite(ts)) {
+              localStorage.removeItem(k);
+            }
           }
         } catch (_) {}
       `}></script>

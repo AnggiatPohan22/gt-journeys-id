@@ -30,12 +30,21 @@ const inWindow =
   (!bar?.endDate || now <= new Date(bar.endDate).getTime())
 
 const hasMessage = !!bar?.message
-const shouldRender = featureEnabled && hasMessage && inWindow
+
+// Homepage scope check (mirrors PromoBanner).
+const showOnHomepageOnly: boolean = bar?.showOnHomepageOnly === true
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/'
+const isHomepage = currentPath === '/'
+const scopeMatches = !showOnHomepageOnly || isHomepage
+
+const shouldRender = featureEnabled && hasMessage && inWindow && scopeMatches
 
 const message: string = bar?.message ?? ''
 const theme: 'ocean' | 'coral' | 'leaf' | 'sand' = bar?.theme ?? 'ocean'
 const dismissible: boolean = bar?.dismissible !== false
 const version: string = bar?.version ?? 'v0'
+// displayFrequency stored as string minutes: '30' | '60' | '360' | '720' | '1440'
+const frequencyMinutes: number = Number(bar?.displayFrequency ?? '1440') || 1440
 
 const link = bar?.link
 const linkEnabled = !!link?.enabled && !!link?.url
@@ -57,6 +66,7 @@ const themeClass = themeClasses[theme] ?? themeClasses.ocean
     class:list={['announcement-bar w-full text-xs sm:text-sm font-body overflow-hidden transition-[max-height,opacity] duration-200 ease-out', themeClass]}
     data-ab-version={version}
     data-ab-dismissible={dismissible ? '1' : '0'}
+    data-ab-frequency-minutes={String(frequencyMinutes)}
     role="region"
     aria-label="Site announcement"
   >
@@ -94,25 +104,35 @@ const themeClass = themeClasses[theme] ?? themeClasses.ocean
 
 <script>
   const DISMISS_KEY_PREFIX = 'dnj:ab-dismissed:'
+  const MINUTE_MS = 60_000
 
   const init = () => {
     const bar = document.querySelector<HTMLElement>('.announcement-bar')
     if (!bar) return
 
     const version = bar.dataset.abVersion ?? 'v0'
+    const frequencyMinutes = Number(bar.dataset.abFrequencyMinutes ?? '1440')
     const key = DISMISS_KEY_PREFIX + version
 
-    // Second-pass hide (in case head script missed / was blocked)
+    // Second-pass hide (in case head script missed / was blocked).
+    // Dismissal is a TIMESTAMP now — bar reappears after the frequency
+    // window elapses (or on version change, which invalidates the key).
     try {
-      if (localStorage.getItem(key) === '1') {
-        bar.style.display = 'none'
-        return
+      const raw = localStorage.getItem(key)
+      if (raw) {
+        const ts = Number(raw)
+        if (Number.isFinite(ts) && Date.now() - ts < frequencyMinutes * MINUTE_MS) {
+          bar.style.display = 'none'
+          return
+        }
+        // Expired — clear stale entry
+        localStorage.removeItem(key)
       }
     } catch { /* localStorage blocked — render as normal */ }
 
     const btn = bar.querySelector<HTMLButtonElement>('.ab-dismiss')
     btn?.addEventListener('click', () => {
-      try { localStorage.setItem(key, '1') } catch { /* ignore */ }
+      try { localStorage.setItem(key, String(Date.now())) } catch { /* ignore */ }
       bar.style.maxHeight = bar.offsetHeight + 'px'
       // Force layout before transitioning
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
