@@ -27,14 +27,29 @@ const NavAccordion = () => {
     let cancelled = false
 
     const findActiveGroup = (): HTMLElement | null => {
+      // Payload me-render link koleksi/global aktif dengan bentuk berbeda:
+      //   - list-view eksak (pathname === href) → <div class="nav__link"> TANPA href
+      //   - selain itu (dashboard, detail view, sibling) → <a class="nav__link" href="…">
+      // Karena itu kita tidak boleh memfilter [href] di selector: div tanpa href
+      // justru penanda paling definitif bahwa grup itulah pemilik halaman aktif.
       const links = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>('.nav-group .nav__link[href]'),
+        document.querySelectorAll<HTMLElement>('.nav-group .nav__link'),
       )
       let activeGroup: HTMLElement | null = null
       let bestLen = -1
       for (const link of links) {
         const href = link.getAttribute('href')
-        if (!href || href === '/admin' || href === '/admin/') continue
+        if (!href) {
+          // <div> tanpa href = list-view aktif eksak. Tandai grup ini sebagai
+          // aktif dengan bobot maksimal — tidak boleh dikalahkan href match manapun.
+          const group = link.closest<HTMLElement>('.nav-group')
+          if (group) {
+            activeGroup = group
+            bestLen = Number.POSITIVE_INFINITY
+          }
+          continue
+        }
+        if (href === '/admin' || href === '/admin/') continue
         if (pathname === href || pathname.startsWith(href + '/')) {
           const group = link.closest<HTMLElement>('.nav-group')
           if (group && href.length > bestLen) {
