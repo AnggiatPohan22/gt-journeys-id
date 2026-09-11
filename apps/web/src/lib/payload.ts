@@ -7,6 +7,7 @@ import type {
   Venue,
   Rental,
   Spa,
+  FerryTicket,
   Destination,
   Category,
   Page,
@@ -145,6 +146,11 @@ export const getRentalBySlug = (slug: string) => fetchBySlug<Rental>('rentals', 
 export const getSpas = (opts?: Partial<FetchOptions>) =>
   fetchCollection<Spa>({ collection: 'spa', ...opts })
 export const getSpaBySlug = (slug: string) => fetchBySlug<Spa>('spa', slug)
+
+export const getFerryTickets = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<FerryTicket>({ collection: 'ferry-tickets', ...opts })
+export const getFerryTicketsBySlug = (slug: string) =>
+  fetchBySlug<FerryTicket>('ferry-tickets', slug)
 
 /**
  * ServiceType metadata doc. Typed locally (loose) so builds don't hard-depend

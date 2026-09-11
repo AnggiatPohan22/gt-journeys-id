@@ -55,3 +55,8 @@ export function rentalMessage(title: string): string {
 export function spaMessage(title: string): string {
   return `Halo DnJourneysBali! 👋\n\nSaya ingin booking treatment:\n💆 *${title}*\n\nTanggal: [isi tanggal]\nJam: [isi jam]\nJumlah orang: [isi jumlah]\n\nBisa info harga & ketersediaan?`
 }
+
+export function ferryTicketMessage(title: string, route?: string): string {
+  const r = route ? `\nRute: ${route}` : ''
+  return `Halo DnJourneysBali! 👋\n\nSaya ingin booking tiket ferry:\n⛴️ *${title}*${r}\n\nTanggal keberangkatan: [isi tanggal]\nJumlah penumpang: [dewasa / anak]\n\nBisa info jadwal & ketersediaan?`
+}

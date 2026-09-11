@@ -2,7 +2,6 @@ import type { CollectionConfig } from 'payload'
 import { adminCreate, authenticatedUpdate, superAdminDelete, superAdminFieldAccess } from '../access/roles'
 import { generateSlug } from '../hooks/generateSlug'
 import { seoFields } from '../fields/seo'
-import { pricingFields } from '../fields/pricing'
 import { whatsappField } from '../fields/whatsapp'
 import { statusField, sortOrderField, isFeaturedField } from '../fields/status'
 import { iconField } from '../fields/iconOptions'
@@ -57,9 +56,38 @@ export const FerryTickets: CollectionConfig = {
                 {
                   type: 'row',
                   fields: [
-                    { name: 'duration', type: 'text', admin: { width: '40%', description: 'Mis: "Full Day", "3 Hours"' } },
-                    { name: 'minParticipants', type: 'number', min: 1, defaultValue: 1, admin: { width: '30%' } },
-                    { name: 'maxParticipants', type: 'number', admin: { width: '30%' } },
+                    {
+                      name: 'origin',
+                      type: 'select',
+                      required: true,
+                      admin: { width: '50%', description: 'Pelabuhan asal keberangkatan.' },
+                      options: [
+                        { label: 'Batam', value: 'batam' },
+                        { label: 'Tanjung Pinang', value: 'tanjungpinang' },
+                        { label: 'Singapore', value: 'singapore' },
+                        { label: 'Malaysia', value: 'malaysia' },
+                      ],
+                    },
+                    {
+                      name: 'arrival',
+                      type: 'select',
+                      required: true,
+                      admin: { width: '50%', description: 'Pelabuhan tujuan.' },
+                      options: [
+                        { label: 'Batam', value: 'batam' },
+                        { label: 'Tanjung Pinang', value: 'tanjungpinang' },
+                        { label: 'Singapore', value: 'singapore' },
+                        { label: 'Malaysia', value: 'malaysia' },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'duration', type: 'text', admin: { width: '34%', description: 'Mis: "1h 15m", "2 Hours"' } },
+                    { name: 'operator', type: 'text', admin: { width: '33%', description: 'Nama operator ferry (mis: "Batam Fast", "Majestic Ferry")' } },
+                    { name: 'departureTime', type: 'text', admin: { width: '33%', description: 'Jam keberangkatan (mis: "08:00, 12:00, 17:00")' } },
                   ],
                 },
                 { name: 'description', type: 'richText', required: true },
@@ -161,70 +189,72 @@ export const FerryTickets: CollectionConfig = {
           ],
         },
 
-        // ── 3. Itinerary & Pricing (Coral) ──────────
+        // ── 3. Schedule & Pricing (Coral) ──────────
         {
           label: s.tab3.label,
           fields: [
             {
               type: 'collapsible',
-              label: s.tab3.sections.itinerary.label,
+              label: 'Schedule Time',
               admin: { initCollapsed: s.tab3.sections.itinerary.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.itinerary.icon) },
               fields: [
                 {
-                  name: 'itinerary',
+                  name: 'scheduleTime',
                   type: 'array',
-                  label: 'Itinerary Steps',
-                  admin: { description: 'Urutan aktivitas tour (drag & drop untuk reorder).' },
+                  label: 'Ferry Schedule',
+                  admin: { description: 'Jadwal keberangkatan & kedatangan ferry. Bisa multi-schedule (mis. pagi, siang, sore).' },
                   fields: [
                     {
                       type: 'row',
                       fields: [
-                        { name: 'time', type: 'text', admin: { width: '25%', description: 'Mis: "09:00" atau "1 hour"' } },
-                        { name: 'title', type: 'text', required: true, admin: { width: '35%' } },
-                        iconField({ name: 'iconName', admin: { width: '40%' } }),
+                        {
+                          name: 'departurePort',
+                          type: 'select',
+                          required: true,
+                          admin: { width: '50%', description: 'Pelabuhan asal.' },
+                          options: [
+                            { label: 'Batam (Batam Center / Harbour Bay / Sekupang)', value: 'batam' },
+                            { label: 'Tanjung Pinang (Sri Bintan Pura)', value: 'tanjungpinang' },
+                            { label: 'Singapore (HarbourFront / Tanah Merah)', value: 'singapore' },
+                            { label: 'Malaysia (Stulang Laut / Puteri Harbour)', value: 'malaysia' },
+                          ],
+                        },
+                        {
+                          name: 'arrivalPort',
+                          type: 'select',
+                          required: true,
+                          admin: { width: '50%', description: 'Pelabuhan tujuan.' },
+                          options: [
+                            { label: 'Batam (Batam Center / Harbour Bay / Sekupang)', value: 'batam' },
+                            { label: 'Tanjung Pinang (Sri Bintan Pura)', value: 'tanjungpinang' },
+                            { label: 'Singapore (HarbourFront / Tanah Merah)', value: 'singapore' },
+                            { label: 'Malaysia (Stulang Laut / Puteri Harbour)', value: 'malaysia' },
+                          ],
+                        },
                       ],
                     },
-                    { name: 'description', type: 'textarea' },
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'departureTime', type: 'text', required: true, admin: { width: '33%', description: 'Mis: "08:00"' } },
+                        { name: 'arrivalTime', type: 'text', required: true, admin: { width: '33%', description: 'Mis: "09:15"' } },
+                        { name: 'duration', type: 'text', admin: { width: '34%', description: 'Mis: "1h 15m"' } },
+                      ],
+                    },
+                    { name: 'notes', type: 'textarea', admin: { description: 'Catatan tambahan (opsional). Mis: "Weekday only", "Return trip available".' } },
                   ],
                 },
               ],
             },
             {
               type: 'collapsible',
-              label: s.tab3.sections.meeting.label,
+              label: 'Additional Remark',
               admin: { initCollapsed: s.tab3.sections.meeting.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.meeting.icon) },
               fields: [
                 {
-                  name: 'meetingPoint',
-                  type: 'group',
-                  admin: { description: 'Meeting point info.' },
-                  fields: [
-                    { name: 'name', type: 'text', admin: { description: 'Mis: "Ubud Palace Main Gate"' } },
-                    {
-                      type: 'row',
-                      fields: [
-                        { name: 'time', type: 'text', admin: { width: '30%', description: 'Mis: "08:00"' } },
-                        { name: 'address', type: 'text', admin: { width: '70%' } },
-                      ],
-                    },
-                    { name: 'mapEmbed', type: 'text', admin: { description: 'Google Maps embed URL (opsional)' } },
-                  ],
-                },
-                {
-                  name: 'pickupService',
-                  type: 'group',
-                  admin: { description: 'Pickup service info (kalau ada).' },
-                  fields: [
-                    { name: 'available', type: 'checkbox', defaultValue: false, admin: { description: 'Pickup service tersedia?' } },
-                    { name: 'areas', type: 'textarea', admin: {
-                      condition: (_, sib) => sib?.available === true,
-                      description: 'List area pickup (mis: "Ubud, Canggu, Seminyak, Kuta")',
-                    }},
-                    { name: 'notes', type: 'text', admin: {
-                      condition: (_, sib) => sib?.available === true,
-                      description: 'Additional notes (mis: "Free pickup dalam 15km, di luar area kena charge")',
-                    }},
-                  ],
+                  name: 'additionalRemark',
+                  type: 'richText',
+                  admin: { description: 'Informasi tambahan / catatan penting mengenai keberangkatan (opsional). Mis: instruksi khusus, kontak pelabuhan, dsb.' },
                 },
               ],
             },
@@ -232,7 +262,53 @@ export const FerryTickets: CollectionConfig = {
               type: 'collapsible',
               label: s.tab3.sections.pricing.label,
               admin: { initCollapsed: s.tab3.sections.pricing.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.pricing.icon) },
-              fields: [pricingFields],
+              fields: [
+                {
+                  name: 'ferryClasses',
+                  type: 'array',
+                  label: 'Ferry Classes',
+                  admin: { description: 'Kelas / cabin options (mis: Ekonomi, Emerald). Setiap kelas punya harga adult & child.' },
+                  fields: [
+                    { name: 'name', type: 'text', required: true, admin: { description: 'Nama ferry / kelas (mis: "Batam Fast — Emerald").' } },
+                    { name: 'description', type: 'textarea' },
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'classType',
+                          type: 'select',
+                          required: true,
+                          admin: { width: '50%', description: 'Tipe kelas.' },
+                          options: [
+                            { label: 'Ekonomi', value: 'ekonomi' },
+                            { label: 'Emerald', value: 'emerald' },
+                          ],
+                        },
+                        {
+                          name: 'currency',
+                          type: 'select',
+                          defaultValue: 'IDR',
+                          admin: { width: '50%' },
+                          options: [
+                            { label: 'IDR', value: 'IDR' },
+                            { label: 'USD', value: 'USD' },
+                            { label: 'SGD', value: 'SGD' },
+                            { label: 'MYR', value: 'MYR' },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'adultPrice', type: 'number', min: 0, required: true, admin: { width: '50%', description: 'Harga per adult.' } },
+                        { name: 'childPrice', type: 'number', min: 0, admin: { width: '50%', description: 'Harga per child (opsional).' } },
+                      ],
+                    },
+                    { name: 'images', type: 'array', fields: [{ name: 'image', type: 'upload', relationTo: 'media' }] },
+                  ],
+                },
+              ],
             },
             {
               type: 'collapsible',
@@ -243,33 +319,31 @@ export const FerryTickets: CollectionConfig = {
           ],
         },
 
-        // ── 4. Inclusions & Info (Teal) ─────────────
+        // ── 4. Info (Teal) ─────────────
         {
           label: s.tab4.label,
           fields: [
             {
               type: 'collapsible',
-              label: s.tab4.sections.includes.label,
+              label: 'How to Check-in',
               admin: { initCollapsed: s.tab4.sections.includes.initCollapsed, className: sectionClass(s.tab4.color, s.tab4.sections.includes.icon) },
               fields: [
                 {
-                  name: 'includes',
-                  type: 'array',
-                  label: 'What\'s Included',
-                  fields: [{ name: 'item', type: 'text', required: true }],
+                  name: 'howToCheckIn',
+                  type: 'richText',
+                  admin: { description: 'Instruksi check-in di pelabuhan (mis. datang 60 menit sebelum keberangkatan, bawa passport, dsb).' },
                 },
               ],
             },
             {
               type: 'collapsible',
-              label: s.tab4.sections.excludes.label,
+              label: 'Purchase Notice',
               admin: { initCollapsed: s.tab4.sections.excludes.initCollapsed, className: sectionClass(s.tab4.color, s.tab4.sections.excludes.icon) },
               fields: [
                 {
-                  name: 'excludes',
-                  type: 'array',
-                  label: 'What\'s NOT Included',
-                  fields: [{ name: 'item', type: 'text', required: true }],
+                  name: 'purchaseNotice',
+                  type: 'richText',
+                  admin: { description: 'Ketentuan pembelian & refund (mis. tiket tidak dapat direfund, wajib passport valid > 6 bulan, dsb).' },
                 },
               ],
             },

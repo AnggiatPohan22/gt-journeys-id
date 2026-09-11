@@ -37,6 +37,7 @@ const DEFAULT_FEATURES: SiteFeaturesShape = {
     weddings: true,
     rentals: true,
     spa: true,
+    ferryTickets: true,
   },
   sections: { testimonials: true, faq: true, promoBanner: false, newsletter: false },
   features: { whatsappFloat: true, announcementBar: false },

@@ -3,7 +3,7 @@ import type { Page } from '@shared/types/payload-types'
 import Icon from '@components/common/Icon.astro'
 import {
   getAccommodations, getTours, getWaterActivities, getYachts,
-  getRestaurants, getVenues, getRentals, getSpas, getDestinations,
+  getRestaurants, getVenues, getRentals, getSpas, getFerryTickets, getDestinations,
   getSiteFeatures,
 } from '@lib/payload'
 import { lexicalToPlainText } from '@lib/lexical'
@@ -16,6 +16,7 @@ import RestaurantCard from '@components/cards/RestaurantCard.astro'
 import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
 import SpaCard from '@components/cards/SpaCard.astro'
+import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
 import {
   resolveContainer, resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
@@ -56,6 +57,7 @@ try {
     case 'venues':           itemsPromise = getVenues(opts); break
     case 'rentals':          itemsPromise = getRentals(opts); break
     case 'spa':              itemsPromise = getSpas(opts); break
+    case 'ferry-tickets':    itemsPromise = getFerryTickets(opts); break
     default:                 itemsPromise = getAccommodations(opts); break
   }
   const [itemsData, destData] = await Promise.all([itemsPromise, destPromise])
@@ -83,6 +85,7 @@ const detailRouteMap: Record<string, string> = {
   yachts: '/yacht',
   restaurants: '/restaurant',
   venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 const detailBase = detailRouteMap[serviceType] ?? '/'
 
@@ -368,6 +371,7 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
                 {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} />}
                 {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} />}
                 {serviceType === 'spa' && <SpaCard spa={item} hrefBase={detailBase} variant={cardVariant} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={detailBase} variant={cardVariant} />}
               </div>
             )
           })}

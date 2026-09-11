@@ -7,6 +7,7 @@ export type ServiceModule =
   | 'weddings'
   | 'rentals'
   | 'spa'
+  | 'ferryTickets'
 
 export interface ModuleConfig {
   enabled: boolean
@@ -24,7 +25,8 @@ export const modules: Record<ServiceModule, ModuleConfig> = {
   restaurants:     { enabled: true, label: 'Restaurants', slug: 'restaurants', icon: 'utensils', collection: 'restaurants' },
   weddings:        { enabled: true, label: 'Weddings & Events', slug: 'weddings', icon: 'heart', collection: 'venues' },
   rentals:         { enabled: true, label: 'Rental Service', slug: 'rentals', icon: 'car', collection: 'rentals' },
-  spa:             { enabled: true, label: 'Spa & Wellness', slug: 'spa', icon: 'sparkles', collection: 'spa' }
+  spa:             { enabled: true, label: 'Spa & Wellness', slug: 'spa', icon: 'sparkles', collection: 'spa' },
+  ferryTickets:    { enabled: true, label: 'Ferry Tickets', slug: 'ferry-tickets', icon: 'ship', collection: 'ferry-tickets' }
 }
 
 export const enabledModules = () =>

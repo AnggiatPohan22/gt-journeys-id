@@ -19621,11 +19621,25 @@ export interface FerryTicket {
   destination: number | Destination;
   category?: (number | null) | Category;
   /**
-   * Mis: "Full Day", "3 Hours"
+   * Pelabuhan asal keberangkatan.
+   */
+  origin: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+  /**
+   * Pelabuhan tujuan.
+   */
+  arrival: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+  /**
+   * Mis: "1h 15m", "2 Hours"
    */
   duration?: string | null;
-  minParticipants?: number | null;
-  maxParticipants?: number | null;
+  /**
+   * Nama operator ferry (mis: "Batam Fast", "Majestic Ferry")
+   */
+  operator?: string | null;
+  /**
+   * Jam keberangkatan (mis: "08:00, 12:00, 17:00")
+   */
+  departureTime?: string | null;
   description: {
     root: {
       type: string;
@@ -19683,85 +19697,127 @@ export interface FerryTicket {
    */
   videoUrl?: string | null;
   /**
-   * Urutan aktivitas tour (drag & drop untuk reorder).
+   * Jadwal keberangkatan & kedatangan ferry. Bisa multi-schedule (mis. pagi, siang, sore).
    */
-  itinerary?:
+  scheduleTime?:
     | {
         /**
-         * Mis: "09:00" atau "1 hour"
+         * Pelabuhan asal.
          */
-        time?: string | null;
-        title: string;
-        iconName?: string | null;
-        description?: string | null;
+        departurePort: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+        /**
+         * Pelabuhan tujuan.
+         */
+        arrivalPort: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+        /**
+         * Mis: "08:00"
+         */
+        departureTime: string;
+        /**
+         * Mis: "09:15"
+         */
+        arrivalTime: string;
+        /**
+         * Mis: "1h 15m"
+         */
+        duration?: string | null;
+        /**
+         * Catatan tambahan (opsional). Mis: "Weekday only", "Return trip available".
+         */
+        notes?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
-   * Meeting point info.
+   * Informasi tambahan / catatan penting mengenai keberangkatan (opsional). Mis: instruksi khusus, kontak pelabuhan, dsb.
    */
-  meetingPoint?: {
-    /**
-     * Mis: "Ubud Palace Main Gate"
-     */
-    name?: string | null;
-    /**
-     * Mis: "08:00"
-     */
-    time?: string | null;
-    address?: string | null;
-    /**
-     * Google Maps embed URL (opsional)
-     */
-    mapEmbed?: string | null;
-  };
+  additionalRemark?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
-   * Pickup service info (kalau ada).
+   * Kelas / cabin options (mis: Ekonomi, Emerald). Setiap kelas punya harga adult & child.
    */
-  pickupService?: {
-    /**
-     * Pickup service tersedia?
-     */
-    available?: boolean | null;
-    /**
-     * List area pickup (mis: "Ubud, Canggu, Seminyak, Kuta")
-     */
-    areas?: string | null;
-    /**
-     * Additional notes (mis: "Free pickup dalam 15km, di luar area kena charge")
-     */
-    notes?: string | null;
-  };
-  pricing?: {
-    adultPrice?: number | null;
-    childPrice?: number | null;
-    infantPrice?: number | null;
-    currency?: ('IDR' | 'USD') | null;
-    /**
-     * e.g. "per person", "per group", "per night"
-     */
-    priceNote?: string | null;
-    /**
-     * e.g. "Early Bird -10%", "Group Discount"
-     */
-    discountLabel?: string | null;
-  };
+  ferryClasses?:
+    | {
+        /**
+         * Nama ferry / kelas (mis: "Batam Fast — Emerald").
+         */
+        name: string;
+        description?: string | null;
+        /**
+         * Tipe kelas.
+         */
+        classType: 'ekonomi' | 'emerald';
+        currency?: ('IDR' | 'USD' | 'SGD' | 'MYR') | null;
+        /**
+         * Harga per adult.
+         */
+        adultPrice: number;
+        /**
+         * Harga per child (opsional).
+         */
+        childPrice?: number | null;
+        images?:
+          | {
+              image?: (number | null) | Media;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Template pesan WhatsApp yang akan terisi otomatis saat visitor klik tombol booking
    */
   whatsappMessage?: string | null;
-  includes?:
-    | {
-        item: string;
-        id?: string | null;
-      }[]
-    | null;
-  excludes?:
-    | {
-        item: string;
-        id?: string | null;
-      }[]
-    | null;
+  /**
+   * Instruksi check-in di pelabuhan (mis. datang 60 menit sebelum keberangkatan, bawa passport, dsb).
+   */
+  howToCheckIn?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Ketentuan pembelian & refund (mis. tiket tidak dapat direfund, wajib passport valid > 6 bulan, dsb).
+   */
+  purchaseNotice?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
   /**
    * Additional info: dress code, restrictions, cancellation policy, dsb.
    */
@@ -30298,9 +30354,11 @@ export interface FerryTicketsSelect<T extends boolean = true> {
   subtitle?: T;
   destination?: T;
   category?: T;
+  origin?: T;
+  arrival?: T;
   duration?: T;
-  minParticipants?: T;
-  maxParticipants?: T;
+  operator?: T;
+  departureTime?: T;
   description?: T;
   quickSpecs?:
     | T
@@ -30325,53 +30383,38 @@ export interface FerryTicketsSelect<T extends boolean = true> {
         id?: T;
       };
   videoUrl?: T;
-  itinerary?:
+  scheduleTime?:
     | T
     | {
-        time?: T;
-        title?: T;
-        iconName?: T;
-        description?: T;
+        departurePort?: T;
+        arrivalPort?: T;
+        departureTime?: T;
+        arrivalTime?: T;
+        duration?: T;
+        notes?: T;
         id?: T;
       };
-  meetingPoint?:
+  additionalRemark?: T;
+  ferryClasses?:
     | T
     | {
         name?: T;
-        time?: T;
-        address?: T;
-        mapEmbed?: T;
-      };
-  pickupService?:
-    | T
-    | {
-        available?: T;
-        areas?: T;
-        notes?: T;
-      };
-  pricing?:
-    | T
-    | {
+        description?: T;
+        classType?: T;
+        currency?: T;
         adultPrice?: T;
         childPrice?: T;
-        infantPrice?: T;
-        currency?: T;
-        priceNote?: T;
-        discountLabel?: T;
+        images?:
+          | T
+          | {
+              image?: T;
+              id?: T;
+            };
+        id?: T;
       };
   whatsappMessage?: T;
-  includes?:
-    | T
-    | {
-        item?: T;
-        id?: T;
-      };
-  excludes?:
-    | T
-    | {
-        item?: T;
-        id?: T;
-      };
+  howToCheckIn?: T;
+  purchaseNotice?: T;
   additionalInfo?: T;
   relatedOverride?: T;
   relatedSectionTitle?: T;

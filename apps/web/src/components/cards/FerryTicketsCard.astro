@@ -1,0 +1,102 @@
+---
+import type { FerryTicket } from '@shared/types/payload-types'
+import { formatPrice } from '@shared/utils/format-price'
+import { lexicalToPlainText } from '@lib/lexical'
+import DetailedCard from './DetailedCard.astro'
+
+interface Props {
+  ferryTicket: FerryTicket
+  /** Detail route base (default '/ferry-tickets'). */
+  hrefBase?: string
+  variant?: 'compact' | 'detailed'
+}
+const { ferryTicket, hrefBase = '/ferry-tickets', variant = 'compact' } = Astro.props
+
+const img = typeof ferryTicket.featuredImage === 'object' ? ferryTicket.featuredImage : null
+const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
+const imgAlt = img?.alt ?? ferryTicket.title
+const dest = typeof ferryTicket.destination === 'object' ? ferryTicket.destination : null
+
+const ferryClasses = ((ferryTicket as any).ferryClasses ?? []) as Array<{ adultPrice?: number; currency?: string }>
+const cheapest = ferryClasses
+  .map((c) => c.adultPrice)
+  .filter((p): p is number => typeof p === 'number' && p > 0)
+  .sort((a, b) => a - b)[0]
+const cheapestObj = ferryClasses.find((c) => c.adultPrice === cheapest)
+const adultPrice = cheapest ?? null
+const currency = cheapestObj?.currency ?? 'IDR'
+
+const portLabel: Record<string, string> = {
+  batam: 'Batam',
+  tanjungpinang: 'Tanjung Pinang',
+  singapore: 'Singapore',
+  malaysia: 'Malaysia',
+}
+
+const origin = (ferryTicket as any).origin as string | undefined
+const arrival = (ferryTicket as any).arrival as string | undefined
+const routeLabel = origin && arrival ? `${portLabel[origin] ?? origin} → ${portLabel[arrival] ?? arrival}` : undefined
+const operator = (ferryTicket as any).operator as string | undefined
+const duration = (ferryTicket as any).duration as string | undefined
+
+const galleryFromArr = Array.isArray((ferryTicket as any).gallery)
+  ? (ferryTicket as any).gallery
+      .map((g: any) => typeof g?.image === 'object' ? { url: g.image.sizes?.card?.url ?? g.image.url ?? '', alt: g.image.alt } : null)
+      .filter((x: any) => x && x.url)
+  : []
+const detailedImages = [imgUrl ? { url: imgUrl, alt: imgAlt } : null, ...galleryFromArr].filter(Boolean) as { url: string; alt?: string }[]
+const detailedDescription = (ferryTicket as any).subtitle
+  ?? (ferryTicket.description ? lexicalToPlainText(ferryTicket.description).slice(0, 160) : '')
+const detailedAmenities = [
+  operator ? { name: operator, icon: 'ship' } : null,
+  duration ? { name: duration, icon: 'clock' } : null,
+].filter(Boolean) as { name: string; icon?: string }[]
+---
+
+{variant === 'detailed' ? (
+  <DetailedCard
+    href={`${hrefBase}/${ferryTicket.slug}`}
+    images={detailedImages}
+    badge={routeLabel}
+    eyebrow={dest?.name}
+    title={ferryTicket.title}
+    description={detailedDescription}
+    amenities={detailedAmenities}
+    price={adultPrice ? { value: adultPrice, currency, unit: '/ pax' } : undefined}
+    bookText="Book Ferry"
+  />
+) : (
+<article class="group bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+  <a href={`${hrefBase}/${ferryTicket.slug}`} class="block no-underline text-current">
+    <div class="relative aspect-[4/3] overflow-hidden bg-sand">
+      {imgUrl ? (
+        <img src={imgUrl} alt={imgAlt} loading="lazy"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      ) : (
+        <div class="w-full h-full flex items-center justify-center text-stone-light text-sm">No image</div>
+      )}
+      {routeLabel && (
+        <span class="absolute top-3 left-3 px-2.5 py-1 bg-white/95 text-ocean text-xs font-semibold uppercase tracking-wider rounded">
+          {routeLabel}
+        </span>
+      )}
+    </div>
+    <div class="p-5">
+      {dest && <p class="text-xs uppercase tracking-wider text-leaf mb-2">{dest.name}</p>}
+      <h3 class="font-display text-xl text-ocean mb-2 line-clamp-2 group-hover:text-coral transition-colors">
+        {ferryTicket.title}
+      </h3>
+      {operator && <p class="text-sm text-stone-light mb-1">Operator: {operator}</p>}
+      {duration && <p class="text-sm text-stone-light mb-2">Duration: {duration}</p>}
+      <div class="flex items-center justify-between pt-3 border-t border-sand-dark/10">
+        {adultPrice ? (
+          <div>
+            <p class="text-coral font-semibold">{formatPrice(adultPrice, currency)}</p>
+            <p class="text-xs text-stone-light font-normal">/ pax</p>
+          </div>
+        ) : <span class="text-xs text-stone-light">Contact for price</span>}
+      </div>
+    </div>
+  </a>
+</article>
+)}

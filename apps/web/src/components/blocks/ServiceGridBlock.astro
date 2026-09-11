@@ -12,13 +12,14 @@ import RestaurantCard from '@components/cards/RestaurantCard.astro'
 import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
 import SpaCard from '@components/cards/SpaCard.astro'
+import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
 import Icon from '@components/common/Icon.astro'
 import CuratedCard from '@components/cards/CuratedCard.astro'
 import { getServiceTypeByKey } from '@lib/serviceTypes'
 
 import {
   getTours, getAccommodations, getWaterActivities, getYachts,
-  getRestaurants, getVenues, getRentals, getSpas,
+  getRestaurants, getVenues, getRentals, getSpas, getFerryTickets,
 } from '@lib/payload'
 import {
   resolveAlignment, resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
@@ -86,6 +87,7 @@ try {
     case 'venues':           allItems = (await getVenues(opts)).docs; break
     case 'rentals':          allItems = (await getRentals(opts)).docs; break
     case 'spa':              allItems = (await getSpas(opts)).docs; break
+    case 'ferry-tickets':    allItems = (await getFerryTickets(opts)).docs; break
   }
 } catch {
   // fail silently — block renders empty
@@ -123,6 +125,7 @@ const defaultViewAllHref: Record<Block['serviceType'], string> = {
   yachts: '/yacht',
   restaurants: '/restaurant',
   venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 
 const showViewAll = b.showViewAll !== false
@@ -134,6 +137,7 @@ const hrefBaseMap: Record<string, string> = {
   accommodations: '/villa', tours: '/tour', rentals: '/rental', spa: '/spa',
   'water-activities': '/water-activity', yachts: '/yacht',
   restaurants: '/restaurant', venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 const hrefBase = hrefBaseMap[serviceType] ?? '/'
 
@@ -155,6 +159,7 @@ const curatedTitleDefault: Record<Block['serviceType'], string> = {
   'water-activities': 'More Activities',
   restaurants:        'More Restaurants',
   venues:             'More Venues',
+  'ferry-tickets':    'More Ferry Routes',
 }
 const curatedExploreDefault: Record<Block['serviceType'], string> = {
   tours:              'Explore All Tours',
@@ -165,6 +170,7 @@ const curatedExploreDefault: Record<Block['serviceType'], string> = {
   'water-activities': 'Explore All Activities',
   restaurants:        'Explore All Restaurants',
   venues:             'Explore All Venues',
+  'ferry-tickets':    'Explore All Ferry Tickets',
 }
 const curatedTitle = ((b.sectionTitle as string) || '').trim() || curatedTitleDefault[serviceType]
 const curatedExplore = ((b.viewAllText as string) || '').trim() || curatedExploreDefault[serviceType]
@@ -243,6 +249,7 @@ const curatedExploreHref = ((b.viewAllLink as string) || '').trim() || (defaultV
                 {serviceType === 'venues' && <VenueCard venue={item} hrefBase={hrefBase} variant={cardVariant} />}
                 {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={hrefBase} variant={cardVariant} />}
                 {serviceType === 'spa' && <SpaCard spa={item} hrefBase={hrefBase} variant={cardVariant} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={hrefBase} variant={cardVariant} />}
               </div>
             )
           })}

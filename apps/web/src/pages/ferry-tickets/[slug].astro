@@ -1,0 +1,433 @@
+---
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import BlockRenderer from '@components/blocks/BlockRenderer.astro'
+import RelatedServices from '@components/common/RelatedServices.astro'
+import { getFerryTickets, getFerryTicketsBySlug, getSiteSettings } from '@lib/payload'
+import { resolveRelatedConfig } from '@lib/relatedServices'
+import { isModuleEnabled } from '@lib/features'
+import { generateWhatsAppLink, renderWhatsAppTemplate, ferryTicketMessage } from '@lib/whatsapp'
+import { getServiceWhatsApp, getServiceTypeByKey } from '@lib/serviceTypes'
+import { formatPrice } from '@shared/utils/format-price'
+import { siteConfig } from '@config/site'
+import { lexicalToPlainText } from '@lib/lexical'
+import Breadcrumbs from '@components/common/Breadcrumbs.astro'
+import StructuredData from '@components/common/StructuredData.astro'
+import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
+import { serviceItemSchema } from '@lib/structuredData'
+import type { FerryTicket, Media } from '@shared/types/payload-types'
+
+const portLabel: Record<string, string> = {
+  batam: 'Batam',
+  tanjungpinang: 'Tanjung Pinang',
+  singapore: 'Singapore',
+  malaysia: 'Malaysia',
+}
+
+export async function getStaticPaths() {
+  if (!(await isModuleEnabled('ferryTickets'))) return []
+  const { docs } = await getFerryTickets({ limit: 200 })
+  return docs.map((t) => ({ params: { slug: t.slug } }))
+}
+
+const { slug } = Astro.params
+if (!slug) return Astro.redirect('/ferry-tickets')
+
+const item = await getFerryTicketsBySlug(slug)
+if (!item) return Astro.redirect('/404')
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const dest = typeof item.destination === 'object' ? item.destination : null
+
+// ── Hero bento ─────────────────────────────────────────────
+const heroImg = asMedia(item.featuredImage)
+const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
+const heroAlt = heroImg?.alt ?? item.title
+// Hero + gallery merge lives inside <HeroBentoGallery /> — see 4.28.
+
+// ── Ferry Classes (Room-Types style pricing) ─────────────
+type FerryClass = {
+  name: string
+  description?: string
+  classType: 'ekonomi' | 'emerald'
+  currency?: string
+  adultPrice: number
+  childPrice?: number
+  images?: Array<{ image?: any }>
+}
+const ferryClasses = ((item as any).ferryClasses ?? []) as FerryClass[]
+const classTypeLabel: Record<string, string> = { ekonomi: 'Ekonomi', emerald: 'Emerald' }
+const cheapestClass = ferryClasses
+  .slice()
+  .sort((a, b) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))[0] ?? null
+const adultPrice = cheapestClass?.adultPrice ?? null
+const childPrice = cheapestClass?.childPrice ?? null
+const currency = cheapestClass?.currency ?? 'IDR'
+const priceNote = 'per adult'
+const priceFormatted = adultPrice ? formatPrice(adultPrice, currency) : null
+
+// ── Text extraction ────────────────────────────────────────
+const descriptionText = lexicalToPlainText(item.description)
+const additionalInfoText = (item as any).additionalInfo ? lexicalToPlainText((item as any).additionalInfo) : ''
+const additionalRemarkText = (item as any).additionalRemark ? lexicalToPlainText((item as any).additionalRemark) : ''
+const howToCheckInText = (item as any).howToCheckIn ? lexicalToPlainText((item as any).howToCheckIn) : ''
+const purchaseNoticeText = (item as any).purchaseNotice ? lexicalToPlainText((item as any).purchaseNotice) : ''
+
+const highlights = ((item as any).highlights ?? []) as Array<{ text: string }>
+
+// Schedule Time (new)
+type ScheduleTime = {
+  departurePort: string
+  arrivalPort: string
+  departureTime: string
+  arrivalTime: string
+  duration?: string
+  notes?: string
+}
+const scheduleTime = ((item as any).scheduleTime ?? []) as ScheduleTime[]
+
+const subtitle = (item as any).subtitle as string | undefined
+
+// Sidebar tags — top highlights (parity dgn villa highlightTags)
+const topTags = highlights.slice(0, 4).map((h) => h.text)
+
+// Ferry-specific fields
+const origin = (item as any).origin as string | undefined
+const arrival = (item as any).arrival as string | undefined
+const operator = (item as any).operator as string | undefined
+const departureTime = (item as any).departureTime as string | undefined
+const routeLabel = origin && arrival ? `${portLabel[origin] ?? origin} → ${portLabel[arrival] ?? arrival}` : undefined
+
+// Quick specs — CMS override or derive
+type QuickSpec = { iconName: string; label: string; subtitle?: string }
+const cmsQuickSpecs = ((item as any).quickSpecs ?? []) as QuickSpec[]
+const derivedQuickSpecs: QuickSpec[] = [
+  { iconName: 'schedule', label: item.duration ?? '—',                    subtitle: 'Duration' },
+  { iconName: 'ship',     label: operator ?? '—',                          subtitle: 'Operator' },
+  { iconName: 'location_on', label: routeLabel ?? '—',                     subtitle: 'Route' },
+  { iconName: 'access_time', label: departureTime ?? '—',                  subtitle: 'Departure' },
+]
+const quickSpecs = cmsQuickSpecs.length > 0 ? cmsQuickSpecs.slice(0, 4) : derivedQuickSpecs
+
+// Custom super-admin blocks
+const additionalBlocks = ((item as any).additionalBlocks ?? []) as any[]
+
+// WhatsApp + Site Settings (reused for Related Services cascade)
+let waNumber = siteConfig.contact.whatsapp
+let siteSettings: any = null
+try {
+  siteSettings = await getSiteSettings()
+  waNumber = siteSettings?.contact?.whatsapp ?? siteConfig.contact.whatsapp
+} catch { /* fallback */ }
+const svcWa = await getServiceWhatsApp('ferry-tickets', waNumber).catch(() => ({ number: waNumber, template: undefined }))
+waNumber = svcWa.number
+const waLink = generateWhatsAppLink(
+  waNumber,
+  item.whatsappMessage
+    ?? (svcWa.template ? renderWhatsAppTemplate(svcWa.template, { serviceName: item.title, destination: dest?.name }) : ferryTicketMessage(item.title, routeLabel)),
+)
+
+// Phase 4.17 — Related Services cascade (Individual > ServiceType > Global)
+const svcType = await getServiceTypeByKey('ferry-tickets').catch(() => null)
+const relatedConfig = resolveRelatedConfig(item, svcType, siteSettings)
+
+const title = item.seo?.metaTitle ?? `${item.title} — ${dest?.name ?? 'Bali'}`
+const description = item.seo?.metaDescription ?? descriptionText.slice(0, 160)
+
+// ── SEO: breadcrumbs + JSON-LD (D-tech) ──
+const detailUrl = `/ferry-tickets/${slug}`
+const crumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Ferry Tickets', url: '/ferry-tickets' },
+  { name: item.title, url: detailUrl },
+]
+const itemSchema = serviceItemSchema({
+  serviceType: 'ferry-tickets', name: item.title,
+  description: descriptionText ? descriptionText.slice(0, 300) : undefined,
+  url: detailUrl, image: heroUrl || undefined,
+  price: adultPrice ?? null, currency,
+  addressLocality: dest?.name ?? undefined,
+  site: Astro.site?.href,
+})
+---
+
+<PageLayout title={title} description={description} ogType="product" ogImage={heroUrl || undefined}>
+  <Breadcrumbs items={crumbs} />
+  <StructuredData schema={itemSchema} />
+  {/* ═══ HERO BENTO GALLERY (shared component — 4.28) ═══ */}
+  <HeroBentoGallery id="tour-photos" heroImg={heroImg} heroAlt={heroAlt} gallery={item.gallery} />
+
+  {/* ═══ MAIN 12-COL LAYOUT ═══ */}
+  <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-24">
+    <div class="lg:col-span-8">
+
+      {/* ─── Title area + description ─── */}
+      <div class="mb-10 pb-10 border-b border-sand-dark/30">
+        <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
+          <div class="min-w-0">
+            <p class="text-xs uppercase tracking-widest text-coral mb-2 font-semibold">Ferry Ticket</p>
+            <h1 class="font-display text-3xl md:text-4xl lg:text-5xl text-ocean mb-2">{item.title}</h1>
+            {subtitle && <p class="text-stone-light text-sm md:text-base mb-3 italic">{subtitle}</p>}
+            <div class="flex items-center gap-2 text-stone flex-wrap">
+              {routeLabel ? (
+                <>
+                  <Icon name="location_on" class="w-4 h-4 text-coral" />
+                  <span class="text-sm font-semibold">{routeLabel}</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="location_on" class="w-4 h-4 text-coral" />
+                  <span class="text-sm">{dest?.name ?? 'Indonesia'}</span>
+                </>
+              )}
+              {operator && (
+                <>
+                  <span class="text-stone-light">·</span>
+                  <Icon name="ship" class="w-4 h-4 text-coral" />
+                  <span class="text-sm">{operator}</span>
+                </>
+              )}
+              {item.duration && (
+                <>
+                  <span class="text-stone-light">·</span>
+                  <Icon name="schedule" class="w-4 h-4 text-coral" />
+                  <span class="text-sm">{item.duration}</span>
+                </>
+              )}
+            </div>
+          </div>
+          {priceFormatted && (
+            <div class="text-right hidden sm:block shrink-0">
+              <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-1">Starting from</p>
+              <p class="font-display text-xl md:text-2xl text-ocean">{priceFormatted} <span class="text-sm text-stone-light font-normal">/ {priceNote}</span></p>
+            </div>
+          )}
+        </div>
+        {descriptionText && <p class="text-stone text-base md:text-lg leading-relaxed mt-6">{descriptionText}</p>}
+      </div>
+
+      {/* ─── Quick Specs 4-card ─── */}
+      {quickSpecs.length > 0 && (
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+          {quickSpecs.map((spec) => (
+            <div class="flex flex-col items-center p-5 md:p-6 bg-white rounded-xl shadow-sm border border-sand-dark/10 text-center">
+              <div class="mb-3 text-coral"><Icon name={spec.iconName || 'star'} class="w-8 h-8" /></div>
+              <p class="font-semibold text-ocean text-sm md:text-base">{spec.label}</p>
+              {spec.subtitle && <p class="text-xs text-stone-light mt-1">{spec.subtitle}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Ferry Highlights (styled = villa Amenities) ─── */}
+      {highlights.length > 0 && (
+        <div class="mb-12 pb-12 border-b border-sand-dark/30">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-8">Ferry Highlights & Perks</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+            {highlights.map((h) => (
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-ocean/10 flex items-center justify-center text-ocean shrink-0">
+                  <Icon name="star" class="w-5 h-5" />
+                </div>
+                <span class="text-stone text-sm md:text-base">{h.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Schedule Time (ferry timetable) ─── */}
+      {scheduleTime.length > 0 && (
+        <div class="mb-12 pb-12 border-b border-sand-dark/30" id="schedule">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Schedule Time</h2>
+          <div class="space-y-4">
+            {scheduleTime.map((s) => (
+              <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6">
+                <div class="flex flex-wrap items-center gap-3 md:gap-6">
+                  <div class="flex-1 min-w-0">
+                    <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Departure</p>
+                    <p class="font-display text-lg text-ocean">{portLabel[s.departurePort] ?? s.departurePort}</p>
+                    <p class="text-2xl font-bold text-coral mt-1">{s.departureTime}</p>
+                  </div>
+                  <div class="flex flex-col items-center text-stone-light">
+                    <Icon name="arrow_forward" class="w-6 h-6" />
+                    {s.duration && <p class="text-xs mt-1">{s.duration}</p>}
+                  </div>
+                  <div class="flex-1 min-w-0 text-right">
+                    <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Arrival</p>
+                    <p class="font-display text-lg text-ocean">{portLabel[s.arrivalPort] ?? s.arrivalPort}</p>
+                    <p class="text-2xl font-bold text-coral mt-1">{s.arrivalTime}</p>
+                  </div>
+                </div>
+                {s.notes && <p class="mt-4 pt-4 border-t border-sand-dark/10 text-sm text-stone italic">{s.notes}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Additional Remark ─── */}
+      {additionalRemarkText && (
+        <div class="mb-12 pb-12 border-b border-sand-dark/30">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Additional Remark</h2>
+          <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 text-stone text-sm whitespace-pre-line">
+            {additionalRemarkText}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Ferry Classes (Room-Types-style pricing) ─── */}
+      {ferryClasses.length > 0 && (
+        <div class="mb-12" id="classes">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Ferry Classes</h2>
+          <div class="space-y-4">
+            {ferryClasses.map((c) => {
+              const firstImg = Array.isArray(c.images) && c.images[0] && typeof c.images[0].image === 'object' ? c.images[0].image : null
+              const imgUrl = firstImg?.sizes?.card?.url ?? firstImg?.url ?? ''
+              return (
+                <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 flex flex-wrap md:flex-nowrap items-start gap-5 md:gap-6">
+                  {imgUrl && (
+                    <div class="w-full md:w-40 h-32 md:h-32 rounded-lg overflow-hidden bg-sand shrink-0">
+                      <img src={imgUrl} alt={c.name} class="w-full h-full object-cover" loading="lazy" />
+                    </div>
+                  )}
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 class="font-display text-lg text-ocean">{c.name}</h3>
+                      <span class="px-2.5 py-0.5 bg-ocean/10 text-ocean rounded-full text-[10px] uppercase tracking-wider font-bold">{classTypeLabel[c.classType] ?? c.classType}</span>
+                    </div>
+                    {c.description && <p class="text-sm text-stone mb-3">{c.description}</p>}
+                    <div class="flex flex-wrap gap-4 text-sm">
+                      <div>
+                        <span class="text-stone-light">Adult:</span>{' '}
+                        <span class="font-semibold text-coral">{formatPrice(c.adultPrice, c.currency ?? 'IDR')}</span>
+                      </div>
+                      {c.childPrice != null && (
+                        <div>
+                          <span class="text-stone-light">Child:</span>{' '}
+                          <span class="font-semibold text-coral">{formatPrice(c.childPrice, c.currency ?? 'IDR')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <a href={waLink} target="_blank" rel="noopener noreferrer" class="shrink-0 self-center bg-coral hover:bg-coral-dark text-white px-5 py-2.5 rounded-lg font-semibold text-xs uppercase tracking-wider transition-colors no-underline">
+                    Book Now
+                  </a>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ─── How to Check-in ─── */}
+      {howToCheckInText && (
+        <div class="mb-12">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">How to Check-in</h2>
+          <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 text-stone text-sm whitespace-pre-line">
+            {howToCheckInText}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Purchase Notice ─── */}
+      {purchaseNoticeText && (
+        <div class="mb-12">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Purchase Notice</h2>
+          <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 text-stone text-sm whitespace-pre-line">
+            {purchaseNoticeText}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* ─── SIDEBAR (parity dgn villa sidebar) ─── */}
+    <aside class="lg:col-span-4">
+      <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-lg border border-sand-dark/10 p-6 md:p-8">
+        {topTags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mb-6">
+            {topTags.map((tag) => (
+              <span class="px-3 py-1 bg-ocean/10 text-ocean rounded-full text-[10px] uppercase tracking-wider font-bold">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        {priceFormatted && (
+          <div class="mb-6 flex justify-between items-end">
+            <div>
+              <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-1">From</p>
+              <p class="font-display text-2xl md:text-3xl text-ocean">
+                {priceFormatted}
+                <span class="text-sm text-stone-light font-normal"> / {priceNote}</span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        <form class="space-y-4" onsubmit="return false;">
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Ferry Schedule Date</span>
+              <div class="relative">
+                <input type="date" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
+                <Icon name="calendar_today" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              </div>
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Adults</span>
+              <div class="relative">
+                <select class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option>{n}</option>)}
+                </select>
+                <Icon name="group" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              </div>
+            </label>
+          </div>
+          <label class="block">
+            <span class="block text-xs font-semibold text-stone mb-1">Children</span>
+            <div class="relative">
+              <select class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                {Array.from({ length: 6 }, (_, i) => i).map((n) => <option>{n} {n === 1 ? 'child' : 'children'}{childPrice ? ` (+${formatPrice(childPrice, currency)})` : ''}</option>)}
+              </select>
+              <Icon name="sentiment_satisfied" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+            </div>
+          </label>
+
+          <a href={waLink} target="_blank" rel="noopener noreferrer" class="block w-full bg-coral hover:bg-coral-dark text-white text-center py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors no-underline shadow-md hover:shadow-lg">Reserve Now</a>
+        </form>
+
+        {(item.duration || departureTime) && (
+          <div class="mt-6 pt-6 border-t border-sand-dark/30 grid grid-cols-2 gap-3 text-center">
+            {item.duration && (
+              <div>
+                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Duration</p>
+                <p class="text-sm font-semibold text-ocean mt-1">{item.duration}</p>
+              </div>
+            )}
+            {departureTime && (
+              <div>
+                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Departure</p>
+                <p class="text-sm font-semibold text-ocean mt-1">{departureTime}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div class="mt-6 pt-6 border-t border-sand-dark/30 text-center">
+          <p class="text-xs text-stone-light mb-4">You won't be charged yet. Our concierge will confirm details.</p>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 w-full border border-ocean text-ocean hover:bg-ocean hover:text-white py-3 rounded-lg font-semibold text-sm no-underline transition-colors">
+            <Icon name="headset_mic" class="w-4 h-4" /> Contact Concierge
+          </a>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  {/* ═══ CUSTOM SECTIONS (super-admin blocks) ═══ */}
+  {additionalBlocks.length > 0 && <BlockRenderer blocks={additionalBlocks} excludeId={item.id} />}
+
+  {/* ═══ RELATED SERVICES (Phase 4.17 — 3-layer cascade) ═══ */}
+  <RelatedServices config={relatedConfig} serviceType="ferry-tickets" excludeId={item.id} />
+</PageLayout>
