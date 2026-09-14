@@ -95,11 +95,11 @@ export const Destinations: CollectionConfig = {
       label: 'Featured Image',
     },
     {
-      name: 'galleryBulkUpload',
+      name: 'galleryMediaPicker',
       type: 'ui',
       admin: {
         components: {
-          Field: '/admin/GalleryBulkUpload#default',
+          Field: '/admin/GalleryMediaPicker#default',
         },
       },
     },
