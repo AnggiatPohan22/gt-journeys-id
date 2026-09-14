@@ -96,6 +96,48 @@ Adding editable control for Related Posts + Sidebar via CMS. Ships as **Migratio
 - New seed script [scripts/seed-blog-index-page.ts](../../apps/cms/src/scripts/seed-blog-index-page.ts) — idempotent upsert of CMS Page `slug='blog'` composed of 5 blocks: Hero + FeaturedPost + CategoryGrid + PostList + Newsletter. Also appends `Blog → /blog` to `main-navigation` menu. Registered as `pnpm seed:blog-index`.
 - **Result:** `/blog` renders 5 sections matching `ai/reference/blog` — Hero, "Popular Posts" (1 large + 3 side), "Explore by Category" (6-tile grid with article counts), "Latest Stories" (3-col grid), inline Newsletter (bg-sand seamless).
 
+## Phase 4.35.3 addendum (2026-09-14) — POSTS admin group + Categories split + Tags collection
+
+Adds a dedicated **POSTS** sidebar accordion group focused on article authoring, splits the cross-module `Categories` collection into `blog-categories` (Posts group, editor-owned) + the existing `categories` (Content group, service verticals), adds a new editor-createable `Tags` collection, and injects quick "+ Add" shortcut links under each editorial collection.
+
+### CMS
+- New collection [collections/Tags.ts](../../apps/cms/src/collections/Tags.ts) — name, slug, description, color, status, sortOrder. `create: authenticatedUpdate` — editors add tags. Group: `Posts`.
+- New collection [collections/BlogCategories.ts](../../apps/cms/src/collections/BlogCategories.ts) — clone of Categories minus the `module` discriminator field. Fields: name, slug, parent (self-ref), description, icon, featuredImage. `create: authenticatedUpdate` — editors create blog categories. Group: `Posts`.
+- [collections/Posts.ts](../../apps/cms/src/collections/Posts.ts) — `admin.group: 'Posts'` (was `Content`). `category.relationTo: 'blog-categories'` (was `categories` filtered by module). `tags.relationTo: 'tags'` (was `categories` filtered by module).
+- [collections/Categories.ts](../../apps/cms/src/collections/Categories.ts) — removed `'blog'` value from the `module` enum. Cross-module categories continue to serve tours/villa/etc under the Content group.
+- [blocks/index.ts](../../apps/cms/src/blocks/index.ts) — PostList block's `filterCategory.relationTo` retargeted from `categories` (filtered) → `blog-categories`.
+- [payload.config.ts](../../apps/cms/src/payload.config.ts) — registered `BlogCategories` + `Tags`. `collections` array reordered so POSTS group first-appears between CONTENT and SERVICES.
+
+### Sidebar quick-add
+- [admin/NavAccordion.tsx](../../apps/cms/src/admin/NavAccordion.tsx) — added a 3rd useEffect that injects `+ Add [Singular]` links below the list-view link of Posts, Authors, Tags, BlogCategories. Idempotent (guards against duplicate injection). Convention hardcoded via `QUICK_ADD` map inside the component — no fragile `admin.custom` type gymnastics.
+- [admin/admin-global.css](../../apps/cms/src/admin/admin-global.css) — added `.nav__link--quick-add` styles (smaller, indented, subdued opacity). Also added icon mappings for `posts`, `blog-categories`, `tags`, `authors`, and the `blog-settings` global that were missing.
+
+### Frontend
+- [lib/payload.ts](../../apps/web/src/lib/payload.ts) — added `getBlogCategories`, `getBlogCategoryBySlug`, `getTags`, `getTagBySlug` fetchers.
+- [components/blocks/CategoryGridBlock.astro](../../apps/web/src/components/blocks/CategoryGridBlock.astro) — module branch: `module='blog'` fetches from `blog-categories`; other modules keep fetching from `categories` with module filter.
+- [pages/blog/[slug].astro](../../apps/web/src/pages/blog/[slug].astro) — sidebar Categories widget now fetches from `getBlogCategories` (was `getCategories({where:{module=blog}})`).
+
+### Migrations (2 files this addendum)
+- **Migration 10** `20260914_121211_add-tags-and-blog-categories.ts` — schema + data + cleanup, all in one file:
+  - CREATE TABLE `blog_categories` + `tags` + indexes.
+  - **Seed** `blog_categories` from `categories` WHERE `module='blog'`, preserving IDs (existing `posts.category_id=7` still resolves after FK swap). Parent IDs nulled (cross-module parent references dropped).
+  - Rebuild `posts.category_id` FK from `categories` → `blog_categories`, all 11 `*_blocks_post_list.filter_category_id` FKs likewise.
+  - Rebuild `posts_rels` shape: added `tags_id`, dropped `categories_id`. Old tag rels dropped (**hard reset** per owner decision — 4 rows tagged-as-categories were deleted; users re-tag manually with real Tag docs).
+  - ADD FK columns to `payload_locked_documents_rels`: `blog_categories_id` + `tags_id` (drizzle-kit emitted these correctly this time).
+  - DELETE FROM `categories` WHERE `module='blog'` — enum cleanup so no invalid values remain.
+  - **Idempotent cleanup block at start** — drops `__new_posts` leftover + empty `blog_categories`/`tags` from any partial prior run, so re-executing after a failure is deterministic.
+- No follow-up FK-finalize migration needed (all rels FKs landed in Migration 10).
+
+### RBAC
+Editor role now has `create` on `authors`, `posts`, `blog-categories`, and `tags` (was: only on `posts`+`authors`). All within the POSTS admin group — matches "focus on article authoring" intent.
+
+### Verified
+- DB post-migration: 6 blog_categories rows (IDs 7-12 preserved), 0 tags, 3 posts with `category_id` preserved (all → Lagoy #7), 6 categories rows non-blog only, `posts_rels` new shape, migration recorded batch 9.
+- Admin sidebar (browser-checked): POSTS group sits between CONTENT and SERVICES; contains Posts, Blog Categories, Tags; "+ Add …" quick-add links appear under each and jump to the create form.
+
+### Retired
+- The cross-module `Categories.module='blog'` values (6 rows) are gone from Categories. The `blog` enum option is retired from the Categories.module select.
+
 ## What's deferred
 
 - **Analytics fetch job** populating `top-posts.json` from Cloudflare Web Analytics. Block already handles a populated file — flipping this on later needs only the script + a token env var.

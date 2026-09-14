@@ -4,7 +4,7 @@
 > Konten detail lama (1067 baris) diarsipkan utuh di
 > [`docs/archive/progress-archive-2026-08-23.md`](archive/progress-archive-2026-08-23.md).
 >
-> **Last updated:** 2026-09-14 (Phase 4.35 — Blog scaffold + Migration system + BlogSettings global + /blog index page)
+> **Last updated:** 2026-09-14 (Phase 4.35 — Blog scaffold + Migration system + BlogSettings global + /blog index page + POSTS admin group + Categories split + Tags)
 
 ## Project Overview
 
