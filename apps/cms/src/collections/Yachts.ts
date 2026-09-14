@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { adminCreate, authenticatedUpdate, superAdminDelete, superAdminFieldAccess } from '../access/roles'
+import { superAdminFieldAccess } from '../access/roles'
+import { moduleAccess } from '../access/moduleAccess'
 import { generateSlug } from '../hooks/generateSlug'
 import { seoFields } from '../fields/seo'
 import { whatsappField } from '../fields/whatsapp'
@@ -22,7 +23,7 @@ export const Yachts: CollectionConfig = {
     defaultColumns: ['name', 'yachtType', 'capacity', 'status', 'updatedAtRelative'],
     preview: makePreview('/yacht'),
   },
-  access: { read: () => true, create: adminCreate, update: authenticatedUpdate, delete: superAdminDelete },
+  access: moduleAccess('yacht'),
   fields: [
     sidebarTabsField,
     withSidebarTab({ name: 'slug', type: 'text', required: true, unique: true, hooks: { beforeValidate: [generateSlug] }, admin: { position: 'sidebar' } }, 'general'),

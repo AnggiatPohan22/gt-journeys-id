@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { adminCreate, authenticatedUpdate, superAdminDelete, superAdminFieldAccess } from '../access/roles'
+import { superAdminFieldAccess } from '../access/roles'
+import { moduleAccess } from '../access/moduleAccess'
 import { generateSlug } from '../hooks/generateSlug'
 import { seoFields } from '../fields/seo'
 import { locationFields } from '../fields/location'
@@ -23,7 +24,7 @@ export const Accommodations: CollectionConfig = {
     defaultColumns: ['name', 'type', 'destination', 'status', 'updatedAtRelative'],
     preview: makePreview('/villa'),
   },
-  access: { read: () => true, create: adminCreate, update: authenticatedUpdate, delete: superAdminDelete },
+  access: moduleAccess('accommodations'),
   fields: [
     sidebarTabsField,
     withSidebarTab({ name: 'slug', type: 'text', required: true, unique: true, hooks: { beforeValidate: [generateSlug] }, admin: { position: 'sidebar' } }, 'general'),
