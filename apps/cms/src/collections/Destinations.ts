@@ -95,15 +95,36 @@ export const Destinations: CollectionConfig = {
       label: 'Featured Image',
     },
     {
+      name: 'galleryBulkUpload',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/admin/GalleryBulkUpload#default',
+        },
+      },
+    },
+    {
       name: 'gallery',
       type: 'array',
       label: 'Gallery',
+      maxRows: 10,
+      admin: {
+        description: 'Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.',
+        className: 'dnj-gallery-grid',
+        components: {
+          afterInput: ['/admin/GalleryGrid#default'],
+        },
+      },
       fields: [
         {
           name: 'image',
           type: 'upload',
           relationTo: 'media',
           required: true,
+        },
+        {
+          name: 'caption',
+          type: 'text',
         },
       ],
     },

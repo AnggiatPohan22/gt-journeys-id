@@ -2989,9 +2989,13 @@ export interface Destination {
     [k: string]: unknown;
   } | null;
   featuredImage?: (number | null) | Media;
+  /**
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   */
   gallery?:
     | {
         image: number | Media;
+        caption?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -31347,6 +31351,7 @@ export interface DestinationsSelect<T extends boolean = true> {
     | T
     | {
         image?: T;
+        caption?: T;
         id?: T;
       };
   location?:
