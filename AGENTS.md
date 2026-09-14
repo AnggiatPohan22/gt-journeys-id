@@ -238,8 +238,21 @@ Local dev:     SQLite file (auto-created by Payload)
 Production:    Cloudflare D1 (configured in wrangler.toml)
 ```
 
-Payload auto-generates tables from collection configs.
-No manual SQL. No migration files. Collections = schema.
+Payload generates the schema from collection configs. Since 2026-09-12
+the DB is evolved through **migrations**, not dev push.
+
+Workflow (from `apps/cms/`):
+```
+pnpm schema:new -- --name short-description   # generate diff migration
+# review the .ts + .json in src/migrations/, commit both
+pnpm schema:migrate                            # apply pending migrations
+pnpm generate:types                            # regenerate payload-types.ts
+```
+
+Never set `PAYLOAD_FORCE_PUSH=true`. Never write ad-hoc DDL scripts.
+See [`docs/DB-SCHEMA-CHANGES.md`](./docs/DB-SCHEMA-CHANGES.md) for the
+runbook and [`docs/reports/schema-management-audit.md`](./docs/reports/schema-management-audit.md)
+for the "why".
 
 ---
 
