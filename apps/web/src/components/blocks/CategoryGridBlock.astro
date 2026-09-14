@@ -1,5 +1,5 @@
 ---
-import { getCategories, getPosts } from '@lib/payload'
+import { getCategories, getBlogCategories, getPosts } from '@lib/payload'
 import type { Media } from '@shared/types/payload-types'
 import { resolveContainer, resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
 
@@ -16,11 +16,16 @@ const containerClass = resolveContainer(b.containerWidth ?? 'wide')
 const paddingClass = resolvePadding(b)
 const padOverrideStyle = resolvePaddingOverrideStyle(b)
 
-const { docs: cats } = await getCategories({
-  limit,
-  where: { module: { equals: module } },
-  sort: 'sortOrder',
-}).catch(() => ({ docs: [] as any[] }))
+// Phase 4.35.3 — blog categories live in their own collection now.
+// For other modules (tours/villa/etc), still fetch from Categories with
+// module filter. Frontend surface stays identical.
+const { docs: cats } = module === 'blog'
+  ? await getBlogCategories({ limit, sort: 'sortOrder' }).catch(() => ({ docs: [] as any[] }))
+  : await getCategories({
+      limit,
+      where: { module: { equals: module } },
+      sort: 'sortOrder',
+    }).catch(() => ({ docs: [] as any[] }))
 
 let counts: Record<string, number> = {}
 if (module === 'blog' && showCount && cats.length) {

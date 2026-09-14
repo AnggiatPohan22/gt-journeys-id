@@ -1110,8 +1110,7 @@ const PostList: Block = {
             {
               name: 'filterCategory',
               type: 'relationship',
-              relationTo: 'categories',
-              filterOptions: { module: { equals: 'blog' } },
+              relationTo: 'blog-categories',
               admin: { description: 'Filter by kategori tertentu (opsional).' },
             },
             {

@@ -88,6 +88,66 @@ const NavAccordion = () => {
     }
   }, [pathname])
 
+  // ── 3. Inject "+ Add X" quick-create link below select collections. ──
+  //
+  // Payload's default sidebar shows only "Collection Name" (→ list view).
+  // For content-creation collections (Posts, Authors, Tags, BlogCategories)
+  // we add a sibling "+ Add …" link that jumps straight to the create form.
+  //
+  // Convention: hardcode slug → singular map here (not on the collection
+  // config, since admin.custom typing across Payload is inconsistent).
+  //
+  // Idempotent — if link already injected, skipped. Re-runs on pathname
+  // change to survive Payload's soft nav re-renders.
+  useEffect(() => {
+    const QUICK_ADD: Record<string, { singular: string; slug: string }> = {
+      posts:             { slug: 'posts',             singular: 'Post' },
+      authors:           { slug: 'authors',           singular: 'Author' },
+      tags:              { slug: 'tags',              singular: 'Tag' },
+      'blog-categories': { slug: 'blog-categories',   singular: 'Category' },
+    }
+
+    let cancelled = false
+
+    const inject = () => {
+      if (cancelled) return
+      const links = Array.from(
+        document.querySelectorAll<HTMLElement>('.nav-group .nav__link'),
+      )
+      for (const link of links) {
+        const href = link.getAttribute('href') ?? ''
+        const match = href.match(/^\/admin\/collections\/([^/?#]+)$/)
+        if (!match) continue
+        const slug = match[1]
+        const cfg = QUICK_ADD[slug]
+        if (!cfg) continue
+
+        // Container: Payload usually wraps each link in .nav-group__content-item
+        // (or similar). Fall back to link.parentElement.
+        const item = link.closest<HTMLElement>('.nav-group__content-item') ?? link.parentElement
+        if (!item) continue
+
+        // Guard idempotency — only one quick-add per collection.
+        if (item.querySelector<HTMLAnchorElement>(`a[data-quick-add="${slug}"]`)) continue
+
+        const addHref = `/admin/collections/${cfg.slug}/create`
+        const quick = document.createElement('a')
+        quick.className = 'nav__link nav__link--quick-add'
+        quick.setAttribute('data-quick-add', slug)
+        quick.setAttribute('href', addHref)
+        quick.textContent = `+ Add ${cfg.singular}`
+        item.appendChild(quick)
+      }
+    }
+
+    // Run after Payload paints the nav; re-check a few times for late renders.
+    const timers = [40, 200, 800].map((ms) => window.setTimeout(inject, ms))
+    return () => {
+      cancelled = true
+      for (const t of timers) window.clearTimeout(t)
+    }
+  }, [pathname])
+
   // ── 2. Single-open manual: klik grup untuk buka → tutup grup lain ──
   useEffect(() => {
     const onClick = (e: MouseEvent) => {

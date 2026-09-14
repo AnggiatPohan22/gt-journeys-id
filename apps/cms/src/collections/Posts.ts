@@ -9,6 +9,11 @@ import { makePreview } from '../fields/preview'
 import { blocks } from '../blocks'
 import { SELECTION_MODE_OPTIONS } from '../globals/BlogSettings'
 
+// Phase 4.35.3 — Categories split into Content-level (services)
+// vs. Posts-level (blog). Posts now relates to `blog-categories` and
+// `tags` — separate editor-owned taxonomies under the POSTS admin
+// group. See phase-4.35 report §4.35.3 addendum.
+
 // ── Posts (Blog) ──────────────────────────────────────────────
 // Blog article collection. Editor role CAN create (unlike Pages /
 // service collections) — matches the requirement that the client
@@ -24,7 +29,7 @@ export const Posts: CollectionConfig = {
   slug: 'posts',
   admin: {
     useAsTitle: 'title',
-    group: 'Content',
+    group: 'Posts',
     defaultColumns: ['title', 'category', 'author', 'status', 'isFeatured', 'publishedAt', 'updatedAtRelative'],
     listSearchableFields: ['title', 'slug', 'excerpt'],
     preview: makePreview('/blog'),
@@ -133,18 +138,16 @@ export const Posts: CollectionConfig = {
                 {
                   name: 'category',
                   type: 'relationship',
-                  relationTo: 'categories',
-                  filterOptions: { module: { equals: 'blog' } },
+                  relationTo: 'blog-categories',
                   required: true,
-                  admin: { width: '50%', description: 'Kategori utama (dari Categories bermodul "Blog").' },
+                  admin: { width: '50%', description: 'Kategori utama (dari Blog Categories).' },
                 },
                 {
                   name: 'tags',
                   type: 'relationship',
-                  relationTo: 'categories',
+                  relationTo: 'tags',
                   hasMany: true,
-                  filterOptions: { module: { equals: 'blog' } },
-                  admin: { width: '50%', description: 'Tag tambahan (opsional).' },
+                  admin: { width: '50%', description: 'Tag tambahan (opsional) — dari collection Tags.' },
                 },
               ],
             },

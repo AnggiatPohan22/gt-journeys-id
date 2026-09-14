@@ -46,7 +46,7 @@ export const Categories: CollectionConfig = {
         { label: 'Rentals', value: 'rentals' },
         { label: 'Spa & Wellness', value: 'spa' },
         { label: 'Ferry Tickets', value: 'ferry-tickets' },
-        { label: 'Blog', value: 'blog' },
+        // 'blog' retired (Phase 4.35.3) — moved to `blog-categories` collection.
       ],
     },
     {

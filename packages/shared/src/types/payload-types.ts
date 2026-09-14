@@ -75,6 +75,8 @@ export interface Config {
     testimonials: Testimonial;
     authors: Author;
     posts: Post;
+    'blog-categories': BlogCategory;
+    tags: Tag;
     tours: Tour;
     accommodations: Accommodation;
     'water-activities': WaterActivity;
@@ -103,6 +105,8 @@ export interface Config {
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
     accommodations: AccommodationsSelect<false> | AccommodationsSelect<true>;
     'water-activities': WaterActivitiesSelect<false> | WaterActivitiesSelect<true>;
@@ -2332,7 +2336,7 @@ export interface Page {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -3051,29 +3055,27 @@ export interface DestinationType {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
+ * via the `definition` "blog-categories".
  */
-export interface Category {
+export interface BlogCategory {
   id: number;
   name: string;
-  slug: string;
-  module:
-    | 'tours'
-    | 'accommodations'
-    | 'water-activities'
-    | 'yachts'
-    | 'restaurants'
-    | 'venues'
-    | 'rentals'
-    | 'spa'
-    | 'ferry-tickets'
-    | 'blog';
   /**
-   * Optional — for subcategories
+   * Auto dari name.
    */
-  parent?: (number | null) | Category;
+  slug: string;
+  /**
+   * Optional — for subcategories.
+   */
+  parent?: (number | null) | BlogCategory;
   description?: string | null;
+  /**
+   * Small icon for sidebar/inline chip contexts (optional).
+   */
   icon?: (number | null) | Media;
+  /**
+   * Tile image for CategoryGrid — the "Explore by Category" section.
+   */
   featuredImage?: (number | null) | Media;
   status?: ('draft' | 'published') | null;
   /**
@@ -3137,13 +3139,13 @@ export interface Post {
    */
   excerpt?: string | null;
   /**
-   * Kategori utama (dari Categories bermodul "Blog").
+   * Kategori utama (dari Blog Categories).
    */
-  category: number | Category;
+  category: number | BlogCategory;
   /**
-   * Tag tambahan (opsional).
+   * Tag tambahan (opsional) — dari collection Tags.
    */
-  tags?: (number | Category)[] | null;
+  tags?: (number | Tag)[] | null;
   /**
    * Hero image artikel + OG image default.
    */
@@ -5326,7 +5328,7 @@ export interface Post {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -5945,6 +5947,33 @@ export interface Author {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  /**
+   * Auto dari name.
+   */
+  slug: string;
+  /**
+   * Ringkasan singkat (opsional) — bisa dipakai di halaman tag suatu saat.
+   */
+  description?: string | null;
+  /**
+   * Hex color untuk chip aksen di frontend (opsional). Contoh: #E07A5F.
+   */
+  color?: string | null;
+  status?: ('draft' | 'published') | null;
+  /**
+   * Lower numbers appear first
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Metadata untuk kategori layanan (label, ikon, hero, SEO, WhatsApp). Listing/produk tetap di collection masing-masing.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -6027,6 +6056,39 @@ export interface ServiceType {
   whatsappTemplate?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  module:
+    | 'tours'
+    | 'accommodations'
+    | 'water-activities'
+    | 'yachts'
+    | 'restaurants'
+    | 'venues'
+    | 'rentals'
+    | 'spa'
+    | 'ferry-tickets';
+  /**
+   * Optional — for subcategories
+   */
+  parent?: (number | null) | Category;
+  description?: string | null;
+  icon?: (number | null) | Media;
+  featuredImage?: (number | null) | Media;
+  status?: ('draft' | 'published') | null;
+  /**
+   * Lower numbers appear first
+   */
+  sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -8439,7 +8501,7 @@ export interface Tour {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -10822,7 +10884,7 @@ export interface Accommodation {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -12992,7 +13054,7 @@ export interface WaterActivity {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -15820,7 +15882,7 @@ export interface Yacht {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -18352,7 +18414,7 @@ export interface Restaurant {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -21199,7 +21261,7 @@ export interface Venue {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -24031,7 +24093,7 @@ export interface Rental {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -26863,7 +26925,7 @@ export interface Spa {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -29164,7 +29226,7 @@ export interface FerryTicket {
             /**
              * Filter by kategori tertentu (opsional).
              */
-            filterCategory?: (number | null) | Category;
+            filterCategory?: (number | null) | BlogCategory;
             showViewAll?: boolean | null;
             viewAllText?: string | null;
             viewAllLink?: string | null;
@@ -29906,6 +29968,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'blog-categories';
+        value: number | BlogCategory;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
       } | null)
     | ({
         relationTo: 'tours';
@@ -32627,6 +32697,36 @@ export interface PostsSelect<T extends boolean = true> {
         metaDescription?: T;
         ogImage?: T;
       };
+  status?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog-categories_select".
+ */
+export interface BlogCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  parent?: T;
+  description?: T;
+  icon?: T;
+  featuredImage?: T;
+  status?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  color?: T;
   status?: T;
   sortOrder?: T;
   updatedAt?: T;

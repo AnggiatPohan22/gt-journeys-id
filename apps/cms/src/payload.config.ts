@@ -39,6 +39,8 @@ import { Spa } from './collections/Spa'
 import { FerryTickets } from './collections/FerryTickets'
 import { Authors } from './collections/Authors'
 import { Posts } from './collections/Posts'
+import { BlogCategories } from './collections/BlogCategories'
+import { Tags } from './collections/Tags'
 import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
 
 // Globals
@@ -128,17 +130,22 @@ export default buildConfig({
   }),
 
   // ── Collections ─────────────────────────────
+  // Order determines admin sidebar accordion sequence (Payload groups
+  // by admin.group; first-appearance sets group position).
   collections: [
-    // Content
+    // ── CONTENT group ───────────────────────────
     Pages,
     ServiceTypes,
     Destinations,
     DestinationTypes,
-    Categories,
+    Categories,        // cross-module (tours/villa/…) — stays in Content
     Testimonials,
     Authors,
+    // ── POSTS group (Phase 4.35.3) ──────────────
     Posts,
-    // Services
+    BlogCategories,
+    Tags,
+    // ── SERVICES group ──────────────────────────
     Tours,
     Accommodations,
     WaterActivities,

@@ -226,3 +226,13 @@ export const getAuthors = (opts?: Partial<FetchOptions>) =>
   fetchCollection<any>({ collection: 'authors', sort: 'sortOrder', ...opts })
 export const getAuthorBySlug = (slug: string) =>
   fetchBySlug<any>('authors', slug)
+
+export const getBlogCategories = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'blog-categories', sort: 'sortOrder', ...opts })
+export const getBlogCategoryBySlug = (slug: string) =>
+  fetchBySlug<any>('blog-categories', slug)
+
+export const getTags = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'tags', sort: 'sortOrder', ...opts })
+export const getTagBySlug = (slug: string) =>
+  fetchBySlug<any>('tags', slug)

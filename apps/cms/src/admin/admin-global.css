@@ -159,6 +159,29 @@ html[data-theme='dark'] .template-default__nav {
 .nav__link[href$='/globals/footer-settings'] { --i: var(--dnj-ic-layout); }
 .nav__link[href$='/globals/homepage-content'] { --i: var(--dnj-ic-home); }
 .nav__link[href$='/globals/site-features'] { --i: var(--dnj-ic-tag); }
+.nav__link[href$='/collections/posts'] { --i: var(--dnj-ic-doc); }
+.nav__link[href$='/collections/blog-categories'] { --i: var(--dnj-ic-grid); }
+.nav__link[href$='/collections/tags'] { --i: var(--dnj-ic-tag); }
+.nav__link[href$='/collections/authors'] { --i: var(--dnj-ic-users); }
+/* Blog Settings global icon */
+.nav__link[href$='/globals/blog-settings'] { --i: var(--dnj-ic-doc); }
+
+/* Quick-add "+ Add X" link (Phase 4.35.3) — smaller, indented, subdued.
+   Injected by NavAccordion.tsx below the list-view link of select
+   editorial collections (posts, authors, tags, blog-categories). */
+.nav__link--quick-add {
+  padding-block: 4px;
+  padding-inline-start: 40px;
+  font-size: 0.85em;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.nav__link--quick-add::before {
+  display: none;
+}
+.nav__link--quick-add:hover {
+  opacity: 1;
+}
 
 /* Hover (non-active) → geseran netral halus (bukan gradient) */
 .nav__link:not(:has(.nav__link-indicator)):hover {
