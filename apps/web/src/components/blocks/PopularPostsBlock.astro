@@ -1,0 +1,98 @@
+---
+// PopularPosts — reads top-posts.json (analytics-driven ranking).
+// Falls back to `isFeatured DESC, publishedAt DESC` when the JSON
+// is empty (launch state) or missing slugs.
+import { getPosts } from '@lib/payload'
+import type { Media } from '@shared/types/payload-types'
+import { resolveContainer, resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
+import topPostsData from '../../data/top-posts.json'
+
+interface Props { block: any }
+const { block } = Astro.props
+const b = block ?? {}
+
+const limit = Math.max(3, Math.min(10, Number(b.limit ?? 5)))
+const variant = b.variant ?? 'sidebar'
+
+const containerClass = resolveContainer(b.containerWidth ?? 'wide')
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+
+interface TopPost { slug: string; views?: number }
+const topPosts = (topPostsData as { posts?: TopPost[] })?.posts ?? []
+
+let picked: any[] = []
+
+if (topPosts.length > 0) {
+  const slugs = topPosts.slice(0, limit).map((p) => p.slug)
+  const { docs } = await getPosts({ limit, where: { slug: { in: slugs.join(',') as any } } }).catch(() => ({ docs: [] as any[] }))
+  const bySlug = new Map<string, any>(docs.map((d: any) => [d.slug, d]))
+  picked = slugs.map((s) => bySlug.get(s)).filter(Boolean)
+}
+
+if (picked.length < limit) {
+  const needed = limit - picked.length
+  const { docs: fallback } = await getPosts({
+    limit: needed + picked.length,
+    sort: '-isFeatured,-publishedAt',
+  }).catch(() => ({ docs: [] as any[] }))
+  const seen = new Set(picked.map((p: any) => p.id))
+  for (const post of fallback) {
+    if (picked.length >= limit) break
+    if (!seen.has(post.id)) picked.push(post)
+  }
+}
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const fmtDate = (d?: string | null) => {
+  if (!d) return ''
+  try { return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }
+  catch { return '' }
+}
+---
+
+{variant === 'sidebar' ? (
+  <div class="bg-white p-6 rounded-xl shadow-sm border border-stone/10">
+    {b.heading && <h3 class="font-display text-lg text-ocean mb-6">{b.heading}</h3>}
+    <div class="space-y-5">
+      {picked.map((post: any) => {
+        const img = asMedia(post.featuredImage)
+        const url = img?.sizes?.thumbnail?.url ?? img?.url ?? ''
+        return (
+          <a href={`/blog/${post.slug}`} class="flex gap-4 group">
+            <div class="w-20 h-20 rounded-lg object-cover shadow-sm flex-shrink-0 overflow-hidden bg-ocean/5">
+              {url && <img src={url} alt={img?.alt ?? post.title} class="w-full h-full object-cover group-hover:opacity-80 transition-opacity" loading="lazy" />}
+            </div>
+            <div class="flex flex-col justify-center min-w-0">
+              <h4 class="font-semibold text-sm text-ocean group-hover:text-coral transition-colors line-clamp-2">{post.title}</h4>
+              <span class="text-xs text-stone/60 mt-1">{fmtDate(post.publishedAt)}</span>
+            </div>
+          </a>
+        )
+      })}
+    </div>
+  </div>
+) : (
+  <section class:list={['relative', paddingClass]} style={padOverrideStyle}>
+    <div class:list={['relative z-10 mx-auto', containerClass]}>
+      {b.heading && <h2 class="font-display text-3xl md:text-4xl mb-8 text-ocean">{b.heading}</h2>}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {picked.map((post: any) => {
+          const img = asMedia(post.featuredImage)
+          const url = img?.sizes?.card?.url ?? img?.url ?? ''
+          return (
+            <a href={`/blog/${post.slug}`} class="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow flex flex-col">
+              <div class="aspect-[16/10] overflow-hidden bg-ocean/5">
+                {url && <img src={url} alt={img?.alt ?? post.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+              </div>
+              <div class="p-5 flex-grow flex flex-col">
+                <h3 class="font-display text-lg text-ocean line-clamp-2 group-hover:text-coral transition-colors">{post.title}</h3>
+                <span class="text-xs text-stone/60 mt-auto pt-3">{fmtDate(post.publishedAt)}</span>
+              </div>
+            </a>
+          )
+        })}
+      </div>
+    </div>
+  </section>
+)}

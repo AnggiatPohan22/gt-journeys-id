@@ -1,0 +1,92 @@
+---
+import { getPosts } from '@lib/payload'
+import type { Media } from '@shared/types/payload-types'
+import { resolveContainer, resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
+
+interface Props { block: any }
+const { block } = Astro.props
+const b = block ?? {}
+
+const containerClass = resolveContainer(b.containerWidth ?? 'wide')
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+
+let featured: any = null
+let side: any[] = []
+
+if (b.selectionMode === 'manual') {
+  featured = typeof b.featuredPost === 'object' ? b.featuredPost : null
+  side = Array.isArray(b.sidePosts) ? b.sidePosts.filter((p: any) => typeof p === 'object') : []
+} else {
+  const { docs: fdocs } = await getPosts({ limit: 4, where: { isFeatured: { equals: true } }, sort: '-publishedAt' }).catch(() => ({ docs: [] as any[] }))
+  let picked = fdocs
+  if (picked.length < 4) {
+    const { docs: rest } = await getPosts({ limit: 4 - picked.length, sort: '-publishedAt' }).catch(() => ({ docs: [] as any[] }))
+    const seen = new Set(picked.map((p: any) => p.id))
+    picked = [...picked, ...rest.filter((p: any) => !seen.has(p.id))]
+  }
+  featured = picked[0] ?? null
+  side = picked.slice(1, 4)
+}
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const fmtDate = (d?: string | null) => {
+  if (!d) return ''
+  try { return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }
+  catch { return '' }
+}
+
+const featuredImg = featured ? asMedia(featured.featuredImage) : null
+const featuredCat = featured && typeof featured.category === 'object' ? featured.category?.name : null
+---
+
+<section class:list={['relative', paddingClass]} style={padOverrideStyle}>
+  <div class:list={['relative z-10 mx-auto', containerClass]}>
+    {b.heading && <h2 class="font-display text-3xl md:text-4xl mb-8 text-ocean">{b.heading}</h2>}
+
+    {!featured && side.length === 0 ? (
+      <p class="text-stone/60 italic">No posts to feature yet.</p>
+    ) : (
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {featured && (
+          <a href={`/blog/${featured.slug}`} class="lg:col-span-2 group relative rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 bg-white flex flex-col">
+            <div class="h-64 md:h-80 relative overflow-hidden bg-ocean/5">
+              {featuredImg?.url && <img src={featuredImg.sizes?.hero?.url ?? featuredImg.url} alt={featuredImg.alt ?? featured.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="eager" />}
+            </div>
+            <div class="p-6 md:p-8 flex flex-col justify-center flex-grow">
+              {featuredCat && <span class="inline-block w-max bg-ocean/10 text-ocean text-xs font-semibold px-3 py-1 rounded-full mb-3">Featured • {featuredCat}</span>}
+              <h3 class="font-display text-2xl md:text-3xl text-ocean mb-3 group-hover:text-coral transition-colors">{featured.title}</h3>
+              {featured.excerpt && <p class="text-stone/70 mb-4 line-clamp-3">{featured.excerpt}</p>}
+              <div class="mt-auto flex items-center gap-3 text-xs text-stone/60">
+                <span>{fmtDate(featured.publishedAt)}</span>
+                {featured.readingTimeMinutes && <><span>•</span><span>{featured.readingTimeMinutes} min read</span></>}
+              </div>
+            </div>
+          </a>
+        )}
+
+        {side.length > 0 && (
+          <div class="flex flex-col gap-4">
+            {side.map((post: any) => {
+              const img = asMedia(post.featuredImage)
+              const url = img?.sizes?.thumbnail?.url ?? img?.url ?? ''
+              const cat = typeof post.category === 'object' ? post.category?.name : null
+              return (
+                <a href={`/blog/${post.slug}`} class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 p-4 flex gap-4 group">
+                  <div class="w-24 h-24 rounded object-cover flex-shrink-0 overflow-hidden bg-ocean/5">
+                    {url && <img src={url} alt={img?.alt ?? post.title} class="w-full h-full object-cover" loading="lazy" />}
+                  </div>
+                  <div class="flex flex-col justify-center min-w-0">
+                    {cat && <span class="text-ocean text-xs font-semibold mb-1">{cat}</span>}
+                    <h4 class="font-display text-base text-ocean line-clamp-2 group-hover:text-coral transition-colors">{post.title}</h4>
+                    <span class="text-xs text-stone/60 mt-1">{fmtDate(post.publishedAt)}</span>
+                  </div>
+                </a>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</section>

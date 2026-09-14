@@ -25,6 +25,10 @@ export interface SiteFeaturesShape {
     whatsappFloat: boolean
     announcementBar: boolean
   }
+  blog: {
+    enabled: boolean
+    enableAds: boolean
+  }
 }
 
 const DEFAULT_FEATURES: SiteFeaturesShape = {
@@ -41,6 +45,7 @@ const DEFAULT_FEATURES: SiteFeaturesShape = {
   },
   sections: { testimonials: true, faq: true, promoBanner: false, newsletter: false },
   features: { whatsappFloat: true, announcementBar: false },
+  blog: { enabled: true, enableAds: false },
 }
 
 let cache: SiteFeaturesShape | null = null
@@ -61,6 +66,7 @@ export async function getFeatures(): Promise<SiteFeaturesShape> {
       modules: { ...DEFAULT_FEATURES.modules, ...(raw?.modules ?? {}) },
       sections: { ...DEFAULT_FEATURES.sections, ...(raw?.sections ?? {}) },
       features: { ...DEFAULT_FEATURES.features, ...(raw?.features ?? {}) },
+      blog: { ...DEFAULT_FEATURES.blog, ...((raw as any)?.blog ?? {}) },
     }
     if (!isDev) cache = fresh
     return fresh
@@ -86,6 +92,12 @@ export async function isSectionEnabled(key: keyof SiteFeaturesShape['sections'])
 export async function isFeatureEnabled(key: keyof SiteFeaturesShape['features']): Promise<boolean> {
   const f = await getFeatures()
   return f.features[key] !== false
+}
+
+/** Cek toggle Blog group (enabled, enableAds). */
+export async function isBlogFlagEnabled(key: keyof SiteFeaturesShape['blog']): Promise<boolean> {
+  const f = await getFeatures()
+  return f.blog[key] !== false
 }
 
 /**

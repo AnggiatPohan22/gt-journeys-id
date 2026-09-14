@@ -1,0 +1,215 @@
+---
+import PageLayout from '@layouts/PageLayout.astro'
+import BlockRenderer from '@components/blocks/BlockRenderer.astro'
+import StructuredData from '@components/common/StructuredData.astro'
+import Breadcrumbs from '@components/common/Breadcrumbs.astro'
+import LexicalRenderer from '@components/common/LexicalRenderer.astro'
+import PopularPostsBlock from '@components/blocks/PopularPostsBlock.astro'
+import RelatedPosts from '@components/blog/RelatedPosts.astro'
+import { getPosts, getPostBySlug, getCategories, getSiteSettings, getBlogSettings } from '@lib/payload'
+import { isBlogFlagEnabled } from '@lib/features'
+import { resolveRelatedConfig, fetchRelatedPosts } from '@lib/relatedPosts'
+import { blogPostingSchema, webPageSchema } from '@lib/structuredData'
+import { lexicalToPlainText } from '@lib/lexical'
+import type { Media } from '@shared/types/payload-types'
+
+// SSG — prebuild one route per published post.
+export async function getStaticPaths() {
+  const enabled = await isBlogFlagEnabled('enabled').catch(() => true)
+  if (!enabled) return []
+  const { docs } = await getPosts({ limit: 500 })
+  return docs.filter((p: any) => p.slug).map((p: any) => ({ params: { slug: p.slug } }))
+}
+
+const { slug } = Astro.params
+if (!slug) return new Response(null, { status: 404 })
+
+const post = await getPostBySlug(slug)
+if (!post) return Astro.redirect('/404')
+
+// ── Global gates ─────────────────────────────────────────────
+const adsEnabled = await isBlogFlagEnabled('enableAds').catch(() => false)
+
+// ── Blog settings (Related Posts + Sidebar defaults) ─────────
+const blogSettings = await getBlogSettings().catch(() => null as any)
+const relatedConfig = resolveRelatedConfig(blogSettings?.relatedPosts, post.relatedOverride)
+const sidebar = (blogSettings?.sidebar ?? {}) as any
+const showPopular = sidebar.showPopularPosts !== false
+const showAd = sidebar.showAdSlot !== false && adsEnabled
+const showCats = sidebar.showCategories !== false
+const showNewsletter = sidebar.showNewsletter === true
+const adPosition: 'top' | 'between' | 'bottom' = sidebar.adSlotPosition ?? 'between'
+
+// ── Post / media / author basics ─────────────────────────────
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const heroImg = asMedia(post.featuredImage)
+const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
+const heroAlt = heroImg?.alt ?? post.title
+
+const category = typeof post.category === 'object' ? post.category : null
+const author = typeof post.author === 'object' ? post.author : null
+const authorAvatar = author ? asMedia(author.avatar) : null
+
+const fmtDate = (d?: string | null) => {
+  if (!d) return ''
+  try { return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }
+  catch { return '' }
+}
+
+// ── SEO strings ──────────────────────────────────────────────
+const bodyText = lexicalToPlainText(post.body)
+const wordCount = bodyText ? bodyText.split(/\s+/).length : 0
+const title = post.seo?.metaTitle ?? post.title
+const description = post.seo?.metaDescription ?? post.excerpt ?? bodyText.slice(0, 160)
+
+// ── Sidebar data (only fetch what's shown) ───────────────────
+const settings = await getSiteSettings().catch(() => null as any)
+const publisherName = (settings as any)?.siteName ?? 'DN Journeys Bali'
+const publisherLogo = asMedia((settings as any)?.logo)?.url
+
+const categoriesLimit = Math.max(3, Math.min(30, Number(sidebar.categoriesLimit ?? 12)))
+const { docs: blogCats } = showCats
+  ? await getCategories({ limit: categoriesLimit, where: { module: { equals: 'blog' } }, sort: 'sortOrder' })
+      .catch(() => ({ docs: [] as any[] }))
+  : { docs: [] as any[] }
+
+// ── Related posts (via config-driven helper) ─────────────────
+const related = relatedConfig.enabled
+  ? await fetchRelatedPosts({
+      currentPost: post,
+      config: relatedConfig,
+      override: post.relatedOverride?.enabled ? post.relatedOverride : null,
+    })
+  : []
+
+// ── JSON-LD ──────────────────────────────────────────────────
+const site = Astro.site?.href
+const url = `/blog/${slug}`
+const ogImage = asMedia(post.seo?.ogImage)?.url ?? heroImg?.url
+
+const schemas: Record<string, unknown>[] = [
+  blogPostingSchema({
+    headline: post.title,
+    description,
+    url,
+    image: ogImage,
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    author: author ? {
+      name: author.name,
+      url: author.slug ? `/author/${author.slug}` : undefined,
+      image: authorAvatar?.url,
+    } : undefined,
+    publisher: { name: publisherName, logo: publisherLogo },
+    articleSection: category?.name,
+    wordCount: wordCount || undefined,
+    site,
+  }),
+  // BreadcrumbList emitted by <Breadcrumbs /> itself — don't double-emit.
+  webPageSchema({ name: title, description, url, site }),
+]
+
+const additionalBlocks = (post.additionalBlocks ?? []) as any[]
+
+// Sidebar widgets in configured order.
+const widgets: Array<'popular' | 'ad' | 'categories' | 'newsletter'> = []
+if (showAd && adPosition === 'top') widgets.push('ad')
+if (showPopular) widgets.push('popular')
+if (showAd && adPosition === 'between') widgets.push('ad')
+if (showCats) widgets.push('categories')
+if (showAd && adPosition === 'bottom') widgets.push('ad')
+if (showNewsletter) widgets.push('newsletter')
+
+const popularHeading = sidebar.popularPostsHeading ?? 'Popular Posts'
+const popularLimit = Math.max(3, Math.min(10, Number(sidebar.popularPostsLimit ?? 5)))
+const categoriesHeading = sidebar.categoriesHeading ?? 'Categories'
+const newsletterHeading = sidebar.newsletterHeading ?? 'Stay Inspired'
+---
+
+<PageLayout title={title} description={description} ogImage={ogImage} ogType="article">
+  <Fragment slot="head">
+    <link rel="alternate" type="application/rss+xml" title="DN Journeys Bali — Blog" href="/blog/rss.xml" />
+  </Fragment>
+
+  <Breadcrumbs items={[
+    { name: 'Home', url: '/' },
+    { name: 'Blog', url: '/blog' },
+    ...(category ? [{ name: category.name, url: `/blog?category=${category.slug}` }] : []),
+    { name: post.title, url },
+  ]} />
+
+  <!-- Hero -->
+  <div class="container-content mt-6">
+    {heroUrl && (
+      <div class="w-full aspect-[21/9] rounded-xl overflow-hidden relative shadow-sm mb-8 bg-ocean/5">
+        <img src={heroUrl} alt={heroAlt} class="w-full h-full object-cover" />
+      </div>
+    )}
+    <div class="max-w-3xl mx-auto text-center mb-12">
+      {category && (
+        <div class="inline-block bg-ocean/10 text-ocean text-xs font-semibold px-3 py-1 rounded-full mb-4 uppercase tracking-wider">
+          {category.name}
+        </div>
+      )}
+      <h1 class="font-display text-3xl md:text-5xl leading-tight text-ocean mb-6">{post.title}</h1>
+      <div class="flex items-center justify-center gap-3 md:gap-4 text-sm text-stone/70 flex-wrap">
+        {author && <span class="font-medium">{author.name}</span>}
+        {post.readingTimeMinutes && (<><span class="hidden md:inline">•</span><span>{post.readingTimeMinutes} min read</span></>)}
+        {post.publishedAt && (<><span class="hidden md:inline">•</span><span>{fmtDate(post.publishedAt)}</span></>)}
+      </div>
+    </div>
+  </div>
+
+  <!-- Body (70%) + Sidebar (30%) — 10-col grid; main col-span-7, aside col-span-3.
+       Related Posts stays a full-width section BELOW this grid. -->
+  <div class="container-content grid grid-cols-1 md:grid-cols-10 gap-8 md:gap-10 mb-16">
+    <main class="md:col-span-7 min-w-0">
+      <LexicalRenderer doc={post.body} />
+
+      {additionalBlocks.length > 0 && (
+        <div class="mt-12">
+          <BlockRenderer blocks={additionalBlocks} />
+        </div>
+      )}
+
+      {post.excerpt && (
+        <p class="mt-12 pt-8 border-t border-stone/10 text-stone/70 italic">{post.excerpt}</p>
+      )}
+    </main>
+
+    <aside class="md:col-span-3 space-y-8 mt-12 md:mt-0 md:sticky md:top-24 md:self-start">
+      {widgets.map((w) => (
+        w === 'popular' ? (
+          <PopularPostsBlock block={{ heading: popularHeading, limit: popularLimit, variant: 'sidebar' }} />
+        ) : w === 'ad' ? (
+          <div class="w-full aspect-[300/600] max-h-[600px] bg-ocean/5 rounded-xl flex flex-col items-center justify-center text-stone/60 border-2 border-stone/20 border-dashed relative overflow-hidden">
+            <span class="text-xs font-semibold uppercase tracking-widest text-stone/70">Advertisement</span>
+            <span class="text-xs text-stone/50 mt-2">300 × 600</span>
+          </div>
+        ) : w === 'categories' ? (
+          blogCats.length > 0 && (
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone/10">
+              <h3 class="font-display text-lg text-ocean mb-4">{categoriesHeading}</h3>
+              <div class="flex flex-wrap gap-2">
+                {blogCats.map((c: any) => (
+                  <a href={`/blog?category=${c.slug}`} class="bg-ocean/5 hover:bg-ocean hover:text-white text-ocean px-3 py-1.5 rounded-full text-xs transition-colors">{c.name}</a>
+                ))}
+              </div>
+            </div>
+          )
+        ) : w === 'newsletter' ? (
+          <div class="bg-ocean text-white p-6 rounded-xl shadow-sm">
+            <h3 class="font-display text-lg mb-2">{newsletterHeading}</h3>
+            <p class="text-white/80 text-sm mb-4">Content dari Footer Settings → Newsletter.</p>
+            <a href="#footer-newsletter" class="inline-block bg-white text-ocean text-xs font-semibold px-4 py-2 rounded hover:bg-white/90 transition-colors">Subscribe below ↓</a>
+          </div>
+        ) : null
+      ))}
+    </aside>
+  </div>
+
+  <!-- Related Posts (config-driven; hidden when disabled or no picks) -->
+  <RelatedPosts posts={related} config={relatedConfig} />
+
+  <StructuredData schema={schemas} />
+</PageLayout>

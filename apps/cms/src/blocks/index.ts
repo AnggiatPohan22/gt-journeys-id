@@ -1075,9 +1075,389 @@ const TrustBadges: Block = {
   ],
 }
 
+// ── Blog blocks (Phase 4.35) ────────────────────────────────────
+// PostList     — grid of latest / filtered posts.
+// FeaturedPost — 1 large card (2-col span) + 3 small cards.
+// CategoryGrid — tile grid keyed by Categories.module.
+// PopularPosts — analytics-driven ranking with isFeatured fallback.
+// AdSlot       — manual ad slot (AdSense or custom HTML).
+
+const PostList: Block = {
+  slug: 'postList',
+  labels: { singular: 'Post List', plural: 'Post Lists' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Latest Stories' },
+            { name: 'description', type: 'textarea' },
+            {
+              type: 'row',
+              fields: [
+                { name: 'limit', type: 'number', defaultValue: 6, min: 1, max: 24, admin: { width: '33%' } },
+                { name: 'featuredOnly', type: 'checkbox', defaultValue: false, admin: { width: '33%' } },
+                { name: 'columns', type: 'select', defaultValue: '3', options: [
+                  { label: '2 columns', value: '2' },
+                  { label: '3 columns', value: '3' },
+                  { label: '4 columns', value: '4' },
+                ], admin: { width: '34%' } },
+              ],
+            },
+            {
+              name: 'filterCategory',
+              type: 'relationship',
+              relationTo: 'categories',
+              filterOptions: { module: { equals: 'blog' } },
+              admin: { description: 'Filter by kategori tertentu (opsional).' },
+            },
+            {
+              type: 'collapsible',
+              label: 'View All Button',
+              admin: { initCollapsed: true },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'showViewAll', type: 'checkbox', defaultValue: true, admin: { width: '30%' } },
+                    { name: 'viewAllText', type: 'text', defaultValue: 'View All Articles', admin: { width: '35%' } },
+                    { name: 'viewAllLink', type: 'text', defaultValue: '/blog', admin: { width: '35%' } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: [
+            ...advancedStyleFieldsNoButton,
+            buildTextStyleField(['heading', 'description']),
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+const FeaturedPost: Block = {
+  slug: 'featuredPost',
+  labels: { singular: 'Featured Post', plural: 'Featured Posts' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Popular Posts' },
+            {
+              name: 'selectionMode',
+              type: 'select',
+              defaultValue: 'auto',
+              options: [
+                { label: 'Auto (isFeatured + latest — 1 large + 3 small)', value: 'auto' },
+                { label: 'Manual (pick specific posts)', value: 'manual' },
+              ],
+            },
+            {
+              name: 'featuredPost',
+              type: 'relationship',
+              relationTo: 'posts',
+              admin: {
+                condition: (_, sib) => sib?.selectionMode === 'manual',
+                description: 'Post besar (kolom 2-span).',
+              },
+            },
+            {
+              name: 'sidePosts',
+              type: 'relationship',
+              relationTo: 'posts',
+              hasMany: true,
+              maxRows: 3,
+              admin: {
+                condition: (_, sib) => sib?.selectionMode === 'manual',
+                description: 'Post kecil (3 kartu di kanan).',
+              },
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: [
+            ...advancedStyleFieldsNoButton,
+            buildTextStyleField(['heading']),
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+const CategoryGrid: Block = {
+  slug: 'categoryGrid',
+  labels: { singular: 'Category Grid', plural: 'Category Grids' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Explore by Category' },
+            {
+              name: 'module',
+              type: 'select',
+              defaultValue: 'blog',
+              options: [
+                { label: 'Blog', value: 'blog' },
+                { label: 'Tours', value: 'tours' },
+                { label: 'Accommodations', value: 'accommodations' },
+                { label: 'Water Activities', value: 'water-activities' },
+                { label: 'Yachts', value: 'yachts' },
+                { label: 'Restaurants', value: 'restaurants' },
+                { label: 'Weddings & Events', value: 'venues' },
+                { label: 'Rentals', value: 'rentals' },
+                { label: 'Spa & Wellness', value: 'spa' },
+                { label: 'Ferry Tickets', value: 'ferry-tickets' },
+              ],
+              admin: { description: 'Kategori dari modul mana yang ditampilkan.' },
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'limit', type: 'number', defaultValue: 6, min: 2, max: 12, admin: { width: '50%' } },
+                { name: 'columns', type: 'select', defaultValue: '3', options: [
+                  { label: '2 columns', value: '2' },
+                  { label: '3 columns', value: '3' },
+                  { label: '4 columns', value: '4' },
+                  { label: '6 columns', value: '6' },
+                ], admin: { width: '50%' } },
+              ],
+            },
+            { name: 'showCount', type: 'checkbox', defaultValue: true, admin: { description: 'Tampilkan jumlah artikel per kategori.' } },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: [
+            ...advancedStyleFieldsNoButton,
+            buildTextStyleField(['heading']),
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+const PopularPosts: Block = {
+  slug: 'popularPosts',
+  labels: { singular: 'Popular Posts', plural: 'Popular Posts' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Popular Posts' },
+            {
+              type: 'row',
+              fields: [
+                { name: 'limit', type: 'number', defaultValue: 5, min: 3, max: 10, admin: { width: '50%' } },
+                { name: 'variant', type: 'select', defaultValue: 'sidebar', options: [
+                  { label: 'Sidebar (compact list)', value: 'sidebar' },
+                  { label: 'Grid (cards)', value: 'grid' },
+                ], admin: { width: '50%' } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'daysWindow', type: 'number', defaultValue: 30, min: 7, max: 365, admin: { width: '50%', description: 'Rentang hari untuk hitung view. Default: 30 hari.' } },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: [
+            ...advancedStyleFieldsNoButton,
+            buildTextStyleField(['heading']),
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+const AdSlot: Block = {
+  slug: 'adSlot',
+  labels: { singular: 'Ad Slot', plural: 'Ad Slots' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'slotName', type: 'text', required: true, admin: { description: 'Nama internal (mis: "sidebar-300x600", "mid-article"). Bukan dipakai di frontend, cuma untuk admin.' } },
+            {
+              name: 'size',
+              type: 'select',
+              required: true,
+              defaultValue: '300x600',
+              options: [
+                { label: '300 × 600 (Half Page, sidebar)', value: '300x600' },
+                { label: '300 × 250 (Medium Rectangle)', value: '300x250' },
+                { label: '728 × 90 (Leaderboard)', value: '728x90' },
+                { label: '336 × 280 (Large Rectangle)', value: '336x280' },
+                { label: 'Responsive (fills parent)', value: 'responsive' },
+              ],
+            },
+            {
+              name: 'provider',
+              type: 'select',
+              defaultValue: 'adsense',
+              options: [
+                { label: 'Google AdSense', value: 'adsense' },
+                { label: 'Custom HTML (super-admin only)', value: 'custom' },
+              ],
+            },
+            {
+              name: 'adsenseClient',
+              type: 'text',
+              admin: {
+                condition: (_, sib) => sib?.provider === 'adsense',
+                description: 'AdSense publisher ID (contoh: ca-pub-XXXXXXXXXXXXXXXX).',
+              },
+            },
+            {
+              name: 'adsenseSlotId',
+              type: 'text',
+              admin: {
+                condition: (_, sib) => sib?.provider === 'adsense',
+                description: 'Ad unit slot ID dari dashboard AdSense.',
+              },
+            },
+            {
+              name: 'customHtml',
+              type: 'textarea',
+              access: { update: superAdminFieldAccess },
+              admin: {
+                condition: (_, sib) => sib?.provider === 'custom',
+                description: 'Raw HTML / script tag. HANYA Super Admin. Tampil apa adanya di halaman.',
+              },
+            },
+            {
+              name: 'placement',
+              type: 'select',
+              defaultValue: 'inline',
+              options: [
+                { label: 'Sidebar', value: 'sidebar' },
+                { label: 'Inline (mid-article)', value: 'inline' },
+                { label: 'Bottom (after content)', value: 'bottom' },
+              ],
+              admin: { description: 'Label posisi. Aktual placement mengikuti dimana editor menaruh block-nya.' },
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+// ── Newsletter (Phase 4.35.2) ────────────────────────────────────
+// Inline email-capture section that reuses the /api/newsletter-subscribe
+// endpoint (Phase 4.33). Editor can drop it anywhere in Page.content
+// or a service's additionalBlocks. Same submit contract, honeypot, and
+// rate limit as the footer NewsletterSignup — but independent content
+// (heading/description/etc live on the block, not global).
+
+const Newsletter: Block = {
+  slug: 'newsletter',
+  labels: { singular: 'Newsletter Signup', plural: 'Newsletter Signups' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', required: true, defaultValue: 'Never Miss a Story' },
+            {
+              name: 'description',
+              type: 'textarea',
+              defaultValue: 'Subscribe to our newsletter for the latest travel insights, exclusive offers, and island inspiration delivered directly to your inbox.',
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'placeholderText', type: 'text', defaultValue: 'Your email address', admin: { width: '50%' } },
+                { name: 'buttonLabel', type: 'text', defaultValue: 'Subscribe', admin: { width: '50%' } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'successMessage', type: 'text', defaultValue: "Thanks! We'll be in touch.", admin: { width: '50%' } },
+                { name: 'errorMessage', type: 'text', defaultValue: 'Something went wrong. Please try again.', admin: { width: '50%' } },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Appearance',
+          fields: [
+            {
+              name: 'theme',
+              type: 'select',
+              defaultValue: 'sand',
+              options: [
+                { label: 'Sand — matches page background (seamless)', value: 'sand' },
+                { label: 'Ocean — dark section, light text', value: 'ocean' },
+                { label: 'Leaf — green accent', value: 'leaf' },
+                { label: 'White — elevated card look', value: 'white' },
+              ],
+              admin: { description: 'Palette dari site tokens. Sand = seamless dengan body.' },
+            },
+            {
+              name: 'layout',
+              type: 'select',
+              defaultValue: 'stacked',
+              options: [
+                { label: 'Stacked (title left, form right — for wide sections)', value: 'stacked' },
+                { label: 'Centered (title+form stacked in middle — for narrow / dedicated)', value: 'centered' },
+              ],
+              admin: { description: 'Layout dalam section. Stacked = 2-column match reference. Centered = single-column.' },
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: [
+            ...advancedStyleFieldsNoButton,
+            buildTextStyleField(['heading', 'description']),
+          ],
+        },
+      ],
+    },
+  ],
+}
+
 export const blocks: Block[] = [
   Hero, RichText, ImageBlock, Gallery, CTA, FAQ,
   Testimonials, ServiceGrid, Contact, Embed, Spacer,
   ValuePropsBanner, StatsBanner, TestimonialsCarousel,
   ServiceListing, TrustBadges,
+  PostList, FeaturedPost, CategoryGrid, PopularPosts, AdSlot,
+  Newsletter,
 ]

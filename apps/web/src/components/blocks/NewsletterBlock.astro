@@ -1,0 +1,202 @@
+---
+/**
+ * NewsletterBlock — inline email-capture section for CMS Pages.
+ *
+ * Submits to /api/newsletter-subscribe (same endpoint as the footer
+ * NewsletterSignup — Phase 4.33). Independent content: heading/body/
+ * placeholder/button/etc all live on the block, not on FooterSettings.
+ *
+ * Wire: class `newsletter-signup` on the wrapping <section> means the
+ * global auto-binder script (defined in NewsletterSignup.astro) picks
+ * this up automatically when the footer newsletter is rendered on the
+ * same page. When it's NOT (e.g. on pages that override the footer),
+ * we inline the same init below so the form still works.
+ */
+import { resolveContainer, resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation } from '@lib/blockStyles'
+
+interface Props { block: any }
+const { block } = Astro.props
+const b = block ?? {}
+
+const heading = b.heading ?? 'Never Miss a Story'
+const description = b.description ?? ''
+const placeholder = b.placeholderText ?? 'Your email address'
+const buttonLabel = b.buttonLabel ?? 'Subscribe'
+const successMessage = b.successMessage ?? "Thanks! We'll be in touch."
+const errorMessage = b.errorMessage ?? 'Something went wrong. Please try again.'
+const theme = (b.theme ?? 'sand') as 'sand' | 'ocean' | 'leaf' | 'white'
+const layout = (b.layout ?? 'stacked') as 'stacked' | 'centered'
+
+const containerClass = resolveContainer(b.containerWidth ?? 'wide')
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+const entry = resolveEntryAnimation(b.entryAnimation)
+
+// Theme classes mirror footer NewsletterSignup + add `white` variant.
+const themeClasses: Record<typeof theme, { section: string; heading: string; body: string; input: string; button: string; card: string }> = {
+  sand: {
+    section: 'bg-sand text-ocean',
+    heading: 'text-ocean',
+    body: 'text-ocean/70',
+    input: 'bg-white border-ocean/20 text-ocean placeholder:text-ocean/40 focus:border-coral',
+    button: 'bg-ocean hover:bg-ocean-dark text-sand',
+    card: 'bg-sand-light',
+  },
+  ocean: {
+    section: 'bg-ocean text-sand',
+    heading: 'text-sand',
+    body: 'text-sand/80',
+    input: 'bg-white/10 border-white/20 text-sand placeholder:text-sand/50 focus:border-coral',
+    button: 'bg-coral hover:bg-coral-dark text-sand',
+    card: 'bg-white/5',
+  },
+  leaf: {
+    section: 'bg-leaf text-sand',
+    heading: 'text-sand',
+    body: 'text-sand/80',
+    input: 'bg-white/15 border-white/25 text-sand placeholder:text-sand/50 focus:border-sand',
+    button: 'bg-sand hover:bg-white text-ocean',
+    card: 'bg-white/5',
+  },
+  white: {
+    section: 'bg-white text-ocean',
+    heading: 'text-ocean',
+    body: 'text-stone',
+    input: 'bg-white border-stone/20 text-ocean placeholder:text-stone focus:border-coral',
+    button: 'bg-ocean hover:bg-ocean-dark text-sand',
+    card: 'bg-sand',
+  },
+}
+const t = themeClasses[theme] ?? themeClasses.sand
+---
+
+<section
+  class:list={['newsletter-signup', paddingClass, t.section]}
+  style={padOverrideStyle}
+  data-success-msg={successMessage}
+  data-error-msg={errorMessage}
+  data-animate={entry.dataAnimate}
+>
+  <div class:list={['relative z-10 mx-auto', containerClass, entry.className]}>
+    {layout === 'stacked' ? (
+      <div class:list={['rounded-2xl shadow-sm p-8 sm:p-10 md:p-12 flex flex-col md:flex-row items-stretch gap-8', t.card]}>
+        <div class="md:w-1/2 text-center md:text-left flex flex-col justify-center">
+          <h2 class:list={['font-display text-2xl sm:text-3xl md:text-4xl font-semibold mb-3', t.heading]}>{heading}</h2>
+          {description && <p class:list={['text-sm sm:text-base', t.body]}>{description}</p>}
+        </div>
+        <div class="md:w-1/2 flex items-center">
+          <form class="newsletter-form w-full flex flex-col sm:flex-row gap-3" novalidate>
+            <label class="sr-only" for={`newsletter-email-${Astro.self}`}>Email address</label>
+            <input
+              type="email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder={placeholder}
+              class:list={['flex-1 h-12 px-4 rounded-lg border-2 text-base font-body focus:outline-none focus:ring-0 transition-colors', t.input]}
+            />
+            <input type="text" name="website" tabindex="-1" autocomplete="off" class="absolute opacity-0 pointer-events-none -left-[9999px] top-0" aria-hidden="true" />
+            <button
+              type="submit"
+              class:list={['newsletter-submit h-12 px-6 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed', t.button]}
+            >
+              <span class="submit-label">{buttonLabel}</span>
+              <span class="submit-loading hidden">…</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    ) : (
+      <div class="max-w-2xl mx-auto text-center">
+        <h2 class:list={['font-display text-2xl sm:text-3xl md:text-4xl font-semibold mb-3', t.heading]}>{heading}</h2>
+        {description && <p class:list={['text-sm sm:text-base mb-6 max-w-xl mx-auto', t.body]}>{description}</p>}
+        <form class="newsletter-form flex flex-col sm:flex-row gap-3 max-w-xl mx-auto" novalidate>
+          <input
+            type="email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder={placeholder}
+            class:list={['flex-1 h-12 px-4 rounded-lg border-2 text-base font-body focus:outline-none focus:ring-0 transition-colors', t.input]}
+          />
+          <input type="text" name="website" tabindex="-1" autocomplete="off" class="absolute opacity-0 pointer-events-none -left-[9999px] top-0" aria-hidden="true" />
+          <button
+            type="submit"
+            class:list={['newsletter-submit h-12 px-6 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed', t.button]}
+          >
+            <span class="submit-label">{buttonLabel}</span>
+            <span class="submit-loading hidden">…</span>
+          </button>
+        </form>
+      </div>
+    )}
+    <p class:list={['newsletter-message mt-4 text-sm min-h-[1.25rem] text-center md:text-left', layout === 'centered' ? 'text-center' : '', t.body]} role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<script>
+  // Local init — idempotent. Same submit contract as footer NewsletterSignup.
+  // Uses dataset.bound flag so multiple bindings from same-page NewsletterSignup
+  // + NewsletterBlock don't double-attach.
+  const initNewsletterBlocks = () => {
+    document.querySelectorAll<HTMLElement>('.newsletter-signup').forEach((section) => {
+      const form = section.querySelector<HTMLFormElement>('.newsletter-form')
+      if (!form || form.dataset.bound === '1') return
+      form.dataset.bound = '1'
+
+      const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]')
+      const honeypot = form.querySelector<HTMLInputElement>('input[name="website"]')
+      const button = form.querySelector<HTMLButtonElement>('.newsletter-submit')
+      const labelSpan = form.querySelector<HTMLElement>('.submit-label')
+      const loadingSpan = form.querySelector<HTMLElement>('.submit-loading')
+      const message = section.querySelector<HTMLElement>('.newsletter-message')
+      if (!emailInput || !button || !message) return
+
+      const setBusy = (busy: boolean) => {
+        button.disabled = busy
+        labelSpan?.classList.toggle('hidden', busy)
+        loadingSpan?.classList.toggle('hidden', !busy)
+      }
+      const show = (text: string, isError: boolean) => {
+        message.textContent = text
+        message.style.color = isError ? '#c4583e' : ''
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        show('', false)
+        const email = emailInput.value.trim()
+        if (!email) return
+        setBusy(true)
+        try {
+          const res = await fetch('/api/newsletter-subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, website: honeypot?.value ?? '' }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (res.ok && data.ok) {
+            show(section.dataset.successMsg ?? 'Thanks!', false)
+            form.reset()
+          } else {
+            const code = data?.code ?? 'server_error'
+            const msg =
+              code === 'invalid_email' ? 'Please enter a valid email address.' :
+              code === 'rate_limited' ? 'Too many attempts — please try again in a minute.' :
+              (section.dataset.errorMsg ?? 'Something went wrong.')
+            show(msg, true)
+          }
+        } catch {
+          show(section.dataset.errorMsg ?? 'Network error.', true)
+        } finally {
+          setBusy(false)
+        }
+      })
+    })
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNewsletterBlocks)
+  } else {
+    initNewsletterBlocks()
+  }
+</script>

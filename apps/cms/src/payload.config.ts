@@ -37,6 +37,8 @@ import { Testimonials } from './collections/Testimonials'
 import { ServiceTypes } from './collections/ServiceTypes'
 import { Spa } from './collections/Spa'
 import { FerryTickets } from './collections/FerryTickets'
+import { Authors } from './collections/Authors'
+import { Posts } from './collections/Posts'
 import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
 
 // Globals
@@ -47,6 +49,7 @@ import { SiteFeatures } from './globals/SiteFeatures'
 import { HomepageContent } from './globals/HomepageContent'
 import { AnnouncementBar } from './globals/AnnouncementBar'
 import { PromoBanner } from './globals/PromoBanner'
+import { BlogSettings } from './globals/BlogSettings'
 
 
 export default buildConfig({
@@ -103,18 +106,25 @@ export default buildConfig({
   ],
 
   // ── Database ────────────────────────────────
-  // Local dev: file-based SQLite (auto-created)
-  // Production (Cloudflare Workers): swap with D1 adapter driven by env.DB
+  // Local dev: file-based SQLite (auto-created).
+  // Production (Cloudflare Workers): swap with D1 adapter driven by env.DB.
+  //
+  // Schema evolution: MIGRATIONS ONLY. See docs/DB-SCHEMA-CHANGES.md.
+  //   - `push: false` always. Payload's dev push is race-prone under
+  //     Next.js multi-RSC init (bit history: Phase 4.25, 4.33, 4.35).
+  //   - To change schema:
+  //         pnpm --filter cms schema:new -- --name what-changed
+  //         # review the generated migration file
+  //         pnpm --filter cms schema:migrate
+  //   - Migrations live in `src/migrations/` and are the ONLY source of
+  //     truth for what the DB looks like. Any change to a collection or
+  //     global is followed by a migration; there is no other path.
   db: sqliteAdapter({
     client: {
       url: process.env.DATABASE_URI || `file:${path.resolve(dirname, '../cms.db')}`,
     },
-    // Dev schema-push disabled: cold-start bisa memicu 2+ init paralel
-    // (Payload's own getPayload cache tidak fully race-safe di boot),
-    // dan dua `pushDevSchema` konkuren → "index already exists" 500.
-    // Schema push kita jalankan manual/via migrasi (lihat docs/DB-SCHEMA-
-    // CHANGES.md). Prod deploy tetap pakai migrations (PAYLOAD_MIGRATING).
-    push: process.env.PAYLOAD_FORCE_PUSH === 'true' ? true : false,
+    migrationDir: path.resolve(dirname, './migrations'),
+    push: false,
   }),
 
   // ── Collections ─────────────────────────────
@@ -126,6 +136,8 @@ export default buildConfig({
     DestinationTypes,
     Categories,
     Testimonials,
+    Authors,
+    Posts,
     // Services
     Tours,
     Accommodations,
@@ -145,7 +157,7 @@ export default buildConfig({
   ],
 
   // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner],
+  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings],
 
   // ── Admin ───────────────────────────────────
   admin: {

@@ -210,5 +210,19 @@ export const getSiteFeatures = () => fetchGlobal<any>('site-features')
 export const getHomepageContent = () => fetchGlobal<any>('homepage-content')
 export const getAnnouncementBar = () => fetchGlobal<any>('announcement-bar')
 export const getPromoBanner = () => fetchGlobal<any>('promo-banner')
+export const getBlogSettings = () => fetchGlobal<any>('blog-settings')
 export const getTestimonials = (opts?: Partial<FetchOptions>) =>
   fetchCollection<any>({ collection: 'testimonials', sort: 'sortOrder', ...opts })
+
+// ── Blog ──────────────────────────────────────────────────────
+// Posts + Authors typed loosely — cast where needed until callers
+// specialize. Depth 2 pulls category + author relationships.
+export const getPosts = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'posts', sort: '-publishedAt', depth: 2, ...opts })
+export const getPostBySlug = (slug: string) =>
+  fetchBySlug<any>('posts', slug)
+
+export const getAuthors = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'authors', sort: 'sortOrder', ...opts })
+export const getAuthorBySlug = (slug: string) =>
+  fetchBySlug<any>('authors', slug)

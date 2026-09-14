@@ -28,6 +28,12 @@ import StatsBannerBlock from './StatsBannerBlock.astro'
 import TestimonialsCarouselBlock from './TestimonialsCarouselBlock.astro'
 import ServiceListingBlock from './ServiceListingBlock.astro'
 import TrustBadgesBlock from './TrustBadgesBlock.astro'
+import PostListBlock from './PostListBlock.astro'
+import FeaturedPostBlock from './FeaturedPostBlock.astro'
+import CategoryGridBlock from './CategoryGridBlock.astro'
+import PopularPostsBlock from './PopularPostsBlock.astro'
+import AdSlotBlock from './AdSlotBlock.astro'
+import NewsletterBlock from './NewsletterBlock.astro'
 
 type PageBlock = NonNullable<Page['content']>[number]
 
@@ -84,6 +90,12 @@ const soStyles = (blocks ?? []).map((b) => resolveSpacingOverride(b))
     case 'testimonialsCarousel': return so ? <div style={so}><TestimonialsCarouselBlock block={block} /></div> : <TestimonialsCarouselBlock block={block} />
     case 'serviceListing':       return so ? <div style={so}><ServiceListingBlock block={block} /></div> : <ServiceListingBlock block={block} />
     case 'trustBadges':          return so ? <div style={so}><TrustBadgesBlock block={block} /></div> : <TrustBadgesBlock block={block} />
+    case 'postList':             return so ? <div style={so}><PostListBlock block={block} /></div> : <PostListBlock block={block} />
+    case 'featuredPost':         return so ? <div style={so}><FeaturedPostBlock block={block} /></div> : <FeaturedPostBlock block={block} />
+    case 'categoryGrid':         return so ? <div style={so}><CategoryGridBlock block={block} /></div> : <CategoryGridBlock block={block} />
+    case 'popularPosts':         return so ? <div style={so}><PopularPostsBlock block={block} /></div> : <PopularPostsBlock block={block} />
+    case 'adSlot':               return so ? <div style={so}><AdSlotBlock block={block} /></div> : <AdSlotBlock block={block} />
+    case 'newsletter':           return so ? <div style={so}><NewsletterBlock block={block} /></div> : <NewsletterBlock block={block} />
     default:
       return <div class="container-content py-4 text-xs text-coral">
         Unknown blockType: {(block as { blockType: string }).blockType}

@@ -10,11 +10,18 @@
     "deploy": "next build && opennextjs-cloudflare build && wrangler deploy",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
+    "schema:new": "payload migrate:create",
+    "schema:migrate": "payload migrate",
+    "schema:status": "payload migrate:status",
+    "schema:down": "payload migrate:down",
+    "schema:refresh": "payload migrate:refresh",
+    "schema:fresh": "payload migrate:fresh",
     "seed": "tsx src/scripts/seed.ts",
     "seed:demo": "tsx src/scripts/seed-demo-content.ts",
     "seed:landing": "tsx src/scripts/seed-service-landing-content.ts",
     "seed:service-types": "tsx src/scripts/seed-service-types.ts",
-    "seed:testimonials": "tsx src/scripts/seed-testimonials.ts"
+    "seed:testimonials": "tsx src/scripts/seed-testimonials.ts",
+    "seed:blog-index": "tsx src/scripts/seed-blog-index-page.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.127",

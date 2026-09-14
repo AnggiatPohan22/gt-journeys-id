@@ -1,0 +1,75 @@
+---
+import { getCategories, getPosts } from '@lib/payload'
+import type { Media } from '@shared/types/payload-types'
+import { resolveContainer, resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
+
+interface Props { block: any }
+const { block } = Astro.props
+const b = block ?? {}
+
+const module = b.module || 'blog'
+const limit = Math.max(2, Math.min(12, Number(b.limit ?? 6)))
+const columns = b.columns ?? '3'
+const showCount = b.showCount !== false
+
+const containerClass = resolveContainer(b.containerWidth ?? 'wide')
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+
+const { docs: cats } = await getCategories({
+  limit,
+  where: { module: { equals: module } },
+  sort: 'sortOrder',
+}).catch(() => ({ docs: [] as any[] }))
+
+let counts: Record<string, number> = {}
+if (module === 'blog' && showCount && cats.length) {
+  await Promise.all(
+    cats.map(async (c: any) => {
+      const { totalDocs } = await getPosts({ limit: 1, depth: 0, where: { category: { equals: c.id } } })
+        .catch(() => ({ totalDocs: 0 } as any))
+      counts[c.id] = totalDocs ?? 0
+    })
+  )
+}
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+
+const gridCols =
+  columns === '2' ? 'grid-cols-2' :
+  columns === '4' ? 'grid-cols-2 md:grid-cols-4' :
+  columns === '6' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-6' :
+                    'grid-cols-2 md:grid-cols-3'
+---
+
+<section class:list={['relative', paddingClass]} style={padOverrideStyle}>
+  <div class:list={['relative z-10 mx-auto', containerClass]}>
+    {b.heading && <h2 class="font-display text-3xl md:text-4xl mb-8 text-ocean">{b.heading}</h2>}
+    {cats.length === 0 ? (
+      <p class="text-stone/60 italic">No categories yet.</p>
+    ) : (
+      <div class:list={['grid gap-4', gridCols]}>
+        {cats.map((c: any) => {
+          const img = asMedia(c.featuredImage) ?? asMedia(c.icon)
+          const url = img?.sizes?.card?.url ?? img?.url ?? ''
+          const href = module === 'blog' ? `/blog?category=${c.slug}` : `#`
+          return (
+            <a href={href} class="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col">
+              <div class="aspect-[3/2] overflow-hidden relative bg-ocean/5">
+                {url && <img src={url} alt={img?.alt ?? c.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+              </div>
+              <div class="p-4 flex flex-col gap-1">
+                <h3 class="font-display text-base md:text-lg text-ocean">{c.name}</h3>
+                {showCount && counts[c.id] !== undefined && (
+                  <span class="text-xs font-semibold text-ocean/70">{counts[c.id]} Articles</span>
+                )}
+                {c.description && <p class="text-xs text-stone/70 line-clamp-2 mt-1">{c.description}</p>}
+              </div>
+            </a>
+          )
+        })}
+      </div>
+    )}
+  </div>
+</section>

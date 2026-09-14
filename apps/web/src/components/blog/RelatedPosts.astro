@@ -1,0 +1,178 @@
+---
+/**
+ * RelatedPosts — "You Might Also Like" section for blog detail pages.
+ *
+ * Props:
+ *   posts   — pre-resolved array of post docs (from fetchRelatedPosts)
+ *   config  — resolved RelatedConfig (from resolveRelatedConfig)
+ *
+ * Renders three card variants based on config.cardVariant:
+ *   - compact    — image top, title, meta row (matches original blog list)
+ *   - detailed   — image + category chip + title + excerpt + meta + "Read →"
+ *   - horizontal — image left, title/excerpt/meta right
+ *
+ * Nothing renders when config.enabled === false OR posts is empty.
+ */
+import type { Media } from '@shared/types/payload-types'
+import type { RelatedConfig } from '@lib/relatedPosts'
+
+interface Props {
+  posts: any[]
+  config: RelatedConfig
+}
+const { posts, config } = Astro.props
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const fmtDate = (d?: string | null) => {
+  if (!d) return ''
+  try { return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) }
+  catch { return '' }
+}
+
+const shouldRender = config.enabled && posts.length > 0
+
+// Grid columns per config (Tailwind-safe fixed classes).
+const gridColsClass =
+  config.columns === '2' ? 'md:grid-cols-2' :
+  config.columns === '4' ? 'md:grid-cols-2 lg:grid-cols-4' :
+                            'md:grid-cols-2 lg:grid-cols-3'
+
+// Section background per config. Uses site tokens (sand family + ocean)
+// so section stays visually consistent with the rest of the page. "sand"
+// matches <body>'s bg-sand — fully seamless with article content above.
+// Legacy value 'muted' from pre-4.35.1 rows falls back to sand (same intent).
+const bgClass =
+  config.background === 'white'       ? 'bg-white'       :
+  config.background === 'sand-light'  ? 'bg-sand-light'  :
+  config.background === 'ocean-tint'  ? 'bg-ocean/5'     :
+  config.background === 'ocean'       ? 'bg-ocean text-sand' :
+  config.background === 'transparent' ? ''               :
+                                        'bg-sand'  // 'sand' (new default) + legacy 'muted'
+
+// Seamless bg (matches body) shouldn't paint a hard border-top —
+// keep the divider only when the section actually contrasts.
+const showBorderTop = config.background !== 'sand' && config.background !== 'transparent'
+
+// Section vertical padding per config.
+const padClass =
+  config.padding === 'sm' ? 'py-10' :
+  config.padding === 'lg' ? 'py-24' :
+                            'py-16'
+---
+
+{shouldRender && (
+  <section class:list={[bgClass, padClass, showBorderTop && 'border-t border-stone/10']}>
+    <div class="container-content">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
+        <div>
+          <h2 class="font-display text-2xl md:text-3xl text-ocean">{config.heading}</h2>
+          {config.subtitle && (
+            <p class="text-stone/70 text-sm mt-2 max-w-xl">{config.subtitle}</p>
+          )}
+        </div>
+        {config.showViewAll && (
+          <a href={config.viewAllLink} class="hidden md:inline-flex items-center gap-1 text-ocean font-semibold hover:text-coral transition-colors text-sm whitespace-nowrap">
+            {config.viewAllText} <span aria-hidden="true">→</span>
+          </a>
+        )}
+      </div>
+
+      {/* ── Compact variant ─────────────────────────────────── */}
+      {config.cardVariant === 'compact' && (
+        <div class:list={['grid grid-cols-1 gap-6', gridColsClass]}>
+          {posts.map((post: any) => {
+            const img = asMedia(post.featuredImage)
+            const url = img?.sizes?.card?.url ?? img?.url ?? ''
+            return (
+              <a href={`/blog/${post.slug}`} class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group flex flex-col">
+                <div class="aspect-[16/10] overflow-hidden bg-ocean/5">
+                  {url && <img src={url} alt={img?.alt ?? post.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                </div>
+                <div class="p-5 flex-grow flex flex-col">
+                  <h3 class="font-display text-lg text-ocean group-hover:text-coral transition-colors line-clamp-2">{post.title}</h3>
+                  <div class="mt-auto pt-3 flex items-center gap-3 text-xs text-stone/60">
+                    {config.showDate && post.publishedAt && <span>{fmtDate(post.publishedAt)}</span>}
+                    {config.showReadingTime && post.readingTimeMinutes && (<><span>•</span><span>{post.readingTimeMinutes} min</span></>)}
+                  </div>
+                </div>
+              </a>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Detailed variant ────────────────────────────────── */}
+      {config.cardVariant === 'detailed' && (
+        <div class:list={['grid grid-cols-1 gap-6', gridColsClass]}>
+          {posts.map((post: any) => {
+            const img = asMedia(post.featuredImage)
+            const url = img?.sizes?.card?.url ?? img?.url ?? ''
+            const cat = typeof post.category === 'object' ? post.category?.name : null
+            return (
+              <a href={`/blog/${post.slug}`} class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group border border-stone/10 flex flex-col">
+                <div class="aspect-[16/10] overflow-hidden bg-ocean/5">
+                  {url && <img src={url} alt={img?.alt ?? post.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                </div>
+                <div class="p-6 flex flex-col flex-grow">
+                  {config.showCategory && cat && (
+                    <span class="text-coral font-semibold text-xs uppercase tracking-wider mb-2">{cat}</span>
+                  )}
+                  <h3 class="font-display text-lg text-ocean mb-3 group-hover:text-coral transition-colors">{post.title}</h3>
+                  {config.showExcerpt && post.excerpt && (
+                    <p class="text-sm text-stone/70 line-clamp-3 mb-4">{post.excerpt}</p>
+                  )}
+                  <div class="mt-auto flex items-center justify-between gap-3 text-xs text-stone/60">
+                    <div class="flex items-center gap-3">
+                      {config.showDate && post.publishedAt && <span>{fmtDate(post.publishedAt)}</span>}
+                      {config.showReadingTime && post.readingTimeMinutes && (<><span>•</span><span>{post.readingTimeMinutes} min</span></>)}
+                    </div>
+                    <span class="text-ocean font-semibold whitespace-nowrap">Read Article →</span>
+                  </div>
+                </div>
+              </a>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Horizontal variant ──────────────────────────────── */}
+      {config.cardVariant === 'horizontal' && (
+        <div class:list={['grid grid-cols-1 gap-4', gridColsClass]}>
+          {posts.map((post: any) => {
+            const img = asMedia(post.featuredImage)
+            const url = img?.sizes?.thumbnail?.url ?? img?.url ?? ''
+            const cat = typeof post.category === 'object' ? post.category?.name : null
+            return (
+              <a href={`/blog/${post.slug}`} class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group flex gap-4 p-4 items-stretch">
+                <div class="w-28 h-28 md:w-32 md:h-32 rounded-lg overflow-hidden flex-shrink-0 bg-ocean/5">
+                  {url && <img src={url} alt={img?.alt ?? post.title} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                </div>
+                <div class="flex flex-col justify-center flex-grow min-w-0">
+                  {config.showCategory && cat && (
+                    <span class="text-coral text-xs font-semibold uppercase tracking-wider mb-1">{cat}</span>
+                  )}
+                  <h3 class="font-display text-base md:text-lg text-ocean group-hover:text-coral transition-colors line-clamp-2 mb-1">{post.title}</h3>
+                  {config.showExcerpt && post.excerpt && (
+                    <p class="text-xs text-stone/70 line-clamp-2 mb-2">{post.excerpt}</p>
+                  )}
+                  <div class="flex items-center gap-2 text-xs text-stone/60 mt-auto">
+                    {config.showDate && post.publishedAt && <span>{fmtDate(post.publishedAt)}</span>}
+                    {config.showReadingTime && post.readingTimeMinutes && (<><span>•</span><span>{post.readingTimeMinutes} min</span></>)}
+                  </div>
+                </div>
+              </a>
+            )
+          })}
+        </div>
+      )}
+
+      {config.showViewAll && (
+        <div class="mt-8 text-center md:hidden">
+          <a href={config.viewAllLink} class="inline-flex items-center gap-1 text-ocean font-semibold border border-ocean px-6 py-2 rounded hover:bg-ocean hover:text-white transition-colors">
+            {config.viewAllText} →
+          </a>
+        </div>
+      )}
+    </div>
+  </section>
+)}

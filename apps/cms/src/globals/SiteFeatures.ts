@@ -156,6 +156,35 @@ export const SiteFeatures: GlobalConfig = {
           ],
         },
 
+        // ══ Tab: Blog & Ads ══════════════════════════════════════════════
+        {
+          label: 'Blog & Ads',
+          description: 'Master switch untuk modul Blog dan Ad Slots (AdSense / custom).',
+          fields: [
+            {
+              name: 'blog',
+              type: 'group',
+              label: 'Blog',
+              fields: [
+                {
+                  name: 'enabled',
+                  type: 'checkbox',
+                  label: 'Enable Blog',
+                  defaultValue: true,
+                  admin: { description: 'Off = /blog dan /blog/* return 404, feed RSS kosong.' },
+                },
+                {
+                  name: 'enableAds',
+                  type: 'checkbox',
+                  label: 'Enable Ad Slots',
+                  defaultValue: false,
+                  admin: { description: 'Off = block AdSlot dilewati saat render (posisi kosong, tidak ada script AdSense yang dimuat).' },
+                },
+              ],
+            },
+          ],
+        },
+
         // ══ Tab 4: Fitur Opsional ════════════════════════════════════════
         {
           label: 'Fitur Opsional',
