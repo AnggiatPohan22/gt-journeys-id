@@ -19,7 +19,7 @@ export const HomepageContent: GlobalConfig = {
   slug: 'homepage-content',
   label: 'Homepage — Fallback Content',
   admin: {
-    group: 'Settings',
+    group: 'Appearance',
     description: 'Copy fallback untuk homepage. Kalau Page(slug=home) ada, semua field di sini diabaikan.',
     hidden: ({ user }) => user?.role === 'editor',
   },

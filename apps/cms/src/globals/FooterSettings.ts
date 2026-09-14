@@ -17,7 +17,7 @@ export const FooterSettings: GlobalConfig = {
   slug: 'footer-settings',
   label: 'Footer Settings',
   admin: {
-    group: 'Settings',
+    group: 'Appearance',
     hidden: ({ user }) => user?.role === 'editor',
   },
   access: { read: () => true, update: isAdmin },

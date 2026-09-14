@@ -19,7 +19,7 @@ export const PromoBanner: GlobalConfig = {
   slug: 'promo-banner',
   label: 'Promo Banner',
   admin: {
-    group: 'Settings',
+    group: 'Marketing',
     description: 'Timed pop-up modal. Master on/off in Site Features → Section Halaman → Banner Promo.',
     hidden: ({ user }) => user?.role !== 'super-admin',
   },

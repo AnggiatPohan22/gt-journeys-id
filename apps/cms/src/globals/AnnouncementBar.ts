@@ -24,7 +24,7 @@ export const AnnouncementBar: GlobalConfig = {
   slug: 'announcement-bar',
   label: 'Announcement Bar',
   admin: {
-    group: 'Settings',
+    group: 'Marketing',
     description: 'Slim site-wide bar shown below the header. Master on/off in Site Features → Fitur Opsional.',
     hidden: ({ user }) => user?.role !== 'super-admin',
   },

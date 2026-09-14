@@ -21,7 +21,7 @@ export const HeaderSettings: GlobalConfig = {
   slug: 'header-settings',
   label: 'Header Settings',
   admin: {
-    group: 'Settings',
+    group: 'Appearance',
     hidden: ({ user }) => user?.role === 'editor',
   },
   access: { read: () => true, update: isAdmin },
