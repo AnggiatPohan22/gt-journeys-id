@@ -3151,7 +3151,7 @@ export interface Post {
    */
   featuredImage: number | Media;
   /**
-   * Gambar tambahan (opsional). Bisa dirujuk di body via UploadFeature.
+   * Gambar tambahan (max 10). Bulk upload di atas mem-pick banyak file sekaligus. Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus. Bisa dirujuk di body via UploadFeature.
    */
   gallery?:
     | {

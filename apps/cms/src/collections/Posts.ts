@@ -159,10 +159,25 @@ export const Posts: CollectionConfig = {
           fields: [
             { name: 'featuredImage', type: 'upload', relationTo: 'media', required: true, admin: { description: 'Hero image artikel + OG image default.' } },
             {
+              name: 'galleryBulkUpload',
+              type: 'ui',
+              admin: {
+                components: {
+                  Field: '/admin/GalleryBulkUpload#default',
+                },
+              },
+            },
+            {
               name: 'gallery',
               type: 'array',
               maxRows: 10,
-              admin: { description: 'Gambar tambahan (opsional). Bisa dirujuk di body via UploadFeature.' },
+              admin: {
+                description: 'Gambar tambahan (max 10). Bulk upload di atas mem-pick banyak file sekaligus. Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus. Bisa dirujuk di body via UploadFeature.',
+                className: 'dnj-gallery-grid',
+                components: {
+                  afterInput: ['/admin/GalleryGrid#default'],
+                },
+              },
               fields: [
                 { name: 'image', type: 'upload', relationTo: 'media', required: true },
                 { name: 'caption', type: 'text' },
