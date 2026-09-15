@@ -1,11 +1,19 @@
 'use client'
 /**
- * ColorSwatchField — reusable Payload custom field (Phase 4.42).
+ * ColorSwatchField — reusable Payload custom field (Phase 4.42 · v2 4.42a).
  *
  * Menggantikan text-input hex biasa dengan swatch + popover picker
  * (`react-colorful` HexColorPicker + HexColorInput). Value tetap disimpan
  * sebagai string hex (`#RRGGBB` atau `#RGB`), jadi kompatibel penuh dengan
  * kolom text existing — 0 migration untuk swap ke sini.
+ *
+ * v2 (Phase 4.42a — bugfix "Maximum update depth exceeded"):
+ *   Saat user DRAG di area SV/hue, react-colorful memancarkan onChange di
+ *   setiap pointermove (~60fps). v1 memanggil `setValue` Payload di setiap
+ *   panggilan itu → form state re-render kilat → Payload's validate loop
+ *   memicu "Maximum update depth exceeded". Fix: local `draft` state
+ *   sebagai buffer, `setValue` di-debounce 80ms + di-flush saat popover
+ *   ditutup / komponen unmount. UI (swatch/text/picker) selalu instant.
  *
  * Pemakaian di config Payload:
  *
@@ -19,11 +27,12 @@
  *   - `swatchDefault` (string) — warna yang ditampilkan swatch kalau field kosong.
  *   - `presets` (string[]) — chip preset di atas picker (opsional).
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useField } from '@payloadcms/ui'
 import { HexColorPicker, HexColorInput } from 'react-colorful'
 
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+const COMMIT_DEBOUNCE_MS = 80
 
 const ColorSwatchField: React.FC<any> = (props) => {
   const path: string = props?.path ?? props?.field?.name ?? ''
@@ -39,17 +48,91 @@ const ColorSwatchField: React.FC<any> = (props) => {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
-  const isValid = useMemo(() => !!value && HEX_RE.test(value), [value])
-  const swatchColor = isValid ? (value as string) : swatchDefault
+  // ── Debounce-buffered value ────────────────────────────────────────
+  // `draft` = value shown by picker/input/swatch (updates instantly).
+  // `setValue` (Payload form state) is debounced so drag doesn't stampede.
+  const [draft, setDraft] = useState<string>(value ?? '')
+  const commitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lastCommittedRef = useRef<string>(value ?? '')
+
+  // External → local sync: only when Payload's value changes from a source
+  // OTHER than our own debounced commit (e.g., form reset / discard changes).
+  useEffect(() => {
+    const v = value ?? ''
+    if (v !== lastCommittedRef.current) {
+      lastCommittedRef.current = v
+      setDraft(v)
+    }
+  }, [value])
+
+  const flushCommit = useCallback((next: string) => {
+    if (commitTimer.current) {
+      clearTimeout(commitTimer.current)
+      commitTimer.current = null
+    }
+    if (next !== (value ?? '')) {
+      lastCommittedRef.current = next
+      setValue(next)
+    }
+  }, [setValue, value])
+
+  const scheduleCommit = useCallback((next: string) => {
+    lastCommittedRef.current = next
+    if (commitTimer.current) clearTimeout(commitTimer.current)
+    commitTimer.current = setTimeout(() => {
+      commitTimer.current = null
+      setValue(next)
+    }, COMMIT_DEBOUNCE_MS)
+  }, [setValue])
+
+  // Cleanup pending timer on unmount
+  useEffect(() => {
+    return () => {
+      if (commitTimer.current) clearTimeout(commitTimer.current)
+    }
+  }, [])
+
+  // ── Handlers ───────────────────────────────────────────────────────
+  const handlePickerChange = useCallback((hex: string) => {
+    if (readOnly) return
+    const norm = hex.startsWith('#') ? hex : `#${hex}`
+    setDraft(norm)
+    scheduleCommit(norm)
+  }, [readOnly, scheduleCommit])
+
+  const handleTextInput = useCallback((raw: string) => {
+    if (readOnly) return
+    setDraft(raw)
+    scheduleCommit(raw)
+  }, [readOnly, scheduleCommit])
+
+  const handleReset = useCallback(() => {
+    if (commitTimer.current) {
+      clearTimeout(commitTimer.current)
+      commitTimer.current = null
+    }
+    lastCommittedRef.current = ''
+    setDraft('')
+    setValue('')
+  }, [setValue])
+
+  const handleClose = useCallback(() => {
+    // Flush pending commit before closing so the final Save has the last drag position.
+    if (commitTimer.current) {
+      const pending = lastCommittedRef.current
+      flushCommit(pending)
+    }
+    setOpen(false)
+  }, [flushCommit])
 
   // Close popover on outside click / ESC
   useEffect(() => {
     if (!open) return
     const onDown = (e: MouseEvent) => {
-      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false)
+      if (!wrapperRef.current?.contains(e.target as Node)) handleClose()
     }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') handleClose()
     }
     document.addEventListener('mousedown', onDown)
     document.addEventListener('keydown', onKey)
@@ -57,12 +140,11 @@ const ColorSwatchField: React.FC<any> = (props) => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('keydown', onKey)
     }
-  }, [open])
+  }, [open, handleClose])
 
-  const commit = (hex: string) => {
-    if (readOnly) return
-    setValue(hex.startsWith('#') ? hex : `#${hex}`)
-  }
+  const isValid = useMemo(() => !!draft && HEX_RE.test(draft), [draft])
+  const swatchColor = isValid ? draft : swatchDefault
+  const pickerColor = isValid ? draft : swatchDefault
 
   return (
     <div className="field-type" style={{ marginBottom: '1rem' }}>
@@ -99,8 +181,8 @@ const ColorSwatchField: React.FC<any> = (props) => {
         <input
           id={path}
           type="text"
-          value={value || ''}
-          onChange={(e) => commit(e.currentTarget.value)}
+          value={draft}
+          onChange={(e) => handleTextInput(e.currentTarget.value)}
           placeholder={swatchDefault}
           readOnly={readOnly}
           spellCheck={false}
@@ -108,7 +190,7 @@ const ColorSwatchField: React.FC<any> = (props) => {
             width: '13ch',
             padding: '0.4rem 0.6rem',
             borderRadius: 6,
-            border: `1px solid ${value && !isValid ? 'var(--theme-error-500)' : 'var(--theme-elevation-200)'}`,
+            border: `1px solid ${draft && !isValid ? 'var(--theme-error-500)' : 'var(--theme-elevation-200)'}`,
             background: 'var(--theme-input-bg, var(--theme-elevation-50))',
             color: 'var(--theme-text)',
             fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
@@ -117,10 +199,10 @@ const ColorSwatchField: React.FC<any> = (props) => {
           }}
         />
         {/* Reset (only shown when a value is set) */}
-        {value && !readOnly && (
+        {draft && !readOnly && (
           <button
             type="button"
-            onClick={() => setValue('')}
+            onClick={handleReset}
             title="Kosongkan (pakai default template)"
             style={{
               padding: '0.35rem 0.6rem',
@@ -155,17 +237,17 @@ const ColorSwatchField: React.FC<any> = (props) => {
           >
             {/* SV rectangle + hue slider from react-colorful */}
             <HexColorPicker
-              color={isValid ? (value as string) : swatchDefault}
-              onChange={commit}
+              color={pickerColor}
+              onChange={handlePickerChange}
               style={{ width: '100%', height: 160 }}
             />
 
-            {/* Hex input row */}
+            {/* Hex input row (inside popover) */}
             <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ color: 'var(--theme-elevation-500)', fontFamily: 'monospace', fontSize: '0.85rem' }}>#</span>
               <HexColorInput
-                color={(isValid ? (value as string) : swatchDefault).replace('#', '')}
-                onChange={commit}
+                color={pickerColor.replace('#', '')}
+                onChange={handlePickerChange}
                 prefixed={false}
                 style={{
                   flex: 1,
@@ -189,7 +271,7 @@ const ColorSwatchField: React.FC<any> = (props) => {
                   <button
                     key={p}
                     type="button"
-                    onClick={() => commit(p)}
+                    onClick={() => handlePickerChange(p)}
                     title={p}
                     style={{
                       width: 22, height: 22, borderRadius: 4,
