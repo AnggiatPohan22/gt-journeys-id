@@ -44171,6 +44171,9 @@ export interface HomepageContent {
   heroHeading?: string | null;
   heroCtaText?: string | null;
   heroSubheading?: string | null;
+  /**
+   * URL tujuan tombol hero. Absolute atau relative.
+   */
   heroCtaLink?: string | null;
   /**
    * Kalau kosong, pakai default hardcoded (Local Expert / Best Price / 24/7 / Safe).
