@@ -1,12 +1,13 @@
 ---
 // HeaderTemplate1 — "Classic" (Logo | Menu | CTA). Replika layout Header lama.
 // Sub-menu: klik-untuk-buka (desktop) via NavDesktop; mobile = overlay full-screen.
+// Phase 4.41: warna menu/CTA/icon via CSS vars (--h-*) yang di-inject di #main-header.
 import Icon from '@components/common/Icon.astro'
 import NavDesktop from './_HeaderNavDesktop.astro'
 import HeaderMobile from './_HeaderMobile.astro'
-const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, cta = { show: false } } = Astro.props as any
+const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, cta = { show: false }, themeStyle = '' } = Astro.props as any
 ---
-<header id="main-header" class:list={['fixed top-0 left-0 right-0 z-40 transition-all duration-300', transparent ? 'bg-transparent' : 'bg-white/85 backdrop-blur-md border-b border-sand-dark/20 shadow-sm']}>
+<header id="main-header" style={themeStyle} class:list={['fixed top-0 left-0 right-0 z-40 transition-all duration-300', transparent ? 'bg-transparent' : 'bg-white/85 backdrop-blur-md border-b border-sand-dark/20 shadow-sm']}>
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <nav class="flex items-center justify-between h-20" aria-label="Main navigation">
       <a href="/" class="flex items-center gap-3 no-underline text-current">
@@ -22,13 +23,13 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
 
       <div class="flex items-center gap-3">
         {cta.show && cta.href && (
-          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-ocean text-white text-sm font-semibold rounded-full hover:bg-ocean-light transition-colors no-underline shadow-sm hover:shadow-md">
+          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full no-underline shadow-sm hover:shadow-md">
             <Icon name="chat" class="w-4 h-4" />
             <span class="hidden md:inline">{cta.text}</span>
             <span class="md:hidden">Book</span>
           </a>
         )}
-        <button id="mobile-toggle" type="button" class="lg:hidden p-2 text-ocean rounded-md hover:bg-sand transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+        <button id="mobile-toggle" type="button" class="dnj-icon-btn lg:hidden p-2 rounded-md hover:bg-sand transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
           <Icon name="menu" class="w-6 h-6 mobile-toggle-open" />
           <Icon name="close" class="w-6 h-6 mobile-toggle-close hidden" />
         </button>
@@ -39,7 +40,7 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
 
 <HeaderMobile items={items} currentPath={currentPath} siteName={siteName} logoUrl={logoUrl} logoAlt={logoAlt}>
   {cta.show && cta.href && (
-    <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="mt-5 flex items-center justify-center gap-2 px-5 py-3 bg-ocean text-white text-base font-semibold rounded-full no-underline">
+    <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta mt-5 flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold rounded-full no-underline">
       <Icon name="chat" class="w-5 h-5" />{cta.text}
     </a>
   )}

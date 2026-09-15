@@ -94,12 +94,53 @@ const topBar = {
   text: headerCfg?.topBarText ?? '',
 }
 
+// ── Advanced theming (Phase 4.41) ───────────────────────
+// Per-template palette defaults — override lewat headerCfg.advanced.*.
+// Kosong (null/undefined) di CMS = pakai default → layout theme tetap.
+const templateId = headerCfg?.template || defaultTemplateId('header')
+const templateDefaults: Record<string, Record<string, string>> = {
+  'header-1': {
+    menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
+    ctaBg: '#1B3A4B', ctaBgHover: '#2D5F73', ctaText: '#FFFFFF',
+    icon: '#1B3A4B',
+    topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
+  },
+  'header-2': {
+    menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
+    ctaBg: '#1B3A4B', ctaBgHover: '#2D5F73', ctaText: '#FFFFFF',
+    icon: '#1B3A4B',
+    topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
+  },
+  'header-3': {
+    menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
+    ctaBg: '#E07A5F', ctaBgHover: '#C4583E', ctaText: '#FFFFFF',
+    icon: '#1B3A4B',
+    topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
+  },
+}
+const d = templateDefaults[templateId] ?? templateDefaults['header-1']
+const adv = headerCfg?.advanced ?? {}
+const pick = (v: string | null | undefined, fallback: string) => (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+const themeVars = {
+  '--h-menu-text':     pick(adv.menuDefaultColor, d.menuDefault),
+  '--h-menu-hover':    pick(adv.menuHoverColor,   d.menuHover),
+  '--h-menu-active':   pick(adv.menuActiveColor,  d.menuActive),
+  '--h-cta-bg':        pick(adv.ctaBgColor,       d.ctaBg),
+  '--h-cta-bg-hover':  pick(adv.ctaBgHoverColor,  d.ctaBgHover),
+  '--h-cta-text':      pick(adv.ctaTextColor,     d.ctaText),
+  '--h-icon':          pick(adv.iconColor,        d.icon),
+  '--h-topbar-bg':     pick(adv.topBarBgColor,    d.topBarBg),
+  '--h-topbar-text':   pick(adv.topBarTextColor,  d.topBarText),
+}
+const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
+
 const ctx = {
   siteName, logoUrl, logoAlt, items, currentPath, transparent,
   cta: { show: showCta, text: ctaText, href: ctaHref, external: ctaIsExternal },
   showSearch: headerCfg?.showSearch !== false,
   showSocial: headerCfg?.showSocialLinks !== false,
   social, topBar,
+  themeStyle,
 }
 
 const TEMPLATES: Record<string, any> = {
@@ -107,7 +148,20 @@ const TEMPLATES: Record<string, any> = {
   'header-2': HeaderTemplate2,
   'header-3': HeaderTemplate3,
 }
-const templateId = headerCfg?.template || defaultTemplateId('header')
 const Template = TEMPLATES[templateId] ?? HeaderTemplate1
 ---
 <Template {...ctx} />
+
+<style is:global>
+  /* Phase 4.41 — header theming via CSS custom properties.
+     Vars di-inject via inline `style` pada #main-header oleh masing-masing
+     template. Selector di-scope ke #main-header supaya tak bocor. */
+  #main-header .dnj-nav-link { color: var(--h-menu-text); transition: color 200ms; }
+  #main-header .dnj-nav-link:hover { color: var(--h-menu-hover); }
+  #main-header .dnj-nav-link--active { color: var(--h-menu-active); font-weight: 700; }
+  #main-header .dnj-cta { background-color: var(--h-cta-bg); color: var(--h-cta-text); transition: background-color 200ms; }
+  #main-header .dnj-cta:hover { background-color: var(--h-cta-bg-hover); }
+  #main-header .dnj-icon-btn { color: var(--h-icon); }
+  #main-header .dnj-topbar { background-color: var(--h-topbar-bg); color: var(--h-topbar-text); }
+  #main-header .dnj-topbar a { color: var(--h-topbar-text); }
+</style>

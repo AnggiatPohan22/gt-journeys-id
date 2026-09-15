@@ -1,7 +1,8 @@
 ---
 // Shared desktop nav — sub-menu dropdown dibuka via KLIK (bukan hover).
-// Dipakai HeaderTemplate1/2/3 (light header). Parent ber-children = tombol
-// toggle; item `asSpan` tanpa children = teks non-link.
+// Dipakai HeaderTemplate1/2/3. Parent ber-children = tombol toggle; item
+// `asSpan` tanpa children = teks non-link.
+// Phase 4.41: warna teks link via .dnj-nav-link + CSS vars di #main-header.
 import Icon from '@components/common/Icon.astro'
 const { items = [], currentPath = '/', ulClass = '' } = Astro.props as any
 const isActive = (url: string): boolean => url === '/' ? currentPath === '/' : currentPath === url || currentPath.startsWith(url + '/')
@@ -14,7 +15,7 @@ const isActive = (url: string): boolean => url === '/' ? currentPath === '/' : c
       <li class={hasChildren ? 'relative' : ''} data-dd={hasChildren ? '' : undefined}>
         {hasChildren ? (
           <>
-            <button type="button" data-dd-toggle class:list={['flex items-center gap-1 transition-colors no-underline', active ? 'text-ocean font-bold' : 'text-stone hover:text-ocean']} aria-expanded="false" aria-haspopup="true">
+            <button type="button" data-dd-toggle class:list={['dnj-nav-link flex items-center gap-1 no-underline', active && 'dnj-nav-link--active']} aria-expanded="false" aria-haspopup="true">
               {item.label}
               <Icon name="expand_more" class="w-4 h-4 transition-transform duration-200" />
             </button>
@@ -25,7 +26,7 @@ const isActive = (url: string): boolean => url === '/' ? currentPath === '/' : c
                     {child.asSpan ? (
                       <span class="block px-4 py-2.5 text-stone-light font-semibold uppercase tracking-wider text-xs">{child.label}</span>
                     ) : (
-                      <a href={child.url} target={child.target ?? undefined} rel={child.target === '_blank' ? 'noopener noreferrer' : undefined} class="block px-4 py-2.5 text-stone hover:text-ocean hover:bg-sand rounded-md transition-colors no-underline text-sm">{child.label}</a>
+                      <a href={child.url} target={child.target ?? undefined} rel={child.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-nav-link block px-4 py-2.5 hover:bg-sand rounded-md no-underline text-sm">{child.label}</a>
                     )}
                   </li>
                 ))}
@@ -35,7 +36,7 @@ const isActive = (url: string): boolean => url === '/' ? currentPath === '/' : c
         ) : item.asSpan ? (
           <span class="inline-block text-stone-light cursor-default">{item.label}</span>
         ) : (
-          <a href={item.url} target={item.target ?? undefined} rel={item.target === '_blank' ? 'noopener noreferrer' : undefined} class:list={['inline-block transition-colors no-underline', active ? 'text-ocean font-bold' : 'text-stone hover:text-ocean']} aria-current={active ? 'page' : undefined}>{item.label}</a>
+          <a href={item.url} target={item.target ?? undefined} rel={item.target === '_blank' ? 'noopener noreferrer' : undefined} class:list={['dnj-nav-link inline-block no-underline', active && 'dnj-nav-link--active']} aria-current={active ? 'page' : undefined}>{item.label}</a>
         )}
       </li>
     )

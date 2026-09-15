@@ -43943,13 +43943,15 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * Layout Header, konten, dan warna aksesorial. Tab "Advanced" khusus Super Admin.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header-settings".
  */
 export interface HeaderSetting {
   id: number;
   /**
-   * Layout Header. Hanya Super Admin. Slot content di bawah menyesuaikan template.
+   * Layout Header. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
    */
   template: 'header-1' | 'header-2' | 'header-3';
   /**
@@ -44001,6 +44003,47 @@ export interface HeaderSetting {
    * Teks bebas di top bar (mis. "Free cancellation").
    */
   topBarText?: string | null;
+  /**
+   * Override warna menu, CTA, icon, dan top-bar. Layout theme tetap sesuai template terpilih.
+   */
+  advanced?: {
+    /**
+     * Warna teks menu link biasa.
+     */
+    menuDefaultColor?: string | null;
+    /**
+     * Warna teks saat kursor di atas link.
+     */
+    menuHoverColor?: string | null;
+    /**
+     * Warna teks link halaman aktif.
+     */
+    menuActiveColor?: string | null;
+    /**
+     * Warna background tombol CTA.
+     */
+    ctaBgColor?: string | null;
+    /**
+     * Warna background saat hover.
+     */
+    ctaBgHoverColor?: string | null;
+    /**
+     * Warna teks tombol CTA.
+     */
+    ctaTextColor?: string | null;
+    /**
+     * Warna icon (mobile toggle, chevron dropdown).
+     */
+    iconColor?: string | null;
+    /**
+     * Warna background top-bar.
+     */
+    topBarBgColor?: string | null;
+    /**
+     * Warna teks top-bar.
+     */
+    topBarTextColor?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -44544,6 +44587,19 @@ export interface HeaderSettingsSelect<T extends boolean = true> {
   showTopBarAddress?: T;
   showTopBarPhone?: T;
   topBarText?: T;
+  advanced?:
+    | T
+    | {
+        menuDefaultColor?: T;
+        menuHoverColor?: T;
+        menuActiveColor?: T;
+        ctaBgColor?: T;
+        ctaBgHoverColor?: T;
+        ctaTextColor?: T;
+        iconColor?: T;
+        topBarBgColor?: T;
+        topBarTextColor?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
