@@ -73,6 +73,59 @@ const bottomRight = footerCfg?.bottomBarRightText || 'Designed with ♥ in Bali'
 const showNewsletter = footerCfg?.showNewsletter === true
 const currentYear = new Date().getFullYear()
 
+// ── Payment methods (Phase 4.48, source of truth = SiteSettings) ──
+type PaymentMethodOut = { label: string; logoUrl: string; logoAlt: string; url?: string }
+const paymentMethods: PaymentMethodOut[] = ((settings as any)?.paymentMethods ?? [])
+  .map((p: any) => {
+    const media = (typeof p?.logo === 'object' ? p.logo : null) as Media | null
+    return {
+      label: p?.label ?? '',
+      logoUrl: media?.url ?? '',
+      logoAlt: media?.alt ?? p?.label ?? '',
+      url: p?.url || undefined,
+    }
+  })
+  .filter((p: PaymentMethodOut) => p.logoUrl)
+
+// ── Layout Columns (Phase 4.48, flexible builder) ──
+// Kalau di-isi (>=1 row valid), footer-1 pakai layout ini.
+// Kosong → renderer template pakai fallback slot logic lama.
+type LayoutColumnOut = {
+  type: 'brand' | 'menuList' | 'services' | 'contact' | 'paymentMethods' | 'custom'
+  width: 'auto' | '25' | '33' | '50'
+  heading?: string
+  menuItems?: Array<{ label: string; url: string; target?: string }>
+  showBusinessHours?: boolean
+  showPaymentMethods?: boolean
+  customContent?: any
+}
+const rawLayout = (footerCfg?.layoutColumns ?? []) as any[]
+const layoutColumns: LayoutColumnOut[] = []
+for (const c of rawLayout) {
+  if (!c?.type) continue
+  const type = c.type as LayoutColumnOut['type']
+  const width = (c.width ?? 'auto') as LayoutColumnOut['width']
+  const heading = (c.heading ?? '') as string
+  let menuItems: LayoutColumnOut['menuItems']
+  if (type === 'menuList' || type === 'services') {
+    menuItems = menuToItems(c.menu)
+    if (type === 'services' && (!menuItems || menuItems.length === 0)) {
+      // Services default = ServiceTypes auto
+      menuItems = servicesItems
+    }
+  }
+  layoutColumns.push({
+    type,
+    width,
+    heading: heading || undefined,
+    menuItems,
+    showBusinessHours: c.showBusinessHours !== false,
+    showPaymentMethods: c.showPaymentMethods === true,
+    customContent: c.customContent,
+  })
+}
+const useLayoutColumns = layoutColumns.length > 0
+
 // ── Advanced theming (Phase 4.43, mirror Header 4.41) ──
 // Default warna per-template — override lewat footerCfg.advanced.*.
 // Kosong (null/undefined) di CMS = pakai default → layout theme tetap.
@@ -111,6 +164,8 @@ const ctx = {
   copyright, footerColumns, useFallbackQuickLinks, showBrand, showServices, servicesLabel,
   servicesItems, showContact, contactLabel, legalLinks, bottomRight, showNewsletter, currentYear,
   themeStyle,
+  // Phase 4.48
+  paymentMethods, layoutColumns, useLayoutColumns,
 }
 
 const TEMPLATES: Record<string, any> = { 'footer-1': FooterTemplate1, 'footer-2': FooterTemplate2, 'footer-3': FooterTemplate3 }

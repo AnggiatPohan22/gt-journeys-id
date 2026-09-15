@@ -43798,6 +43798,26 @@ export interface SiteSetting {
     tripadvisor?: string | null;
   };
   /**
+   * Kosongkan kalau tidak mau tampil.
+   */
+  paymentMethods?:
+    | {
+        /**
+         * Nama payment (mis. "Visa", "GoPay").
+         */
+        label: string;
+        /**
+         * Transparent PNG/SVG.
+         */
+        logo: number | Media;
+        /**
+         * Optional. URL provider (opsional).
+         */
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * These values are used when a page or service does not define its own SEO. Analytics IDs are optional.
    */
   defaultSeo?: {
@@ -44067,6 +44087,56 @@ export interface FooterSetting {
    * Layout Footer. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
    */
   template: 'footer-1' | 'footer-2' | 'footer-3';
+  /**
+   * Tiap row = satu kolom footer, dari kiri ke kanan. Pilih Type + Width, lalu isi content sesuai type.
+   */
+  layoutColumns?:
+    | {
+        /**
+         * Type isi kolom.
+         */
+        type: 'brand' | 'menuList' | 'services' | 'contact' | 'paymentMethods' | 'custom';
+        /**
+         * Lebar kolom. Auto = bagi rata sisa space.
+         */
+        width: 'auto' | '25' | '33' | '50';
+        /**
+         * Heading kolom (kosong = tanpa heading). Untuk type Brand, heading di-abaikan (pakai siteName).
+         */
+        heading?: string | null;
+        /**
+         * Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override.
+         */
+        menu?: (number | null) | Menu;
+        /**
+         * Tampilkan business hours (dari SiteSettings.whatsappDefaults.businessHours) di bawah contact.
+         */
+        showBusinessHours?: boolean | null;
+        /**
+         * Selipkan badge Payment Methods (dari SiteSettings.paymentMethods) di bawah content contact.
+         */
+        showPaymentMethods?: boolean | null;
+        /**
+         * Isi rich text bebas. Dipakai untuk kolom sponsor, disclaimer, promo, dll.
+         */
+        customContent?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Tampilkan kolom brand?
    */
@@ -44580,6 +44650,14 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         youtube?: T;
         tripadvisor?: T;
       };
+  paymentMethods?:
+    | T
+    | {
+        label?: T;
+        logo?: T;
+        url?: T;
+        id?: T;
+      };
   defaultSeo?:
     | T
     | {
@@ -44702,6 +44780,18 @@ export interface HeaderSettingsSelect<T extends boolean = true> {
  */
 export interface FooterSettingsSelect<T extends boolean = true> {
   template?: T;
+  layoutColumns?:
+    | T
+    | {
+        type?: T;
+        width?: T;
+        heading?: T;
+        menu?: T;
+        showBusinessHours?: T;
+        showPaymentMethods?: T;
+        customContent?: T;
+        id?: T;
+      };
   showBrandColumn?: T;
   brandTaglineOverride?: T;
   showSocialLinks?: T;

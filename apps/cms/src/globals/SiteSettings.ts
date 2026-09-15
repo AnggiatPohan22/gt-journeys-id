@@ -227,6 +227,37 @@ export const SiteSettings: GlobalConfig = {
                 },
               ],
             },
+
+            // ── Payment Methods (Phase 4.48) ─────────────────────────────
+            // Source of truth global untuk badge payment (Visa, GoPay,
+            // BCA, dll). Konsumen: kolom Footer type `contact` (dgn
+            // showPaymentMethods) atau kolom `paymentMethods` dedicated.
+            {
+              type: 'collapsible',
+              label: 'Payment Methods',
+              admin: {
+                initCollapsed: true,
+                description: 'Badge/logo payment yang di-support. Ditampilkan di footer atau checkout page. Upload logo transparent (PNG/SVG), tinggi ~24-32px.',
+              },
+              fields: [
+                {
+                  name: 'paymentMethods',
+                  type: 'array',
+                  label: false,
+                  admin: { description: 'Kosongkan kalau tidak mau tampil.' },
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'label', type: 'text', required: true, admin: { width: '40%', description: 'Nama payment (mis. "Visa", "GoPay").' } },
+                        { name: 'logo',  type: 'upload', relationTo: 'media', required: true, admin: { width: '35%', description: 'Transparent PNG/SVG.' } },
+                        { name: 'url',   type: 'text', admin: { width: '25%', description: 'Optional. URL provider (opsional).' } },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
           ],
         },
 

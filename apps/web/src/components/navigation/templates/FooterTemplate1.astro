@@ -1,75 +1,172 @@
 ---
 // FooterTemplate1 — "Multi-column" (Brand · Columns · Services · Contact).
 // Phase 4.43: warna via CSS vars (--f-*) di-inject di #main-footer.
+// Phase 4.48: flexible column builder — kalau `layoutColumns` (dari
+// FooterSettings) di-isi >=1 row, render pakai layout itu. Kosong → jatuh
+// balik ke legacy slot logic (Brand · footerColumns · Services · Contact).
 import Icon from '@components/common/Icon.astro'
 import FooterSocial from './_FooterSocial.astro'
+import LexicalRenderer from '@components/common/LexicalRenderer.astro'
 const {
   siteName, brandTagline, logoUrl, logoAlt, contact = {}, businessHours, social = {}, showSocial = true,
   copyright, footerColumns = [], useFallbackQuickLinks, showBrand = true, showServices = true,
   servicesLabel, servicesItems = [], showContact = true, contactLabel, bottomRight, currentYear,
   themeStyle = '',
+  paymentMethods = [], layoutColumns = [], useLayoutColumns = false,
 } = Astro.props as any
+
+// Map width preset → CSS class (flex-basis).
+const widthClass = (w: string): string => {
+  switch (w) {
+    case '25': return 'basis-full md:basis-1/2 lg:basis-1/4'
+    case '33': return 'basis-full md:basis-1/2 lg:basis-1/3'
+    case '50': return 'basis-full md:basis-1/2'
+    default:   return 'basis-full md:basis-1/2 lg:flex-1'
+  }
+}
 ---
 <footer id="main-footer" style={themeStyle}>
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
-      {showBrand && (
-        <div class="lg:col-span-1">
-          <a href="/" class="dnj-f-heading flex items-center gap-3 no-underline">
-            {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-sm">{siteName.slice(0,2)}</span>}
-            <span class="font-display text-xl font-bold">{siteName}</span>
-          </a>
-          {brandTagline && <p class="mt-4 text-sm leading-relaxed">{brandTagline}</p>}
-          {showSocial && <div class="mt-6 dnj-f-social"><FooterSocial social={social} /></div>}
-        </div>
-      )}
+    {useLayoutColumns ? (
+      <div class="flex flex-wrap gap-10 lg:gap-12">
+        {layoutColumns.map((col: any) => (
+          <div class:list={['min-w-0', widthClass(col.width)]}>
+            {col.type === 'brand' ? (
+              <>
+                <a href="/" class="dnj-f-heading flex items-center gap-3 no-underline">
+                  {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-sm">{siteName.slice(0,2)}</span>}
+                  <span class="font-display text-xl font-bold">{siteName}</span>
+                </a>
+                {brandTagline && <p class="mt-4 text-sm leading-relaxed">{brandTagline}</p>}
+                {showSocial && <div class="mt-6 dnj-f-social"><FooterSocial social={social} /></div>}
+              </>
+            ) : col.type === 'menuList' || col.type === 'services' ? (
+              <>
+                {col.heading && <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.heading}</h4>}
+                <ul class="space-y-3 text-sm">
+                  {(col.menuItems ?? []).map((it: any) => (
+                    <li><a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-f-link no-underline">{it.label}</a></li>
+                  ))}
+                </ul>
+              </>
+            ) : col.type === 'contact' ? (
+              <>
+                {col.heading && <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.heading}</h4>}
+                <ul class="space-y-4 text-sm">
+                  {contact.phone && <li class="flex items-start gap-3"><Icon name="phone" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`tel:${contact.phone}`} class="dnj-f-link no-underline">{contact.phone}</a></li>}
+                  {contact.email && <li class="flex items-start gap-3"><Icon name="mail" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`mailto:${contact.email}`} class="dnj-f-link no-underline break-all">{contact.email}</a></li>}
+                  {contact.address && <li class="flex items-start gap-3"><Icon name="location_on" class="w-5 h-5 mt-0.5 shrink-0" /><span>{contact.address}</span></li>}
+                  {col.showBusinessHours && businessHours && <li class="flex items-start gap-3"><Icon name="schedule" class="w-5 h-5 mt-0.5 shrink-0" /><span class="whitespace-pre-line">{businessHours}</span></li>}
+                </ul>
+                {col.showPaymentMethods && paymentMethods.length > 0 && (
+                  <div class="mt-6">
+                    <div class="dnj-f-muted text-xs mb-2 uppercase tracking-wider">Payment Methods</div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      {paymentMethods.map((p: any) => (
+                        p.url ? (
+                          <a href={p.url} target="_blank" rel="noopener noreferrer" title={p.label} class="dnj-f-payment inline-flex">
+                            <img src={p.logoUrl} alt={p.logoAlt} class="h-6 w-auto object-contain" loading="lazy" />
+                          </a>
+                        ) : (
+                          <span title={p.label} class="dnj-f-payment inline-flex">
+                            <img src={p.logoUrl} alt={p.logoAlt} class="h-6 w-auto object-contain" loading="lazy" />
+                          </span>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : col.type === 'paymentMethods' ? (
+              <>
+                {col.heading && <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.heading}</h4>}
+                {paymentMethods.length > 0 ? (
+                  <div class="flex flex-wrap items-center gap-2">
+                    {paymentMethods.map((p: any) => (
+                      p.url ? (
+                        <a href={p.url} target="_blank" rel="noopener noreferrer" title={p.label} class="dnj-f-payment inline-flex">
+                          <img src={p.logoUrl} alt={p.logoAlt} class="h-6 w-auto object-contain" loading="lazy" />
+                        </a>
+                      ) : (
+                        <span title={p.label} class="dnj-f-payment inline-flex">
+                          <img src={p.logoUrl} alt={p.logoAlt} class="h-6 w-auto object-contain" loading="lazy" />
+                        </span>
+                      )
+                    ))}
+                  </div>
+                ) : (
+                  <p class="dnj-f-muted text-xs">Tambahkan payment methods di SiteSettings → Contact & Socials → Payment Methods.</p>
+                )}
+              </>
+            ) : col.type === 'custom' ? (
+              <>
+                {col.heading && <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.heading}</h4>}
+                {col.customContent && <LexicalRenderer doc={col.customContent} class="text-sm" />}
+              </>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+        {showBrand && (
+          <div class="lg:col-span-1">
+            <a href="/" class="dnj-f-heading flex items-center gap-3 no-underline">
+              {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-sm">{siteName.slice(0,2)}</span>}
+              <span class="font-display text-xl font-bold">{siteName}</span>
+            </a>
+            {brandTagline && <p class="mt-4 text-sm leading-relaxed">{brandTagline}</p>}
+            {showSocial && <div class="mt-6 dnj-f-social"><FooterSocial social={social} /></div>}
+          </div>
+        )}
 
-      {footerColumns.map((col: any) => (
-        <div>
-          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.label}</h4>
-          <ul class="space-y-3 text-sm">
-            {col.items.map((it: any) => (
-              <li><a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-f-link no-underline">{it.label}</a></li>
-            ))}
-          </ul>
-        </div>
-      ))}
+        {footerColumns.map((col: any) => (
+          <div>
+            <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.label}</h4>
+            <ul class="space-y-3 text-sm">
+              {col.items.map((it: any) => (
+                <li><a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-f-link no-underline">{it.label}</a></li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
-      {useFallbackQuickLinks && (
-        <div>
-          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">Quick Links</h4>
-          <ul class="space-y-3 text-sm">
-            <li><a href="/" class="dnj-f-link no-underline">Home</a></li>
-            <li><a href="/about" class="dnj-f-link no-underline">About Us</a></li>
-            <li><a href="/tour" class="dnj-f-link no-underline">Tours</a></li>
-            <li><a href="/contact" class="dnj-f-link no-underline">Contact Us</a></li>
-          </ul>
-        </div>
-      )}
+        {useFallbackQuickLinks && (
+          <div>
+            <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">Quick Links</h4>
+            <ul class="space-y-3 text-sm">
+              <li><a href="/" class="dnj-f-link no-underline">Home</a></li>
+              <li><a href="/about" class="dnj-f-link no-underline">About Us</a></li>
+              <li><a href="/tour" class="dnj-f-link no-underline">Tours</a></li>
+              <li><a href="/contact" class="dnj-f-link no-underline">Contact Us</a></li>
+            </ul>
+          </div>
+        )}
 
-      {showServices && servicesItems.length > 0 && (
-        <div>
-          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{servicesLabel}</h4>
-          <ul class="space-y-3 text-sm">
-            {servicesItems.map((s: any) => (
-              <li><a href={s.url} target={s.target === '_blank' ? '_blank' : undefined} class="dnj-f-link no-underline">{s.label}</a></li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {showServices && servicesItems.length > 0 && (
+          <div>
+            <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{servicesLabel}</h4>
+            <ul class="space-y-3 text-sm">
+              {servicesItems.map((s: any) => (
+                <li><a href={s.url} target={s.target === '_blank' ? '_blank' : undefined} class="dnj-f-link no-underline">{s.label}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-      {showContact && (
-        <div>
-          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{contactLabel}</h4>
-          <ul class="space-y-4 text-sm">
-            {contact.phone && <li class="flex items-start gap-3"><Icon name="phone" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`tel:${contact.phone}`} class="dnj-f-link no-underline">{contact.phone}</a></li>}
-            {contact.email && <li class="flex items-start gap-3"><Icon name="mail" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`mailto:${contact.email}`} class="dnj-f-link no-underline break-all">{contact.email}</a></li>}
-            {contact.address && <li class="flex items-start gap-3"><Icon name="location_on" class="w-5 h-5 mt-0.5 shrink-0" /><span>{contact.address}</span></li>}
-            {businessHours && <li class="flex items-start gap-3"><Icon name="schedule" class="w-5 h-5 mt-0.5 shrink-0" /><span class="whitespace-pre-line">{businessHours}</span></li>}
-          </ul>
-        </div>
-      )}
-    </div>
+        {showContact && (
+          <div>
+            <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{contactLabel}</h4>
+            <ul class="space-y-4 text-sm">
+              {contact.phone && <li class="flex items-start gap-3"><Icon name="phone" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`tel:${contact.phone}`} class="dnj-f-link no-underline">{contact.phone}</a></li>}
+              {contact.email && <li class="flex items-start gap-3"><Icon name="mail" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`mailto:${contact.email}`} class="dnj-f-link no-underline break-all">{contact.email}</a></li>}
+              {contact.address && <li class="flex items-start gap-3"><Icon name="location_on" class="w-5 h-5 mt-0.5 shrink-0" /><span>{contact.address}</span></li>}
+              {businessHours && <li class="flex items-start gap-3"><Icon name="schedule" class="w-5 h-5 mt-0.5 shrink-0" /><span class="whitespace-pre-line">{businessHours}</span></li>}
+            </ul>
+          </div>
+        )}
+      </div>
+    )}
 
     <div class="mt-14 pt-8 border-t dnj-f-divider flex flex-col md:flex-row justify-between items-center gap-2 text-xs dnj-f-muted">
       <p>&copy; {currentYear} {copyright ?? `${siteName}. All rights reserved.`}</p>
@@ -77,3 +174,18 @@ const {
     </div>
   </div>
 </footer>
+
+<style is:global>
+  /* Phase 4.48 — payment badge chip: neutral surface + subtle border. */
+  #main-footer .dnj-f-payment {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    transition: background 200ms, border-color 200ms;
+  }
+  #main-footer .dnj-f-payment:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.20);
+  }
+</style>

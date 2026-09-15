@@ -60,8 +60,113 @@ export const FooterSettings: GlobalConfig = {
         // ══ Tab 2: Content ══════════════════════════════════════════
         {
           label: 'Content',
-          description: 'Kolom brand, menu, services, contact, newsletter, legal, bottom bar. Field muncul dinamis sesuai template.',
+          description: 'Kolom brand, menu, services, contact, legal, bottom bar. Field muncul dinamis sesuai template.',
           fields: [
+            // ── Layout Columns (Phase 4.48 — flexible column builder) ────
+            // Kalau di-isi (>=1 row), frontend footer-1 pakai layout ini.
+            // Kosong → fallback ke logic slot lama di bawah (backward compat).
+            {
+              type: 'collapsible',
+              label: 'Layout Columns (flexible builder)',
+              admin: {
+                condition: supports('columns'),
+                initCollapsed: false,
+                description: 'Susun sendiri kolom footer (max 4). Kosongkan seluruhnya = pakai layout otomatis lama (Brand · Menu Columns · Services · Contact). Untuk template Multi-column (footer-1) saja.',
+              },
+              fields: [
+                {
+                  name: 'layoutColumns',
+                  type: 'array',
+                  label: false,
+                  minRows: 0,
+                  maxRows: 4,
+                  admin: {
+                    description: 'Tiap row = satu kolom footer, dari kiri ke kanan. Pilih Type + Width, lalu isi content sesuai type.',
+                  },
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'type',
+                          type: 'select',
+                          required: true,
+                          defaultValue: 'menuList',
+                          options: [
+                            { label: 'Brand — logo, tagline, social',                 value: 'brand' },
+                            { label: 'Menu List — heading + link list dari Menus',    value: 'menuList' },
+                            { label: 'Services — auto dari ServiceTypes / Menu',      value: 'services' },
+                            { label: 'Contact — phone/email/address dari SiteSettings', value: 'contact' },
+                            { label: 'Payment Methods — badge dari SiteSettings',     value: 'paymentMethods' },
+                            { label: 'Custom — rich text bebas',                       value: 'custom' },
+                          ],
+                          admin: { width: '50%', description: 'Type isi kolom.' },
+                        },
+                        {
+                          name: 'width',
+                          type: 'select',
+                          required: true,
+                          defaultValue: 'auto',
+                          options: [
+                            { label: 'Auto (share space)', value: 'auto' },
+                            { label: '25%',                value: '25' },
+                            { label: '33%',                value: '33' },
+                            { label: '50%',                value: '50' },
+                          ],
+                          admin: { width: '50%', description: 'Lebar kolom. Auto = bagi rata sisa space.' },
+                        },
+                      ],
+                    },
+                    {
+                      name: 'heading',
+                      type: 'text',
+                      admin: {
+                        description: 'Heading kolom (kosong = tanpa heading). Untuk type Brand, heading di-abaikan (pakai siteName).',
+                        condition: (_, sib) => sib?.type !== 'brand',
+                      },
+                    },
+                    // Content per-type
+                    {
+                      name: 'menu',
+                      type: 'relationship',
+                      relationTo: 'menus',
+                      admin: {
+                        description: 'Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override.',
+                        condition: (_, sib) => sib?.type === 'menuList' || sib?.type === 'services',
+                      },
+                    },
+                    {
+                      name: 'showBusinessHours',
+                      type: 'checkbox',
+                      defaultValue: true,
+                      admin: {
+                        description: 'Tampilkan business hours (dari SiteSettings.whatsappDefaults.businessHours) di bawah contact.',
+                        condition: (_, sib) => sib?.type === 'contact',
+                      },
+                    },
+                    {
+                      name: 'showPaymentMethods',
+                      type: 'checkbox',
+                      defaultValue: false,
+                      admin: {
+                        description: 'Selipkan badge Payment Methods (dari SiteSettings.paymentMethods) di bawah content contact.',
+                        condition: (_, sib) => sib?.type === 'contact',
+                      },
+                    },
+                    {
+                      name: 'customContent',
+                      type: 'richText',
+                      admin: {
+                        description: 'Isi rich text bebas. Dipakai untuk kolom sponsor, disclaimer, promo, dll.',
+                        condition: (_, sib) => sib?.type === 'custom',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+
+            // ── Legacy slot fields (kept for backward compat / fallback) ──
             {
               type: 'collapsible',
               label: 'Brand Column',
