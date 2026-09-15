@@ -40,6 +40,7 @@ import { default as default_662c92c1b3d2933aea12433e4ed474d2 } from '../../../ad
 import { TemplatePickerField as TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed } from '../../../components/TemplatePickerField'
 import { default as default_6b8ecc267399acc536623c5290b13b83 } from '../../../components/ColorSwatchField'
 import { TemplateImportExport as TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2 } from '../../../components/TemplateImportExport'
+import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../components/FooterLayoutRowLabel'
 import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
 import { default as default_88541c286955dbac4d90fb5ed606381c } from '../../../admin/graphics/Logo'
 import { default as default_64c2e44a9325dc37c881505671c0a779 } from '../../../admin/SidebarFooter'
@@ -96,6 +97,7 @@ export const importMap = {
   "/components/TemplatePickerField#TemplatePickerField": TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed,
   "/components/ColorSwatchField#default": default_6b8ecc267399acc536623c5290b13b83,
   "/components/TemplateImportExport#TemplateImportExport": TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2,
+  "/components/FooterLayoutRowLabel#default": default_2d7391d3e6c490e87ec696da441ef264,
   "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,
   "/admin/graphics/Logo#default": default_88541c286955dbac4d90fb5ed606381c,
   "/admin/SidebarFooter#default": default_64c2e44a9325dc37c881505671c0a779,

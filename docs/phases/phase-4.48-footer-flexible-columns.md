@@ -108,3 +108,48 @@ Sekarang **cuma FooterTemplate1** (Multi-column) yang consume `layoutColumns`. T
 
 - Hapus field legacy (`footer_settings.columns`, `show_brand_column`, `show_services_column`, `show_contact_column`, `services_column_label`, `contact_column_label`, `services_menu`) di phase cleanup setelah owner konfirmasi semua site sudah pakai Layout Columns.
 - Potential rollout ke checkout page: `paymentMethods` sudah source of truth global, tinggal fetch.
+
+---
+
+## 4.48.1 Addendum — Brand social toggle + row polish (2026-09-15)
+
+Owner UAT: dua penyempurnaan kecil setelah pemakaian awal.
+
+### 1. `showSocialLinks` untuk brand type
+
+Owner report: kolom `brand` di Layout Columns bisa render logo + tagline + social, tapi tidak ada cara matikan social kalau SA cuma mau brand + tagline saja (yang di legacy fields ada `showSocialLinks` top-level).
+
+**Fix:** field baru **`showSocialLinks`** (checkbox, default true) di array row, conditional visible saat `type === 'brand'`. Migration [`20260915_134319.ts`](../../apps/cms/src/migrations/20260915_134319.ts) — `ALTER TABLE footer_settings_layout_columns ADD show_social_links integer DEFAULT true`, reversible, applied batch 17. Frontend `LayoutColumnOut` menambah field; `FooterTemplate1` brand branch cek `col.showSocialLinks !== false` sebelum render `.dnj-f-social`.
+
+Default true → row brand yang sudah dibuat sebelum phase ini (kalau ada) tetap tampilkan social otomatis.
+
+### 2. Row label + colored border per type
+
+Owner report: row array masih menampilkan label default Payload "Row 01, Row 02" — tidak informatif. Minta pola sama dengan **block system di /admin/collections/pages/1** (badge + summary + row #, plus border kiri berwarna per type).
+
+**Fix:**
+- New: [`apps/cms/src/components/FooterLayoutRowLabel.tsx`](../../apps/cms/src/components/FooterLayoutRowLabel.tsx) — client component pakai `useRowLabel<Data>()` (mirror pola `MenuItemRowLabel`, `BlockLabel`). Output: `[BADGE type] · heading · [width chip] · #01`. Fallback text untuk brand ("Logo · tagline · social") dan paymentMethods ("Badges dari SiteSettings") ketika heading kosong.
+- Palette selaras Phase 4.8 BlockLabel:
+  - `brand` `#1b3a4b` (ocean)
+  - `menuList` `#3d405b` (stone)
+  - `services` `#24506a` (ocean-mid)
+  - `contact` `#484850` (neutral-3)
+  - `paymentMethods` `#c98a5f` (amber-coral)
+  - `custom` `#6b9080` (leaf)
+- Registered via `admin.components.RowLabel: '/components/FooterLayoutRowLabel#default'` pada array `layoutColumns`.
+- New CSS [`apps/cms/src/admin/footer-layout.css`](../../apps/cms/src/admin/footer-layout.css) — styling `.dnj-fl-row*` + `:has()` selector di `.array-field__draggable-rows > .collapsible` untuk border-left berwarna per type (persis pola block row Phase 4.8). Loaded via `AdminStyles.tsx` provider (global admin).
+
+### Files touched (Addendum)
+
+- **New:** `apps/cms/src/components/FooterLayoutRowLabel.tsx`, `apps/cms/src/admin/footer-layout.css`, `apps/cms/src/migrations/20260915_134319.ts` + `.json`
+- **Modified:** `apps/cms/src/globals/FooterSettings.ts` (RowLabel registration + showSocialLinks conditional field), `apps/cms/src/migrations/index.ts`, `apps/cms/src/admin/AdminStyles.tsx` (import footer-layout.css), `apps/cms/src/app/(payload)/admin/importMap.js` (auto-regen), `apps/web/src/components/navigation/FooterRenderer.astro` (`LayoutColumnOut.showSocialLinks`), `apps/web/src/components/navigation/templates/FooterTemplate1.astro` (brand branch cek `col.showSocialLinks`), `packages/shared/src/types/payload-types.ts` (regen)
+
+### UAT (Addendum)
+
+1. Buka Footer Settings → Layout Columns → Add row → select `type = brand`.
+   - Row label sekarang: **`[BRAND]` Logo · tagline · social · [auto] #01**. Border kiri ocean.
+   - Checkbox baru **"Show Social Links"** muncul (default checked).
+2. Ganti type ke `menuList` → badge jadi stone, border stone.
+3. Add row × 6 (mis. brand · menuList · services · contact · paymentMethods · custom) → warna badge + border beda-beda per type.
+4. Isi heading pada row → summary di label ikut update saat row di-collapse.
+5. Uncheck Show Social Links di brand row → save → frontend footer kolom brand tampil logo+tagline saja tanpa social icons.

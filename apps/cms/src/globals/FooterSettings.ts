@@ -82,6 +82,9 @@ export const FooterSettings: GlobalConfig = {
                   maxRows: 4,
                   admin: {
                     description: 'Tiap row = satu kolom footer, dari kiri ke kanan. Pilih Type + Width, lalu isi content sesuai type.',
+                    components: {
+                      RowLabel: '/components/FooterLayoutRowLabel#default',
+                    },
                   },
                   fields: [
                     {
@@ -126,6 +129,15 @@ export const FooterSettings: GlobalConfig = {
                       },
                     },
                     // Content per-type
+                    {
+                      name: 'showSocialLinks',
+                      type: 'checkbox',
+                      defaultValue: true,
+                      admin: {
+                        description: 'Tampilkan ikon social (dari SiteSettings.socialMedia) di bawah brand.',
+                        condition: (_, sib) => sib?.type === 'brand',
+                      },
+                    },
                     {
                       name: 'menu',
                       type: 'relationship',

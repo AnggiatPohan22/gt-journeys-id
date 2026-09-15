@@ -38,7 +38,7 @@ const widthClass = (w: string): string => {
                   <span class="font-display text-xl font-bold">{siteName}</span>
                 </a>
                 {brandTagline && <p class="mt-4 text-sm leading-relaxed">{brandTagline}</p>}
-                {showSocial && <div class="mt-6 dnj-f-social"><FooterSocial social={social} /></div>}
+                {col.showSocialLinks !== false && <div class="mt-6 dnj-f-social"><FooterSocial social={social} /></div>}
               </>
             ) : col.type === 'menuList' || col.type === 'services' ? (
               <>

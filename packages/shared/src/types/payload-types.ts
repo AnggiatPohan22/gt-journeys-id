@@ -44105,6 +44105,10 @@ export interface FooterSetting {
          */
         heading?: string | null;
         /**
+         * Tampilkan ikon social (dari SiteSettings.socialMedia) di bawah brand.
+         */
+        showSocialLinks?: boolean | null;
+        /**
          * Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override.
          */
         menu?: (number | null) | Menu;
@@ -44786,6 +44790,7 @@ export interface FooterSettingsSelect<T extends boolean = true> {
         type?: T;
         width?: T;
         heading?: T;
+        showSocialLinks?: T;
         menu?: T;
         showBusinessHours?: T;
         showPaymentMethods?: T;

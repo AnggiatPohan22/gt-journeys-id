@@ -95,6 +95,7 @@ type LayoutColumnOut = {
   width: 'auto' | '25' | '33' | '50'
   heading?: string
   menuItems?: Array<{ label: string; url: string; target?: string }>
+  showSocialLinks?: boolean
   showBusinessHours?: boolean
   showPaymentMethods?: boolean
   customContent?: any
@@ -119,6 +120,7 @@ for (const c of rawLayout) {
     width,
     heading: heading || undefined,
     menuItems,
+    showSocialLinks: c.showSocialLinks !== false,
     showBusinessHours: c.showBusinessHours !== false,
     showPaymentMethods: c.showPaymentMethods === true,
     customContent: c.customContent,

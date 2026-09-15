@@ -41,6 +41,10 @@ import './accordion-sections.css'
 // className on the array field; other array fields untouched. Pairs
 // with GalleryCardOverlay for reorder/delete overlay controls.
 import './gallery-grid.css'
+// Phase 4.48.1 — Footer Layout Columns row polish (colored badge +
+// summary + width + row #, colored left border per type). Scoped via
+// `.dnj-fl-row` marker rendered by FooterLayoutRowLabel.tsx.
+import './footer-layout.css'
 import AccordionSections from './AccordionSections'
 
 const AdminStyles: React.FC<{ children?: React.ReactNode }> = ({ children }) => {

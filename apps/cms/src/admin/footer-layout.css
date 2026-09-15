@@ -1,0 +1,86 @@
+/*
+ * DnJourneysBali — Footer Layout Columns row styling (Phase 4.48.1).
+ * ==================================================================
+ * Scoped ke row array `footer_settings.layoutColumns` via label markup
+ * `.dnj-fl-row` yang dirender oleh `components/FooterLayoutRowLabel.tsx`.
+ *
+ * Pattern:
+ *   Row header (kolapsed) berisi badge + summary + width + row #.
+ *   Border-left row diberi warna per type via `:has()` selector
+ *   (mirip Phase 4.8 block row).
+ *
+ * Palette selaras dengan admin-global.css + edit-view.css (ocean, coral,
+ * leaf, stone, midnight).
+ */
+
+.dnj-fl-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.2;
+  width: 100%;
+}
+.dnj-fl-row__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  flex: 0 0 auto;
+}
+.dnj-fl-row__summary {
+  font-weight: 500;
+  color: var(--theme-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.dnj-fl-row__summary--empty {
+  font-style: italic;
+  color: var(--theme-elevation-400);
+  font-weight: 400;
+}
+.dnj-fl-row__summary--dim {
+  color: var(--theme-elevation-500);
+  font-weight: 400;
+}
+.dnj-fl-row__width {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-elevation-500);
+  background: color-mix(in srgb, var(--theme-elevation-500) 8%, transparent);
+  border: 1px solid var(--theme-elevation-150);
+  flex: 0 0 auto;
+}
+.dnj-fl-row__num {
+  padding-inline-start: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-elevation-400);
+  flex: 0 0 auto;
+}
+
+/* Colored left border per row type — mirror block-row pattern (Phase 4.8).
+   Payload v3 array row = `.array-field__draggable-rows > .collapsible`. */
+.array-field__draggable-rows > .collapsible {
+  border-left: 3px solid transparent;
+  transition: border-color 0.15s ease;
+}
+.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type="brand"])          { border-left-color: #1b3a4b; }
+.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type="menuList"])       { border-left-color: #3d405b; }
+.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type="services"])       { border-left-color: #24506a; }
+.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type="contact"])        { border-left-color: #484850; }
+.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type="paymentMethods"]) { border-left-color: #c98a5f; }
+.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type="custom"])         { border-left-color: #6b9080; }
