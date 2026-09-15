@@ -29,3 +29,6 @@ media/
 
 # Cloudflare
 .mf/
+
+# TypeScript incremental build cache — should never be committed
+*.tsbuildinfo
