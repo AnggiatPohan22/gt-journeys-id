@@ -1,16 +1,17 @@
 ---
 // FooterTemplate2 — "Simple" (logo + copyright + social, centered).
+// Phase 4.43: warna via CSS vars (--f-*).
 import FooterSocial from './_FooterSocial.astro'
-const { siteName, logoUrl, logoAlt, brandTagline, social = {}, showSocial = true, copyright, bottomRight, currentYear } = Astro.props as any
+const { siteName, logoUrl, logoAlt, brandTagline, social = {}, showSocial = true, copyright, bottomRight, currentYear, themeStyle = '' } = Astro.props as any
 ---
-<footer class="bg-ocean text-white/85">
+<footer id="main-footer" style={themeStyle}>
   <div class="max-w-3xl mx-auto px-4 py-14 text-center flex flex-col items-center gap-5">
-    <a href="/" class="flex items-center gap-3 no-underline text-white">
-      {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-11 w-11 rounded-full object-cover" /> : <span class="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-white">{siteName.slice(0,2)}</span>}
+    <a href="/" class="dnj-f-heading flex items-center gap-3 no-underline">
+      {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-11 w-11 rounded-full object-cover" /> : <span class="h-11 w-11 rounded-full bg-white/10 flex items-center justify-center font-display font-bold">{siteName.slice(0,2)}</span>}
       <span class="font-display text-2xl font-bold">{siteName}</span>
     </a>
-    {brandTagline && <p class="text-sm text-white/70 max-w-md">{brandTagline}</p>}
-    {showSocial && <div class="flex justify-center"><FooterSocial social={social} /></div>}
-    <p class="text-xs text-white/50 mt-2">&copy; {currentYear} {copyright ?? `${siteName}. All rights reserved.`} · {bottomRight}</p>
+    {brandTagline && <p class="text-sm max-w-md">{brandTagline}</p>}
+    {showSocial && <div class="flex justify-center dnj-f-social"><FooterSocial social={social} /></div>}
+    <p class="text-xs dnj-f-muted mt-2">&copy; {currentYear} {copyright ?? `${siteName}. All rights reserved.`} · {bottomRight}</p>
   </div>
 </footer>

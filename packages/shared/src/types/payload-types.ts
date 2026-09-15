@@ -44052,13 +44052,15 @@ export interface HeaderSetting {
   createdAt?: string | null;
 }
 /**
+ * Layout Footer, konten, dan warna aksesorial. Tab "Advanced" khusus Super Admin.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "footer-settings".
  */
 export interface FooterSetting {
   id: number;
   /**
-   * Layout Footer. Hanya Super Admin. Slot content di bawah menyesuaikan template.
+   * Layout Footer. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
    */
   template: 'footer-1' | 'footer-2' | 'footer-3';
   /**
@@ -44126,6 +44128,35 @@ export interface FooterSetting {
    * Teks kanan bawah (copyright pakai SiteSettings.footer.copyrightText).
    */
   bottomBarRightText?: string | null;
+  /**
+   * Override warna background, teks, heading, link hover, dan divider Footer. Layout theme tetap.
+   */
+  advanced?: {
+    /**
+     * Warna background footer.
+     */
+    bgColor?: string | null;
+    /**
+     * Warna teks default (paragraph, link normal).
+     */
+    textColor?: string | null;
+    /**
+     * Warna teks kecil (copyright, bottom bar).
+     */
+    mutedTextColor?: string | null;
+    /**
+     * Warna link saat hover.
+     */
+    linkHoverColor?: string | null;
+    /**
+     * Warna heading kolom (mis. "Quick Links").
+     */
+    headingColor?: string | null;
+    /**
+     * Warna garis pemisah antar-section.
+     */
+    dividerColor?: string | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -44643,6 +44674,16 @@ export interface FooterSettingsSelect<T extends boolean = true> {
       };
   legalLinks?: T;
   bottomBarRightText?: T;
+  advanced?:
+    | T
+    | {
+        bgColor?: T;
+        textColor?: T;
+        mutedTextColor?: T;
+        linkHoverColor?: T;
+        headingColor?: T;
+        dividerColor?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

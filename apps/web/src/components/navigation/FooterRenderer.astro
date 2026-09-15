@@ -73,16 +73,58 @@ const bottomRight = footerCfg?.bottomBarRightText || 'Designed with ♥ in Bali'
 const showNewsletter = footerCfg?.showNewsletter === true
 const currentYear = new Date().getFullYear()
 
+// ── Advanced theming (Phase 4.43, mirror Header 4.41) ──
+// Default warna per-template — override lewat footerCfg.advanced.*.
+// Kosong (null/undefined) di CMS = pakai default → layout theme tetap.
+const templateId = footerCfg?.template || defaultTemplateId('footer')
+const templateDefaults: Record<string, Record<string, string>> = {
+  'footer-1': {
+    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF',
+  },
+  'footer-2': {
+    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF',
+  },
+  'footer-3': {
+    bg: '#1B3A4B', text: '#B6C1C6', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF',
+  },
+}
+const fd = templateDefaults[templateId] ?? templateDefaults['footer-1']
+const fadv = footerCfg?.advanced ?? {}
+const pick = (v: string | null | undefined, fallback: string) =>
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+const themeVars = {
+  '--f-bg':          pick(fadv.bgColor,        fd.bg),
+  '--f-text':        pick(fadv.textColor,      fd.text),
+  '--f-muted':       pick(fadv.mutedTextColor, fd.muted),
+  '--f-link-hover':  pick(fadv.linkHoverColor, fd.linkHover),
+  '--f-heading':     pick(fadv.headingColor,   fd.heading),
+  '--f-divider':     pick(fadv.dividerColor,   fd.divider),
+}
+const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
+
 const ctx = {
   siteName, brandTagline, logoUrl, logoAlt, contact, businessHours, social, showSocial,
   copyright, footerColumns, useFallbackQuickLinks, showBrand, showServices, servicesLabel,
   servicesItems, showContact, contactLabel, legalLinks, bottomRight, showNewsletter, currentYear,
+  themeStyle,
 }
 
 const TEMPLATES: Record<string, any> = { 'footer-1': FooterTemplate1, 'footer-2': FooterTemplate2, 'footer-3': FooterTemplate3 }
-const templateId = footerCfg?.template || defaultTemplateId('footer')
 const Template = TEMPLATES[templateId] ?? FooterTemplate1
 ---
 <NewsletterSignup />
 <Template {...ctx} />
 {additionalScripts && <Fragment set:html={additionalScripts} />}
+
+<style is:global>
+  /* Phase 4.43 — footer theming via CSS custom properties.
+     Vars injected inline pada #main-footer oleh setiap template. */
+  #main-footer { background-color: var(--f-bg); color: var(--f-text); }
+  #main-footer .dnj-f-muted { color: var(--f-muted); }
+  #main-footer .dnj-f-heading { color: var(--f-heading); }
+  #main-footer .dnj-f-divider { border-color: var(--f-divider); opacity: 0.10; }
+  #main-footer a.dnj-f-link { color: var(--f-text); transition: color 200ms; }
+  #main-footer a.dnj-f-link:hover { color: var(--f-link-hover); }
+  #main-footer .dnj-f-social a { color: var(--f-text); transition: color 200ms; }
+  #main-footer .dnj-f-social a:hover { color: var(--f-link-hover); }
+</style>

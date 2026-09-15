@@ -1,17 +1,18 @@
 ---
 // FooterTemplate3 — "Minimal" (copyright + legal links, single row).
-const { siteName, copyright, legalLinks = [], bottomRight, currentYear } = Astro.props as any
+// Phase 4.43: warna via CSS vars (--f-*).
+const { siteName, copyright, legalLinks = [], bottomRight, currentYear, themeStyle = '' } = Astro.props as any
 ---
-<footer class="bg-ocean text-white/70">
+<footer id="main-footer" style={themeStyle}>
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
     <p>&copy; {currentYear} {copyright ?? `${siteName}. All rights reserved.`}</p>
     {legalLinks.length > 0 && (
       <nav class="flex items-center gap-4">
         {legalLinks.map((it: any) => (
-          <a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="text-white/70 hover:text-white transition-colors no-underline">{it.label}</a>
+          <a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-f-link no-underline">{it.label}</a>
         ))}
       </nav>
     )}
-    <p class="text-white/50">{bottomRight}</p>
+    <p class="dnj-f-muted">{bottomRight}</p>
   </div>
 </footer>

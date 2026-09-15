@@ -1,33 +1,35 @@
 ---
-// FooterTemplate1 — "Multi-column" (Brand · Columns · Services · Contact). Replika footer lama.
+// FooterTemplate1 — "Multi-column" (Brand · Columns · Services · Contact).
+// Phase 4.43: warna via CSS vars (--f-*) di-inject di #main-footer.
 import Icon from '@components/common/Icon.astro'
 import FooterSocial from './_FooterSocial.astro'
 const {
   siteName, brandTagline, logoUrl, logoAlt, contact = {}, businessHours, social = {}, showSocial = true,
   copyright, footerColumns = [], useFallbackQuickLinks, showBrand = true, showServices = true,
   servicesLabel, servicesItems = [], showContact = true, contactLabel, bottomRight, currentYear,
+  themeStyle = '',
 } = Astro.props as any
 ---
-<footer class="bg-ocean text-white/85">
+<footer id="main-footer" style={themeStyle}>
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
       {showBrand && (
         <div class="lg:col-span-1">
-          <a href="/" class="flex items-center gap-3 no-underline text-white">
-            {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-white text-sm">{siteName.slice(0,2)}</span>}
+          <a href="/" class="dnj-f-heading flex items-center gap-3 no-underline">
+            {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-display font-bold text-sm">{siteName.slice(0,2)}</span>}
             <span class="font-display text-xl font-bold">{siteName}</span>
           </a>
-          {brandTagline && <p class="mt-4 text-sm leading-relaxed text-white/70">{brandTagline}</p>}
-          {showSocial && <div class="mt-6"><FooterSocial social={social} /></div>}
+          {brandTagline && <p class="mt-4 text-sm leading-relaxed">{brandTagline}</p>}
+          {showSocial && <div class="mt-6 dnj-f-social"><FooterSocial social={social} /></div>}
         </div>
       )}
 
       {footerColumns.map((col: any) => (
         <div>
-          <h4 class="font-display text-white text-sm uppercase tracking-widest mb-6">{col.label}</h4>
+          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{col.label}</h4>
           <ul class="space-y-3 text-sm">
             {col.items.map((it: any) => (
-              <li><a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="text-white/70 hover:text-white transition-colors no-underline">{it.label}</a></li>
+              <li><a href={it.url} target={it.target === '_blank' ? '_blank' : undefined} rel={it.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-f-link no-underline">{it.label}</a></li>
             ))}
           </ul>
         </div>
@@ -35,22 +37,22 @@ const {
 
       {useFallbackQuickLinks && (
         <div>
-          <h4 class="font-display text-white text-sm uppercase tracking-widest mb-6">Quick Links</h4>
+          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">Quick Links</h4>
           <ul class="space-y-3 text-sm">
-            <li><a href="/" class="text-white/70 hover:text-white transition-colors no-underline">Home</a></li>
-            <li><a href="/about" class="text-white/70 hover:text-white transition-colors no-underline">About Us</a></li>
-            <li><a href="/tour" class="text-white/70 hover:text-white transition-colors no-underline">Tours</a></li>
-            <li><a href="/contact" class="text-white/70 hover:text-white transition-colors no-underline">Contact Us</a></li>
+            <li><a href="/" class="dnj-f-link no-underline">Home</a></li>
+            <li><a href="/about" class="dnj-f-link no-underline">About Us</a></li>
+            <li><a href="/tour" class="dnj-f-link no-underline">Tours</a></li>
+            <li><a href="/contact" class="dnj-f-link no-underline">Contact Us</a></li>
           </ul>
         </div>
       )}
 
       {showServices && servicesItems.length > 0 && (
         <div>
-          <h4 class="font-display text-white text-sm uppercase tracking-widest mb-6">{servicesLabel}</h4>
+          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{servicesLabel}</h4>
           <ul class="space-y-3 text-sm">
             {servicesItems.map((s: any) => (
-              <li><a href={s.url} target={s.target === '_blank' ? '_blank' : undefined} class="text-white/70 hover:text-white transition-colors no-underline">{s.label}</a></li>
+              <li><a href={s.url} target={s.target === '_blank' ? '_blank' : undefined} class="dnj-f-link no-underline">{s.label}</a></li>
             ))}
           </ul>
         </div>
@@ -58,18 +60,18 @@ const {
 
       {showContact && (
         <div>
-          <h4 class="font-display text-white text-sm uppercase tracking-widest mb-6">{contactLabel}</h4>
+          <h4 class="dnj-f-heading font-display text-sm uppercase tracking-widest mb-6">{contactLabel}</h4>
           <ul class="space-y-4 text-sm">
-            {contact.phone && <li class="flex items-start gap-3 text-white/70"><Icon name="phone" class="w-5 h-5 mt-0.5 shrink-0 text-white/60" /><a href={`tel:${contact.phone}`} class="hover:text-white transition-colors no-underline">{contact.phone}</a></li>}
-            {contact.email && <li class="flex items-start gap-3 text-white/70"><Icon name="mail" class="w-5 h-5 mt-0.5 shrink-0 text-white/60" /><a href={`mailto:${contact.email}`} class="hover:text-white transition-colors no-underline break-all">{contact.email}</a></li>}
-            {contact.address && <li class="flex items-start gap-3 text-white/70"><Icon name="location_on" class="w-5 h-5 mt-0.5 shrink-0 text-white/60" /><span>{contact.address}</span></li>}
-            {businessHours && <li class="flex items-start gap-3 text-white/70"><Icon name="schedule" class="w-5 h-5 mt-0.5 shrink-0 text-white/60" /><span class="whitespace-pre-line">{businessHours}</span></li>}
+            {contact.phone && <li class="flex items-start gap-3"><Icon name="phone" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`tel:${contact.phone}`} class="dnj-f-link no-underline">{contact.phone}</a></li>}
+            {contact.email && <li class="flex items-start gap-3"><Icon name="mail" class="w-5 h-5 mt-0.5 shrink-0" /><a href={`mailto:${contact.email}`} class="dnj-f-link no-underline break-all">{contact.email}</a></li>}
+            {contact.address && <li class="flex items-start gap-3"><Icon name="location_on" class="w-5 h-5 mt-0.5 shrink-0" /><span>{contact.address}</span></li>}
+            {businessHours && <li class="flex items-start gap-3"><Icon name="schedule" class="w-5 h-5 mt-0.5 shrink-0" /><span class="whitespace-pre-line">{businessHours}</span></li>}
           </ul>
         </div>
       )}
     </div>
 
-    <div class="mt-14 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2 text-xs text-white/50">
+    <div class="mt-14 pt-8 border-t dnj-f-divider flex flex-col md:flex-row justify-between items-center gap-2 text-xs dnj-f-muted">
       <p>&copy; {currentYear} {copyright ?? `${siteName}. All rights reserved.`}</p>
       <p>{bottomRight}</p>
     </div>
