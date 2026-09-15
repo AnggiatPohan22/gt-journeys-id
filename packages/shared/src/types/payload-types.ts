@@ -44294,10 +44294,6 @@ export interface AnnouncementBar {
    */
   message: string;
   /**
-   * Background color from the brand palette.
-   */
-  theme: 'ocean' | 'coral' | 'leaf' | 'sand';
-  /**
    * Show an "×" button so visitors can dismiss the bar. Dismissal is remembered for the duration set in the Trigger & Behavior tab.
    */
   dismissible?: boolean | null;
@@ -44831,7 +44827,6 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
  */
 export interface AnnouncementBarSelect<T extends boolean = true> {
   message?: T;
-  theme?: T;
   dismissible?: T;
   link?:
     | T

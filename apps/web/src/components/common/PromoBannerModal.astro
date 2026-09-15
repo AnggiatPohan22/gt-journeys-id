@@ -70,18 +70,21 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
 // ── Advanced theming (Phase 4.44) ──
 // Default warna Phase 4.33 (panel sand, heading ocean, CTA coral). Override
 // jika `advanced.*` di-set. Kosong = pakai default.
+// Phase 4.45 — default backdrop & body pakai 8-digit hex (alpha inclusive).
+// Backdrop default `#0D1B2A99` = ~60% alpha (matches prior color-mix trick).
+// Body default `#1B3A4BBF` = ~75% alpha.
 const promoDefaults = {
   panelBg:    '#F5F0E8',
-  backdrop:   '#0D1B2A',
+  backdrop:   '#0D1B2A99',
   heading:    '#1B3A4B',
-  body:       '#1B3A4B',
+  body:       '#1B3A4BBF',
   ctaBg:      '#E07A5F',
   ctaBgHover: '#C4583E',
   ctaText:    '#F5F0E8',
 }
 const promoAdv = promo?.advanced ?? {}
 const pickHex = (v: string | null | undefined, fallback: string) =>
-  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
 const CTA_RADIUS_CSS: Record<string, string> = {
   pill: '9999px',
   rounded: '12px',
@@ -172,12 +175,13 @@ const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join('
 
 <style is:global>
   /* Phase 4.44 — Promo Modal via CSS custom properties. */
-  /* Backdrop = 60% alpha of picked color. Script animates opacity 0→1 as before. */
-  .dnj-pb .dnj-pb-backdrop { background-color: color-mix(in srgb, var(--pb-backdrop) 60%, transparent); }
+  /* Phase 4.45 — Backdrop & body pakai warna langsung (alpha ada di
+     nilai hex 8-digit). Script animates opacity 0→1 di backdrop. */
+  .dnj-pb .dnj-pb-backdrop { background-color: var(--pb-backdrop); }
   .dnj-pb .dnj-pb-panel { background-color: var(--pb-panel-bg); color: var(--pb-heading); }
   .dnj-pb .dnj-pb-image { background-color: color-mix(in srgb, var(--pb-heading) 5%, transparent); }
   .dnj-pb .dnj-pb-heading { color: var(--pb-heading); }
-  .dnj-pb .dnj-pb-body { color: color-mix(in srgb, var(--pb-body) 75%, transparent); }
+  .dnj-pb .dnj-pb-body { color: var(--pb-body); }
   .dnj-pb .dnj-pb-close {
     background-color: color-mix(in srgb, var(--pb-heading) 10%, transparent);
     color: var(--pb-heading);

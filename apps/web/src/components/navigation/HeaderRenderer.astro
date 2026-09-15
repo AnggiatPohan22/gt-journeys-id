@@ -120,7 +120,8 @@ const templateDefaults: Record<string, Record<string, string>> = {
 }
 const d = templateDefaults[templateId] ?? templateDefaults['header-1']
 const adv = headerCfg?.advanced ?? {}
-const pick = (v: string | null | undefined, fallback: string) => (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+// Phase 4.45 — regex diperluas untuk terima 3/4/6/8-digit hex (alpha).
+const pick = (v: string | null | undefined, fallback: string) => (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
 
 // CTA button shape → CSS radius (Phase 4.42). Keep in sync with
 // packages/cms `buttonStyle.ts BUTTON_RADIUS_CSS`.

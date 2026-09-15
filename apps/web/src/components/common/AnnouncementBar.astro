@@ -45,7 +45,6 @@ const scopeMatches = !showOnHomepageOnly || isHomepage
 const shouldRender = featureEnabled && hasMessage && inWindow && scopeMatches
 
 const message: string = bar?.message ?? ''
-const theme: 'ocean' | 'coral' | 'leaf' | 'sand' = bar?.theme ?? 'ocean'
 const dismissible: boolean = bar?.dismissible !== false
 const version: string = bar?.version ?? 'v0'
 const frequencyMinutes: number = Number(bar?.displayFrequency ?? '1440') || 1440
@@ -56,22 +55,17 @@ const linkLabel: string = link?.label ?? 'Learn more'
 const linkUrl: string = link?.url ?? '#'
 const linkNewTab: boolean = !!link?.newTab
 
-// ── Colors: preset theme → default overrides. Advanced fills win. ──
-const themeDefaults: Record<string, { bg: string; text: string; link: string; linkHover: string }> = {
-  ocean: { bg: '#1B3A4B', text: '#F5F0E8', link: '#F5F0E8', linkHover: '#FFFFFF' },
-  coral: { bg: '#E07A5F', text: '#F5F0E8', link: '#F5F0E8', linkHover: '#FFFFFF' },
-  leaf:  { bg: '#6B9080', text: '#F5F0E8', link: '#F5F0E8', linkHover: '#FFFFFF' },
-  sand:  { bg: '#F5F0E8', text: '#1B3A4B', link: '#1B3A4B', linkHover: '#0D1B2A' },
-}
-const td = themeDefaults[theme] ?? themeDefaults.ocean
+// ── Colors (Phase 4.45): preset theme dihapus — Advanced sole source.
+// Default = ocean palette; alpha-aware (menerima 3/4/6/8-digit hex).
+const abDefaults = { bg: '#1B3A4B', text: '#F5F0E8', link: '#F5F0E8', linkHover: '#FFFFFF' }
 const adv = bar?.advanced ?? {}
 const pick = (v: string | null | undefined, fallback: string) =>
-  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
 const themeVars = {
-  '--ab-bg':          pick(adv.bgColor,        td.bg),
-  '--ab-text':        pick(adv.textColor,      td.text),
-  '--ab-link':        pick(adv.linkColor,      td.link),
-  '--ab-link-hover':  pick(adv.linkHoverColor, td.linkHover),
+  '--ab-bg':          pick(adv.bgColor,        abDefaults.bg),
+  '--ab-text':        pick(adv.textColor,      abDefaults.text),
+  '--ab-link':        pick(adv.linkColor,      abDefaults.link),
+  '--ab-link-hover':  pick(adv.linkHoverColor, abDefaults.linkHover),
 }
 const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
 ---

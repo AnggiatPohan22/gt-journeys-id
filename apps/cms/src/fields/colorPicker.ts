@@ -11,12 +11,16 @@
  */
 import type { TextField, FieldAccess } from 'payload'
 
-const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+// Phase 4.45 — dukung 3/4/6/8-digit hex (dgn alpha). `#RRGGBBAA` untuk
+// warna dengan transparansi (mis. backdrop 60% alpha = `...99`).
+const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 
 export type ColorPickerOpts = {
   access?: { update?: FieldAccess }
   presets?: string[]
   width?: string
+  /** Matikan alpha channel di picker (default true = alpha ON). */
+  alpha?: boolean
 }
 
 export const colorPickerField = (
@@ -32,7 +36,7 @@ export const colorPickerField = (
   access: opts.access,
   validate: (val) => {
     if (!val) return true // empty = fallback to system default
-    return HEX_RE.test(String(val)) || 'Format harus hex, mis. #1B3A4B atau #FFF.'
+    return HEX_RE.test(String(val)) || 'Format harus hex, mis. #1B3A4B, #FFF, atau #1B3A4B99 (dgn alpha).'
   },
   admin: {
     description,
@@ -43,6 +47,7 @@ export const colorPickerField = (
     custom: {
       swatchDefault,
       presets: opts.presets ?? [],
+      alpha: opts.alpha !== false,
     },
   },
 })

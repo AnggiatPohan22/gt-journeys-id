@@ -77,21 +77,25 @@ const currentYear = new Date().getFullYear()
 // Default warna per-template — override lewat footerCfg.advanced.*.
 // Kosong (null/undefined) di CMS = pakai default → layout theme tetap.
 const templateId = footerCfg?.template || defaultTemplateId('footer')
+// Phase 4.45 — default divider pakai 8-digit hex (`#FFFFFF1A` = 10% alpha)
+// supaya CSS bisa langsung `border-color: var(--f-divider)` tanpa
+// `opacity: 0.10` di container (yang dulu meredupkan copyright juga).
 const templateDefaults: Record<string, Record<string, string>> = {
   'footer-1': {
-    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF',
+    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF1A',
   },
   'footer-2': {
-    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF',
+    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF1A',
   },
   'footer-3': {
-    bg: '#1B3A4B', text: '#B6C1C6', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF',
+    bg: '#1B3A4B', text: '#B6C1C6', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF1A',
   },
 }
 const fd = templateDefaults[templateId] ?? templateDefaults['footer-1']
 const fadv = footerCfg?.advanced ?? {}
+// Phase 4.45 — regex diperluas untuk terima 3/4/6/8-digit hex (alpha).
 const pick = (v: string | null | undefined, fallback: string) =>
-  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
 const themeVars = {
   '--f-bg':          pick(fadv.bgColor,        fd.bg),
   '--f-text':        pick(fadv.textColor,      fd.text),
@@ -122,7 +126,7 @@ const Template = TEMPLATES[templateId] ?? FooterTemplate1
   #main-footer { background-color: var(--f-bg); color: var(--f-text); }
   #main-footer .dnj-f-muted { color: var(--f-muted); }
   #main-footer .dnj-f-heading { color: var(--f-heading); }
-  #main-footer .dnj-f-divider { border-color: var(--f-divider); opacity: 0.10; }
+  #main-footer .dnj-f-divider { border-color: var(--f-divider); }
   #main-footer a.dnj-f-link { color: var(--f-text); transition: color 200ms; }
   #main-footer a.dnj-f-link:hover { color: var(--f-link-hover); }
   #main-footer .dnj-f-social a { color: var(--f-text); transition: color 200ms; }

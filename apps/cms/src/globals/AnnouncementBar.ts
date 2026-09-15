@@ -36,9 +36,9 @@ export const AnnouncementBar: GlobalConfig = {
   hooks: {
     beforeChange: [
       ({ data }) => {
+        // Phase 4.45 — `theme` field removed; warna via advanced group.
         const contentBits = [
           data?.message ?? '',
-          data?.theme ?? '',
           data?.dismissible ? '1' : '0',
           data?.displayFrequency ?? '',
           data?.link?.enabled ? '1' : '0',
@@ -73,19 +73,9 @@ export const AnnouncementBar: GlobalConfig = {
               maxLength: 140,
               admin: { description: 'Single-line announcement (max 140 chars).' },
             },
-            {
-              name: 'theme',
-              type: 'select',
-              required: true,
-              defaultValue: 'ocean',
-              options: [
-                { label: 'Ocean (deep blue)', value: 'ocean' },
-                { label: 'Coral (sunset)', value: 'coral' },
-                { label: 'Leaf (tropical green)', value: 'leaf' },
-                { label: 'Sand (warm cream)', value: 'sand' },
-              ],
-              admin: { description: 'Background color from the brand palette.' },
-            },
+            // Phase 4.45 — `theme` preset select removed. Warna sekarang
+            // di tab Advanced → Colors (bgColor / textColor / linkColor /
+            // linkHoverColor). Single source of truth, mendukung alpha.
             {
               name: 'dismissible',
               type: 'checkbox',
@@ -183,14 +173,15 @@ export const AnnouncementBar: GlobalConfig = {
                 description: 'When ON: bar only shows on the homepage. When OFF (default): bar shows site-wide on every page. Announcement bars are usually site-wide (that\'s their point), so leave this OFF unless you specifically want a homepage-only teaser.',
               },
             },
-            // ── Colors override (Phase 4.44) ─────────────────────────
-            // Kosong = pakai preset theme di tab Content & Theme (ocean/coral/leaf/sand).
+            // ── Colors (Phase 4.44 → 4.45 sole warna source) ─────────
+            // Preset theme select sudah dihapus di Phase 4.45.
+            // Warna bar sepenuhnya dari group ini; alpha didukung (8-digit hex).
             {
               type: 'collapsible',
-              label: 'Colors (override preset theme)',
+              label: 'Colors',
               admin: {
-                initCollapsed: true,
-                description: 'Override warna bar. Kosong = pakai preset theme yang dipilih di tab "Content & Theme".',
+                initCollapsed: false,
+                description: 'Warna bar. Kosong = pakai default ocean. Dukung 8-digit hex (mis. `#1B3A4B99` untuk 60% alpha).',
               },
               fields: [
                 {
