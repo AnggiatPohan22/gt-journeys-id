@@ -44008,6 +44008,10 @@ export interface HeaderSetting {
    */
   advanced?: {
     /**
+     * Warna surface header. Default `#FFFFFFE6` (90% alpha putih). Kosong → default.
+     */
+    bgColor?: string | null;
+    /**
      * Warna teks menu link biasa.
      */
     menuDefaultColor?: string | null;
@@ -44676,6 +44680,7 @@ export interface HeaderSettingsSelect<T extends boolean = true> {
   advanced?:
     | T
     | {
+        bgColor?: T;
         menuDefaultColor?: T;
         menuHoverColor?: T;
         menuActiveColor?: T;

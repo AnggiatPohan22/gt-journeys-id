@@ -153,7 +153,7 @@ export const HeaderSettings: GlobalConfig = {
         // ══ Tab 3: Advanced — Super Admin only ══════════════════════
         {
           label: 'Advanced',
-          description: 'Warna & shape aksesorial Header. Kosongkan warna = pakai default template. Hanya Super Admin.',
+          description: 'Warna & shape aksesorial Header. Override selalu menang di semua template — kalau kamu ganti template, warna Advanced yang sudah di-set TETAP berlaku (bukan reset ke default template baru). Ingin balik ke default template terbaru? Klik "Reset" per-field. Hanya Super Admin.',
           admin: { condition: isSuperAdminUI },
           fields: [
             {
@@ -165,6 +165,18 @@ export const HeaderSettings: GlobalConfig = {
                 description: 'Override warna menu/CTA/icon/top-bar + shape tombol CTA. Layout theme tetap sesuai template terpilih.',
               },
               fields: [
+                // Header surface (Phase 4.41.1 addendum — was missing)
+                {
+                  type: 'collapsible',
+                  label: 'Header Surface',
+                  admin: {
+                    initCollapsed: false,
+                    description: 'Warna background header itu sendiri (frosted panel). Kalau "Transparent on top" aktif, warna ini berlaku setelah scroll — di paling atas header tetap transparan.',
+                  },
+                  fields: [
+                    colorPickerField('bgColor', 'Background', 'Warna surface header. Default `#FFFFFFE6` (90% alpha putih). Kosong → default.', '#FFFFFFE6', { access: saAccess }),
+                  ],
+                },
                 // Menu colors
                 {
                   type: 'collapsible',

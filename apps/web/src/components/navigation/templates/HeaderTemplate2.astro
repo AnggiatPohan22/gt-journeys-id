@@ -1,14 +1,25 @@
 ---
 // HeaderTemplate2 — "Search & Social" (Logo | Search | Menu | Social)
 // Phase 4.41: warna via CSS vars (--h-*) di-inject di #main-header.
+// Phase 4.41.1: bg surface via `--h-bg` + `.dnj-header-surface`, sticky toggle-able,
+// transparent-on-top betul-betul bekerja.
 import Icon from '@components/common/Icon.astro'
 import SocialIcons from './_SocialIcons.astro'
 import NavDesktop from './_HeaderNavDesktop.astro'
 import HeaderMobile from './_HeaderMobile.astro'
-const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, showSearch = true, showSocial = true, social = {}, themeStyle = '' } = Astro.props as any
+const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, showSearch = true, showSocial = true, social = {}, themeStyle = '' } = Astro.props as any
 const socials = [ social.instagram, social.facebook, social.tiktok, social.youtube ].filter(Boolean)
 ---
-<header id="main-header" style={themeStyle} class:list={['fixed top-0 left-0 right-0 z-40 transition-all duration-300', transparent ? 'bg-transparent' : 'bg-white/90 backdrop-blur-md border-b border-sand-dark/20 shadow-sm']}>
+<header
+  id="main-header"
+  style={themeStyle}
+  data-transparent-top={transparent ? '1' : '0'}
+  data-scrolled="0"
+  class:list={[
+    'left-0 right-0 z-40 transition-all duration-300 dnj-header-surface',
+    sticky ? 'fixed top-0' : 'relative',
+  ]}
+>
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <nav class="flex items-center gap-4 h-20" aria-label="Main navigation">
       <a href="/" class="flex items-center gap-2 no-underline text-current shrink-0">
@@ -53,4 +64,4 @@ const socials = [ social.instagram, social.facebook, social.tiktok, social.youtu
     </div>
   )}
 </HeaderMobile>
-<div class="h-20"></div>
+{sticky && <div class="h-20"></div>}

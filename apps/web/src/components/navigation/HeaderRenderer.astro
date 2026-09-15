@@ -40,6 +40,9 @@ const ctaHref = ctaType === 'custom' && headerCfg?.ctaCustomLink ? headerCfg.cta
 const ctaIsExternal = ctaHref.startsWith('http')
 
 const transparent = transparentProp !== undefined ? transparentProp : (headerCfg?.transparentOnTop ?? false)
+// Phase 4.41.1 addendum — sticky sekarang benar-benar di-honor (dulu template
+// hardcode `fixed`). false → header in-flow (relative, tidak fixed di top).
+const sticky = headerCfg?.stickyOnScroll !== false
 
 // ── Nav items ───────────────────────────────────────────
 type NavItem = { label: string; url: string; target?: '_self' | '_blank' | null; children?: NavItem[]; asSpan?: boolean }
@@ -100,18 +103,21 @@ const topBar = {
 const templateId = headerCfg?.template || defaultTemplateId('header')
 const templateDefaults: Record<string, Record<string, string>> = {
   'header-1': {
+    bg: '#FFFFFFD9', // ~85% alpha (was Tailwind bg-white/85)
     menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
     ctaBg: '#1B3A4B', ctaBgHover: '#2D5F73', ctaText: '#FFFFFF',
     icon: '#1B3A4B',
     topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
   },
   'header-2': {
+    bg: '#FFFFFFE6', // ~90% alpha
     menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
     ctaBg: '#1B3A4B', ctaBgHover: '#2D5F73', ctaText: '#FFFFFF',
     icon: '#1B3A4B',
     topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
   },
   'header-3': {
+    bg: '#FFFFFFE6',
     menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
     ctaBg: '#E07A5F', ctaBgHover: '#C4583E', ctaText: '#FFFFFF',
     icon: '#1B3A4B',
@@ -134,6 +140,7 @@ const CTA_RADIUS_CSS: Record<string, string> = {
 const ctaRadius = CTA_RADIUS_CSS[adv.ctaRadius ?? 'pill'] ?? '9999px'
 
 const themeVars = {
+  '--h-bg':            pick(adv.bgColor,          d.bg),
   '--h-menu-text':     pick(adv.menuDefaultColor, d.menuDefault),
   '--h-menu-hover':    pick(adv.menuHoverColor,   d.menuHover),
   '--h-menu-active':   pick(adv.menuActiveColor,  d.menuActive),
@@ -148,7 +155,7 @@ const themeVars = {
 const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
 
 const ctx = {
-  siteName, logoUrl, logoAlt, items, currentPath, transparent,
+  siteName, logoUrl, logoAlt, items, currentPath, transparent, sticky,
   cta: { show: showCta, text: ctaText, href: ctaHref, external: ctaIsExternal },
   showSearch: headerCfg?.showSearch !== false,
   showSocial: headerCfg?.showSocialLinks !== false,
@@ -177,4 +184,45 @@ const Template = TEMPLATES[templateId] ?? HeaderTemplate1
   #main-header .dnj-icon-btn { color: var(--h-icon); }
   #main-header .dnj-topbar { background-color: var(--h-topbar-bg); color: var(--h-topbar-text); }
   #main-header .dnj-topbar a { color: var(--h-topbar-text); }
+
+  /* Phase 4.41.1 addendum — header surface & transparent-on-top.
+     Frosted panel (bg + blur + shadow + border) via satu class supaya
+     bisa toggle on/off saat mode transparent-on-top di posisi paling atas. */
+  #main-header .dnj-header-surface {
+    background-color: var(--h-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(212, 197, 169, 0.20);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: background-color 250ms, backdrop-filter 250ms, border-color 250ms, box-shadow 250ms;
+  }
+  /* Transparent mode ON + belum scroll → surface hilang total. Setelah scroll
+     lewat 40px, kembalikan surface penuh (bg + blur + border + shadow). */
+  #main-header[data-transparent-top="1"][data-scrolled="0"] .dnj-header-surface {
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
 </style>
+
+<script>
+  // Phase 4.41.1 — scroll listener untuk transparent-on-top.
+  // Toggle data-scrolled="1" pada #main-header saat scrollY > 40 supaya CSS
+  // di atas bisa switch antara surface transparan (di paling atas) dan
+  // surface opaque (setelah user scroll turun).
+  const initHeaderScroll = () => {
+    const header = document.getElementById('main-header')
+    if (!header) return
+    if (header.dataset.hsBound === '1') return
+    header.dataset.hsBound = '1'
+    const update = () => {
+      header.dataset.scrolled = window.scrollY > 40 ? '1' : '0'
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+  }
+  document.addEventListener('astro:page-load', initHeaderScroll)
+  initHeaderScroll()
+</script>

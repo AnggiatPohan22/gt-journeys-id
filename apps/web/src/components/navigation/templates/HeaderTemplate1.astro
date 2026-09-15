@@ -1,13 +1,24 @@
 ---
 // HeaderTemplate1 — "Classic" (Logo | Menu | CTA). Replika layout Header lama.
 // Sub-menu: klik-untuk-buka (desktop) via NavDesktop; mobile = overlay full-screen.
-// Phase 4.41: warna menu/CTA/icon via CSS vars (--h-*) yang di-inject di #main-header.
+// Phase 4.41: warna menu/CTA/icon via CSS vars (--h-*) di-inject di #main-header.
+// Phase 4.41.1 addendum: surface bg via `--h-bg` + `.dnj-header-surface`, sticky
+// toggle-able, transparent-on-top betul-betul bekerja (scroll listener di renderer).
 import Icon from '@components/common/Icon.astro'
 import NavDesktop from './_HeaderNavDesktop.astro'
 import HeaderMobile from './_HeaderMobile.astro'
-const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, cta = { show: false }, themeStyle = '' } = Astro.props as any
+const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, cta = { show: false }, themeStyle = '' } = Astro.props as any
 ---
-<header id="main-header" style={themeStyle} class:list={['fixed top-0 left-0 right-0 z-40 transition-all duration-300', transparent ? 'bg-transparent' : 'bg-white/85 backdrop-blur-md border-b border-sand-dark/20 shadow-sm']}>
+<header
+  id="main-header"
+  style={themeStyle}
+  data-transparent-top={transparent ? '1' : '0'}
+  data-scrolled="0"
+  class:list={[
+    'left-0 right-0 z-40 transition-all duration-300 dnj-header-surface',
+    sticky ? 'fixed top-0' : 'relative',
+  ]}
+>
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <nav class="flex items-center justify-between h-20" aria-label="Main navigation">
       <a href="/" class="flex items-center gap-3 no-underline text-current">
@@ -45,4 +56,4 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
     </a>
   )}
 </HeaderMobile>
-<div class="h-20"></div>
+{sticky && <div class="h-20"></div>}
