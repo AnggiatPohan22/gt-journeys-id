@@ -150,6 +150,8 @@ html[data-theme='dark'] .template-default__nav {
 .nav__link[href$='/collections/destination-types'] { --i: var(--dnj-ic-tag); }
 .nav__link[href$='/collections/categories'] { --i: var(--dnj-ic-grid); }
 .nav__link[href$='/collections/testimonials'] { --i: var(--dnj-ic-star); }
+/* Phase 4.47a — Ferry Tickets ikut icon layers biar seragam dengan
+   service lain (bukan icon ship terpisah). */
 .nav__link[href$='/collections/tours'],
 .nav__link[href$='/collections/accommodations'],
 .nav__link[href$='/collections/water-activities'],
@@ -157,9 +159,8 @@ html[data-theme='dark'] .template-default__nav {
 .nav__link[href$='/collections/restaurants'],
 .nav__link[href$='/collections/venues'],
 .nav__link[href$='/collections/rentals'],
-.nav__link[href$='/collections/spa'] { --i: var(--dnj-ic-layers); }
-/* Phase 4.47 — Ferry Tickets pakai icon ship (distinct dari service lain). */
-.nav__link[href$='/collections/ferry-tickets'] { --i: var(--dnj-ic-ship); }
+.nav__link[href$='/collections/spa'],
+.nav__link[href$='/collections/ferry-tickets'] { --i: var(--dnj-ic-layers); }
 .nav__link[href$='/collections/menus'] { --i: var(--dnj-ic-menu); }
 .nav__link[href$='/collections/media'] { --i: var(--dnj-ic-image); }
 .nav__link[href$='/collections/users'] { --i: var(--dnj-ic-users); }
