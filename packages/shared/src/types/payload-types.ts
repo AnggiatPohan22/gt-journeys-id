@@ -44336,6 +44336,24 @@ export interface AnnouncementBar {
    * When ON: bar only shows on the homepage. When OFF (default): bar shows site-wide on every page. Announcement bars are usually site-wide (that's their point), so leave this OFF unless you specifically want a homepage-only teaser.
    */
   showOnHomepageOnly?: boolean | null;
+  advanced?: {
+    /**
+     * Warna background bar.
+     */
+    bgColor?: string | null;
+    /**
+     * Warna teks utama bar.
+     */
+    textColor?: string | null;
+    /**
+     * Warna link CTA (kalau ada).
+     */
+    linkColor?: string | null;
+    /**
+     * Warna link saat hover.
+     */
+    linkHoverColor?: string | null;
+  };
   /**
    * Auto-generated hash of the content + reset counter. Do not edit — it keys the visitor dismissal cookie.
    */
@@ -44407,6 +44425,40 @@ export interface PromoBanner {
    * When ON (default): modal only triggers on the homepage. When OFF: modal triggers site-wide on every page (frequency cookie still applies). Site-wide can hurt conversion on detail pages — keep this ON unless running a very short campaign.
    */
   showOnHomepageOnly?: boolean | null;
+  advanced?: {
+    /**
+     * Warna background panel modal.
+     */
+    panelBgColor?: string | null;
+    /**
+     * Warna backdrop di belakang modal (dengan alpha kalau perlu).
+     */
+    backdropColor?: string | null;
+    /**
+     * Warna heading modal.
+     */
+    headingColor?: string | null;
+    /**
+     * Warna teks subheadline.
+     */
+    bodyColor?: string | null;
+    /**
+     * Warna background tombol CTA.
+     */
+    ctaBgColor?: string | null;
+    /**
+     * Warna background saat hover.
+     */
+    ctaBgHoverColor?: string | null;
+    /**
+     * Warna teks tombol CTA.
+     */
+    ctaTextColor?: string | null;
+    /**
+     * Bentuk sudut tombol CTA modal.
+     */
+    ctaRadius?: ('pill' | 'rounded' | 'rounded-md' | 'square') | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -44794,6 +44846,14 @@ export interface AnnouncementBarSelect<T extends boolean = true> {
   startDate?: T;
   endDate?: T;
   showOnHomepageOnly?: T;
+  advanced?:
+    | T
+    | {
+        bgColor?: T;
+        textColor?: T;
+        linkColor?: T;
+        linkHoverColor?: T;
+      };
   version?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -44823,6 +44883,18 @@ export interface PromoBannerSelect<T extends boolean = true> {
   startDate?: T;
   endDate?: T;
   showOnHomepageOnly?: T;
+  advanced?:
+    | T
+    | {
+        panelBgColor?: T;
+        backdropColor?: T;
+        headingColor?: T;
+        bodyColor?: T;
+        ctaBgColor?: T;
+        ctaBgHoverColor?: T;
+        ctaTextColor?: T;
+        ctaRadius?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

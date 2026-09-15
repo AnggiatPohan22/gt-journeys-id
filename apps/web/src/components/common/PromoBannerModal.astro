@@ -66,11 +66,46 @@ const version: string = promo?.version ?? 'v0'
 
 // Theme 1 requires an image; if none provided, degrade to theme 2 layout.
 const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text-only' : theme
+
+// ── Advanced theming (Phase 4.44) ──
+// Default warna Phase 4.33 (panel sand, heading ocean, CTA coral). Override
+// jika `advanced.*` di-set. Kosong = pakai default.
+const promoDefaults = {
+  panelBg:    '#F5F0E8',
+  backdrop:   '#0D1B2A',
+  heading:    '#1B3A4B',
+  body:       '#1B3A4B',
+  ctaBg:      '#E07A5F',
+  ctaBgHover: '#C4583E',
+  ctaText:    '#F5F0E8',
+}
+const promoAdv = promo?.advanced ?? {}
+const pickHex = (v: string | null | undefined, fallback: string) =>
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+const CTA_RADIUS_CSS: Record<string, string> = {
+  pill: '9999px',
+  rounded: '12px',
+  'rounded-md': '6px',
+  square: '0px',
+}
+const ctaRadius = CTA_RADIUS_CSS[promoAdv.ctaRadius ?? 'rounded'] ?? '12px'
+const themeVars = {
+  '--pb-panel-bg':      pickHex(promoAdv.panelBgColor,    promoDefaults.panelBg),
+  '--pb-backdrop':      pickHex(promoAdv.backdropColor,   promoDefaults.backdrop),
+  '--pb-heading':       pickHex(promoAdv.headingColor,    promoDefaults.heading),
+  '--pb-body':          pickHex(promoAdv.bodyColor,       promoDefaults.body),
+  '--pb-cta-bg':        pickHex(promoAdv.ctaBgColor,      promoDefaults.ctaBg),
+  '--pb-cta-bg-hover':  pickHex(promoAdv.ctaBgHoverColor, promoDefaults.ctaBgHover),
+  '--pb-cta-text':      pickHex(promoAdv.ctaTextColor,    promoDefaults.ctaText),
+  '--pb-cta-radius':    ctaRadius,
+}
+const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
 ---
 
 {shouldRender && (
   <div
-    class="promo-modal-root fixed inset-0 z-[60] hidden items-center justify-center p-4 sm:p-6"
+    class="promo-modal-root dnj-pb fixed inset-0 z-[60] hidden items-center justify-center p-4 sm:p-6"
+    style={themeStyle}
     data-trigger-delay={String(triggerDelaySec)}
     data-frequency-minutes={String(frequencyMinutes)}
     data-suppress-scroll={suppressAfterScroll ? '1' : '0'}
@@ -80,11 +115,11 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
     aria-labelledby="promo-modal-title"
   >
     {/* Backdrop */}
-    <div class="promo-modal-backdrop absolute inset-0 bg-[#0D1B2A]/60 backdrop-blur-[2px] opacity-0 transition-opacity duration-200"></div>
+    <div class="promo-modal-backdrop dnj-pb-backdrop absolute inset-0 backdrop-blur-[2px] opacity-0 transition-opacity duration-200"></div>
 
     {/* Panel */}
     <div class:list={[
-      'promo-modal-panel relative bg-[#F5F0E8] text-[#1B3A4B] rounded-2xl shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-200 ease-out',
+      'promo-modal-panel dnj-pb-panel relative shadow-2xl overflow-hidden opacity-0 scale-95 transition-all duration-200 ease-out rounded-2xl',
       effectiveTheme === 'theme1-with-image'
         ? 'w-full max-w-3xl grid grid-cols-1 md:grid-cols-2'
         : 'w-full max-w-lg px-6 sm:px-10 py-10 sm:py-14 text-center',
@@ -92,7 +127,7 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
       {/* × Close */}
       <button
         type="button"
-        class="promo-modal-close absolute top-3 right-3 w-9 h-9 rounded-full bg-[#1B3A4B]/10 hover:bg-[#1B3A4B]/20 text-[#1B3A4B] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#E07A5F] z-10"
+        class="promo-modal-close dnj-pb-close absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center focus:outline-none focus:ring-2 z-10"
         aria-label="Close promotion"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -101,7 +136,7 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
       </button>
 
       {effectiveTheme === 'theme1-with-image' && (
-        <div class="aspect-[4/3] md:aspect-auto md:min-h-[320px] bg-[#1B3A4B]/5">
+        <div class="dnj-pb-image aspect-[4/3] md:aspect-auto md:min-h-[320px]">
           <img src={imageUrl} alt={imageAlt} class="w-full h-full object-cover" loading="lazy" />
         </div>
       )}
@@ -111,11 +146,11 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
           ? 'p-6 sm:p-8 flex flex-col justify-center'
           : '',
       ]}>
-        <h2 id="promo-modal-title" class="font-display text-2xl sm:text-3xl font-semibold leading-tight mb-3">
+        <h2 id="promo-modal-title" class="dnj-pb-heading font-display text-2xl sm:text-3xl font-semibold leading-tight mb-3">
           {headline}
         </h2>
         {subheadline && (
-          <p class="text-sm sm:text-base text-[#1B3A4B]/75 mb-6 leading-relaxed">
+          <p class="dnj-pb-body text-sm sm:text-base mb-6 leading-relaxed">
             {subheadline}
           </p>
         )}
@@ -124,7 +159,7 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
           target={ctaNewTab ? '_blank' : undefined}
           rel={ctaNewTab ? 'noopener noreferrer' : undefined}
           class:list={[
-            'promo-modal-cta inline-flex items-center justify-center h-12 px-6 rounded-lg bg-[#E07A5F] hover:bg-[#c8674c] text-[#F5F0E8] font-semibold transition-colors',
+            'promo-modal-cta dnj-pb-cta inline-flex items-center justify-center h-12 px-6 font-semibold transition-colors',
             effectiveTheme === 'theme2-text-only' ? 'mx-auto' : 'self-start',
           ]}
         >
@@ -134,6 +169,35 @@ const effectiveTheme = theme === 'theme1-with-image' && !imageUrl ? 'theme2-text
     </div>
   </div>
 )}
+
+<style is:global>
+  /* Phase 4.44 — Promo Modal via CSS custom properties. */
+  /* Backdrop = 60% alpha of picked color. Script animates opacity 0→1 as before. */
+  .dnj-pb .dnj-pb-backdrop { background-color: color-mix(in srgb, var(--pb-backdrop) 60%, transparent); }
+  .dnj-pb .dnj-pb-panel { background-color: var(--pb-panel-bg); color: var(--pb-heading); }
+  .dnj-pb .dnj-pb-image { background-color: color-mix(in srgb, var(--pb-heading) 5%, transparent); }
+  .dnj-pb .dnj-pb-heading { color: var(--pb-heading); }
+  .dnj-pb .dnj-pb-body { color: color-mix(in srgb, var(--pb-body) 75%, transparent); }
+  .dnj-pb .dnj-pb-close {
+    background-color: color-mix(in srgb, var(--pb-heading) 10%, transparent);
+    color: var(--pb-heading);
+  }
+  .dnj-pb .dnj-pb-close:hover {
+    background-color: color-mix(in srgb, var(--pb-heading) 20%, transparent);
+  }
+  .dnj-pb .dnj-pb-close:focus { --tw-ring-color: var(--pb-cta-bg); }
+  .dnj-pb .dnj-pb-cta {
+    background-color: var(--pb-cta-bg);
+    color: var(--pb-cta-text);
+    border-radius: var(--pb-cta-radius, 12px);
+  }
+  .dnj-pb .dnj-pb-cta:hover { background-color: var(--pb-cta-bg-hover); }
+
+  /* Backdrop opacity applied by script via inline style — we default to 60%
+     via a fallback when the panel is visible. Script sets opacity: 1 on open,
+     opacity: 0 on close; because backdrop uses solid bg color, we compose it
+     with a wrapper opacity. Keep the original script-driven fade. */
+</style>
 
 <script>
   const MINUTE_MS = 60_000

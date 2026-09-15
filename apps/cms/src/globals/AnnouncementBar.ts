@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 import crypto from 'crypto'
 import { isSuperAdmin } from '../access/roles'
+import { colorPickerField } from '../fields/colorPicker'
 
 /**
  * Announcement Bar — Phase 4.33.
@@ -172,7 +173,7 @@ export const AnnouncementBar: GlobalConfig = {
         // ══ Tab 4: Advanced ══════════════════════════════════════════════
         {
           label: 'Advanced',
-          description: 'Rarely-changed placement controls.',
+          description: 'Rarely-changed placement + warna aksesorial override.',
           fields: [
             {
               name: 'showOnHomepageOnly',
@@ -181,6 +182,39 @@ export const AnnouncementBar: GlobalConfig = {
               admin: {
                 description: 'When ON: bar only shows on the homepage. When OFF (default): bar shows site-wide on every page. Announcement bars are usually site-wide (that\'s their point), so leave this OFF unless you specifically want a homepage-only teaser.',
               },
+            },
+            // ── Colors override (Phase 4.44) ─────────────────────────
+            // Kosong = pakai preset theme di tab Content & Theme (ocean/coral/leaf/sand).
+            {
+              type: 'collapsible',
+              label: 'Colors (override preset theme)',
+              admin: {
+                initCollapsed: true,
+                description: 'Override warna bar. Kosong = pakai preset theme yang dipilih di tab "Content & Theme".',
+              },
+              fields: [
+                {
+                  name: 'advanced',
+                  type: 'group',
+                  label: false,
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        colorPickerField('bgColor',       'Background', 'Warna background bar.',        '#1B3A4B', { width: '50%' }),
+                        colorPickerField('textColor',     'Text',       'Warna teks utama bar.',        '#F5F0E8', { width: '50%' }),
+                      ],
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        colorPickerField('linkColor',      'Link',       'Warna link CTA (kalau ada).', '#F5F0E8', { width: '50%' }),
+                        colorPickerField('linkHoverColor', 'Link hover', 'Warna link saat hover.',      '#FFFFFF', { width: '50%' }),
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },

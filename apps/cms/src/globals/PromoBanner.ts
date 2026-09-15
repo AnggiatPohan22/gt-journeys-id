@@ -1,6 +1,8 @@
 import type { GlobalConfig } from 'payload'
 import crypto from 'crypto'
 import { isSuperAdmin } from '../access/roles'
+import { colorPickerField } from '../fields/colorPicker'
+import { buttonStyleFields } from '../fields/buttonStyle'
 
 /**
  * Promo Banner — Phase 4.33.
@@ -195,7 +197,7 @@ export const PromoBanner: GlobalConfig = {
         // ══ Tab 4: Advanced ══════════════════════════════════════════════
         {
           label: 'Advanced',
-          description: 'Rarely-changed placement controls.',
+          description: 'Placement + warna/shape aksesorial override.',
           fields: [
             {
               name: 'showOnHomepageOnly',
@@ -204,6 +206,54 @@ export const PromoBanner: GlobalConfig = {
               admin: {
                 description: 'When ON (default): modal only triggers on the homepage. When OFF: modal triggers site-wide on every page (frequency cookie still applies). Site-wide can hurt conversion on detail pages — keep this ON unless running a very short campaign.',
               },
+            },
+            // ── Colors & Shape override (Phase 4.44) ────────────────
+            // Kosong = pakai default preset warna Phase 4.33 (panel sand,
+            // heading ocean, CTA coral). Layout theme tetap.
+            {
+              type: 'collapsible',
+              label: 'Colors & Shape (override defaults)',
+              admin: {
+                initCollapsed: true,
+                description: 'Override warna panel/CTA + shape tombol. Kosong = pakai default sand/ocean/coral.',
+              },
+              fields: [
+                {
+                  name: 'advanced',
+                  type: 'group',
+                  label: false,
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        colorPickerField('panelBgColor',   'Panel background', 'Warna background panel modal.', '#F5F0E8', { width: '50%' }),
+                        colorPickerField('backdropColor',  'Backdrop',         'Warna backdrop di belakang modal (dengan alpha kalau perlu).', '#0D1B2A', { width: '50%' }),
+                      ],
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        colorPickerField('headingColor',   'Heading',    'Warna heading modal.',             '#1B3A4B', { width: '50%' }),
+                        colorPickerField('bodyColor',      'Body text',  'Warna teks subheadline.',          '#1B3A4B', { width: '50%' }),
+                      ],
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        colorPickerField('ctaBgColor',      'CTA background',       'Warna background tombol CTA.', '#E07A5F', { width: '33%' }),
+                        colorPickerField('ctaBgHoverColor', 'CTA background hover', 'Warna background saat hover.', '#C4583E', { width: '33%' }),
+                        colorPickerField('ctaTextColor',    'CTA text',             'Warna teks tombol CTA.',       '#F5F0E8', { width: '34%' }),
+                      ],
+                    },
+                    ...buttonStyleFields({
+                      namePrefix: 'cta',
+                      radiusLabel: 'CTA button shape',
+                      radiusDescription: 'Bentuk sudut tombol CTA modal.',
+                      defaultRadius: 'rounded',
+                    }),
+                  ],
+                },
+              ],
             },
           ],
         },
