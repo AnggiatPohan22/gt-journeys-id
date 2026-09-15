@@ -43943,7 +43943,7 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
- * Layout Header, konten, dan warna aksesorial. Tab "Advanced" khusus Super Admin.
+ * Layout Header, konten, dan warna/shape aksesorial. Tab "Advanced" khusus Super Admin.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header-settings".
@@ -44004,7 +44004,7 @@ export interface HeaderSetting {
    */
   topBarText?: string | null;
   /**
-   * Override warna menu, CTA, icon, dan top-bar. Layout theme tetap sesuai template terpilih.
+   * Override warna menu/CTA/icon/top-bar + shape tombol CTA. Layout theme tetap sesuai template terpilih.
    */
   advanced?: {
     /**
@@ -44031,6 +44031,10 @@ export interface HeaderSetting {
      * Warna teks tombol CTA.
      */
     ctaTextColor?: string | null;
+    /**
+     * Bentuk sudut tombol CTA. Layout template tetap; hanya radius yang berubah.
+     */
+    ctaRadius?: ('pill' | 'rounded' | 'rounded-md' | 'square') | null;
     /**
      * Warna icon (mobile toggle, chevron dropdown).
      */
@@ -44596,6 +44600,7 @@ export interface HeaderSettingsSelect<T extends boolean = true> {
         ctaBgColor?: T;
         ctaBgHoverColor?: T;
         ctaTextColor?: T;
+        ctaRadius?: T;
         iconColor?: T;
         topBarBgColor?: T;
         topBarTextColor?: T;

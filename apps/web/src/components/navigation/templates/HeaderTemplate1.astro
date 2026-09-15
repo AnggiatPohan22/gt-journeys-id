@@ -23,7 +23,7 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
 
       <div class="flex items-center gap-3">
         {cta.show && cta.href && (
-          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full no-underline shadow-sm hover:shadow-md">
+          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold no-underline shadow-sm hover:shadow-md">
             <Icon name="chat" class="w-4 h-4" />
             <span class="hidden md:inline">{cta.text}</span>
             <span class="md:hidden">Book</span>
@@ -40,7 +40,7 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
 
 <HeaderMobile items={items} currentPath={currentPath} siteName={siteName} logoUrl={logoUrl} logoAlt={logoAlt}>
   {cta.show && cta.href && (
-    <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta mt-5 flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold rounded-full no-underline">
+    <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta mt-5 flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold no-underline">
       <Icon name="chat" class="w-5 h-5" />{cta.text}
     </a>
   )}

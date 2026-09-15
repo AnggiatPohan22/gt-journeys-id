@@ -38,6 +38,7 @@ import { default as default_68a1ee296a4d669462449170f13ac89f } from '../../../ad
 import { default as default_7d0add3028cddc531ec476c2b888fa4a } from '../../../admin/PasswordGeneratorButton'
 import { default as default_662c92c1b3d2933aea12433e4ed474d2 } from '../../../admin/ForceUnlockButton'
 import { TemplatePickerField as TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed } from '../../../components/TemplatePickerField'
+import { default as default_6b8ecc267399acc536623c5290b13b83 } from '../../../components/ColorSwatchField'
 import { TemplateImportExport as TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2 } from '../../../components/TemplateImportExport'
 import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
 import { default as default_88541c286955dbac4d90fb5ed606381c } from '../../../admin/graphics/Logo'
@@ -93,6 +94,7 @@ export const importMap = {
   "/admin/PasswordGeneratorButton#default": default_7d0add3028cddc531ec476c2b888fa4a,
   "/admin/ForceUnlockButton#default": default_662c92c1b3d2933aea12433e4ed474d2,
   "/components/TemplatePickerField#TemplatePickerField": TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed,
+  "/components/ColorSwatchField#default": default_6b8ecc267399acc536623c5290b13b83,
   "/components/TemplateImportExport#TemplateImportExport": TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2,
   "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,
   "/admin/graphics/Logo#default": default_88541c286955dbac4d90fb5ed606381c,

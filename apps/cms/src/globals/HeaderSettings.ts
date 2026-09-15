@@ -3,61 +3,41 @@ import { isAdmin, superAdminFieldAccess } from '../access/roles'
 // Import relatif (bukan alias) — packages/shared di luar root cms; runtime butuh
 // resolusi native (Next externalDir + tsx). Single source template registry.
 import { toSelectOptions, defaultTemplateId, templateSupports } from '../../../../packages/shared/src/template-registry'
+import { colorPickerField } from '../fields/colorPicker'
+import { buttonStyleFields } from '../fields/buttonStyle'
 
 /**
- * Header Settings — Phase 3.24 Template System + Phase 4.41 Advanced Theming.
+ * Header Settings — Phase 3.24 Template System + Phase 4.41 Advanced Theming
+ * + Phase 4.42 Color Swatch Picker & CTA Button Shape.
  *
  * `template` (Super Admin only) memilih layout Header dari registry. Slot content
  * muncul dinamis (admin.condition berbasis registry). Brand (logo/siteName) &
  * social/contact tetap dari SiteSettings (no-dupe); slot di sini hanya kontrol
- * WIRING + toggle tampil + (Phase 4.41) warna aksesorial.
+ * WIRING + toggle tampil + (Phase 4.41/4.42) warna & shape aksesorial.
  *
- * Struktur tab (Phase 4.41):
+ * Struktur tab:
  *   1. General          — template, sticky/transparent behavior.
  *   2. Content          — menu, search, social, CTA text, top-bar content.
- *   3. Advanced (SA)    — warna menu/CTA/icon/top-bar override. Layout theme
- *                         (Classic/Search&Social/TopBar) tetap fixed.
+ *   3. Advanced (SA)    — warna menu/CTA/icon/top-bar override + CTA button shape.
+ *                         Layout theme (Classic/Search&Social/TopBar) tetap fixed.
  *   4. Import/Export    — snapshot JSON portable.
- *
- * Access:
- *   - Global read = publik (frontend fetch tanpa auth).
- *   - Global update = admin+ (existing).
- *   - Tab "Advanced" = SA-only via admin.condition({user}) + field-level
- *     access.update = superAdminFieldAccess. Admin/Editor tak melihat tabnya.
  */
 const supports = (slot: Parameters<typeof templateSupports>[1]) => (data: any) =>
   templateSupports(data?.template, slot)
 
-// Payload v3 mengirim `{ user }` sebagai arg ketiga ke `admin.condition`,
-// walau Condition type resmi hanya `(data, siblingData) => boolean` — jadi
-// kita cast ke `any` supaya typecheck lewat.
+// Payload v3 runtime mengirim `{ user }` sebagai arg ketiga ke `admin.condition`,
+// walau Condition type resmi hanya `(data, siblingData) => boolean` — cast `any`.
 const isSuperAdminUI: any = (_data: any, _sib: any, ctx?: { user?: { role?: string } | null }) =>
   ctx?.user?.role === 'super-admin'
 
-// ── Reusable field: color hex text input ────────────────────────────
-const colorField = (name: string, label: string, description: string, placeholder: string) => ({
-  name,
-  type: 'text' as const,
-  label,
-  access: { update: superAdminFieldAccess },
-  admin: {
-    description,
-    placeholder,
-    style: { maxWidth: '18ch' },
-  },
-  validate: (val: string | null | undefined) => {
-    if (!val) return true // empty = fallback to template default
-    return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val)
-      || 'Format harus hex, mis. #1B3A4B atau #FFF.'
-  },
-})
+const saAccess = { update: superAdminFieldAccess }
 
 export const HeaderSettings: GlobalConfig = {
   slug: 'header-settings',
   label: 'Header Settings',
   admin: {
     group: 'Appearance',
-    description: 'Layout Header, konten, dan warna aksesorial. Tab "Advanced" khusus Super Admin.',
+    description: 'Layout Header, konten, dan warna/shape aksesorial. Tab "Advanced" khusus Super Admin.',
     hidden: ({ user }) => user?.role === 'editor',
   },
   access: { read: () => true, update: isAdmin },
@@ -76,7 +56,7 @@ export const HeaderSettings: GlobalConfig = {
               required: true,
               defaultValue: defaultTemplateId('header'),
               options: toSelectOptions('header'),
-              access: { update: superAdminFieldAccess },
+              access: saAccess,
               admin: {
                 description: 'Layout Header. Hanya Super Admin. Slot content di tab Content menyesuaikan template.',
                 components: { Field: '/components/TemplatePickerField#TemplatePickerField' },
@@ -173,16 +153,16 @@ export const HeaderSettings: GlobalConfig = {
         // ══ Tab 3: Advanced — Super Admin only ══════════════════════
         {
           label: 'Advanced',
-          description: 'Warna aksesorial Header. Kosongkan = pakai warna default template. Format hex (#1B3A4B). Hanya Super Admin.',
+          description: 'Warna & shape aksesorial Header. Kosongkan warna = pakai default template. Hanya Super Admin.',
           admin: { condition: isSuperAdminUI },
           fields: [
             {
               name: 'advanced',
               type: 'group',
               label: false,
-              access: { update: superAdminFieldAccess },
+              access: saAccess,
               admin: {
-                description: 'Override warna menu, CTA, icon, dan top-bar. Layout theme tetap sesuai template terpilih.',
+                description: 'Override warna menu/CTA/icon/top-bar + shape tombol CTA. Layout theme tetap sesuai template terpilih.',
               },
               fields: [
                 // Menu colors
@@ -194,27 +174,33 @@ export const HeaderSettings: GlobalConfig = {
                     {
                       type: 'row',
                       fields: [
-                        colorField('menuDefaultColor', 'Default',  'Warna teks menu link biasa.',            '#3D405B'),
-                        colorField('menuHoverColor',   'Hover',    'Warna teks saat kursor di atas link.',   '#1B3A4B'),
-                        colorField('menuActiveColor',  'Active',   'Warna teks link halaman aktif.',         '#1B3A4B'),
+                        colorPickerField('menuDefaultColor', 'Default', 'Warna teks menu link biasa.',           '#3D405B', { access: saAccess, width: '33%' }),
+                        colorPickerField('menuHoverColor',   'Hover',   'Warna teks saat kursor di atas link.',  '#1B3A4B', { access: saAccess, width: '33%' }),
+                        colorPickerField('menuActiveColor',  'Active',  'Warna teks link halaman aktif.',        '#1B3A4B', { access: saAccess, width: '34%' }),
                       ],
                     },
                   ],
                 },
-                // CTA button colors
+                // CTA button colors + shape
                 {
                   type: 'collapsible',
-                  label: 'CTA Button Colors',
+                  label: 'CTA Button Colors & Shape',
                   admin: { initCollapsed: false },
                   fields: [
                     {
                       type: 'row',
                       fields: [
-                        colorField('ctaBgColor',      'Background',       'Warna background tombol CTA.',       '#1B3A4B'),
-                        colorField('ctaBgHoverColor', 'Background hover', 'Warna background saat hover.',       '#2D5F73'),
-                        colorField('ctaTextColor',    'Text',             'Warna teks tombol CTA.',             '#FFFFFF'),
+                        colorPickerField('ctaBgColor',      'Background',       'Warna background tombol CTA.',       '#1B3A4B', { access: saAccess, width: '33%' }),
+                        colorPickerField('ctaBgHoverColor', 'Background hover', 'Warna background saat hover.',       '#2D5F73', { access: saAccess, width: '33%' }),
+                        colorPickerField('ctaTextColor',    'Text',             'Warna teks tombol CTA.',             '#FFFFFF', { access: saAccess, width: '34%' }),
                       ],
                     },
+                    ...buttonStyleFields({
+                      namePrefix: 'cta',
+                      access: saAccess,
+                      radiusLabel: 'CTA button shape',
+                      radiusDescription: 'Bentuk sudut tombol CTA. Layout template tetap; hanya radius yang berubah.',
+                    }),
                   ],
                 },
                 // Icon color
@@ -223,23 +209,26 @@ export const HeaderSettings: GlobalConfig = {
                   label: 'Icon Color',
                   admin: { initCollapsed: false },
                   fields: [
-                    colorField('iconColor', 'Icon', 'Warna icon (mobile toggle, chevron dropdown).', '#1B3A4B'),
+                    colorPickerField('iconColor', 'Icon', 'Warna icon (mobile toggle, chevron dropdown).', '#1B3A4B', { access: saAccess }),
                   ],
                 },
-                // Top-bar colors (visible only for template-3)
+                // Top-bar colors (visible only for templates with top-bar slots)
                 {
                   type: 'collapsible',
-                  label: 'Top Bar Colors (template Top Bar)',
+                  label: 'Top Bar Colors',
                   admin: {
                     initCollapsed: true,
-                    condition: (data: any) => templateSupports(data?.template, 'customText') || templateSupports(data?.template, 'address') || templateSupports(data?.template, 'phone'),
+                    condition: (data: any) =>
+                      templateSupports(data?.template, 'customText')
+                      || templateSupports(data?.template, 'address')
+                      || templateSupports(data?.template, 'phone'),
                   },
                   fields: [
                     {
                       type: 'row',
                       fields: [
-                        colorField('topBarBgColor',   'Background', 'Warna background top-bar.', '#1B3A4B'),
-                        colorField('topBarTextColor', 'Text',       'Warna teks top-bar.',        '#FFFFFF'),
+                        colorPickerField('topBarBgColor',   'Background', 'Warna background top-bar.', '#1B3A4B', { access: saAccess, width: '50%' }),
+                        colorPickerField('topBarTextColor', 'Text',       'Warna teks top-bar.',        '#FFFFFF', { access: saAccess, width: '50%' }),
                       ],
                     },
                   ],

@@ -121,6 +121,17 @@ const templateDefaults: Record<string, Record<string, string>> = {
 const d = templateDefaults[templateId] ?? templateDefaults['header-1']
 const adv = headerCfg?.advanced ?? {}
 const pick = (v: string | null | undefined, fallback: string) => (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v) ? v : fallback)
+
+// CTA button shape → CSS radius (Phase 4.42). Keep in sync with
+// packages/cms `buttonStyle.ts BUTTON_RADIUS_CSS`.
+const CTA_RADIUS_CSS: Record<string, string> = {
+  pill: '9999px',
+  rounded: '12px',
+  'rounded-md': '6px',
+  square: '0px',
+}
+const ctaRadius = CTA_RADIUS_CSS[adv.ctaRadius ?? 'pill'] ?? '9999px'
+
 const themeVars = {
   '--h-menu-text':     pick(adv.menuDefaultColor, d.menuDefault),
   '--h-menu-hover':    pick(adv.menuHoverColor,   d.menuHover),
@@ -128,6 +139,7 @@ const themeVars = {
   '--h-cta-bg':        pick(adv.ctaBgColor,       d.ctaBg),
   '--h-cta-bg-hover':  pick(adv.ctaBgHoverColor,  d.ctaBgHover),
   '--h-cta-text':      pick(adv.ctaTextColor,     d.ctaText),
+  '--h-cta-radius':    ctaRadius,
   '--h-icon':          pick(adv.iconColor,        d.icon),
   '--h-topbar-bg':     pick(adv.topBarBgColor,    d.topBarBg),
   '--h-topbar-text':   pick(adv.topBarTextColor,  d.topBarText),
@@ -159,7 +171,7 @@ const Template = TEMPLATES[templateId] ?? HeaderTemplate1
   #main-header .dnj-nav-link { color: var(--h-menu-text); transition: color 200ms; }
   #main-header .dnj-nav-link:hover { color: var(--h-menu-hover); }
   #main-header .dnj-nav-link--active { color: var(--h-menu-active); font-weight: 700; }
-  #main-header .dnj-cta { background-color: var(--h-cta-bg); color: var(--h-cta-text); transition: background-color 200ms; }
+  #main-header .dnj-cta { background-color: var(--h-cta-bg); color: var(--h-cta-text); border-radius: var(--h-cta-radius, 9999px); transition: background-color 200ms; }
   #main-header .dnj-cta:hover { background-color: var(--h-cta-bg-hover); }
   #main-header .dnj-icon-btn { color: var(--h-icon); }
   #main-header .dnj-topbar { background-color: var(--h-topbar-bg); color: var(--h-topbar-text); }
