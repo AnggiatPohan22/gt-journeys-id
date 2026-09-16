@@ -44298,7 +44298,7 @@ export interface HomepageContent {
 export interface SiteFeature {
   id: number;
   /**
-   * Matikan modul → hilang dari navigasi, homepage, sitemap, dan URL-nya 404.
+   * Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Terdaftar 9 modul; menambah modul baru = 1 entry di SERVICE_MODULES registry di globals/SiteFeatures.ts.
    */
   modules?: {
     tours?: boolean | null;

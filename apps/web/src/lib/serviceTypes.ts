@@ -79,40 +79,55 @@ function fallbackFromModules(): ResolvedServiceType[] {
     })
 }
 
-/** CMS-first list of active service types, ordered. Fallback ke modules.ts. */
+/**
+ * CMS-first list of active service types, ordered. Fallback ke modules.ts.
+ *
+ * Phase 4.49 — kalau CMS mengembalikan sebagian modul saja (mis. Ferry
+ * Tickets belum di-seed di collection ServiceTypes atau statusnya draft/
+ * archived), key yang missing di-backfill dari `modules.ts` fallback.
+ * Ini memastikan modul yang di-centang di SiteFeatures.modules TETAP tampil
+ * di frontend walau ServiceType record-nya belum dibuat.
+ */
 export async function getResolvedServiceTypes(): Promise<ResolvedServiceType[]> {
   if (cache) return cache
+  const fallback = fallbackFromModules()
   try {
     const res = await getServiceTypes()
     if (res.docs.length > 0) {
-      cache = res.docs
-        .map((d: ServiceTypeDoc) => ({
-          key: d.key,
-          name: d.name,
-          slug: d.slug || KEY_TO_SLUG[d.key] || d.key,
-          iconName: d.iconName ?? undefined,
-          order: typeof d.order === 'number' ? d.order : 0,
-          description: d.description ?? undefined,
-          coverImage: d.coverImage ?? undefined,
-          whatsappNumber: d.whatsappNumber ?? undefined,
-          whatsappTemplate: d.whatsappTemplate ?? undefined,
-          metaTitle: d.metaTitle ?? undefined,
-          metaDescription: d.metaDescription ?? undefined,
-          relatedOverrideEnabled: d.relatedOverrideEnabled ?? undefined,
-          relatedEnabled: d.relatedEnabled ?? undefined,
-          relatedSectionTitle: d.relatedSectionTitle ?? undefined,
-          relatedCardStyle: d.relatedCardStyle ?? undefined,
-          relatedMaxItems: d.relatedMaxItems ?? undefined,
-          relatedSelectionMode: d.relatedSelectionMode ?? undefined,
-          relatedShowExploreAll: d.relatedShowExploreAll ?? undefined,
-        }))
-        .sort((a, b) => a.order - b.order)
+      const fromCms: ResolvedServiceType[] = res.docs.map((d: ServiceTypeDoc) => ({
+        key: d.key,
+        name: d.name,
+        slug: d.slug || KEY_TO_SLUG[d.key] || d.key,
+        iconName: d.iconName ?? undefined,
+        order: typeof d.order === 'number' ? d.order : 0,
+        description: d.description ?? undefined,
+        coverImage: d.coverImage ?? undefined,
+        whatsappNumber: d.whatsappNumber ?? undefined,
+        whatsappTemplate: d.whatsappTemplate ?? undefined,
+        metaTitle: d.metaTitle ?? undefined,
+        metaDescription: d.metaDescription ?? undefined,
+        relatedOverrideEnabled: d.relatedOverrideEnabled ?? undefined,
+        relatedEnabled: d.relatedEnabled ?? undefined,
+        relatedSectionTitle: d.relatedSectionTitle ?? undefined,
+        relatedCardStyle: d.relatedCardStyle ?? undefined,
+        relatedMaxItems: d.relatedMaxItems ?? undefined,
+        relatedSelectionMode: d.relatedSelectionMode ?? undefined,
+        relatedShowExploreAll: d.relatedShowExploreAll ?? undefined,
+      }))
+      // Backfill: modul di modules.ts (enabled) yang belum ada di CMS list.
+      // Order-nya taruh setelah CMS items, kemudian sort keseluruhan by order.
+      const cmsKeys = new Set(fromCms.map((s) => s.key))
+      const cmsMaxOrder = fromCms.reduce((max, s) => Math.max(max, s.order), 0)
+      const backfill = fallback
+        .filter((s) => !cmsKeys.has(s.key))
+        .map((s, i) => ({ ...s, order: cmsMaxOrder + i + 1 }))
+      cache = [...fromCms, ...backfill].sort((a, b) => a.order - b.order)
       return cache
     }
   } catch {
-    /* fall through to modules.ts */
+    /* fall through to fallback fully */
   }
-  cache = fallbackFromModules()
+  cache = fallback
   return cache
 }
 

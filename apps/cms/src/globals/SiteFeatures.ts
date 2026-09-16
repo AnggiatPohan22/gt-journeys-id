@@ -1,5 +1,42 @@
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig, Field } from 'payload'
 import { isSuperAdmin } from '../access/roles'
+
+// ── Modul Layanan registry (Phase 4.49) ─────────────────────────────
+// Single source untuk daftar modul layanan — description auto-count di
+// tab, row checkbox auto-generate 2-per-baris. Tambah modul baru = 1
+// entry di array ini, otomatis muncul di CMS tanpa update description.
+// Nama harus match dgn `apps/web/src/config/modules.ts` ServiceModule enum
+// dan `apps/web/src/lib/features.ts` DEFAULT_FEATURES.modules.
+const SERVICE_MODULES = [
+  { name: 'tours',            label: 'Tours & Activities' },
+  { name: 'accommodations',   label: 'Villas & Hotels' },
+  { name: 'waterActivities',  label: 'Water Activities' },
+  { name: 'yacht',            label: 'Private Yacht' },
+  { name: 'restaurants',      label: 'Restaurants' },
+  { name: 'weddings',         label: 'Weddings & Events' },
+  { name: 'rentals',          label: 'Rental Service' },
+  { name: 'spa',              label: 'Spa & Wellness' },
+  { name: 'ferryTickets',     label: 'Ferry Tickets' },
+] as const
+
+// Bagi dua-per-baris (row) supaya layout tetap seperti sebelumnya.
+const moduleRowFields = (): Field[] => {
+  const rows: Field[] = []
+  for (let i = 0; i < SERVICE_MODULES.length; i += 2) {
+    const pair = SERVICE_MODULES.slice(i, i + 2)
+    rows.push({
+      type: 'row',
+      fields: pair.map((m) => ({
+        name: m.name,
+        type: 'checkbox' as const,
+        label: m.label,
+        defaultValue: true,
+        admin: { width: pair.length === 1 ? '100%' : '50%' },
+      })),
+    })
+  }
+  return rows
+}
 
 /**
  * Site Features — master toggle untuk modul, section, dan fitur opsional.
@@ -37,51 +74,16 @@ export const SiteFeatures: GlobalConfig = {
         // ══ Tab 1: Modul Layanan ═════════════════════════════════════════
         {
           label: 'Modul Layanan',
-          description: 'Master on/off untuk 8 modul layanan utama.',
+          description: `Master on/off untuk ${SERVICE_MODULES.length} modul layanan utama.`,
           fields: [
             {
               name: 'modules',
               type: 'group',
               label: 'Modul Layanan',
               admin: {
-                description: 'Matikan modul → hilang dari navigasi, homepage, sitemap, dan URL-nya 404.',
+                description: `Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Terdaftar ${SERVICE_MODULES.length} modul; menambah modul baru = 1 entry di SERVICE_MODULES registry di globals/SiteFeatures.ts.`,
               },
-              fields: [
-                {
-                  type: 'row',
-                  fields: [
-                    { name: 'tours', type: 'checkbox', label: 'Tours & Activities', defaultValue: true, admin: { width: '50%' } },
-                    { name: 'accommodations', type: 'checkbox', label: 'Villas & Hotels', defaultValue: true, admin: { width: '50%' } },
-                  ],
-                },
-                {
-                  type: 'row',
-                  fields: [
-                    { name: 'waterActivities', type: 'checkbox', label: 'Water Activities', defaultValue: true, admin: { width: '50%' } },
-                    { name: 'yacht', type: 'checkbox', label: 'Private Yacht', defaultValue: true, admin: { width: '50%' } },
-                  ],
-                },
-                {
-                  type: 'row',
-                  fields: [
-                    { name: 'restaurants', type: 'checkbox', label: 'Restaurants', defaultValue: true, admin: { width: '50%' } },
-                    { name: 'weddings', type: 'checkbox', label: 'Weddings & Events', defaultValue: true, admin: { width: '50%' } },
-                  ],
-                },
-                {
-                  type: 'row',
-                  fields: [
-                    { name: 'rentals', type: 'checkbox', label: 'Rental Service', defaultValue: true, admin: { width: '50%' } },
-                    { name: 'spa', type: 'checkbox', label: 'Spa & Wellness', defaultValue: true, admin: { width: '50%' } },
-                  ],
-                },
-                {
-                  type: 'row',
-                  fields: [
-                    { name: 'ferryTickets', type: 'checkbox', label: 'Ferry Tickets', defaultValue: true, admin: { width: '50%' } },
-                  ],
-                },
-              ],
+              fields: moduleRowFields(),
             },
           ],
         },
