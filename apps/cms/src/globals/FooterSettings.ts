@@ -99,7 +99,7 @@ export const FooterSettings: GlobalConfig = {
                           options: [
                             { label: 'Brand — logo, tagline, social',                 value: 'brand' },
                             { label: 'Menu List — heading + link list dari Menus',    value: 'menuList' },
-                            { label: 'Services — auto dari ServiceTypes / Menu',      value: 'services' },
+                            { label: 'Services — auto dari Modul Layanan aktif / Menu', value: 'services' },
                             { label: 'Contact — phone/email/address dari SiteSettings', value: 'contact' },
                             { label: 'Payment Methods — badge dari SiteSettings',     value: 'paymentMethods' },
                             { label: 'Custom — rich text bebas',                       value: 'custom' },
@@ -144,7 +144,7 @@ export const FooterSettings: GlobalConfig = {
                       type: 'relationship',
                       relationTo: 'menus',
                       admin: {
-                        description: 'Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override.',
+                        description: 'Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override — kosong = auto dari Modul Layanan yang aktif (Settings → Pengaturan Fitur).',
                         condition: (_, sib) => sib?.type === 'menuList' || sib?.type === 'services',
                       },
                     },

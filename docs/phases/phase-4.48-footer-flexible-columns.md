@@ -175,3 +175,27 @@ labels: { singular: 'Column', plural: 'Columns' },
 Zero migration/data impact. Label header muncul di atas array (cosmetic), sudah dibingkai collapsible parent — tidak menyusahkan.
 
 **Lesson:** Pola `label: false` aman untuk `type: 'group'` (dipakai di Header advanced) tapi TIDAK untuk `type: 'array'` — array wajib punya `labels.singular` untuk row header state.
+
+### 4. Services column gate by Site Features (bug 4.48.2)
+
+**Report:** Footer column type `services` (auto path) menampilkan **semua** service dari collection ServiceTypes, tidak menghormati toggle Site Features → Modul Layanan. SA yang me-non-aktifkan modul mengharapkan modul itu hilang dari footer juga.
+
+**Root cause:** [`serviceTypes.ts:getResolvedServiceTypes()`](../../apps/web/src/lib/serviceTypes.ts) return semua ServiceTypes tanpa cek `site-features.modules[key]` gate. Konsumen (FooterRenderer + others) menerima list lengkap.
+
+**Fix (FooterRenderer only, minimal blast radius):** filter `servicesItems` auto path pakai `getFeatures().modules` gate. Bikin `SERVICE_KEY_TO_MODULE` map (`ServiceType.key` kebab → `ServiceModule` camelCase, mirror inverse dari serviceTypes.ts `MODULE_TO_KEY`), lalu filter list:
+
+```ts
+const enabled = svc.filter((s) => {
+  const modKey = SERVICE_KEY_TO_MODULE[s.key]
+  if (!modKey) return true // unknown key (custom service) → safe include
+  return feats.modules[modKey] !== false
+})
+```
+
+**Scope keputusan:**
+- **Auto path** (kosong servicesMenu / kolom `services` tanpa `menu` override) → **difilter** oleh Site Features.
+- **Menu override** (SA pilih menu spesifik untuk kolom services / servicesMenu di legacy) → **tidak difilter**. SA sudah eksplisit menentukan link — override adalah intent yang harus dihormati.
+
+Deskripsi field di CMS diperbarui: option label services jadi "auto dari Modul Layanan aktif / Menu"; description `menu` field mention "kosong = auto dari Modul Layanan yang aktif".
+
+**Zero migration** — perubahan pure logic frontend + description text. Berlaku untuk **new (layoutColumns) DAN legacy path** karena keduanya konsumsi `servicesItems`. Kalau ada konsumen lain `getResolvedServiceTypes()` yang butuh gate serupa (mis. homepage listing), roll out helper `getEnabledServiceTypes()` di follow-up.

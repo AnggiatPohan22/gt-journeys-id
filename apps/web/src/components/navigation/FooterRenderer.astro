@@ -1,6 +1,7 @@
 ---
 import { siteConfig } from '@config/site'
 import { getResolvedServiceTypes } from '@lib/serviceTypes'
+import { getFeatures } from '@lib/features'
 import { getSiteSettings, getFooterSettings } from '@lib/payload'
 import { defaultTemplateId } from '@shared/template-registry'
 import type { Media, SiteSetting } from '@shared/types/payload-types'
@@ -61,10 +62,38 @@ const showSocial = footerCfg?.showSocialLinks !== false
 
 const showServices = footerCfg?.showServicesColumn !== false
 const servicesLabel = footerCfg?.servicesColumnLabel || 'Our Services'
+
+// Phase 4.48.2 — filter auto-derived services by SiteFeatures modules gate.
+// ServiceType.key (kebab-case slug) ↔ SiteFeatures.modules key (camelCase).
+// Kalau modul disabled di CMS (`site-features.modules[key] === false`),
+// skip. Menu override (SA pilih manual) tidak difilter — override = intent
+// SA yang eksplisit.
+const SERVICE_KEY_TO_MODULE: Record<string, string> = {
+  'tours': 'tours',
+  'accommodations': 'accommodations',
+  'water-activities': 'waterActivities',
+  'yachts': 'yacht',
+  'restaurants': 'restaurants',
+  'venues': 'weddings',
+  'rentals': 'rentals',
+  'spa': 'spa',
+  'ferry-tickets': 'ferryTickets',
+}
+
 let servicesItems: Array<{ label: string; url: string; target?: string }>
 const servicesMenuItems = menuToItems(footerCfg?.servicesMenu)
-if (servicesMenuItems.length > 0) servicesItems = servicesMenuItems
-else { const svc = await getResolvedServiceTypes(); servicesItems = svc.map((s) => ({ label: s.name, url: `/${s.slug}` })) }
+if (servicesMenuItems.length > 0) {
+  servicesItems = servicesMenuItems
+} else {
+  const svc = await getResolvedServiceTypes()
+  const feats = await getFeatures()
+  const enabled = svc.filter((s) => {
+    const modKey = SERVICE_KEY_TO_MODULE[s.key]
+    if (!modKey) return true // key belum di-map (mis. custom service) → include (safe default)
+    return (feats.modules as any)[modKey] !== false
+  })
+  servicesItems = enabled.map((s) => ({ label: s.name, url: `/${s.slug}` }))
+}
 
 const showContact = footerCfg?.showContactColumn !== false
 const contactLabel = footerCfg?.contactColumnLabel || 'Contact Us'

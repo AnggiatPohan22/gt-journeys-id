@@ -44109,7 +44109,7 @@ export interface FooterSetting {
          */
         showSocialLinks?: boolean | null;
         /**
-         * Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override.
+         * Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override — kosong = auto dari Modul Layanan yang aktif (Settings → Pengaturan Fitur).
          */
         menu?: (number | null) | Menu;
         /**
