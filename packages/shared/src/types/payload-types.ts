@@ -44141,26 +44141,11 @@ export interface FooterSetting {
         id?: string | null;
       }[]
     | null;
-  /**
-   * Tampilkan kolom brand?
-   */
   showBrandColumn?: boolean | null;
-  /**
-   * Override tagline footer (kosong = SiteSettings.tagline)
-   */
   brandTaglineOverride?: string | null;
-  /**
-   * Tampilkan ikon social (dari SiteSettings).
-   */
   showSocialLinks?: boolean | null;
-  /**
-   * Kolom menu editorial (mis: Quick Links, Company).
-   */
   columns?:
     | {
-        /**
-         * Mis: "Quick Links"
-         */
         columnLabel: string;
         menu: number | Menu;
         id?: string | null;
@@ -44168,34 +44153,16 @@ export interface FooterSetting {
     | null;
   showServicesColumn?: boolean | null;
   servicesColumnLabel?: string | null;
-  /**
-   * Optional: override auto dgn menu CMS
-   */
   servicesMenu?: (number | null) | Menu;
   showContactColumn?: boolean | null;
   contactColumnLabel?: string | null;
   newsletter: {
-    /**
-     * Section heading.
-     */
     heading: string;
-    /**
-     * Background theme.
-     */
     theme: 'ocean' | 'sand' | 'leaf';
-    /**
-     * Optional sub-copy under the heading.
-     */
     description?: string | null;
     placeholderText: string;
     buttonLabel: string;
-    /**
-     * Shown after a successful signup.
-     */
     successMessage: string;
-    /**
-     * Shown when the signup fails.
-     */
     errorMessage: string;
   };
   /**

@@ -199,3 +199,51 @@ const enabled = svc.filter((s) => {
 Deskripsi field di CMS diperbarui: option label services jadi "auto dari Modul Layanan aktif / Menu"; description `menu` field mention "kosong = auto dari Modul Layanan yang aktif".
 
 **Zero migration** — perubahan pure logic frontend + description text. Berlaku untuk **new (layoutColumns) DAN legacy path** karena keduanya konsumsi `servicesItems`. Kalau ada konsumen lain `getResolvedServiceTypes()` yang butuh gate serupa (mis. homepage listing), roll out helper `getEnabledServiceTypes()` di follow-up.
+
+### 5. Hide legacy Content-tab UI (Phase 4.50 / 4.48.3)
+
+Owner UAT: setelah Layout Columns berfungsi, minta legacy field lama **dihilangkan** dari CMS supaya tidak bikin bingung (Brand Column, Menu Columns array, Services Column, Contact Column, Newsletter Signup — semua di tab Content sebelum Layout Columns).
+
+**Approach: hide-not-delete.** Semua field def tetap ada di TS supaya:
+- Pipeline data ke frontend fallback branch tetap jalan (safety net kalau ada site yang belum migrate).
+- Zero migration (kolom DB tetap ada, tidak destructive).
+- Rollback trivial (set `admin.hidden: false`).
+
+**Cara implementasi:** tiap legacy collapsible & field level-top dikasih `admin.hidden: true`. Payload skip render UI, tapi Payload's `findGlobal()` tetap kembalikan value dari DB.
+
+Field yang di-hide:
+- Collapsible `Brand Column` (`showBrandColumn`, `brandTaglineOverride`)
+- `showSocialLinks` (checkbox top-level)
+- `columns` (array Menu Columns lama)
+- Collapsible `Services Column` (`showServicesColumn`, `servicesColumnLabel`, `servicesMenu`)
+- Collapsible `Contact Column` (`showContactColumn`, `contactColumnLabel`)
+- Collapsible `Newsletter Signup` (group `newsletter` heading/theme/description/placeholder/button/messages)
+
+**Field yang TETAP terlihat** di tab Content:
+- Layout Columns (flexible builder) — sole editor untuk kolom footer.
+- `legalLinks` (relationship→menus) — untuk footer-3 bottom bar.
+- `bottomBarRightText` — untuk copyright bottom bar semua footer.
+
+Description tab Content diperbarui: "Layout Columns (kolom footer), legal links, dan bottom bar text." Collapsible Layout Columns descr disederhanakan (drop "kosongkan = pakai layout lama" karena tidak relevan lagi buat SA).
+
+**Cleanup DB kolom orphan (opsional, future):**
+
+```sql
+-- Nanti kalau semua site sudah migrate, phase cleanup bisa DROP:
+--   footer_settings.show_brand_column
+--   footer_settings.brand_tagline_override
+--   footer_settings.show_social_links
+--   footer_settings.show_services_column
+--   footer_settings.services_column_label
+--   footer_settings.services_menu_id
+--   footer_settings.show_contact_column
+--   footer_settings.contact_column_label
+--   footer_settings.newsletter_heading, _theme, _description, _placeholder_text, _button_label, _success_message, _error_message
+--   footer_settings_columns (sub-table Menu Columns lama)
+```
+
+Belum di-execute — safe window sampai owner konfirmasi semua data sudah pindah ke Layout Columns.
+
+**Frontend FooterTemplate1** dual-branch tetap ada — kalau `layoutColumns` kosong, jatuh ke fallback branch yang baca legacy fields. Kalau owner tak isi Layout Columns dan tak ada legacy data pun → footer render structurally empty (SA harus setup Layout Columns).
+
+Zero schema/migration/payload-types change (field def masih ada di TS, types tak berubah).

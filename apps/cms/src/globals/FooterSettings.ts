@@ -60,18 +60,18 @@ export const FooterSettings: GlobalConfig = {
         // ══ Tab 2: Content ══════════════════════════════════════════
         {
           label: 'Content',
-          description: 'Kolom brand, menu, services, contact, legal, bottom bar. Field muncul dinamis sesuai template.',
+          description: 'Layout Columns (kolom footer), legal links, dan bottom bar text. Field muncul dinamis sesuai template.',
           fields: [
             // ── Layout Columns (Phase 4.48 — flexible column builder) ────
             // Kalau di-isi (>=1 row), frontend footer-1 pakai layout ini.
             // Kosong → fallback ke logic slot lama di bawah (backward compat).
             {
               type: 'collapsible',
-              label: 'Layout Columns (flexible builder)',
+              label: 'Layout Columns',
               admin: {
                 condition: supports('columns'),
                 initCollapsed: false,
-                description: 'Susun sendiri kolom footer (max 4). Kosongkan seluruhnya = pakai layout otomatis lama (Brand · Menu Columns · Services · Contact). Untuk template Multi-column (footer-1) saja.',
+                description: 'Susun sendiri kolom footer (max 4). Kolom kosong = kolom itu tak dirender. Untuk template Multi-column (footer-1) saja.',
               },
               fields: [
                 {
@@ -179,17 +179,22 @@ export const FooterSettings: GlobalConfig = {
               ],
             },
 
-            // ── Legacy slot fields (kept for backward compat / fallback) ──
+            // ── Legacy slot fields (Phase 4.50: hidden dari CMS UI) ──────
+            // Semua field di bawah diadopsi menjelang Phase 4.48 (Layout
+            // Columns) sebagai fallback. Sekarang di-hide dari CMS UI supaya
+            // SA hanya lihat Layout Columns sebagai jalan utama. Data DB
+            // TETAP ada (safe read di FooterRenderer fallback branch) dan
+            // schema tidak diubah — cleanup DB via phase terpisah nanti.
             {
               type: 'collapsible',
-              label: 'Brand Column',
-              admin: { condition: supports('logo'), description: 'Logo, tagline, social. Data dari SiteSettings.', initCollapsed: true },
+              label: 'Brand Column (legacy)',
+              admin: { hidden: true, initCollapsed: true },
               fields: [
                 {
                   type: 'row',
                   fields: [
-                    { name: 'showBrandColumn', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Tampilkan kolom brand?' } },
-                    { name: 'brandTaglineOverride', type: 'text', admin: { width: '50%', description: 'Override tagline footer (kosong = SiteSettings.tagline)' } },
+                    { name: 'showBrandColumn', type: 'checkbox', defaultValue: true, admin: { width: '50%' } },
+                    { name: 'brandTaglineOverride', type: 'text', admin: { width: '50%' } },
                   ],
                 },
               ],
@@ -198,20 +203,21 @@ export const FooterSettings: GlobalConfig = {
               name: 'showSocialLinks',
               type: 'checkbox',
               defaultValue: true,
-              admin: { condition: supports('socialLinks'), description: 'Tampilkan ikon social (dari SiteSettings).' },
+              admin: { hidden: true },
             },
             {
               name: 'columns',
               type: 'array',
               label: 'Menu Columns',
+              labels: { singular: 'Column', plural: 'Columns' },
               minRows: 0,
               maxRows: 4,
-              admin: { condition: supports('columns'), description: 'Kolom menu editorial (mis: Quick Links, Company).' },
+              admin: { hidden: true },
               fields: [
                 {
                   type: 'row',
                   fields: [
-                    { name: 'columnLabel', type: 'text', required: true, admin: { width: '40%', description: 'Mis: "Quick Links"' } },
+                    { name: 'columnLabel', type: 'text', required: true, admin: { width: '40%' } },
                     { name: 'menu', type: 'relationship', relationTo: 'menus', required: true, admin: { width: '60%' } },
                   ],
                 },
@@ -219,23 +225,23 @@ export const FooterSettings: GlobalConfig = {
             },
             {
               type: 'collapsible',
-              label: 'Services Column',
-              admin: { condition: supports('columns'), description: 'Kolom services — default auto dari modules/ServiceTypes.', initCollapsed: true },
+              label: 'Services Column (legacy)',
+              admin: { hidden: true, initCollapsed: true },
               fields: [
                 {
                   type: 'row',
                   fields: [
                     { name: 'showServicesColumn', type: 'checkbox', defaultValue: true, admin: { width: '30%' } },
                     { name: 'servicesColumnLabel', type: 'text', defaultValue: 'Our Services', admin: { width: '30%' } },
-                    { name: 'servicesMenu', type: 'relationship', relationTo: 'menus', admin: { width: '40%', description: 'Optional: override auto dgn menu CMS' } },
+                    { name: 'servicesMenu', type: 'relationship', relationTo: 'menus', admin: { width: '40%' } },
                   ],
                 },
               ],
             },
             {
               type: 'collapsible',
-              label: 'Contact Column',
-              admin: { condition: supports('address'), description: 'Kolom kontak: phone/email/address dari SiteSettings.contact.', initCollapsed: true },
+              label: 'Contact Column (legacy)',
+              admin: { hidden: true, initCollapsed: true },
               fields: [
                 {
                   type: 'row',
@@ -248,12 +254,8 @@ export const FooterSettings: GlobalConfig = {
             },
             {
               type: 'collapsible',
-              label: 'Newsletter Signup',
-              admin: {
-                condition: supports('newsletterToggle'),
-                description: 'Editorial copy for the footer newsletter form. Master on/off lives in Site Features → Section Halaman → Newsletter Signup.',
-                initCollapsed: true,
-              },
+              label: 'Newsletter Signup (legacy)',
+              admin: { hidden: true, initCollapsed: true },
               fields: [
                 {
                   name: 'newsletter',
@@ -263,15 +265,15 @@ export const FooterSettings: GlobalConfig = {
                     {
                       type: 'row',
                       fields: [
-                        { name: 'heading', type: 'text', required: true, defaultValue: 'Get Bali Travel Inspiration', admin: { width: '60%', description: 'Section heading.' } },
+                        { name: 'heading', type: 'text', required: true, defaultValue: 'Get Bali Travel Inspiration', admin: { width: '60%' } },
                         { name: 'theme', type: 'select', required: true, defaultValue: 'ocean', options: [
                           { label: 'Ocean (deep blue)', value: 'ocean' },
                           { label: 'Sand (warm cream)', value: 'sand' },
                           { label: 'Leaf (tropical green)', value: 'leaf' },
-                        ], admin: { width: '40%', description: 'Background theme.' } },
+                        ], admin: { width: '40%' } },
                       ],
                     },
-                    { name: 'description', type: 'textarea', admin: { description: 'Optional sub-copy under the heading.' } },
+                    { name: 'description', type: 'textarea' },
                     {
                       type: 'row',
                       fields: [
@@ -282,8 +284,8 @@ export const FooterSettings: GlobalConfig = {
                     {
                       type: 'row',
                       fields: [
-                        { name: 'successMessage', type: 'text', required: true, defaultValue: "Thanks! We'll be in touch.", admin: { width: '50%', description: 'Shown after a successful signup.' } },
-                        { name: 'errorMessage', type: 'text', required: true, defaultValue: 'Something went wrong. Please try again.', admin: { width: '50%', description: 'Shown when the signup fails.' } },
+                        { name: 'successMessage', type: 'text', required: true, defaultValue: "Thanks! We'll be in touch.", admin: { width: '50%' } },
+                        { name: 'errorMessage', type: 'text', required: true, defaultValue: 'Something went wrong. Please try again.', admin: { width: '50%' } },
                       ],
                     },
                   ],
