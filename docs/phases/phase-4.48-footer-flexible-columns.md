@@ -153,3 +153,25 @@ Owner report: row array masih menampilkan label default Payload "Row 01, Row 02"
 3. Add row × 6 (mis. brand · menuList · services · contact · paymentMethods · custom) → warna badge + border beda-beda per type.
 4. Isi heading pada row → summary di label ikut update saat row di-collapse.
 5. Uncheck Show Social Links di brand row → save → frontend footer kolom brand tampil logo+tagline saja tanpa social icons.
+
+### 3. Hotfix — Footer Settings 500 saat load (Payload renderField error)
+
+**Report:** Setelah 4.48.1 deploy, `/admin/globals/footer-settings` melempar `TypeError: Cannot read properties of undefined (reading 'singular')` di `renderField.js:118` — form Payload gagal build, Footer Settings tidak muncul.
+
+**Root cause:** Kedua array baru (`site_settings.paymentMethods` + `footer_settings.layoutColumns`) di-declare dengan `label: false`. Payload v3 fieldSchemasToFormState mengiterasi array rows dan mengakses `field.labels.singular` — kalau `label: false`, Payload skip generate default `labels` object → undefined → crash.
+
+**Fix (1 baris per array):** ganti `label: false` jadi label string + `labels: { singular, plural }` explisit:
+
+```ts
+// site_settings.paymentMethods
+label: 'Payment Methods',
+labels: { singular: 'Payment Method', plural: 'Payment Methods' },
+
+// footer_settings.layoutColumns
+label: 'Footer Columns',
+labels: { singular: 'Column', plural: 'Columns' },
+```
+
+Zero migration/data impact. Label header muncul di atas array (cosmetic), sudah dibingkai collapsible parent — tidak menyusahkan.
+
+**Lesson:** Pola `label: false` aman untuk `type: 'group'` (dipakai di Header advanced) tapi TIDAK untuk `type: 'array'` — array wajib punya `labels.singular` untuk row header state.

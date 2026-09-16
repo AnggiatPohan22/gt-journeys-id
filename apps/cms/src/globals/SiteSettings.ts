@@ -243,7 +243,8 @@ export const SiteSettings: GlobalConfig = {
                 {
                   name: 'paymentMethods',
                   type: 'array',
-                  label: false,
+                  label: 'Payment Methods',
+                  labels: { singular: 'Payment Method', plural: 'Payment Methods' },
                   admin: { description: 'Kosongkan kalau tidak mau tampil.' },
                   fields: [
                     {

@@ -77,7 +77,8 @@ export const FooterSettings: GlobalConfig = {
                 {
                   name: 'layoutColumns',
                   type: 'array',
-                  label: false,
+                  label: 'Footer Columns',
+                  labels: { singular: 'Column', plural: 'Columns' },
                   minRows: 0,
                   maxRows: 4,
                   admin: {
