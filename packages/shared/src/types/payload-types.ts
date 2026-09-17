@@ -90,6 +90,9 @@ export interface Config {
     media: Media;
     users: User;
     'newsletter-subscribers': NewsletterSubscriber;
+    'chat-visitors': ChatVisitor;
+    'chat-messages': ChatMessage;
+    'chat-blocked-events': ChatBlockedEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -120,6 +123,9 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
+    'chat-visitors': ChatVisitorsSelect<false> | ChatVisitorsSelect<true>;
+    'chat-messages': ChatMessagesSelect<false> | ChatMessagesSelect<true>;
+    'chat-blocked-events': ChatBlockedEventsSelect<false> | ChatBlockedEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -138,6 +144,7 @@ export interface Config {
     'announcement-bar': AnnouncementBar;
     'promo-banner': PromoBanner;
     'blog-settings': BlogSetting;
+    'chat-widget': ChatWidget;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
@@ -148,6 +155,7 @@ export interface Config {
     'announcement-bar': AnnouncementBarSelect<false> | AnnouncementBarSelect<true>;
     'promo-banner': PromoBannerSelect<false> | PromoBannerSelect<true>;
     'blog-settings': BlogSettingsSelect<false> | BlogSettingsSelect<true>;
+    'chat-widget': ChatWidgetSelect<false> | ChatWidgetSelect<true>;
   };
   locale: null;
   widgets: {
@@ -29918,6 +29926,146 @@ export interface NewsletterSubscriber {
   createdAt: string;
 }
 /**
+ * Visitor records untuk chat widget. Cookie ID + IP hash (bukan raw IP). Populated server-side.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-visitors".
+ */
+export interface ChatVisitor {
+  id: number;
+  /**
+   * Opaque cookie ID (server-signed).
+   */
+  visitorId: string;
+  /**
+   * HMAC-SHA256(salt, ip). Salt di env (ipHashSaltRef).
+   */
+  ipHash?: string | null;
+  /**
+   * SHA-256(user-agent). Untuk fingerprinting kasar.
+   */
+  userAgentHash?: string | null;
+  /**
+   * ISO-3166-1 alpha-2 dari CF-IPCountry.
+   */
+  country?: string | null;
+  status: 'active' | 'throttled' | 'blocked';
+  /**
+   * Cooldown expiry. Null = permanent kalau status=blocked.
+   */
+  blockedUntil?: string | null;
+  blockReason?: string | null;
+  messageCount?: number | null;
+  firstSeenAt?: string | null;
+  lastSeenAt?: string | null;
+  /**
+   * Free-form signals (bot heuristics, verification history, dsb). Scalability: rule baru menulis di sini tanpa migrasi.
+   */
+  context?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Audit log per message untuk channel yang backend-hit (AI, Email).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-messages".
+ */
+export interface ChatMessage {
+  id: number;
+  visitor?: (number | null) | ChatVisitor;
+  /**
+   * UUID per panel-open (bukan cookie visitor).
+   */
+  sessionId?: string | null;
+  channelType: 'whatsappChannel' | 'aiChatbotChannel' | 'liveChatChannel' | 'emailChannel';
+  direction: 'in' | 'out';
+  /**
+   * SHA-256 body. Untuk dedup detection.
+   */
+  contentHash?: string | null;
+  contentLength?: number | null;
+  /**
+   * Raw body. Optional (retention job akan clear ini setelah auditRetentionDays lewat, meta tetap disimpan).
+   */
+  content?: string | null;
+  wasBlocked?: boolean | null;
+  /**
+   * Generic string (mis. "rate_limit_exceeded", "duplicate", "keyword").
+   */
+  blockReason?: string | null;
+  /**
+   * 0.0-1.0. Composite dari signal aktif.
+   */
+  spamScore?: number | null;
+  verificationProvider?: ('none' | 'turnstile' | 'recaptcha_v3') | null;
+  verificationScore?: number | null;
+  ipHash?: string | null;
+  /**
+   * Metadata bebas (mis. AI provider request_id, token count, error). Signal baru tanpa migrasi.
+   */
+  context?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Audit trail setiap kali security layer memblokir/challenge.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-blocked-events".
+ */
+export interface ChatBlockedEvent {
+  id: number;
+  visitor?: (number | null) | ChatVisitor;
+  sessionId?: string | null;
+  /**
+   * Message yang men-trigger (kalau layer berjalan setelah content parsing). Null kalau block terjadi di layer awal.
+   */
+  message?: (number | null) | ChatMessage;
+  layer: 'rateLimit' | 'humanVerification' | 'backendValidation' | 'botSignals' | 'ipControls';
+  /**
+   * Kebab-case rule ID (mis. "rate-limit.5-per-min", "honeypot", "keyword-blocklist"). Tambah rule baru = string baru, no migration.
+   */
+  ruleTriggered: string;
+  action: 'block' | 'challenge' | 'log';
+  ipHash?: string | null;
+  country?: string | null;
+  /**
+   * Raw UA untuk audit. Bisa hash kalau privacy stricter dibutuhkan.
+   */
+  userAgent?: string | null;
+  /**
+   * Snapshot signal (mis. { windowLimit: 5, actualCount: 8, keyword: "***", timingMs: 320 }). Rule baru tulis di sini.
+   */
+  context?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -30032,6 +30180,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'newsletter-subscribers';
         value: number | NewsletterSubscriber;
+      } | null)
+    | ({
+        relationTo: 'chat-visitors';
+        value: number | ChatVisitor;
+      } | null)
+    | ({
+        relationTo: 'chat-messages';
+        value: number | ChatMessage;
+      } | null)
+    | ({
+        relationTo: 'chat-blocked-events';
+        value: number | ChatBlockedEvent;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -43675,6 +43835,65 @@ export interface NewsletterSubscribersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-visitors_select".
+ */
+export interface ChatVisitorsSelect<T extends boolean = true> {
+  visitorId?: T;
+  ipHash?: T;
+  userAgentHash?: T;
+  country?: T;
+  status?: T;
+  blockedUntil?: T;
+  blockReason?: T;
+  messageCount?: T;
+  firstSeenAt?: T;
+  lastSeenAt?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-messages_select".
+ */
+export interface ChatMessagesSelect<T extends boolean = true> {
+  visitor?: T;
+  sessionId?: T;
+  channelType?: T;
+  direction?: T;
+  contentHash?: T;
+  contentLength?: T;
+  content?: T;
+  wasBlocked?: T;
+  blockReason?: T;
+  spamScore?: T;
+  verificationProvider?: T;
+  verificationScore?: T;
+  ipHash?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-blocked-events_select".
+ */
+export interface ChatBlockedEventsSelect<T extends boolean = true> {
+  visitor?: T;
+  sessionId?: T;
+  message?: T;
+  layer?: T;
+  ruleTriggered?: T;
+  action?: T;
+  ipHash?: T;
+  country?: T;
+  userAgent?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -44587,6 +44806,489 @@ export interface BlogSetting {
   createdAt?: string | null;
 }
 /**
+ * Floating chat widget kanan-bawah. Channel-agnostic: bisa berisi WhatsApp, AI chatbot, live chat, email. Master toggle di Pengaturan Fitur → WhatsApp Floating Button.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-widget".
+ */
+export interface ChatWidget {
+  id: number;
+  /**
+   * Master toggle untuk chat widget. Selain ini, feature flag global (Pengaturan Fitur → WhatsApp Floating Button) tetap dihormati.
+   */
+  enabled?: boolean | null;
+  /**
+   * Tentukan di halaman mana widget tampil.
+   */
+  displayScope?: ('all' | 'home' | 'custom') | null;
+  /**
+   * Halaman spesifik yang menampilkan widget.
+   */
+  includePages?: (number | Page)[] | null;
+  /**
+   * Halaman yang di-blacklist. Berlaku juga saat displayScope = "Semua halaman".
+   */
+  excludePages?: (number | Page)[] | null;
+  /**
+   * Sembunyikan di viewport < 768px.
+   */
+  hideOnMobile?: boolean | null;
+  /**
+   * Sembunyikan di viewport ≥ 768px.
+   */
+  hideOnDesktop?: boolean | null;
+  position?: ('bottomRight' | 'bottomLeft') | null;
+  /**
+   * px dari edge horizontal.
+   */
+  offsetX?: number | null;
+  /**
+   * px dari edge vertikal.
+   */
+  offsetY?: number | null;
+  buttonStyle?: ('iconOnly' | 'pill') | null;
+  /**
+   * Teks di sebelah ikon (untuk style pill).
+   */
+  buttonLabel?: string | null;
+  /**
+   * HEX. Default WA green. Warna per-channel bisa override lewat brandColorOverride.
+   */
+  brandColor?: string | null;
+  size?: ('sm' | 'md' | 'lg') | null;
+  /**
+   * Efek denyut halus untuk narik perhatian.
+   */
+  pulseAnimation?: boolean | null;
+  entranceAnimation?: ('none' | 'fadeUp' | 'pop') | null;
+  popupTitle?: string | null;
+  popupSubtitle?: string | null;
+  /**
+   * Nama tim (opsional). Ditampilkan di header popup.
+   */
+  brandName?: string | null;
+  /**
+   * Logo/avatar di header popup (opsional).
+   */
+  headerAvatar?: (number | null) | Media;
+  /**
+   * Tampilkan indikator dot hijau "Online now" (berdasarkan business hours).
+   */
+  showOnlineBadge?: boolean | null;
+  /**
+   * Animasi titik-titik "sedang mengetik" di header popup.
+   */
+  showTypingIndicator?: boolean | null;
+  /**
+   * Minimal 1 channel. WhatsApp adalah default untuk site ini.
+   */
+  channels?:
+    | (
+        | {
+            /**
+             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             */
+            enabled?: boolean | null;
+            /**
+             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             */
+            label: string;
+            /**
+             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             */
+            subtitle?: string | null;
+            /**
+             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             */
+            agentName?: string | null;
+            /**
+             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             */
+            agentAvatar?: (number | null) | Media;
+            /**
+             * Override ikon kartu (default = mengikuti tipe channel).
+             */
+            iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
+            /**
+             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             */
+            brandColorOverride?: string | null;
+            /**
+             * Digits + country code, tanpa "+" (mis. 6281234567890). Kosong = fallback ke SiteSettings.contact.whatsapp.
+             */
+            whatsappNumber?: string | null;
+            /**
+             * Pesan pre-fill saat visitor klik. Kosong = fallback ke SiteSettings.whatsappDefaults.greetingMessage (legacy).
+             */
+            prefilledMessage?: string | null;
+            /**
+             * Append UTM params ke wa.me link untuk tracking di analytics.
+             */
+            appendUtm?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'whatsappChannel';
+          }
+        | {
+            /**
+             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             */
+            enabled?: boolean | null;
+            /**
+             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             */
+            label: string;
+            /**
+             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             */
+            subtitle?: string | null;
+            /**
+             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             */
+            agentName?: string | null;
+            /**
+             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             */
+            agentAvatar?: (number | null) | Media;
+            /**
+             * Override ikon kartu (default = mengikuti tipe channel).
+             */
+            iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
+            /**
+             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             */
+            brandColorOverride?: string | null;
+            provider?: ('anthropic' | 'openai' | 'workers-ai' | 'custom') | null;
+            /**
+             * Model ID. mis. claude-haiku-4-5, gpt-4o-mini, @cf/meta/llama-3.1-8b.
+             */
+            model?: string | null;
+            /**
+             * HTTPS endpoint untuk provider custom.
+             */
+            endpointUrl?: string | null;
+            /**
+             * System prompt untuk chatbot. Jelaskan brand, tone, batasan, dan escalation ke WA.
+             */
+            systemPrompt?: string | null;
+            /**
+             * Balasan pertama chatbot saat panel dibuka.
+             */
+            welcomeMessage?: string | null;
+            /**
+             * Streaming token-by-token (SSE).
+             */
+            streaming?: boolean | null;
+            /**
+             * NAMA env variable (mis. ANTHROPIC_API_KEY). JANGAN paste raw API key di sini.
+             */
+            apiKeyRef?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'aiChatbotChannel';
+          }
+        | {
+            /**
+             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             */
+            enabled?: boolean | null;
+            /**
+             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             */
+            label: string;
+            /**
+             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             */
+            subtitle?: string | null;
+            /**
+             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             */
+            agentName?: string | null;
+            /**
+             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             */
+            agentAvatar?: (number | null) | Media;
+            /**
+             * Override ikon kartu (default = mengikuti tipe channel).
+             */
+            iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
+            /**
+             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             */
+            brandColorOverride?: string | null;
+            provider?: ('crisp' | 'tawk' | 'intercom') | null;
+            /**
+             * Site/widget ID dari dashboard provider.
+             */
+            siteId?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'liveChatChannel';
+          }
+        | {
+            /**
+             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             */
+            enabled?: boolean | null;
+            /**
+             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             */
+            label: string;
+            /**
+             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             */
+            subtitle?: string | null;
+            /**
+             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             */
+            agentName?: string | null;
+            /**
+             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             */
+            agentAvatar?: (number | null) | Media;
+            /**
+             * Override ikon kartu (default = mengikuti tipe channel).
+             */
+            iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
+            /**
+             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             */
+            brandColorOverride?: string | null;
+            /**
+             * Alamat email tujuan.
+             */
+            toAddress: string;
+            defaultSubject?: string | null;
+            defaultBody?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'emailChannel';
+          }
+      )[]
+    | null;
+  /**
+   * Aktifkan business hours untuk logic online/offline.
+   */
+  enableBusinessHours?: boolean | null;
+  /**
+   * IANA timezone (mis. Asia/Makassar, Asia/Jakarta, Asia/Denpasar).
+   */
+  timezone?: string | null;
+  /**
+   * Satu row per hari. Format 24-jam (HH:mm).
+   */
+  hours?:
+    | {
+        day: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+        closed?: boolean | null;
+        /**
+         * HH:mm
+         */
+        open?: string | null;
+        /**
+         * HH:mm
+         */
+        close?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  offlineBehavior?: ('showAnyway' | 'showOfflineNotice' | 'hideButton') | null;
+  /**
+   * Pesan yang ditampilkan di popup saat di luar jam operasional.
+   */
+  offlineMessage?: string | null;
+  /**
+   * Detik sebelum tombol tampil (0 = segera).
+   */
+  showDelaySeconds?: number | null;
+  /**
+   * 0-100. 0 = tampil segera. 30 = setelah scroll 30% page.
+   */
+  showAfterScrollPct?: number | null;
+  /**
+   * Detik sebelum panel auto-open (sekali per session). Kosong = disabled.
+   */
+  autoOpenOnceAfter?: number | null;
+  /**
+   * Auto-open panel saat mouse keluar viewport (desktop only, sekali per session).
+   */
+  exitIntentDesktop?: boolean | null;
+  /**
+   * Beri visitor tombol close permanen.
+   */
+  dismissible?: boolean | null;
+  /**
+   * Jam sebelum widget muncul lagi setelah dismiss.
+   */
+  dismissMemoryHours?: number | null;
+  /**
+   * Di mobile, popup jadi bottom-sheet fullscreen (bukan floating card).
+   */
+  mobileFullscreenSheet?: boolean | null;
+  /**
+   * GA4 event name saat channel diklik.
+   */
+  gaEventName?: string | null;
+  /**
+   * Kirim event ke Cloudflare Web Analytics bila tersedia.
+   */
+  cloudflareTracking?: boolean | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  /**
+   * Render widget hanya setelah cookie consent diterima (kalau ada consent gate).
+   */
+  requireConsent?: boolean | null;
+  /**
+   * Version tag untuk config security. Naik saat schema/logic security di-upgrade — backend branch logic berdasarkan version, TIDAK butuh migrasi data.
+   */
+  securityVersion?: number | null;
+  /**
+   * Aktifkan layer secara independen. Layer baru di rilis mendatang cukup ditambah sebagai option — config lama tetap valid.
+   */
+  enabledLayers?: ('rateLimit' | 'humanVerification' | 'backendValidation' | 'botSignals' | 'ipControls')[] | null;
+  /**
+   * Kombinasi rule di-AND (semua harus lolos).
+   */
+  rateLimitRules?:
+    | {
+        /**
+         * Jumlah request maks.
+         */
+        limitCount: number;
+        /**
+         * Window dalam detik.
+         */
+        windowSeconds: number;
+        keyBy: 'ip' | 'visitor' | 'both';
+        /**
+         * global = semua channel, atau per channel.
+         */
+        scope?: ('global' | 'perChannel') | null;
+        action?: ('block' | 'challenge' | 'log') | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Setelah rule triggered dengan action=block, durasi cooldown sebelum visitor bisa lagi.
+   */
+  blockDurationSeconds?: number | null;
+  verificationProvider?: ('none' | 'turnstile' | 'recaptcha_v3') | null;
+  /**
+   * PUBLIC site key (aman disimpan). Turnstile: dari dashboard.cloudflare.com. reCAPTCHA: dari google.com/recaptcha.
+   */
+  verificationSiteKey?: string | null;
+  /**
+   * NAMA env variable secret key (mis. TURNSTILE_SECRET_KEY). JANGAN paste raw secret.
+   */
+  verificationSecretKeyRef?: string | null;
+  /**
+   * reCAPTCHA v3 only. Range 0.0-1.0. Score < min → blocked.
+   */
+  verificationMinScore?: number | null;
+  verificationMode?: ('silent' | 'onSuspicion' | 'alwaysVisible') | null;
+  /**
+   * Channel mana yang butuh verifikasi. Default: hanya AI & Email (backend-hit).
+   */
+  verificationChannels?: ('whatsappChannel' | 'aiChatbotChannel' | 'liveChatChannel' | 'emailChannel')[] | null;
+  /**
+   * Tombol send disabled selama ini setelah klik (ms).
+   */
+  sendCooldownMs?: number | null;
+  /**
+   * Interval min antar send di same session (ms). Server reject bila kurang.
+   */
+  clientMinIntervalMs?: number | null;
+  minMessageLength?: number | null;
+  maxMessageLength?: number | null;
+  /**
+   * Reject pesan identik dengan pesan sebelumnya di session yang sama.
+   */
+  blockDuplicateConsecutive?: boolean | null;
+  /**
+   * Window untuk dedup by content-hash (bukan hanya consecutive). 0 = disabled.
+   */
+  blockDuplicateWindowMinutes?: number | null;
+  /**
+   * Case-insensitive substring match. Message yang mengandung keyword ini akan di-reject.
+   */
+  blockedKeywords?:
+    | {
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * JavaScript regex (tanpa slash). Diuji di backend.
+   */
+  blockedPatterns?:
+    | {
+        pattern: string;
+        flags?: string | null;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Field hidden yang harus tetap kosong. Bot naive akan mengisinya → auto-block.
+   */
+  enableHoneypot?: boolean | null;
+  /**
+   * Tolak submit yang datang < minFormFillMs setelah panel dibuka (bot instant-fill).
+   */
+  enableTimingCheck?: boolean | null;
+  minFormFillMs?: number | null;
+  /**
+   * Block UA yang cocok blocklist bawaan (curl, headless, dsb).
+   */
+  enableUserAgentCheck?: boolean | null;
+  /**
+   * Regex tambahan untuk UA blocking.
+   */
+  customBlockedUserAgents?:
+    | {
+        pattern: string;
+        id?: string | null;
+      }[]
+    | null;
+  blockedIps?:
+    | {
+        /**
+         * Single IP atau CIDR (mis. 1.2.3.0/24).
+         */
+        value: string;
+        note?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  countryMode?: ('off' | 'allowlist' | 'blocklist') | null;
+  countryCodes?:
+    | {
+        /**
+         * ISO-3166-1 alpha-2 (mis. ID, US, SG).
+         */
+        code: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Nama cookie visitor ID. HttpOnly + SameSite=Lax + Secure.
+   */
+  visitorCookieName?: string | null;
+  visitorCookieTtlDays?: number | null;
+  /**
+   * NAMA env variable untuk HMAC salt. IP disimpan sebagai HMAC-SHA256(salt, ip). Rotasi salt akan me-invalidate riwayat.
+   */
+  ipHashSaltRef?: string | null;
+  /**
+   * chat-messages & chat-blocked-events di-purge setelah N hari. 0 = disabled (retain forever).
+   */
+  auditRetentionDays?: number | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -45003,6 +45705,200 @@ export interface BlogSettingsSelect<T extends boolean = true> {
         showNewsletter?: T;
         newsletterHeading?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-widget_select".
+ */
+export interface ChatWidgetSelect<T extends boolean = true> {
+  enabled?: T;
+  displayScope?: T;
+  includePages?: T;
+  excludePages?: T;
+  hideOnMobile?: T;
+  hideOnDesktop?: T;
+  position?: T;
+  offsetX?: T;
+  offsetY?: T;
+  buttonStyle?: T;
+  buttonLabel?: T;
+  brandColor?: T;
+  size?: T;
+  pulseAnimation?: T;
+  entranceAnimation?: T;
+  popupTitle?: T;
+  popupSubtitle?: T;
+  brandName?: T;
+  headerAvatar?: T;
+  showOnlineBadge?: T;
+  showTypingIndicator?: T;
+  channels?:
+    | T
+    | {
+        whatsappChannel?:
+          | T
+          | {
+              enabled?: T;
+              label?: T;
+              subtitle?: T;
+              agentName?: T;
+              agentAvatar?: T;
+              iconOverride?: T;
+              brandColorOverride?: T;
+              whatsappNumber?: T;
+              prefilledMessage?: T;
+              appendUtm?: T;
+              id?: T;
+              blockName?: T;
+            };
+        aiChatbotChannel?:
+          | T
+          | {
+              enabled?: T;
+              label?: T;
+              subtitle?: T;
+              agentName?: T;
+              agentAvatar?: T;
+              iconOverride?: T;
+              brandColorOverride?: T;
+              provider?: T;
+              model?: T;
+              endpointUrl?: T;
+              systemPrompt?: T;
+              welcomeMessage?: T;
+              streaming?: T;
+              apiKeyRef?: T;
+              id?: T;
+              blockName?: T;
+            };
+        liveChatChannel?:
+          | T
+          | {
+              enabled?: T;
+              label?: T;
+              subtitle?: T;
+              agentName?: T;
+              agentAvatar?: T;
+              iconOverride?: T;
+              brandColorOverride?: T;
+              provider?: T;
+              siteId?: T;
+              id?: T;
+              blockName?: T;
+            };
+        emailChannel?:
+          | T
+          | {
+              enabled?: T;
+              label?: T;
+              subtitle?: T;
+              agentName?: T;
+              agentAvatar?: T;
+              iconOverride?: T;
+              brandColorOverride?: T;
+              toAddress?: T;
+              defaultSubject?: T;
+              defaultBody?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  enableBusinessHours?: T;
+  timezone?: T;
+  hours?:
+    | T
+    | {
+        day?: T;
+        closed?: T;
+        open?: T;
+        close?: T;
+        id?: T;
+      };
+  offlineBehavior?: T;
+  offlineMessage?: T;
+  showDelaySeconds?: T;
+  showAfterScrollPct?: T;
+  autoOpenOnceAfter?: T;
+  exitIntentDesktop?: T;
+  dismissible?: T;
+  dismissMemoryHours?: T;
+  mobileFullscreenSheet?: T;
+  gaEventName?: T;
+  cloudflareTracking?: T;
+  utmSource?: T;
+  utmMedium?: T;
+  utmCampaign?: T;
+  requireConsent?: T;
+  securityVersion?: T;
+  enabledLayers?: T;
+  rateLimitRules?:
+    | T
+    | {
+        limitCount?: T;
+        windowSeconds?: T;
+        keyBy?: T;
+        scope?: T;
+        action?: T;
+        id?: T;
+      };
+  blockDurationSeconds?: T;
+  verificationProvider?: T;
+  verificationSiteKey?: T;
+  verificationSecretKeyRef?: T;
+  verificationMinScore?: T;
+  verificationMode?: T;
+  verificationChannels?: T;
+  sendCooldownMs?: T;
+  clientMinIntervalMs?: T;
+  minMessageLength?: T;
+  maxMessageLength?: T;
+  blockDuplicateConsecutive?: T;
+  blockDuplicateWindowMinutes?: T;
+  blockedKeywords?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  blockedPatterns?:
+    | T
+    | {
+        pattern?: T;
+        flags?: T;
+        note?: T;
+        id?: T;
+      };
+  enableHoneypot?: T;
+  enableTimingCheck?: T;
+  minFormFillMs?: T;
+  enableUserAgentCheck?: T;
+  customBlockedUserAgents?:
+    | T
+    | {
+        pattern?: T;
+        id?: T;
+      };
+  blockedIps?:
+    | T
+    | {
+        value?: T;
+        note?: T;
+        id?: T;
+      };
+  countryMode?: T;
+  countryCodes?:
+    | T
+    | {
+        code?: T;
+        id?: T;
+      };
+  visitorCookieName?: T;
+  visitorCookieTtlDays?: T;
+  ipHashSaltRef?: T;
+  auditRetentionDays?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

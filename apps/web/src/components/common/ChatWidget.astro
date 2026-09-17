@@ -1,0 +1,787 @@
+---
+import Icon from '@components/common/Icon.astro'
+import { siteConfig } from '@config/site'
+import { getSiteSettings, getChatWidget } from '@lib/payload'
+import { isFeatureEnabled } from '@lib/features'
+import { resolveChannels } from '@lib/chat-channels'
+
+/**
+ * ChatWidget — Phase 4.50.6.
+ *
+ * Channel-agnostic floating chat widget dengan AI panel inline.
+ * - Menu mode: kartu list per channel (WA link / Email mailto / AI panel).
+ * - Chat mode: AI conversation thread (POST /api/chat/send).
+ *
+ * Frontend enforcement (Phase 4.50.6):
+ *   - Turnstile mount (invisible) — bila verificationProvider=turnstile & channel di whitelist
+ *   - Honeypot hidden field
+ *   - formOpenedAt timing (min form-fill)
+ *   - sendCooldownMs button disable setelah click
+ *   - maxlength textarea + JS trim
+ *   - Duplicate consecutive: reject di client sebelum fetch
+ *
+ * Behavior enforcement (Phase 4.50.6):
+ *   - showDelaySeconds — delay button appear
+ *   - showAfterScrollPct — muncul setelah scroll %
+ *   - autoOpenOnceAfter — auto-open sekali per session
+ *   - exitIntentDesktop — auto-open saat mouse keluar viewport
+ *   - dismissible — close permanen dengan localStorage TTL
+ *
+ * Server-side security enforcement + audit di /api/chat/send (Phase 4.50.5).
+ */
+
+interface Props {
+  pathname?: string
+}
+const { pathname = '/' } = Astro.props
+
+const featureEnabled = await isFeatureEnabled('whatsappFloat')
+
+const [widget, settings] = await Promise.all([
+  getChatWidget().catch(() => null),
+  getSiteSettings().catch(() => null),
+])
+
+const enabled = widget?.enabled !== false && featureEnabled
+
+const scope = widget?.displayScope ?? 'all'
+const isHome = pathname === '/' || pathname === ''
+let inScope = true
+if (scope === 'home') inScope = isHome
+if (scope === 'custom') inScope = true // relationship filter → phase lanjut
+
+const fallbackNumber =
+  settings?.contact?.whatsapp ??
+  (settings as any)?.whatsappDefaults?.defaultNumber ??
+  siteConfig.contact.whatsapp
+
+const fallbackMessage =
+  (settings as any)?.whatsappDefaults?.greetingMessage ??
+  'Halo DnJourneysBali! 👋\n\nSaya mau tanya-tanya dulu tentang layanan yang tersedia.'
+
+const utm = widget
+  ? {
+      source: widget.utmSource ?? undefined,
+      medium: widget.utmMedium ?? undefined,
+      campaign: widget.utmCampaign ?? undefined,
+    }
+  : undefined
+
+let channels = resolveChannels(widget?.channels ?? [], {
+  fallbackWhatsappNumber: fallbackNumber,
+  fallbackWhatsappMessage: fallbackMessage,
+  utm,
+})
+if (channels.length === 0 && fallbackNumber) {
+  channels = resolveChannels(
+    [
+      {
+        blockType: 'whatsappChannel',
+        enabled: true,
+        label: `${settings?.siteName ?? siteConfig.name} — General`,
+        subtitle: 'Have a question? Chat with us',
+        whatsappNumber: fallbackNumber,
+        prefilledMessage: fallbackMessage,
+        appendUtm: false,
+      },
+    ],
+    { fallbackWhatsappNumber: fallbackNumber, fallbackWhatsappMessage: fallbackMessage, utm },
+  )
+}
+
+const shouldRender = enabled && inScope && channels.length > 0
+
+// Appearance
+const position: string = widget?.position ?? 'bottomRight'
+const offsetX = Number.isFinite(widget?.offsetX) ? widget.offsetX : 24
+const offsetY = Number.isFinite(widget?.offsetY) ? widget.offsetY : 24
+const globalBrand: string = widget?.brandColor ?? '#25D366'
+const sizeKey: 'sm' | 'md' | 'lg' = widget?.size ?? 'md'
+const sizePx = sizeKey === 'sm' ? 48 : sizeKey === 'lg' ? 64 : 56
+
+const popupTitle: string = widget?.popupTitle ?? 'Start a Conversation'
+const popupSubtitle: string = widget?.popupSubtitle ?? 'The team typically replies in a few minutes.'
+const brandName: string | undefined = widget?.brandName ?? undefined
+const headerAvatarUrl =
+  typeof widget?.headerAvatar === 'object' ? widget.headerAvatar?.url ?? null : null
+
+const positionStyles =
+  position === 'bottomLeft'
+    ? `left: ${offsetX}px; right: auto; bottom: ${offsetY}px;`
+    : `right: ${offsetX}px; left: auto; bottom: ${offsetY}px;`
+
+const popupOriginClass =
+  position === 'bottomLeft' ? 'origin-bottom-left' : 'origin-bottom-right'
+const popupAlignClass = position === 'bottomLeft' ? 'left-0' : 'right-0'
+
+// Client config — di-serialize sebagai JSON di script tag.
+const enabledLayers: string[] = widget?.enabledLayers ?? ['rateLimit', 'backendValidation']
+const verificationChannels: string[] = widget?.verificationChannels ?? []
+const clientConfig = {
+  security: {
+    verificationProvider: enabledLayers.includes('humanVerification')
+      ? (widget?.verificationProvider ?? 'none')
+      : 'none',
+    verificationSiteKey: widget?.verificationSiteKey ?? '',
+    verificationChannels,
+    sendCooldownMs: Number.isFinite(widget?.sendCooldownMs) ? widget.sendCooldownMs : 1500,
+    clientMinIntervalMs: Number.isFinite(widget?.clientMinIntervalMs) ? widget.clientMinIntervalMs : 800,
+    minMessageLength: Number.isFinite(widget?.minMessageLength) ? widget.minMessageLength : 2,
+    maxMessageLength: Number.isFinite(widget?.maxMessageLength) ? widget.maxMessageLength : 1000,
+    blockDuplicateConsecutive: widget?.blockDuplicateConsecutive !== false,
+    enableHoneypot: widget?.enableHoneypot !== false,
+    enableTimingCheck: widget?.enableTimingCheck !== false,
+    minFormFillMs: Number.isFinite(widget?.minFormFillMs) ? widget.minFormFillMs : 1500,
+  },
+  behavior: {
+    showDelaySeconds: Number.isFinite(widget?.showDelaySeconds) ? widget.showDelaySeconds : 0,
+    showAfterScrollPct: Number.isFinite(widget?.showAfterScrollPct) ? widget.showAfterScrollPct : 0,
+    autoOpenOnceAfter: Number.isFinite(widget?.autoOpenOnceAfter) ? widget.autoOpenOnceAfter : null,
+    exitIntentDesktop: !!widget?.exitIntentDesktop,
+    dismissible: !!widget?.dismissible,
+    dismissMemoryHours: Number.isFinite(widget?.dismissMemoryHours) ? widget.dismissMemoryHours : 24,
+  },
+  ui: { globalBrand },
+}
+---
+
+{shouldRender && (
+  <div
+    class="chat-widget-container fixed z-50 opacity-0"
+    style={positionStyles}
+    data-open="false"
+    data-mode="menu"
+  >
+    <!-- Popup panel: has 2 view modes swapped via data-mode -->
+    <div
+      class={`chat-widget-popup absolute bottom-full ${popupAlignClass} mb-4 w-80 rounded-2xl overflow-hidden shadow-2xl ${popupOriginClass} opacity-0 pointer-events-none`}
+      style="max-width: calc(100vw - 3rem);"
+      role="dialog"
+      aria-labelledby="chat-widget-title"
+    >
+      <!-- Shared header -->
+      <div class="text-white p-5 flex items-center gap-3" style={`background-color: ${globalBrand};`}>
+        <button
+          type="button"
+          class="chat-back-btn hidden w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 hover:bg-white/30 transition-colors"
+          aria-label="Back to menu"
+        >
+          <Icon name="chevron_left" class="w-4 h-4" />
+        </button>
+        <div class="chat-header-avatar w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0 overflow-hidden">
+          {headerAvatarUrl
+            ? <img src={headerAvatarUrl} alt="" class="w-full h-full object-cover" />
+            : <Icon name="chat" class="w-5 h-5" />
+          }
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 id="chat-widget-title" class="chat-header-title font-display text-lg font-bold leading-tight truncate">
+            {popupTitle}
+          </h3>
+          {brandName && <p class="chat-header-sub text-xs opacity-90 truncate">{brandName}</p>}
+        </div>
+        {clientConfig.behavior.dismissible && (
+          <button
+            type="button"
+            class="chat-dismiss-btn w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 hover:bg-white/30 transition-colors"
+            aria-label="Dismiss chat"
+            title="Sembunyikan"
+          >
+            <Icon name="close" class="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      <!-- MENU VIEW: channel list -->
+      <div class="chat-view-menu bg-white p-4 space-y-3">
+        <p class="text-xs text-stone-light px-1">{popupSubtitle}</p>
+
+        {channels.map((ch) => (
+          <button
+            type="button"
+            class="chat-channel-btn w-full flex items-center gap-3 p-3 bg-sand hover:bg-sand-dark/40 rounded-xl transition-colors border-l-4 no-underline group text-left"
+            style={`border-color: ${ch.brandColor};`}
+            data-channel-key={ch.key}
+            data-channel-type={ch.blockType}
+            data-channel-index={ch.channelIndex}
+            data-channel-mode={ch.mode}
+            data-channel-href={ch.href ?? ''}
+            data-channel-brand={ch.brandColor}
+            data-channel-icon={ch.iconName}
+            data-channel-label={ch.label}
+            data-channel-welcome={ch.welcomeMessage ?? ''}
+          >
+            <div
+              class="w-11 h-11 rounded-full text-white flex items-center justify-center shrink-0 overflow-hidden"
+              style={`background-color: ${ch.brandColor};`}
+            >
+              {ch.agentAvatarUrl
+                ? <img src={ch.agentAvatarUrl} alt="" class="w-full h-full object-cover" />
+                : <Icon name={ch.iconName} class="w-6 h-6" />
+              }
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-ocean text-sm truncate">
+                {ch.label}
+                {ch.agentName && <span class="font-normal text-stone-light"> · {ch.agentName}</span>}
+              </p>
+              <p class="text-xs text-stone-light truncate">{ch.subtitle}</p>
+            </div>
+            <Icon name={ch.iconName} class="w-5 h-5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
+          </button>
+        ))}
+      </div>
+
+      <!-- CHAT VIEW: AI conversation thread (hidden by default) -->
+      <div class="chat-view-chat hidden bg-white flex flex-col" style="max-height: 480px;">
+        <div class="chat-thread flex-1 overflow-y-auto p-4 space-y-3" style="min-height: 200px;">
+          <!-- messages inserted here at runtime -->
+        </div>
+        <div class="chat-error hidden px-4 py-2 text-xs text-red-600 border-t border-red-100 bg-red-50"></div>
+        <form class="chat-form border-t border-stone-light/20 p-3 flex flex-col gap-2" autocomplete="off">
+          {/* Honeypot — hidden field. Bot naive akan fill. */}
+          {clientConfig.security.enableHoneypot && (
+            <div style="position:absolute; left:-9999px; height:0; overflow:hidden;" aria-hidden="true">
+              <label>Website
+                <input type="text" name="website" class="chat-honeypot" tabindex="-1" autocomplete="off" />
+              </label>
+            </div>
+          )}
+          <textarea
+            class="chat-input w-full text-sm border border-stone-light/30 rounded-lg p-2 resize-none focus:outline-none focus:ring-2"
+            style={`--tw-ring-color: ${globalBrand};`}
+            rows="2"
+            placeholder="Tulis pesan..."
+            maxlength={clientConfig.security.maxMessageLength}
+            aria-label="Message"
+          ></textarea>
+          <div class="flex items-center justify-between gap-2">
+            <span class="chat-charcount text-[10px] text-stone-light">
+              0 / {clientConfig.security.maxMessageLength}
+            </span>
+            <button
+              type="submit"
+              class="chat-send-btn text-white text-sm font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              style={`background-color: ${globalBrand};`}
+              disabled
+            >
+              Send
+            </button>
+          </div>
+          {/* Turnstile mount point (invisible mode). Loaded conditionally. */}
+          <div class="chat-turnstile"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toggle button -->
+    <button
+      type="button"
+      class="chat-widget-toggle rounded-full text-white flex items-center justify-center shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
+      style={`background-color: ${globalBrand}; width: ${sizePx}px; height: ${sizePx}px;`}
+      aria-label="Open chat"
+      aria-expanded="false"
+      aria-haspopup="dialog"
+    >
+      <Icon name="chat" class={sizeKey === 'sm' ? 'w-6 h-6' : sizeKey === 'lg' ? 'w-8 h-8' : 'w-7 h-7'} />
+    </button>
+  </div>
+)}
+
+{shouldRender && (
+  <script type="application/json" id="chat-widget-config" set:html={JSON.stringify(clientConfig)}></script>
+)}
+
+<style>
+  @keyframes chat-widget-in {
+    from { opacity: 0; transform: scale(0.5) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .chat-widget-container[data-visible="true"] {
+    opacity: 1;
+  }
+  .chat-widget-container[data-visible="true"] .chat-widget-toggle {
+    animation: chat-widget-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chat-widget-container[data-visible="true"] .chat-widget-toggle { animation: none; }
+  }
+
+  .chat-msg {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .chat-msg.chat-msg-user {
+    margin-left: auto;
+    background-color: var(--brand, #7C3AED);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+  .chat-msg.chat-msg-bot {
+    background-color: #F5F5F4;
+    color: #1C1917;
+    border-bottom-left-radius: 4px;
+  }
+  .chat-typing {
+    display: inline-flex;
+    gap: 4px;
+    padding: 8px 12px;
+    background-color: #F5F5F4;
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+  }
+  .chat-typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background-color: #78716C;
+    animation: chat-dot 1.2s infinite ease-in-out both;
+  }
+  .chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes chat-dot {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+
+<script>
+  interface ClientConfig {
+    security: {
+      verificationProvider: 'none' | 'turnstile' | 'recaptcha_v3'
+      verificationSiteKey: string
+      verificationChannels: string[]
+      sendCooldownMs: number
+      clientMinIntervalMs: number
+      minMessageLength: number
+      maxMessageLength: number
+      blockDuplicateConsecutive: boolean
+      enableHoneypot: boolean
+      enableTimingCheck: boolean
+      minFormFillMs: number
+    }
+    behavior: {
+      showDelaySeconds: number
+      showAfterScrollPct: number
+      autoOpenOnceAfter: number | null
+      exitIntentDesktop: boolean
+      dismissible: boolean
+      dismissMemoryHours: number
+    }
+    ui: { globalBrand: string }
+  }
+
+  const DISMISS_KEY = 'dnj:chat-widget-dismissed'
+  const AUTO_OPEN_KEY = 'dnj:chat-widget-auto-opened'
+
+  const initChatWidget = () => {
+    const container = document.querySelector<HTMLElement>('.chat-widget-container')
+    if (!container) return
+    const cfgEl = document.getElementById('chat-widget-config')
+    if (!cfgEl) return
+    let cfg: ClientConfig
+    try { cfg = JSON.parse(cfgEl.textContent ?? '{}') } catch { return }
+
+    // ── Dismissible check ─────────────────────────────────────────
+    if (cfg.behavior.dismissible) {
+      try {
+        const raw = localStorage.getItem(DISMISS_KEY)
+        if (raw) {
+          const ts = Number(raw)
+          const ttlMs = cfg.behavior.dismissMemoryHours * 3600_000
+          if (Number.isFinite(ts) && Date.now() - ts < ttlMs) {
+            return // stay hidden
+          }
+          localStorage.removeItem(DISMISS_KEY)
+        }
+      } catch { /* localStorage blocked */ }
+    }
+
+    const toggle = container.querySelector<HTMLButtonElement>('.chat-widget-toggle')
+    const popup = container.querySelector<HTMLElement>('.chat-widget-popup')
+    const viewMenu = container.querySelector<HTMLElement>('.chat-view-menu')
+    const viewChat = container.querySelector<HTMLElement>('.chat-view-chat')
+    const backBtn = container.querySelector<HTMLButtonElement>('.chat-back-btn')
+    const dismissBtn = container.querySelector<HTMLButtonElement>('.chat-dismiss-btn')
+    const headerTitle = container.querySelector<HTMLElement>('.chat-header-title')
+    const form = container.querySelector<HTMLFormElement>('.chat-form')
+    const input = container.querySelector<HTMLTextAreaElement>('.chat-input')
+    const sendBtn = container.querySelector<HTMLButtonElement>('.chat-send-btn')
+    const thread = container.querySelector<HTMLElement>('.chat-thread')
+    const errorEl = container.querySelector<HTMLElement>('.chat-error')
+    const charCount = container.querySelector<HTMLElement>('.chat-charcount')
+    const honeypot = container.querySelector<HTMLInputElement>('.chat-honeypot')
+    const turnstileMount = container.querySelector<HTMLElement>('.chat-turnstile')
+
+    if (!toggle || !popup) return
+
+    // ── Behavior: reveal (delay / scroll) ─────────────────────────
+    const revealButton = () => {
+      container.setAttribute('data-visible', 'true')
+    }
+    const behavior = cfg.behavior
+    let revealed = false
+    const doReveal = () => { if (!revealed) { revealed = true; revealButton() } }
+
+    const delayMs = Math.max(0, behavior.showDelaySeconds * 1000)
+    const scrollPct = Math.max(0, Math.min(100, behavior.showAfterScrollPct))
+
+    if (scrollPct > 0) {
+      const check = () => {
+        const doc = document.documentElement
+        const total = doc.scrollHeight - doc.clientHeight
+        if (total <= 0) { doReveal(); return }
+        const pct = (window.scrollY / total) * 100
+        if (pct >= scrollPct) doReveal()
+      }
+      window.addEventListener('scroll', check, { passive: true })
+      check()
+    }
+
+    if (delayMs > 0) {
+      setTimeout(doReveal, delayMs)
+    }
+    if (scrollPct === 0 && delayMs === 0) {
+      doReveal()
+    }
+
+    // ── State ──────────────────────────────────────────────────────
+    let currentChannel: {
+      index: number
+      key: string
+      type: string
+      brand: string
+      label: string
+      welcome: string
+    } | null = null
+    let sessionId = ''
+    let panelOpenedAt = 0
+    let lastSendAt = 0
+    let lastInboundContent = ''
+    let sending = false
+    const messages: Array<{ role: 'user' | 'bot'; content: string }> = []
+    let turnstileWidgetId: any = null
+
+    const setPopupOpen = (open: boolean) => {
+      container.dataset.open = String(open)
+      toggle.setAttribute('aria-expanded', String(open))
+      if (open) {
+        popup.classList.remove('opacity-0', 'pointer-events-none')
+        popup.classList.add('opacity-100', 'pointer-events-auto')
+      } else {
+        popup.classList.remove('opacity-100', 'pointer-events-auto')
+        popup.classList.add('opacity-0', 'pointer-events-none')
+      }
+    }
+
+    const setMode = (mode: 'menu' | 'chat') => {
+      container.dataset.mode = mode
+      if (mode === 'menu') {
+        viewMenu?.classList.remove('hidden')
+        viewChat?.classList.add('hidden')
+        backBtn?.classList.add('hidden')
+        if (headerTitle) headerTitle.textContent = document.getElementById('chat-widget-title')?.getAttribute('data-original-title') ?? headerTitle.textContent
+      } else {
+        viewMenu?.classList.add('hidden')
+        viewChat?.classList.remove('hidden')
+        backBtn?.classList.remove('hidden')
+      }
+    }
+
+    // ── Turnstile loader ──────────────────────────────────────────
+    const loadTurnstileScript = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        if ((window as any).turnstile) { resolve(); return }
+        if (document.querySelector('script[data-turnstile-loader]')) {
+          const wait = setInterval(() => {
+            if ((window as any).turnstile) { clearInterval(wait); resolve() }
+          }, 100)
+          setTimeout(() => reject(new Error('turnstile_timeout')), 8000)
+          return
+        }
+        const s = document.createElement('script')
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+        s.async = true
+        s.defer = true
+        s.setAttribute('data-turnstile-loader', '1')
+        s.onload = () => resolve()
+        s.onerror = () => reject(new Error('turnstile_load_error'))
+        document.head.appendChild(s)
+      })
+    }
+
+    const renderTurnstile = async (channelType: string) => {
+      if (!turnstileMount) return
+      turnstileMount.innerHTML = ''
+      turnstileWidgetId = null
+      if (cfg.security.verificationProvider !== 'turnstile') return
+      if (!cfg.security.verificationSiteKey) return
+      if (!cfg.security.verificationChannels.includes(channelType)) return
+      try {
+        await loadTurnstileScript()
+        const ts = (window as any).turnstile
+        if (!ts) return
+        turnstileWidgetId = ts.render(turnstileMount, {
+          sitekey: cfg.security.verificationSiteKey,
+          size: 'invisible',
+          appearance: 'interaction-only',
+        })
+      } catch (e) {
+        console.warn('[chat-widget] Turnstile load failed:', e)
+      }
+    }
+
+    const getTurnstileToken = async (): Promise<string> => {
+      if (cfg.security.verificationProvider !== 'turnstile') return ''
+      if (!turnstileWidgetId) return ''
+      const ts = (window as any).turnstile
+      if (!ts) return ''
+      try {
+        return await new Promise<string>((resolve, reject) => {
+          ts.execute(turnstileWidgetId, { callback: (t: string) => resolve(t), 'error-callback': () => reject(new Error('ts_error')) })
+        })
+      } catch {
+        return ''
+      }
+    }
+
+    // ── Thread rendering ──────────────────────────────────────────
+    const appendMessage = (role: 'user' | 'bot', content: string) => {
+      if (!thread) return
+      messages.push({ role, content })
+      const div = document.createElement('div')
+      div.className = `chat-msg chat-msg-${role}`
+      if (role === 'user') div.style.setProperty('--brand', currentChannel?.brand ?? cfg.ui.globalBrand)
+      div.textContent = content
+      thread.appendChild(div)
+      thread.scrollTop = thread.scrollHeight
+    }
+
+    const showTyping = () => {
+      if (!thread) return null
+      const wrap = document.createElement('div')
+      wrap.className = 'chat-typing'
+      wrap.innerHTML = '<span></span><span></span><span></span>'
+      thread.appendChild(wrap)
+      thread.scrollTop = thread.scrollHeight
+      return wrap
+    }
+
+    const showError = (msg: string) => {
+      if (!errorEl) return
+      errorEl.textContent = msg
+      errorEl.classList.remove('hidden')
+      setTimeout(() => errorEl.classList.add('hidden'), 5000)
+    }
+
+    // ── Channel click handler ─────────────────────────────────────
+    container.querySelectorAll<HTMLButtonElement>('.chat-channel-btn').forEach((btn) => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault()
+        const mode = btn.dataset.channelMode
+        const href = btn.dataset.channelHref
+        if (mode === 'link' && href) {
+          window.open(href, '_blank', 'noopener,noreferrer')
+          setPopupOpen(false)
+          return
+        }
+        if (mode === 'script') {
+          showError('Live chat provider belum terhubung.')
+          return
+        }
+        if (mode !== 'panel') return
+
+        currentChannel = {
+          index: Number(btn.dataset.channelIndex ?? '0'),
+          key: btn.dataset.channelKey ?? '',
+          type: btn.dataset.channelType ?? '',
+          brand: btn.dataset.channelBrand ?? cfg.ui.globalBrand,
+          label: btn.dataset.channelLabel ?? 'AI',
+          welcome: btn.dataset.channelWelcome ?? '',
+        }
+        sessionId = (crypto as any).randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+        panelOpenedAt = Date.now()
+        lastInboundContent = ''
+        if (thread) thread.innerHTML = ''
+        messages.length = 0
+
+        if (headerTitle) headerTitle.textContent = currentChannel.label
+        setMode('chat')
+        if (currentChannel.welcome) {
+          appendMessage('bot', currentChannel.welcome)
+        }
+        setTimeout(() => input?.focus(), 50)
+        await renderTurnstile(currentChannel.type)
+      })
+    })
+
+    backBtn?.addEventListener('click', () => {
+      setMode('menu')
+      currentChannel = null
+    })
+
+    dismissBtn?.addEventListener('click', () => {
+      try { localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch {}
+      setPopupOpen(false)
+      container.style.display = 'none'
+    })
+
+    // ── Input char count + send-btn enable ────────────────────────
+    input?.addEventListener('input', () => {
+      const len = input.value.length
+      if (charCount) charCount.textContent = `${len} / ${cfg.security.maxMessageLength}`
+      if (sendBtn) sendBtn.disabled = sending || len < cfg.security.minMessageLength || len > cfg.security.maxMessageLength
+    })
+
+    // ── Send flow ─────────────────────────────────────────────────
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      if (!currentChannel || !input || sending) return
+      const raw = input.value.trim()
+      if (raw.length < cfg.security.minMessageLength) return
+      if (raw.length > cfg.security.maxMessageLength) {
+        showError(`Pesan maksimal ${cfg.security.maxMessageLength} karakter.`)
+        return
+      }
+
+      // Client-side dedup
+      if (cfg.security.blockDuplicateConsecutive && raw === lastInboundContent) {
+        showError('Pesan yang sama sudah dikirim.')
+        return
+      }
+
+      // Client-side min-interval
+      const now = Date.now()
+      if (lastSendAt && now - lastSendAt < cfg.security.clientMinIntervalMs) {
+        showError('Tunggu sebentar sebelum mengirim lagi.')
+        return
+      }
+
+      sending = true
+      if (sendBtn) sendBtn.disabled = true
+      input.value = ''
+      if (charCount) charCount.textContent = `0 / ${cfg.security.maxMessageLength}`
+      appendMessage('user', raw)
+      lastInboundContent = raw
+      const typingEl = showTyping()
+
+      let turnstileToken = ''
+      try {
+        turnstileToken = await getTurnstileToken()
+      } catch { /* ignore, backend will reject if required */ }
+
+      const payload: Record<string, unknown> = {
+        channelIndex: currentChannel.index,
+        channelKey: currentChannel.key,
+        message: raw,
+        sessionId,
+      }
+      if (cfg.security.enableHoneypot && honeypot) payload.honeypot = honeypot.value
+      if (cfg.security.enableTimingCheck) {
+        payload.formOpenedAt = panelOpenedAt
+      }
+      if (turnstileToken) payload.turnstileToken = turnstileToken
+
+      let res: Response | null = null
+      try {
+        res = await fetch('/api/chat/send', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'same-origin',
+        })
+      } catch (err) {
+        typingEl?.remove()
+        showError('Koneksi bermasalah. Coba lagi.')
+        sending = false
+        if (sendBtn) sendBtn.disabled = false
+        return
+      }
+      typingEl?.remove()
+
+      const data = await res.json().catch(() => ({} as any))
+      if (res.ok && data?.ok) {
+        appendMessage('bot', String(data.reply ?? ''))
+      } else {
+        const code = String(data?.code ?? `http_${res.status}`)
+        const messagesMap: Record<string, string> = {
+          rate_limited: `Terlalu banyak permintaan. Coba lagi dalam ${data.retryAfterSeconds ?? '~beberapa'} detik.`,
+          verification_failed: 'Verifikasi gagal. Refresh halaman lalu coba lagi.',
+          invalid_message: 'Pesan tidak valid (terlalu pendek/panjang).',
+          blocked: 'Pesan diblokir oleh filter spam.',
+          channel_disabled: 'Channel ini tidak aktif.',
+          provider_error: 'Layanan sedang bermasalah. Coba lagi nanti.',
+          misconfigured: 'Konfigurasi belum lengkap. Hubungi admin.',
+        }
+        showError(messagesMap[code] ?? 'Terjadi kesalahan. Coba lagi.')
+      }
+
+      // Cooldown
+      lastSendAt = Date.now()
+      setTimeout(() => {
+        sending = false
+        if (sendBtn && input) {
+          const len = input.value.length
+          sendBtn.disabled = len < cfg.security.minMessageLength
+        }
+      }, cfg.security.sendCooldownMs)
+    })
+
+    // ── Toggle ────────────────────────────────────────────────────
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const isOpen = container.dataset.open === 'true'
+      if (isOpen) {
+        setPopupOpen(false)
+      } else {
+        setPopupOpen(true)
+        // Reset ke menu tiap open
+        setMode('menu')
+      }
+    })
+
+    document.addEventListener('click', (e) => {
+      if (container.dataset.open !== 'true') return
+      const target = e.target as Node
+      if (!container.contains(target)) setPopupOpen(false)
+    })
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && container.dataset.open === 'true') {
+        setPopupOpen(false)
+        toggle.focus()
+      }
+    })
+
+    // ── Auto-open once per session ────────────────────────────────
+    if (behavior.autoOpenOnceAfter && behavior.autoOpenOnceAfter > 0) {
+      try {
+        if (!sessionStorage.getItem(AUTO_OPEN_KEY)) {
+          setTimeout(() => {
+            if (container.dataset.open !== 'true' && revealed) {
+              setPopupOpen(true)
+              try { sessionStorage.setItem(AUTO_OPEN_KEY, '1') } catch {}
+            }
+          }, behavior.autoOpenOnceAfter * 1000)
+        }
+      } catch { /* sessionStorage blocked */ }
+    }
+
+    // ── Exit intent (desktop) ─────────────────────────────────────
+    if (behavior.exitIntentDesktop && window.matchMedia('(min-width: 768px)').matches) {
+      let fired = false
+      document.addEventListener('mouseleave', (e) => {
+        if (fired) return
+        if ((e as MouseEvent).clientY > 0) return
+        fired = true
+        if (container.dataset.open !== 'true' && revealed) setPopupOpen(true)
+      })
+    }
+  }
+
+  document.addEventListener('astro:page-load', initChatWidget)
+  initChatWidget()
+</script>

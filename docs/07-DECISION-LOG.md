@@ -445,6 +445,57 @@ Format: satu ADR = satu keputusan. Nomornya urut (ADR-001, 002, …) dan tidak p
 
 ---
 
+### ADR-018: Chat Widget — Blocks Field untuk Channel-Agnostic Configuration
+
+- **Tanggal**: 2026-09-17 (Phase 4.50.1)
+- **Status**: Diterima ✅
+- **Konteks**: `WhatsAppFloating` awalnya WA-only + 3 field di `SiteSettings.whatsappDefaults`. Owner minta channel-agnostic (WA + AI chatbot + live chat + email) supaya tambah channel baru tidak merombak schema. Dua opsi di Payload 3.33:
+  - **(a) `array` + `admin.condition`**: 1 tabel array flat dengan conditional field. Cepat tapi menumpuk kolom NULL saat channel schema divergen.
+  - **(b) `blocks` field**: 1 block per channel type = 1 file schema sendiri. Tabel terpisah per block-type di SQLite.
+- **Keputusan**: **Pola blocks**. Channel WA (`whatsappNumber` + `prefilledMessage`) vs AI (`provider` + `model` + `systemPrompt` + `streaming` + `apiKeyRef`) schema-nya divergen signifikan; nambah Telegram/SMS di kemudian hari = tambah 1 file block + 1 branch dispatcher. Zero perubahan channel lama.
+- **Konsekuensi**:
+  - ✅ Discriminated union by `blockType` — TS narrow otomatis.
+  - ✅ Migration Payload auto-generate tabel per block-type.
+  - ✅ Admin UX: "Add Block" dropdown lebih deklaratif dibanding row uniform dengan conditional field.
+  - ⚠️ Shared field (label/enabled/subtitle/agentAvatar/iconOverride/brandColorOverride) di-duplicate di setiap block schema → mitigasi: helper `commonChannelFields` untuk avoid drift.
+- **Bukti**: [ChatWidgetSettings.ts](apps/cms/src/globals/ChatWidgetSettings.ts), [phase-4.50.1](docs/phases/phase-4.50.1-chat-widget-schema-and-security.md).
+
+---
+
+### ADR-019: IP Address Storage sebagai HMAC Hash (bukan Raw)
+
+- **Tanggal**: 2026-09-17 (Phase 4.50.1/4.50.4)
+- **Status**: Diterima ✅
+- **Konteks**: Endpoint `/api/chat/send` perlu simpan IP visitor untuk audit rate-limit & forensik. Raw IP = PII sensitif (GDPR). Opsi:
+  - **(a) Raw IP di kolom `ipRaw`** — mudah debug tapi PII vulnerability + retention risk.
+  - **(b) HMAC-SHA256 dengan salt di env** — cukup unik untuk uniqueness dedup, tidak reversible ke IP asli.
+  - **(c) Truncated IP (mis. `1.2.3.0`)** — kompromi GDPR, tapi masih partial identifiable.
+- **Keputusan**: **(b) HMAC-SHA256 dengan salt (`CHAT_IP_HASH_SALT`), truncated 128-bit (32 hex char)**. Salt rotasi = invalidate history (privacy feature, bukan bug). Fail-loud saat salt < 16 char (throw at construction) — bukan silent fallback.
+- **Konsekuensi**:
+  - ✅ GDPR-friendly: IP tidak recoverable.
+  - ✅ Dedup + rate-limit tetap jalan via hash equality.
+  - ⚠️ Salt hilang = semua history hash rusak (mitigasi: salt disimpan di Wrangler secrets, ada di runbook).
+- **Bukti**: [ip-hasher.ts](apps/web/src/lib/chat-security/ip-hasher.ts), [phase-4.50.4](docs/phases/phase-4.50.4-chat-security-lib.md).
+
+---
+
+### ADR-020: Rate-Limit Counter di Cloudflare KV (bukan Payload Collection)
+
+- **Tanggal**: 2026-09-17 (Phase 4.50.4)
+- **Status**: Diterima ✅
+- **Konteks**: Sliding-window rate-limit butuh counter dengan TTL + atomic-ish increment per key. Opsi store:
+  - **(a) Payload collection `chat-rate-counters`** — konsisten dgn store lain, admin bisa lihat. Tapi hot-path = tiap request tulis DB, latency +50-100ms.
+  - **(b) Cloudflare KV** — TTL native (`expirationTtl`), edge-cached, latency <10ms. Eventual consistency (bukan hard atomic).
+  - **(c) Durable Object** — hard atomic, tapi single-region + biaya lebih tinggi.
+- **Keputusan**: **(b) KV dengan interface `RateLimitStore`** yang bisa di-swap ke DO/Redis nanti tanpa perubahan consumer. Untuk spam prevention, eventual consistency cukup (spammer tidak bisa exploit race window <100ms).
+- **Konsekuensi**:
+  - ✅ Zero DB write di hot path.
+  - ✅ Interface abstract — swap ke DO/Redis = 1 class baru.
+  - ⚠️ Race window: 2 request paralel bisa lolos counter, mitigasi: pilih rule dengan buffer (mis. limit=5 dengan expected traffic 3-4/menit).
+- **Bukti**: [rate-limit-store.ts](apps/web/src/lib/chat-security/rate-limit-store.ts), [phase-4.50.4](docs/phases/phase-4.50.4-chat-security-lib.md).
+
+---
+
 ## Template ADR Kosong
 
 Copy template di bawah untuk keputusan baru. Nomor ADR selalu **increment**, tidak pernah reuse (walau lama sudah diganti).
@@ -510,7 +561,7 @@ Tulis ADR **sebelum** melakukan perubahan (kalau bisa) atau segera setelahnya. K
 
 ### Aturan format
 
-- Nomor urut naik (**ADR-018 selanjutnya**), tidak pernah reuse.
+- Nomor urut naik (**ADR-021 selanjutnya**), tidak pernah reuse.
 - Kalau keputusan direvisi total, buat ADR baru dgn status "Menggantikan ADR-XXX" — jangan hapus ADR lama.
 - Tulis konteks apa adanya. Termasuk opsi yang **ditolak** — 6 bulan lagi kamu (atau developer lain) akan bertanya "kenapa kita tidak pakai X?" — jawabannya harus ada di sini.
 

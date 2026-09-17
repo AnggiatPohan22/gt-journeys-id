@@ -123,7 +123,50 @@ Role summary (detail di [04-RBAC.md](docs/04-RBAC.md)):
 - **Admin** — Editor + create + publish + toggle status service.
 - **Super Admin** — semua + globals, menus, pages, users.
 
-### 1.9 Toggle Module (semi-CMS)
+### 1.9 Chat Widget (Phase 4.50)
+
+Chat widget mengambang di kanan-bawah setiap halaman. Konfigurasi lengkap di `/admin/globals/chat-widget` (Super Admin only).
+
+**Master toggle**: `/admin/globals/site-features` → tab **Fitur Opsional** → `WhatsApp Floating Button` (nama flag legacy — sekarang mengontrol seluruh chat widget).
+
+**8 tab konfigurasi**:
+| Tab | Fungsi |
+|---|---|
+| General | enable, displayScope (all/home/custom), hide-mobile/desktop |
+| Appearance | posisi, offset, warna, ukuran, animasi |
+| Popup | title, subtitle, brand name, avatar header |
+| Channels | blocks: WhatsApp / AI Chatbot / Live Chat / Email — drag reorder = urutan di popup |
+| Availability | business hours + offline behavior (Phase 4.50.7 masih partial; UI ada, enforcement server datang kemudian) |
+| Behavior | delay, scroll trigger, auto-open, exit intent, dismissible |
+| Tracking | GA event name, UTM params, cookie consent gate |
+| Security | 5 layer anti-spam: rate-limit + Turnstile/reCAPTCHA + backend validation + bot signals + IP/country |
+
+**Menambah channel baru** (mis. buka WhatsApp CS baru):
+1. Buka tab **Channels** → **Add Block** → **WhatsApp**.
+2. Isi label, whatsappNumber (kosong = fallback ke SiteSettings.contact.whatsapp), prefilledMessage.
+3. Save. Kartu baru muncul di popup frontend.
+
+**Mengaktifkan AI Chatbot** (butuh env var + Anthropic API key):
+1. Set env `ANTHROPIC_API_KEY` via `wrangler secret put ANTHROPIC_API_KEY`.
+2. Set `CHAT_IP_HASH_SALT` (min 32 char) + `CHAT_VISITOR_COOKIE_SECRET` (min 32 char) sebagai secrets.
+3. Provision KV: `wrangler kv:namespace create chat-rl` → salin id ke `wrangler.toml` binding `CHAT_RATE_LIMIT_KV`.
+4. Di `/admin/globals/chat-widget` tab Channels → **Add Block** → **AI Chatbot** → isi provider=Anthropic, model, systemPrompt, welcomeMessage, `apiKeyRef=ANTHROPIC_API_KEY`.
+5. Deploy web app.
+
+**Audit trail** (`/admin/collections/*`):
+- `chat-visitors` — cookie ID + IP hash + status. Read-only.
+- `chat-messages` — inbound/outbound message log dengan content-hash + wasBlocked.
+- `chat-blocked-events` — audit per rule triggered (rate-limit / honeypot / verification fail).
+
+**Retention** — Otomatis via cron `0 3 * * *` (03:00 UTC = 10:00 WITA). Config di `chat-widget.auditRetentionDays` (default 30 hari). Manual jalankan:
+
+```bash
+cd apps/cms && pnpm retention:chat
+```
+
+Endpoint HTTP untuk external cron: `POST /api/chat-retention` dengan header `x-cron-key: <CHAT_RETENTION_CRON_KEY>`.
+
+### 1.10 Toggle Module (semi-CMS)
 
 ⚠️ **Saat ini toggle module masih di file kode** ([apps/web/src/config/modules.ts](apps/web/src/config/modules.ts)) — bukan di CMS. Untuk enable/disable modul (mis. matikan "Weddings" karena klien tidak menawarkan), lihat Tier 2 §2.6.
 

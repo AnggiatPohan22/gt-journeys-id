@@ -17,6 +17,8 @@ import * as migration_20260915_055940 from './20260915_055940';
 import * as migration_20260915_084823 from './20260915_084823';
 import * as migration_20260915_120444 from './20260915_120444';
 import * as migration_20260915_134319 from './20260915_134319';
+import * as migration_20260917_052423_chat_widget_init from './20260917_052423_chat_widget_init';
+import * as migration_20260917_060000_chat_widget_data_move from './20260917_060000_chat_widget_data_move';
 
 export const migrations = [
   {
@@ -112,6 +114,16 @@ export const migrations = [
   {
     up: migration_20260915_134319.up,
     down: migration_20260915_134319.down,
-    name: '20260915_134319'
+    name: '20260915_134319',
+  },
+  {
+    up: migration_20260917_052423_chat_widget_init.up,
+    down: migration_20260917_052423_chat_widget_init.down,
+    name: '20260917_052423_chat_widget_init'
+  },
+  {
+    up: migration_20260917_060000_chat_widget_data_move.up,
+    down: migration_20260917_060000_chat_widget_data_move.down,
+    name: '20260917_060000_chat_widget_data_move'
   },
 ];

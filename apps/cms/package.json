@@ -21,7 +21,8 @@
     "seed:landing": "tsx src/scripts/seed-service-landing-content.ts",
     "seed:service-types": "tsx src/scripts/seed-service-types.ts",
     "seed:testimonials": "tsx src/scripts/seed-testimonials.ts",
-    "seed:blog-index": "tsx src/scripts/seed-blog-index-page.ts"
+    "seed:blog-index": "tsx src/scripts/seed-blog-index-page.ts",
+    "retention:chat": "tsx src/scripts/chat-retention.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.127",

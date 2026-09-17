@@ -7,7 +7,6 @@ import ServiceGridBlock from '@components/blocks/ServiceGridBlock.astro'
 import StatsBannerBlock from '@components/blocks/StatsBannerBlock.astro'
 import TestimonialsCarouselBlock from '@components/blocks/TestimonialsCarouselBlock.astro'
 import CTABlock from '@components/blocks/CTABlock.astro'
-import WhatsAppFloating from '@components/common/WhatsAppFloating.astro'
 import StructuredData from '@components/common/StructuredData.astro'
 import { SITE_URL } from '@lib/structuredData'
 import { getPageBySlug, getSiteSettings, getHomepageContent, getTestimonials } from '@lib/payload'
@@ -156,7 +155,7 @@ const pageDesc = usingCmsHome
     </>
   )}
 
-  <WhatsAppFloating />
+  {/* ChatWidget dipindah ke BaseLayout (Phase 4.50.3) — mount site-wide. */}
 
   <StructuredData schema={[
     { '@context': 'https://schema.org', '@type': 'WebSite', name: siteName, url: SITE_URL },

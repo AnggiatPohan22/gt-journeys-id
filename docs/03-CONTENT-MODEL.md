@@ -38,7 +38,8 @@ Cara Astro merespons: helper `fetchCollection` di [apps/web/src/lib/payload.ts:8
 | **Meeting/Pickup on Tour** | Tours: `pickupService.available` (bool) | Menampilkan section pickup di detail tour. |
 | **`enabled` per module** | [apps/web/src/config/modules.ts](apps/web/src/config/modules.ts) + [globals/SiteFeatures.ts](apps/cms/src/globals/SiteFeatures.ts) | **CMS Hybrid** — metadata (label/slug/icon) tetap di file, `enabled` flag di CMS global `site-features.modules.*`. Super Admin only. |
 | **`site-features.sections.*`** | [globals/SiteFeatures.ts](apps/cms/src/globals/SiteFeatures.ts) — `testimonials`, `faq`, `promoBanner` (reserved), `newsletter` (reserved) | Toggle section besar. `promoBanner` + `newsletter` reserved untuk Phase 4. |
-| **`site-features.features.whatsappFloat`** | [WhatsAppFloating.astro](apps/web/src/components/common/WhatsAppFloating.astro) via [`isFeatureEnabled`](apps/web/src/lib/features.ts) | Toggle floating WA button global. |
+| **`site-features.features.whatsappFloat`** | [ChatWidget.astro](apps/web/src/components/common/ChatWidget.astro) via [`isFeatureEnabled`](apps/web/src/lib/features.ts) | Master toggle chat widget global (Phase 4.50 — nama flag legacy, sudah channel-agnostic). |
+| **`chat-widget` global** | [ChatWidgetSettings.ts](apps/cms/src/globals/ChatWidgetSettings.ts) → [ChatWidget.astro](apps/web/src/components/common/ChatWidget.astro) | 8 tab: General, Appearance, Popup, Channels (blocks: WA/AI/LiveChat/Email), Availability, Behavior, Tracking, Security (5 layer anti-spam). |
 | **`site-features.features.announcementBar`** | reserved — komponen belum ada | Phase 4. |
 
 **Route guards**: kalau modul di-disable, `getStaticPaths` untuk `[slug].astro` return `[]` (tidak build detail pages) dan `index.astro` `Astro.rewrite('/404')`. Halaman [404.astro](apps/web/src/pages/404.astro) menangani state ini.

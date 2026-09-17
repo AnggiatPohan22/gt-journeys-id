@@ -19,3 +19,13 @@ database_id = "YOUR_D1_DATABASE_ID"
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "dn-journeys-media"
+
+# ── Chat retention cron trigger — Phase 4.50.7 ──
+# Runs POST /api/chat-retention daily at 03:00 UTC (10:00 WITA).
+# Requires `CHAT_RETENTION_CRON_KEY` secret set via:
+#   wrangler secret put CHAT_RETENTION_CRON_KEY
+# The scheduled handler in `.open-next/worker.js` will fan-out to the
+# endpoint URL (see `event.scheduled` in OpenNext runtime). Retention
+# logic itself is at `src/lib/chat-retention.ts`.
+[triggers]
+crons = ["0 3 * * *"]

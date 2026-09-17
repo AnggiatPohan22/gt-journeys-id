@@ -1,6 +1,7 @@
 ---
 import { getSiteSettings, getAnnouncementBar } from '@lib/payload'
 import type { Media } from '@shared/types/payload-types'
+import ChatWidget from '@components/common/ChatWidget.astro'
 
 interface Props {
   title: string
@@ -139,6 +140,10 @@ try {
   </head>
   <body>
     <slot />
+
+    {/* Floating chat widget — CMS-driven (chat-widget global). Mount site-wide
+        via BaseLayout; per-page display controlled by displayScope in CMS. */}
+    <ChatWidget pathname={Astro.url.pathname} />
 
     <!-- GSAP init -->
     <script>

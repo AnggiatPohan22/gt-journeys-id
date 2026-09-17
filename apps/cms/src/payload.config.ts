@@ -42,6 +42,9 @@ import { Posts } from './collections/Posts'
 import { BlogCategories } from './collections/BlogCategories'
 import { Tags } from './collections/Tags'
 import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
+import { ChatVisitors } from './collections/ChatVisitors'
+import { ChatMessages } from './collections/ChatMessages'
+import { ChatBlockedEvents } from './collections/ChatBlockedEvents'
 
 // Globals
 import { SiteSettings } from './globals/SiteSettings'
@@ -52,6 +55,7 @@ import { HomepageContent } from './globals/HomepageContent'
 import { AnnouncementBar } from './globals/AnnouncementBar'
 import { PromoBanner } from './globals/PromoBanner'
 import { BlogSettings } from './globals/BlogSettings'
+import { ChatWidgetSettings } from './globals/ChatWidgetSettings'
 
 
 export default buildConfig({
@@ -161,10 +165,13 @@ export default buildConfig({
     // Administration
     Users,
     NewsletterSubscribers,
+    ChatVisitors,
+    ChatMessages,
+    ChatBlockedEvents,
   ],
 
   // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings],
+  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings, ChatWidgetSettings],
 
   // ── Admin ───────────────────────────────────
   admin: {
