@@ -354,10 +354,15 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
                        class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
               </label>
               {showDatePicker && (
-                <label class="relative block">
-                  <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
-                  <input type="text" placeholder="Check-in — Check-out"
-                         class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
+                <label class="relative block" data-role="date-range" data-listing-id={listingId}>
+                  <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none z-10" />
+                  <div class="w-full pl-12 pr-3 py-2.5 rounded-xl bg-sand focus-within:bg-white focus-within:ring-2 focus-within:ring-ocean text-sm text-stone flex items-center gap-1 transition-all cursor-pointer">
+                    <input type="date" data-role="checkin" aria-label="Check-in date"
+                           class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+                    <span class="text-stone-light shrink-0">—</span>
+                    <input type="date" data-role="checkout" aria-label="Check-out date"
+                           class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+                  </div>
                 </label>
               )}
               {showGuestCount && (
@@ -491,6 +496,24 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+  /* Phase 4.54 — native date input polish (mirror Editorial). */
+  .dnj-date-input {
+    color-scheme: light;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    min-height: 1.5rem;
+  }
+  .dnj-date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 150ms;
+  }
+  .dnj-date-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
   /* ── Slider transitions (own-scoped copy of hero-slider) ── */
   .slh-slider .slh-slide {
@@ -703,4 +726,35 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
   }
   document.addEventListener('astro:page-load', initHeroImmersive)
   initHeroImmersive()
+
+  // Phase 4.54 — auto-open native calendar picker (mirror Editorial).
+  const initDatePickers = () => {
+    document.querySelectorAll<HTMLLabelElement>('[data-role="date-range"]').forEach((wrap) => {
+      if (wrap.dataset.dpBound === '1') return
+      wrap.dataset.dpBound = '1'
+      const checkin = wrap.querySelector<HTMLInputElement>('[data-role="checkin"]')
+      const checkout = wrap.querySelector<HTMLInputElement>('[data-role="checkout"]')
+
+      const openPicker = (input: HTMLInputElement | null) => {
+        if (!input) return
+        try { (input as any).showPicker?.() } catch { /* ignored */ }
+      }
+
+      wrap.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement
+        if (target.tagName === 'INPUT') return
+        openPicker(checkin ?? checkout)
+      })
+      checkin?.addEventListener('focus', () => openPicker(checkin))
+      checkout?.addEventListener('focus', () => openPicker(checkout))
+      checkin?.addEventListener('change', () => {
+        if (checkout && checkin.value) {
+          checkout.min = checkin.value
+          if (checkout.value && checkout.value < checkin.value) checkout.value = checkin.value
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initDatePickers)
+  initDatePickers()
 </script>

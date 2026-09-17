@@ -81,6 +81,26 @@ Perubahan paralel di kedua template (Editorial default `/tour`, Hero Immersive a
 - **Desktop viewport (≥1024px):** `data-per-desktop="3"` (current CMS record), destination tabs tampil, grid `lg:grid-cols-3`.
 - Resize mobile→tablet→desktop di runtime: `applyView` dipanggil ulang, count sync.
 
+## Addendum — Date range picker auto-open (Phase 4.54 inline)
+
+Owner minta field calendar pada search bar (`Check-in — Check-out`) auto memunculkan calendar saat di-klik, biar visitor tak perlu manual ketik tanggal.
+
+**Perubahan:**
+
+- Ganti `<input type="text" placeholder="Check-in — Check-out">` → wrapper `<label data-role="date-range">` berisi 2 `<input type="date" data-role="checkin/checkout">` side-by-side dengan pemisah "—". Styling wrapper mirror bg-sand focus:bg-white supaya visual sama dengan text input lain.
+- CSS `.dnj-date-input` — reset native appearance, hide default border, calendar picker indicator opacity 0.6 → 1 saat hover.
+- JS `initDatePickers()` (Editorial + Hero Immersive, guard `data-dp-bound` supaya idempotent):
+  - Klik wrapper (di luar input) → call `input.showPicker()` pada checkin (fallback checkout).
+  - Focus (keyboard tab) → juga `showPicker()`.
+  - `checkin.change` → set `checkout.min = checkin.value` (cegah pilih check-out sebelum check-in) + auto-adjust checkout kalau invalid.
+- `showPicker()` supported: Chrome 99+, Edge 99+, Safari 16+, Firefox 101+. Fallback: klik di area calendar indicator native tetap trigger picker default browser.
+
+**Files touched (addendum):**
+- `apps/web/src/components/blocks/ServiceListingEditorial.astro` (input markup, CSS block, JS initDatePickers)
+- `apps/web/src/components/blocks/ServiceListingHeroImmersive.astro` (idem)
+
+**Verified:** `wrap.dataset.dpBound === "1"`, 2 date inputs bound, `showPicker` API available (Chromium). Visual: field tampil `dd/mm/yyyy — dd/mm/yyyy` + calendar icon di kanan tiap input.
+
 ## Owner UAT
 
 1. Buka [`/admin/collections/pages/6`](http://localhost:3030/admin/collections/pages/6) → block Service Listing → tab **Card Style** → nyalakan `showLoadMore` → set 3 count sesuai kebutuhan (default Mobile=3, Tablet=4, Desktop=6). Save.

@@ -261,10 +261,15 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
             <input type="text" data-role="search-name" data-listing-id={listingId} placeholder={searchNamePlaceholder}
                    class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
           </label>
-          <label class="relative block">
-            <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
-            <input type="text" placeholder="Check-in — Check-out"
-                   class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
+          <label class="relative block" data-role="date-range" data-listing-id={listingId}>
+            <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none z-10" />
+            <div class="w-full pl-12 pr-3 py-2.5 rounded-xl bg-sand focus-within:bg-white focus-within:ring-2 focus-within:ring-ocean text-sm text-stone flex items-center gap-1 transition-all cursor-pointer">
+              <input type="date" data-role="checkin" aria-label="Check-in date"
+                     class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+              <span class="text-stone-light shrink-0">—</span>
+              <input type="date" data-role="checkout" aria-label="Check-out date"
+                     class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+            </div>
           </label>
           <label class="relative block">
             <Icon name="group" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
@@ -435,6 +440,29 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+  /* Phase 4.54 — native date input polish. Bikin field type=date terlihat
+     seamless dengan text input lain (no default border/bg), tap area luas
+     supaya nyaman di mobile, dan calendar indicator selalu tampil sebagai
+     petunjuk visual bahwa ini clickable. */
+  .dnj-date-input {
+    color-scheme: light;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    min-height: 1.5rem;
+  }
+  .dnj-date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 150ms;
+  }
+  .dnj-date-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+  .dnj-date-input:empty::before,
+  .dnj-date-input:not(:focus):in-range:placeholder-shown { color: var(--tw-stone-light, #94a3b8); }
 </style>
 
 <script>
@@ -610,4 +638,41 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
   }
   document.addEventListener('astro:page-load', initServiceListings)
   initServiceListings()
+
+  // Phase 4.54 — auto-open native calendar picker saat field date di-klik/focus.
+  // showPicker() supported di Chrome 99+, Edge 99+, Safari 16+, Firefox 101+.
+  // Fallback: klik ke field tetap trigger native picker via default browser behavior.
+  const initDatePickers = () => {
+    document.querySelectorAll<HTMLLabelElement>('[data-role="date-range"]').forEach((wrap) => {
+      if (wrap.dataset.dpBound === '1') return
+      wrap.dataset.dpBound = '1'
+      const checkin = wrap.querySelector<HTMLInputElement>('[data-role="checkin"]')
+      const checkout = wrap.querySelector<HTMLInputElement>('[data-role="checkout"]')
+
+      const openPicker = (input: HTMLInputElement | null) => {
+        if (!input) return
+        try { (input as any).showPicker?.() } catch { /* browser blocks (not user-initiated etc) */ }
+      }
+
+      // Click di area label/wrapper → open picker input terdekat.
+      wrap.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement
+        // Kalau klik langsung ke input atau indicator, biarkan native handler jalan.
+        if (target.tagName === 'INPUT') return
+        openPicker(checkin ?? checkout)
+      })
+      // Focus (keyboard tab) → juga buka picker biar aksesibel.
+      checkin?.addEventListener('focus', () => openPicker(checkin))
+      checkout?.addEventListener('focus', () => openPicker(checkout))
+      // Checkout min = checkin (cegah pilih tanggal sebelum check-in).
+      checkin?.addEventListener('change', () => {
+        if (checkout && checkin.value) {
+          checkout.min = checkin.value
+          if (checkout.value && checkout.value < checkin.value) checkout.value = checkin.value
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initDatePickers)
+  initDatePickers()
 </script>
