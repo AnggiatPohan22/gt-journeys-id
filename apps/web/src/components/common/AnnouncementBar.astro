@@ -80,23 +80,27 @@ const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join('
     role="region"
     aria-label="Site announcement"
   >
-    <div class="max-w-[1440px] mx-auto flex items-center justify-center gap-3 sm:gap-4 px-4 py-2 min-h-[36px]">
-      <span class="flex-1 text-center leading-snug">
-        {message}
-        {linkEnabled && (
-          <>
-            {' '}
-            <a
-              href={linkUrl}
-              target={linkNewTab ? '_blank' : undefined}
-              rel={linkNewTab ? 'noopener noreferrer' : undefined}
-              class="dnj-ab-link underline underline-offset-2 font-semibold"
-            >
-              {linkLabel}
-            </a>
-          </>
-        )}
-      </span>
+    <div class="max-w-[1440px] mx-auto flex items-center gap-3 sm:gap-4 px-4 py-2 min-h-[36px]">
+      <div class="ab-viewport flex-1 min-w-0 overflow-hidden">
+        <div class="ab-track flex items-center leading-snug">
+          <span class="ab-item shrink-0 whitespace-nowrap sm:whitespace-normal sm:text-center sm:w-full">
+            {message}
+            {linkEnabled && (
+              <>
+                {' '}
+                <a
+                  href={linkUrl}
+                  target={linkNewTab ? '_blank' : undefined}
+                  rel={linkNewTab ? 'noopener noreferrer' : undefined}
+                  class="dnj-ab-link underline underline-offset-2 font-semibold"
+                >
+                  {linkLabel}
+                </a>
+              </>
+            )}
+          </span>
+        </div>
+      </div>
       {dismissible && (
         <button
           type="button"
@@ -117,11 +121,77 @@ const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join('
   .dnj-ab { background-color: var(--ab-bg); color: var(--ab-text); }
   .dnj-ab .dnj-ab-link { color: var(--ab-link); transition: color 200ms; }
   .dnj-ab .dnj-ab-link:hover { color: var(--ab-link-hover); }
+
+  /* Phase 4.52 — Mobile marquee.
+     Default (mobile): 1 baris. Kalau overflow, JS clone item ke-2 supaya
+     loop seamless (translateX 0 → -50% = geser satu lebar item). Kalau
+     tak overflow, item di-center pakai margin auto. Desktop (sm+) tetap
+     wrap + center seperti sebelumnya. */
+  .dnj-ab .ab-track { width: max-content; max-width: 100%; }
+  .dnj-ab:not([data-ab-marquee="1"]) .ab-item { margin-inline: auto; }
+  .dnj-ab[data-ab-marquee="1"] .ab-track {
+    width: max-content;
+    max-width: none;
+    animation: ab-marquee var(--ab-marquee-duration, 20s) linear infinite;
+  }
+  .dnj-ab[data-ab-marquee="1"] .ab-item { padding-right: 3rem; }
+  @keyframes ab-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  @media (hover: hover) {
+    .dnj-ab[data-ab-marquee="1"]:hover .ab-track { animation-play-state: paused; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dnj-ab[data-ab-marquee="1"] .ab-track { animation: none; transform: none; }
+  }
+  /* Desktop (sm+): non-aktifkan marquee sama sekali — wrap kembali normal. */
+  @media (min-width: 640px) {
+    .dnj-ab .ab-track { width: 100%; max-width: 100%; animation: none !important; transform: none !important; }
+    .dnj-ab .ab-item { padding-right: 0; margin-inline: 0; white-space: normal; }
+  }
 </style>
 
 <script>
   const DISMISS_KEY_PREFIX = 'dnj:ab-dismissed:'
   const MINUTE_MS = 60_000
+
+  // Phase 4.52 — evaluate marquee mode: aktif kalau viewport <sm (640px)
+  // DAN lebar item > lebar viewport (teks overflow satu baris).
+  const MOBILE_MAX_WIDTH = 639
+  const MARQUEE_PX_PER_SEC = 60
+
+  const setupMarquee = (bar: HTMLElement) => {
+    const viewport = bar.querySelector<HTMLElement>('.ab-viewport')
+    const track = bar.querySelector<HTMLElement>('.ab-track')
+    const primary = track?.querySelector<HTMLElement>('.ab-item')
+    if (!viewport || !track || !primary) return
+
+    // Reset ke state default sebelum ukur.
+    track.querySelectorAll('.ab-item.ab-item--clone').forEach((n) => n.remove())
+    bar.removeAttribute('data-ab-marquee')
+    track.style.removeProperty('--ab-marquee-duration')
+
+    if (window.innerWidth > MOBILE_MAX_WIDTH) return
+
+    // Ukur setelah reflow.
+    const viewportWidth = viewport.getBoundingClientRect().width
+    const itemWidth = primary.getBoundingClientRect().width
+    if (itemWidth <= viewportWidth + 1) return // muat 1 baris, tidak perlu marquee
+
+    // Overflow → aktifkan marquee: clone item ke-2 supaya loop seamless.
+    const clone = primary.cloneNode(true) as HTMLElement
+    clone.classList.add('ab-item--clone')
+    clone.setAttribute('aria-hidden', 'true')
+    // Cegah link di clone dapat fokus/klik ganda.
+    clone.querySelectorAll('a').forEach((a) => { a.setAttribute('tabindex', '-1'); a.setAttribute('aria-hidden', 'true') })
+    track.appendChild(clone)
+
+    // Durasi proporsional lebar item (biar kecepatan konsisten apapun panjang teks).
+    const duration = Math.max(8, itemWidth / MARQUEE_PX_PER_SEC)
+    track.style.setProperty('--ab-marquee-duration', duration.toFixed(2) + 's')
+    bar.setAttribute('data-ab-marquee', '1')
+  }
 
   const init = () => {
     const bar = document.querySelector<HTMLElement>('.announcement-bar')
@@ -157,6 +227,24 @@ const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join('
         { once: true },
       )
     })
+
+    // Marquee setup — jalankan setelah frame supaya font/layout settled.
+    // Pakai ResizeObserver di viewport supaya resilient terhadap font-load,
+    // orientation-change, dan viewport emulation yang tak trigger resize event.
+    const runSetup = () => setupMarquee(bar)
+    requestAnimationFrame(runSetup)
+    window.addEventListener('load', runSetup)
+    let resizeTimer: number | undefined
+    const schedule = () => {
+      if (resizeTimer) window.clearTimeout(resizeTimer)
+      resizeTimer = window.setTimeout(runSetup, 150)
+    }
+    window.addEventListener('resize', schedule)
+    window.addEventListener('orientationchange', schedule)
+    const viewportEl = bar.querySelector<HTMLElement>('.ab-viewport')
+    if (viewportEl && 'ResizeObserver' in window) {
+      new ResizeObserver(schedule).observe(viewportEl)
+    }
   }
 
   document.addEventListener('astro:page-load', init)
