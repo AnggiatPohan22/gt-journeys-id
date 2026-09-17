@@ -192,7 +192,11 @@ const Template = TEMPLATES[templateId] ?? HeaderTemplate1
 
   /* Phase 4.41.1 addendum — header surface & transparent-on-top.
      Frosted panel (bg + blur + shadow + border) via satu class supaya
-     bisa toggle on/off saat mode transparent-on-top di posisi paling atas. */
+     bisa toggle on/off saat mode transparent-on-top di posisi paling atas.
+     Selector dobel: match saat class ada di #main-header sendiri (Template
+     1 & 2) ATAU di descendant (Template 3 main bar). Sebelumnya cuma
+     descendant → T1 & T2 header transparent karena tidak kena rule. */
+  #main-header.dnj-header-surface,
   #main-header .dnj-header-surface {
     background-color: var(--h-bg);
     backdrop-filter: blur(8px);
@@ -203,6 +207,7 @@ const Template = TEMPLATES[templateId] ?? HeaderTemplate1
   }
   /* Transparent mode ON + belum scroll → surface hilang total. Setelah scroll
      lewat 40px, kembalikan surface penuh (bg + blur + border + shadow). */
+  #main-header[data-transparent-top="1"][data-scrolled="0"].dnj-header-surface,
   #main-header[data-transparent-top="1"][data-scrolled="0"] .dnj-header-surface {
     background-color: transparent;
     backdrop-filter: none;
