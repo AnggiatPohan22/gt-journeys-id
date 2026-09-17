@@ -2090,9 +2090,17 @@ export interface Page {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -5086,9 +5094,17 @@ export interface Post {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -8259,9 +8275,17 @@ export interface Tour {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -15640,9 +15664,17 @@ export interface Yacht {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -18172,9 +18204,17 @@ export interface Restaurant {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -21019,9 +21059,17 @@ export interface Venue {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -23851,9 +23899,17 @@ export interface Rental {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -26683,9 +26739,17 @@ export interface Spa {
             paginationType?: ('load-more' | 'pages') | null;
             loadMoreText?: string | null;
             /**
-             * Items per page / per batch
+             * Items per page / per batch pada layar Desktop (≥1024px)
              */
             initialVisibleCount?: number | null;
+            /**
+             * Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountTablet?: number | null;
+            /**
+             * Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.
+             */
+            initialVisibleCountMobile?: number | null;
             /**
              * Vertical padding section.
              */
@@ -31082,6 +31146,8 @@ export interface PagesSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -32482,6 +32548,8 @@ export interface PostsSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -33831,6 +33899,8 @@ export interface ToursSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -37237,6 +37307,8 @@ export interface YachtsSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -38409,6 +38481,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -39715,6 +39789,8 @@ export interface VenuesSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -41006,6 +41082,8 @@ export interface RentalsSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;
@@ -42297,6 +42375,8 @@ export interface SpaSelect<T extends boolean = true> {
               paginationType?: T;
               loadMoreText?: T;
               initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
               sectionPadding?: T;
               contentAlignment?: T;
               containerWidth?: T;

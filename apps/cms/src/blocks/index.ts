@@ -989,13 +989,48 @@ const ServiceListing: Block = {
                 {
                   name: 'initialVisibleCount',
                   type: 'number',
+                  label: 'Initial Visible Count (Desktop)',
                   defaultValue: 6,
                   min: 3,
                   max: 60,
                   admin: {
                     width: '50%',
                     condition: (_, sib) => sib?.showLoadMore === true,
-                    description: 'Items per page / per batch',
+                    description: 'Items per page / per batch pada layar Desktop (≥1024px)',
+                  },
+                },
+              ],
+            },
+            // Phase 4.53 — per-breakpoint pagination counts. Sebelumnya cuma
+            // 1 nilai (`initialVisibleCount`) yang dipakai global untuk semua
+            // ukuran layar. Sekarang tablet & mobile bisa dikonfigurasi
+            // terpisah, tanpa hardcode di komponen.
+            {
+              type: 'row',
+              admin: { condition: (_, sib) => sib?.showLoadMore === true },
+              fields: [
+                {
+                  name: 'initialVisibleCountTablet',
+                  type: 'number',
+                  label: 'Initial Visible Count (Tablet)',
+                  defaultValue: 4,
+                  min: 1,
+                  max: 60,
+                  admin: {
+                    width: '50%',
+                    description: 'Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.',
+                  },
+                },
+                {
+                  name: 'initialVisibleCountMobile',
+                  type: 'number',
+                  label: 'Initial Visible Count (Mobile)',
+                  defaultValue: 3,
+                  min: 1,
+                  max: 60,
+                  admin: {
+                    width: '50%',
+                    description: 'Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.',
                   },
                 },
               ],

@@ -204,9 +204,12 @@ const filterDestinations = enableDestFilter
 const cardVariant: 'compact' | 'detailed' = b.cardVariant === 'compact' ? 'compact' : 'detailed'
 const showLoadMore = b.showLoadMore === true
 const paginationType: 'load-more' | 'pages' = b.paginationType === 'pages' ? 'pages' : 'load-more'
-const initialVisibleCount = typeof b.initialVisibleCount === 'number' ? b.initialVisibleCount : 6
+// Phase 4.53 — per-breakpoint counts (mirror Editorial).
+const perDesktop = typeof b.initialVisibleCount === 'number' ? b.initialVisibleCount : 6
+const perTablet = typeof b.initialVisibleCountTablet === 'number' ? b.initialVisibleCountTablet : perDesktop
+const perMobile = typeof b.initialVisibleCountMobile === 'number' ? b.initialVisibleCountMobile : perDesktop
 const loadMoreText = b.loadMoreText ?? 'Load More'
-const totalPages = showLoadMore ? Math.ceil(items.length / initialVisibleCount) : 1
+const totalPages = showLoadMore ? Math.ceil(items.length / perDesktop) : 1
 
 // ── Styling ─────────────────────────────────────────────
 const containerClass = resolveContainer(b.containerWidth)
@@ -322,7 +325,7 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
       <div class="max-w-5xl mx-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden">
         {enableDestFilter && filterDestinations.length > 1 && (
           <div
-            class:list={['flex items-center justify-center gap-2 md:gap-3 overflow-x-auto no-scrollbar px-4 md:px-6 pt-4 md:pt-5', enableSearch ? 'pb-3 md:pb-4' : 'pb-4 md:pb-5']}
+            class:list={['hidden md:flex items-center justify-center gap-2 md:gap-3 overflow-x-auto no-scrollbar px-4 md:px-6 pt-4 md:pt-5', enableSearch ? 'pb-3 md:pb-4' : 'pb-4 md:pb-5']}
             data-role="dest-tabs"
             data-listing-id={listingId}
           >
@@ -342,7 +345,7 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
         )}
 
         {enableSearch && (
-          <div class:list={['px-4 md:px-6 pb-4 md:pb-5 flex flex-col md:flex-row gap-2 md:gap-3 items-stretch md:items-center', enableDestFilter && filterDestinations.length > 1 ? 'border-t border-sand-dark/10 pt-3 md:pt-4' : 'pt-4 md:pt-5']}>
+          <div class:list={['px-4 md:px-6 pb-4 md:pb-5 flex flex-col md:flex-row gap-2 md:gap-3 items-stretch md:items-center', enableDestFilter && filterDestinations.length > 1 ? 'pt-4 md:border-t md:border-sand-dark/10 md:pt-4' : 'pt-4 md:pt-5']}>
             <div class:list={['flex-1 grid grid-cols-1 gap-2 md:gap-3', showDatePicker && showGuestCount ? 'md:grid-cols-3' : showDatePicker || showGuestCount ? 'md:grid-cols-2' : 'md:grid-cols-1']}>
               <label class="relative block">
                 <Icon name="location_on" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
@@ -404,11 +407,13 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
     {visibleItems.length > 0 && (
       <>
         <div
-          class:list={['grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8', showLoadMore && 'slh-swipe']}
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
           data-role="grid"
           data-listing-id={listingId}
           data-pagination={showLoadMore ? paginationType : 'none'}
-          data-per-page={initialVisibleCount}
+          data-per-mobile={perMobile}
+          data-per-tablet={perTablet}
+          data-per-desktop={perDesktop}
         >
           {visibleItems.map((item: any, idx: number) => {
             const ownDestSlug = typeof item.destination === 'object' ? (item.destination?.slug ?? '') : ''
@@ -418,10 +423,10 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
             // Searchable string: item name + (when hierarchical) its destination + core names.
             const name = [item.name ?? item.title ?? '', hierEnabled ? ownDestName : '', hierEnabled ? coreNameOf(ownDestSlug) : '']
               .join(' ').trim().toLowerCase()
-            const hiddenByPagination = showLoadMore && idx >= initialVisibleCount
+            const hiddenByPagination = showLoadMore && idx >= perDesktop
             return (
               <div
-                class:list={['sl-card', showLoadMore && 'slh-swipe-item', hiddenByPagination && 'sl-hidden-page']}
+                class:list={['sl-card', hiddenByPagination && 'sl-hidden-page']}
                 data-dest={destSlug}
                 data-name={name}
                 style={hiddenByPagination ? 'display:none' : undefined}
@@ -441,7 +446,7 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
         </div>
 
         {/* Load More button (load-more mode only) */}
-        {showLoadMore && paginationType === 'load-more' && visibleItems.length > initialVisibleCount && (
+        {showLoadMore && paginationType === 'load-more' && visibleItems.length > Math.min(perMobile, perTablet, perDesktop) && (
           <div class="mt-10 md:mt-12 text-center">
             <button
               type="button"
@@ -486,27 +491,6 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-
-  /* Mobile swipe for paginated grids */
-  @media (max-width: 767px) {
-    .slh-swipe {
-      display: flex !important;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      gap: 1rem;
-      padding-bottom: 0.5rem;
-    }
-    .slh-swipe::-webkit-scrollbar { display: none; }
-    .slh-swipe > .slh-swipe-item {
-      min-width: calc(100vw - 3rem);
-      width: calc(100vw - 3rem);
-      max-width: calc(100vw - 3rem);
-      flex-shrink: 0;
-      scroll-snap-align: start;
-    }
-  }
 
   /* ── Slider transitions (own-scoped copy of hero-slider) ── */
   .slh-slider .slh-slide {
@@ -561,12 +545,23 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
     })
   }
 
+  // Phase 4.53 — per-breakpoint pagination count (mirror Editorial).
+  const readPerPage = (grid: HTMLElement): number => {
+    const w = window.innerWidth
+    const mobile = Number(grid.dataset.perMobile ?? grid.dataset.perDesktop ?? 6)
+    const tablet = Number(grid.dataset.perTablet ?? grid.dataset.perDesktop ?? 6)
+    const desktop = Number(grid.dataset.perDesktop ?? 6)
+    if (w < 640) return mobile
+    if (w < 1024) return tablet
+    return desktop
+  }
+
   const initHeroImmersive = () => {
     const grids = document.querySelectorAll<HTMLElement>('[data-role="grid"][data-listing-id^="slh-"]')
     grids.forEach((grid) => {
       const id = grid.dataset.listingId!
       const paginationMode = grid.dataset.pagination ?? 'none'
-      const perPage = Number(grid.dataset.perPage ?? 6)
+      let perPage = readPerPage(grid)
       const tabs = document.querySelector<HTMLElement>(`[data-role="dest-tabs"][data-listing-id="${id}"]`)
       const nameInput = document.querySelector<HTMLInputElement>(`[data-role="search-name"][data-listing-id="${id}"]`)
       const searchBtn = document.querySelector<HTMLElement>(`[data-role="search-btn"][data-listing-id="${id}"]`)
@@ -684,6 +679,26 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
         loadMoreRevealed += perPage
         applyView()
       })
+
+      // Re-evaluate perPage saat viewport crossing breakpoint.
+      let resizeTimer: number | undefined
+      const onResize = () => {
+        if (resizeTimer) window.clearTimeout(resizeTimer)
+        resizeTimer = window.setTimeout(() => {
+          const next = readPerPage(grid)
+          if (next !== perPage) {
+            perPage = next
+            currentPage = 1
+            loadMoreRevealed = 0
+            applyView()
+          }
+        }, 150)
+      }
+      window.addEventListener('resize', onResize)
+      window.addEventListener('orientationchange', onResize)
+
+      // Initial apply — reconcile SSR (desktop count) dengan viewport aktual.
+      applyView()
     })
   }
   document.addEventListener('astro:page-load', initHeroImmersive)
