@@ -102,3 +102,45 @@ Hasil: menu items di overlay ketiga template + hover + active state semua ikut t
 - Verifikasi title tampil, menu bisa buka/tutup, WA button hijau full-width di overlay/panel bawah.
 - Ubah tone warna Advanced (menu default/hover/active) di CMS → refresh → menu overlay ikut warna baru.
 - Untuk Template 3: pastikan top bar (phone + social) tetap tampil saat menu terbuka.
+
+## Addendum — Fix T1 & T2 header transparent (commit `008e94b`)
+
+**Bug:** setelah Phase 4.51 di-deploy, owner report bahwa di mobile Template 1 & 2 header nampak **transparent** (background tidak muncul) baik di atas maupun setelah scroll.
+
+**Root cause:** `.dnj-header-surface` di [HeaderTemplate1.astro](../../apps/web/src/components/navigation/templates/HeaderTemplate1.astro) & [HeaderTemplate2.astro](../../apps/web/src/components/navigation/templates/HeaderTemplate2.astro) ditaruh di element `#main-header` itu sendiri (`<header id="main-header" class="... dnj-header-surface">`), sedangkan Template 3 menaruhnya di descendant `<div class="dnj-header-surface">` (di dalam main bar). CSS selector Phase 4.41.1 pakai descendant combinator dengan spasi:
+
+```css
+#main-header .dnj-header-surface { background-color: var(--h-bg); ... }
+```
+
+Descendant combinator (`A B`) hanya match B yang **descendant** dari A, **bukan** A itu sendiri. Jadi rule tidak apply di T1 & T2 → bg tidak di-set → header transparent tanpa peduli scroll state atau mode transparent-on-top.
+
+**Bug ini sudah ada sejak Phase 4.41.1** tapi baru terlihat setelah owner benar-benar test mobile view pada template 1 & 2 di Phase 4.51.
+
+**Fix:** dobel selector — satu tanpa spasi (element sendiri), satu descendant.
+
+```css
+#main-header.dnj-header-surface,
+#main-header .dnj-header-surface {
+  background-color: var(--h-bg);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(212, 197, 169, 0.20);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  ...
+}
+
+#main-header[data-transparent-top="1"][data-scrolled="0"].dnj-header-surface,
+#main-header[data-transparent-top="1"][data-scrolled="0"] .dnj-header-surface {
+  background-color: transparent;
+  backdrop-filter: none;
+  ...
+}
+```
+
+**Efek:**
+- Template 1 & 2 header sekarang punya bg `--h-bg` + blur + border + shadow sesuai setting CMS. Transparent-on-top juga berfungsi (transparan saat di paling atas + `transparentOnTop = true`; muncul opaque saat scroll >40px).
+- Template 3 tidak berubah — descendant selector masih match `.dnj-header-surface` di dalam main bar.
+
+**Verified:** `getComputedStyle(#main-header).backgroundColor` = `rgba(255, 255, 255, 0.9)` (dari `--h-bg` default `#FFFFFFE6`).
+
+**File touched:** `apps/web/src/components/navigation/HeaderRenderer.astro` (CSS block saja, 6 baris changed).
