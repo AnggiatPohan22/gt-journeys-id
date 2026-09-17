@@ -8,9 +8,9 @@ const { items = [], currentPath = '/', siteName = '', logoUrl = '', logoAlt = ''
 ---
 <div id="mobile-menu" class="lg:hidden hidden fixed inset-0 z-[60] bg-sand overflow-y-auto overscroll-contain" aria-hidden="true">
   <div class="sticky top-0 bg-sand/95 backdrop-blur-sm flex items-center justify-between h-20 px-4 border-b border-sand-dark/20">
-    <a href="/" class="flex items-center gap-2 no-underline text-current">
-      {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold">{siteName.slice(0, 2)}</span>}
-      <span class="font-display text-lg font-bold text-ocean">{siteName}</span>
+    <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0">
+      {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover shrink-0" /> : <span class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold shrink-0">{siteName.slice(0, 2)}</span>}
+      <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
     </a>
     <button id="mobile-close" type="button" class="p-2 text-ocean rounded-md hover:bg-white/60 transition-colors" aria-label="Close menu">
       <Icon name="close" class="w-6 h-6" />

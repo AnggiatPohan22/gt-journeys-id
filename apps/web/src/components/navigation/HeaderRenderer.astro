@@ -172,15 +172,20 @@ const Template = TEMPLATES[templateId] ?? HeaderTemplate1
 ---
 <Template {...ctx} />
 
+{/* Phase 4.41 — inject header theme vars ke :root supaya bisa dijangkau
+    juga oleh overlay mobile menu yang di-render di luar #main-header. */}
+<style is:global set:html={`:root{${themeStyle}}`}></style>
+
 <style is:global>
   /* Phase 4.41 — header theming via CSS custom properties.
-     Vars di-inject via inline `style` pada #main-header oleh masing-masing
-     template. Selector di-scope ke #main-header supaya tak bocor. */
-  #main-header .dnj-nav-link { color: var(--h-menu-text); transition: color 200ms; }
-  #main-header .dnj-nav-link:hover { color: var(--h-menu-hover); }
-  #main-header .dnj-nav-link--active { color: var(--h-menu-active); font-weight: 700; }
-  #main-header .dnj-cta { background-color: var(--h-cta-bg); color: var(--h-cta-text); border-radius: var(--h-cta-radius, 9999px); transition: background-color 200ms; }
-  #main-header .dnj-cta:hover { background-color: var(--h-cta-bg-hover); }
+     Class-based (bukan scoped ke #main-header) supaya overlay mobile menu
+     yang di-render di luar #main-header (mis. #mobile-menu, #mobile-menu-t3)
+     tetap ikut tone warna dari CMS. */
+  .dnj-nav-link { color: var(--h-menu-text); transition: color 200ms; }
+  .dnj-nav-link:hover { color: var(--h-menu-hover); }
+  .dnj-nav-link--active { color: var(--h-menu-active); font-weight: 700; }
+  .dnj-cta { background-color: var(--h-cta-bg); color: var(--h-cta-text); border-radius: var(--h-cta-radius, 9999px); transition: background-color 200ms; }
+  .dnj-cta:hover { background-color: var(--h-cta-bg-hover); }
   #main-header .dnj-icon-btn { color: var(--h-icon); }
   #main-header .dnj-topbar { background-color: var(--h-topbar-bg); color: var(--h-topbar-text); }
   #main-header .dnj-topbar a { color: var(--h-topbar-text); }

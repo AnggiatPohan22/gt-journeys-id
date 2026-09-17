@@ -7,7 +7,7 @@ import Icon from '@components/common/Icon.astro'
 import SocialIcons from './_SocialIcons.astro'
 import NavDesktop from './_HeaderNavDesktop.astro'
 import HeaderMobile from './_HeaderMobile.astro'
-const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, showSearch = true, showSocial = true, social = {}, themeStyle = '' } = Astro.props as any
+const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, showSearch = true, showSocial = true, social = {}, cta = { show: false }, themeStyle = '' } = Astro.props as any
 const socials = [ social.instagram, social.facebook, social.tiktok, social.youtube ].filter(Boolean)
 ---
 <header
@@ -22,9 +22,9 @@ const socials = [ social.instagram, social.facebook, social.tiktok, social.youtu
 >
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <nav class="flex items-center gap-4 h-20" aria-label="Main navigation">
-      <a href="/" class="flex items-center gap-2 no-underline text-current shrink-0">
-        {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" /> : <span class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold">{siteName.slice(0,2)}</span>}
-        <span class="font-display text-lg font-bold text-ocean hidden md:inline">{siteName}</span>
+      <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0 shrink lg:shrink-0">
+        {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover shrink-0" /> : <span class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold shrink-0">{siteName.slice(0,2)}</span>}
+        <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
       </a>
 
       {showSearch && (
@@ -59,9 +59,19 @@ const socials = [ social.instagram, social.facebook, social.tiktok, social.youtu
     </label>
   )}
   {showSocial && socials.length > 0 && (
-    <div class="flex items-center gap-3 px-2 pt-5 mt-3 border-t border-sand-dark/10">
+    <div class="flex items-center justify-center gap-3 px-2 pt-5 mt-3 border-t border-sand-dark/10">
       <SocialIcons social={social} linkClass="dnj-icon-btn w-10 h-10 rounded-full bg-white hover:bg-leaf/20 flex items-center justify-center transition-colors" iconClass="w-4 h-4" />
     </div>
+  )}
+  {cta.show && cta.href && (
+    <a
+      href={cta.href}
+      target={cta.external ? '_blank' : undefined}
+      rel={cta.external ? 'noopener noreferrer' : undefined}
+      class="mt-6 w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold no-underline bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-lg shadow-md transition-colors"
+    >
+      <Icon name="chat" class="w-5 h-5" />{cta.text}
+    </a>
   )}
 </HeaderMobile>
 {sticky && <div class="h-20"></div>}

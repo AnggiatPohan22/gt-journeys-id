@@ -3,10 +3,12 @@
 // Phase 4.41: warna via CSS vars (--h-*) di-inject di #main-header.
 // Phase 4.41.1: main-bar surface via `.dnj-header-surface` + --h-bg, sticky toggle-able,
 // transparent-on-top betul-betul bekerja (main bar transparan di top; top-bar tetap opaque).
+// Mobile: menu overlay dirender di BAWAH header (bukan menutup) supaya top bar
+// (phone + social) tetap terlihat — ciri khas Template 3 dijaga saat menu terbuka.
 import Icon from '@components/common/Icon.astro'
 import SocialIcons from './_SocialIcons.astro'
 import NavDesktop from './_HeaderNavDesktop.astro'
-import HeaderMobile from './_HeaderMobile.astro'
+import NavMobile from './_HeaderNavMobile.astro'
 const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, cta = { show: false }, showSocial = true, social = {}, topBar = {}, themeStyle = '' } = Astro.props as any
 const socials = [ social.instagram, social.facebook, social.tiktok, social.youtube ].filter(Boolean)
 ---
@@ -20,7 +22,8 @@ const socials = [ social.instagram, social.facebook, social.tiktok, social.youtu
     sticky ? 'fixed top-0' : 'relative',
   ]}
 >
-  <!-- Top bar (tetap opaque; tidak ikut transparent-on-top) -->
+  <!-- Top bar (tetap opaque; tidak ikut transparent-on-top). Ciri khas Template 3:
+       location/phone di kiri, social di kanan — tampil di desktop & mobile. -->
   <div class="dnj-topbar text-xs">
     <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-9 flex items-center justify-between gap-4">
       <div class="flex items-center gap-4 min-w-0">
@@ -44,18 +47,18 @@ const socials = [ social.instagram, social.facebook, social.tiktok, social.youtu
   <div class="dnj-header-surface">
     <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16" aria-label="Main navigation">
-        <a href="/" class="flex items-center gap-2 no-underline text-current">
-          {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-9 w-9 rounded-full object-cover" /> : <span class="h-9 w-9 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold text-sm">{siteName.slice(0,2)}</span>}
-          <span class="font-display text-lg font-bold text-ocean hidden sm:inline">{siteName}</span>
+        <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0">
+          {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-9 w-9 rounded-full object-cover shrink-0" /> : <span class="h-9 w-9 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold text-sm shrink-0">{siteName.slice(0,2)}</span>}
+          <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
         </a>
         <NavDesktop items={items} currentPath={currentPath} />
         <div class="flex items-center gap-3">
           {cta.show && cta.href && (
-            <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden sm:inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold no-underline shadow-sm">
-              <Icon name="chat" class="w-4 h-4" /><span class="hidden md:inline">{cta.text}</span><span class="md:hidden">Book</span>
+            <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden lg:inline-flex items-center gap-2 px-5 py-2 text-sm font-semibold no-underline shadow-sm">
+              <Icon name="chat" class="w-4 h-4" /><span>{cta.text}</span>
             </a>
           )}
-          <button id="mobile-toggle" type="button" class="dnj-icon-btn lg:hidden p-2 rounded-md hover:bg-sand transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+          <button id="mobile-toggle-t3" type="button" class="dnj-icon-btn lg:hidden p-2 rounded-md hover:bg-sand transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu-t3">
             <Icon name="menu" class="w-6 h-6 mobile-toggle-open" /><Icon name="close" class="w-6 h-6 mobile-toggle-close hidden" />
           </button>
         </div>
@@ -64,11 +67,51 @@ const socials = [ social.instagram, social.facebook, social.tiktok, social.youtu
   </div>
 </header>
 
-<HeaderMobile items={items} currentPath={currentPath} siteName={siteName} logoUrl={logoUrl} logoAlt={logoAlt}>
-  {cta.show && cta.href && (
-    <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta mt-5 flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold no-underline">
-      <Icon name="chat" class="w-5 h-5" />{cta.text}
-    </a>
-  )}
-</HeaderMobile>
+{/* Mobile menu panel — muncul di bawah header (top: 100px = 36 topbar + 64 main).
+    Header Template 3 (top bar + main) tetap tampil di atasnya. */}
+<div
+  id="mobile-menu-t3"
+  class="lg:hidden hidden fixed left-0 right-0 z-30 bg-sand overflow-y-auto overscroll-contain shadow-lg"
+  style="top: 100px; bottom: 0;"
+  aria-hidden="true"
+>
+  <div class="px-4 py-4 pb-8">
+    <NavMobile items={items} currentPath={currentPath} />
+    {cta.show && cta.href && (
+      <a
+        href={cta.href}
+        target={cta.external ? '_blank' : undefined}
+        rel={cta.external ? 'noopener noreferrer' : undefined}
+        class="mt-6 w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold no-underline bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-lg shadow-md transition-colors"
+      >
+        <Icon name="chat" class="w-5 h-5" />{cta.text}
+      </a>
+    )}
+  </div>
+</div>
+
 {sticky && <div class="h-[100px]"></div>}
+
+<script>
+  const initT3Mobile = () => {
+    const toggle = document.getElementById('mobile-toggle-t3')
+    const menu = document.getElementById('mobile-menu-t3')
+    if (!toggle || !menu) return
+    const openIcon = toggle.querySelector('.mobile-toggle-open')
+    const closeIcon = toggle.querySelector('.mobile-toggle-close')
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open))
+      menu.setAttribute('aria-hidden', String(!open))
+      menu.classList.toggle('hidden', !open)
+      openIcon?.classList.toggle('hidden', open)
+      closeIcon?.classList.toggle('hidden', !open)
+      document.body.style.overflow = open ? 'hidden' : ''
+    }
+    toggle.addEventListener('click', () => setOpen(menu.classList.contains('hidden')))
+    menu.querySelectorAll('a').forEach((l) => l.addEventListener('click', () => setOpen(false)))
+    document.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Escape' && !menu.classList.contains('hidden')) setOpen(false) })
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => { if (e.matches) setOpen(false) })
+  }
+  document.addEventListener('astro:page-load', initT3Mobile)
+  initT3Mobile()
+</script>

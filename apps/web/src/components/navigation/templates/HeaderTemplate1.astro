@@ -1,6 +1,7 @@
 ---
 // HeaderTemplate1 — "Classic" (Logo | Menu | CTA). Replika layout Header lama.
-// Sub-menu: klik-untuk-buka (desktop) via NavDesktop; mobile = overlay full-screen.
+// Sub-menu: klik-untuk-buka (desktop) via NavDesktop; mobile = overlay full-screen
+// dengan CTA WhatsApp full-width di dalamnya (hijau khas WA).
 // Phase 4.41: warna menu/CTA/icon via CSS vars (--h-*) di-inject di #main-header.
 // Phase 4.41.1 addendum: surface bg via `--h-bg` + `.dnj-header-surface`, sticky
 // toggle-able, transparent-on-top betul-betul bekerja (scroll listener di renderer).
@@ -21,23 +22,22 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
 >
   <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
     <nav class="flex items-center justify-between h-20" aria-label="Main navigation">
-      <a href="/" class="flex items-center gap-3 no-underline text-current">
+      <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0">
         {logoUrl ? (
-          <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover" />
+          <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover shrink-0" />
         ) : (
-          <span aria-hidden="true" class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold">{siteName.slice(0, 2)}</span>
+          <span aria-hidden="true" class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold shrink-0">{siteName.slice(0, 2)}</span>
         )}
-        <span class="font-display text-lg font-bold text-ocean hidden sm:inline">{siteName}</span>
+        <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
       </a>
 
       <NavDesktop items={items} currentPath={currentPath} ulClass="gap-6 xl:gap-8 tracking-wide" />
 
       <div class="flex items-center gap-3">
         {cta.show && cta.href && (
-          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden sm:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold no-underline shadow-sm hover:shadow-md">
+          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden lg:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold no-underline shadow-sm hover:shadow-md">
             <Icon name="chat" class="w-4 h-4" />
-            <span class="hidden md:inline">{cta.text}</span>
-            <span class="md:hidden">Book</span>
+            <span>{cta.text}</span>
           </a>
         )}
         <button id="mobile-toggle" type="button" class="dnj-icon-btn lg:hidden p-2 rounded-md hover:bg-sand transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
@@ -51,7 +51,12 @@ const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent =
 
 <HeaderMobile items={items} currentPath={currentPath} siteName={siteName} logoUrl={logoUrl} logoAlt={logoAlt}>
   {cta.show && cta.href && (
-    <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta mt-5 flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold no-underline">
+    <a
+      href={cta.href}
+      target={cta.external ? '_blank' : undefined}
+      rel={cta.external ? 'noopener noreferrer' : undefined}
+      class="mt-6 w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold no-underline bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-lg shadow-md transition-colors"
+    >
       <Icon name="chat" class="w-5 h-5" />{cta.text}
     </a>
   )}
