@@ -1,4 +1,4 @@
-import type { ResolvedChannel } from './types'
+import type { ResolvedChannel, ResolveContext } from './types'
 
 /**
  * AI Chatbot channel adapter — Phase 4.50.6.
@@ -12,6 +12,7 @@ import type { ResolvedChannel } from './types'
 export function resolveAiChatbotChannel(
   block: any,
   index: number,
+  ctx?: ResolveContext,
 ): ResolvedChannel | null {
   if (block?.enabled === false) return null
 
@@ -21,7 +22,9 @@ export function resolveAiChatbotChannel(
       ? (block.iconOverride === 'sparkle' ? 'sparkles' : block.iconOverride)
       : 'sparkles'
   const brandColor =
-    (block?.brandColorOverride?.trim?.() as string) || '#7C3AED'
+    (block?.brandColorOverride?.trim?.() as string) ||
+    ctx?.channelDefaultColors?.aiChatbotChannel ||
+    '#7C3AED'
 
   return {
     key: `ai-${index}`,

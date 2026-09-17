@@ -1,5 +1,6 @@
 import type { GlobalConfig, Field } from 'payload'
 import { isSuperAdmin } from '../access/roles'
+import { colorPickerField } from '../fields/colorPicker'
 
 /**
  * ChatWidgetSettings — Phase 4.50.1
@@ -18,54 +19,73 @@ import { isSuperAdmin } from '../access/roles'
  * kembali ke SiteSettings.contact.whatsapp.
  */
 
+/**
+ * Common fields di setiap channel block — layout row untuk hemat vertical
+ * space. Owner request Phase 4.50.7 polish.
+ */
 const commonChannelFields: Field[] = [
   {
-    name: 'enabled',
-    type: 'checkbox',
-    defaultValue: true,
-    admin: { description: 'Uncheck untuk sembunyikan channel ini tanpa hapus data.' },
-  },
-  {
-    name: 'label',
-    type: 'text',
-    required: true,
-    admin: { description: 'Judul kartu di popup (mis. "Sales", "Support", "Ask AI").' },
-  },
-  {
-    name: 'subtitle',
-    type: 'text',
-    admin: { description: 'Baris kecil di bawah label (mis. "Reply in ~5 min").' },
-  },
-  {
-    name: 'agentName',
-    type: 'text',
-    admin: { description: 'Opsional. Nama agent/tim yang ditampilkan di kartu channel.' },
-  },
-  {
-    name: 'agentAvatar',
-    type: 'upload',
-    relationTo: 'media',
-    admin: { description: 'Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.' },
-  },
-  {
-    name: 'iconOverride',
-    type: 'select',
-    defaultValue: 'default',
-    options: [
-      { label: 'Channel default', value: 'default' },
-      { label: 'WhatsApp', value: 'whatsapp' },
-      { label: 'Chat bubble', value: 'chat' },
-      { label: 'Sparkle (AI)', value: 'sparkle' },
-      { label: 'Envelope', value: 'mail' },
+    type: 'row',
+    fields: [
+      {
+        name: 'enabled',
+        type: 'checkbox',
+        defaultValue: true,
+        admin: { width: '20%', description: 'Uncheck = hide tanpa hapus.' },
+      },
+      {
+        name: 'label',
+        type: 'text',
+        required: true,
+        admin: { width: '40%', description: 'Judul kartu popup.' },
+      },
+      {
+        name: 'subtitle',
+        type: 'text',
+        admin: { width: '40%', description: 'Baris kecil di bawah label.' },
+      },
     ],
-    admin: { description: 'Override ikon kartu (default = mengikuti tipe channel).' },
   },
   {
-    name: 'brandColorOverride',
-    type: 'text',
-    admin: {
-      description: 'HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.',
-    },
+    type: 'row',
+    fields: [
+      {
+        name: 'agentName',
+        type: 'text',
+        admin: { width: '40%', description: 'Nama agent/tim (opsional).' },
+      },
+      {
+        name: 'agentAvatar',
+        type: 'upload',
+        relationTo: 'media',
+        admin: { width: '60%', description: 'Avatar. Preset tersedia di /chat-avatars/agent-{01-04}.svg — upload manual ke Media dulu.' },
+      },
+    ],
+  },
+  {
+    type: 'row',
+    fields: [
+      {
+        name: 'iconOverride',
+        type: 'select',
+        defaultValue: 'default',
+        admin: { width: '50%', description: 'Override ikon (default = per-tipe).' },
+        options: [
+          { label: 'Channel default', value: 'default' },
+          { label: 'WhatsApp', value: 'whatsapp' },
+          { label: 'Chat bubble', value: 'chat' },
+          { label: 'Sparkle (AI)', value: 'sparkle' },
+          { label: 'Envelope', value: 'mail' },
+        ],
+      },
+      colorPickerField(
+        'brandColorOverride',
+        'Warna Override',
+        'Opsional. Kosong = pakai warna default per channel type (Appearance tab).',
+        '',
+        { width: '50%' },
+      ),
+    ],
   },
 ]
 
@@ -151,89 +171,174 @@ export const ChatWidgetSettings: GlobalConfig = {
         // ══ Tab 2: Appearance ════════════════════════════════════════
         {
           label: 'Appearance',
-          description: 'Posisi, warna, ukuran, animasi tombol floating.',
+          description: 'Posisi, ukuran, animasi, dan seluruh warna widget + tombol dalam popup.',
           fields: [
+            // ── Layout & Size ─────────────────────────────────────
             {
-              name: 'position',
-              type: 'select',
-              defaultValue: 'bottomRight',
-              options: [
-                { label: 'Bottom right', value: 'bottomRight' },
-                { label: 'Bottom left', value: 'bottomLeft' },
-              ],
-            },
-            {
-              type: 'row',
+              type: 'collapsible',
+              label: 'Layout & Size',
+              admin: { initCollapsed: false, description: 'Posisi floating button + ukurannya.' },
               fields: [
                 {
-                  name: 'offsetX',
-                  type: 'number',
-                  defaultValue: 24,
-                  admin: { width: '50%', description: 'px dari edge horizontal.' },
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'position',
+                      type: 'select',
+                      defaultValue: 'bottomRight',
+                      admin: { width: '34%' },
+                      options: [
+                        { label: 'Bottom right', value: 'bottomRight' },
+                        { label: 'Bottom left', value: 'bottomLeft' },
+                      ],
+                    },
+                    {
+                      name: 'offsetX',
+                      type: 'number',
+                      defaultValue: 24,
+                      admin: { width: '22%', description: 'px horizontal.' },
+                    },
+                    {
+                      name: 'offsetY',
+                      type: 'number',
+                      defaultValue: 24,
+                      admin: { width: '22%', description: 'px vertikal.' },
+                    },
+                    {
+                      name: 'size',
+                      type: 'select',
+                      defaultValue: 'md',
+                      admin: { width: '22%' },
+                      options: [
+                        { label: 'SM (48px)', value: 'sm' },
+                        { label: 'MD (56px)', value: 'md' },
+                        { label: 'LG (64px)', value: 'lg' },
+                      ],
+                    },
+                  ],
                 },
                 {
-                  name: 'offsetY',
-                  type: 'number',
-                  defaultValue: 24,
-                  admin: { width: '50%', description: 'px dari edge vertikal.' },
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'buttonStyle',
+                      type: 'select',
+                      defaultValue: 'iconOnly',
+                      admin: { width: '50%' },
+                      options: [
+                        { label: 'Icon only (round)', value: 'iconOnly' },
+                        { label: 'Icon + label (pill)', value: 'pill' },
+                      ],
+                    },
+                    {
+                      name: 'buttonLabel',
+                      type: 'text',
+                      defaultValue: 'Chat',
+                      admin: {
+                        width: '50%',
+                        description: 'Teks di sebelah ikon (untuk style pill).',
+                        condition: (_, d) => d?.buttonStyle === 'pill',
+                      },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'pulseAnimation',
+                      type: 'checkbox',
+                      defaultValue: false,
+                      admin: { width: '50%', description: 'Efek denyut halus untuk menarik perhatian.' },
+                    },
+                    {
+                      name: 'entranceAnimation',
+                      type: 'select',
+                      defaultValue: 'fadeUp',
+                      admin: { width: '50%' },
+                      options: [
+                        { label: 'None', value: 'none' },
+                        { label: 'Fade up', value: 'fadeUp' },
+                        { label: 'Pop in', value: 'pop' },
+                      ],
+                    },
+                  ],
                 },
               ],
             },
+
+            // ── Warna Utama (button + popup header) ───────────────
             {
-              name: 'buttonStyle',
-              type: 'select',
-              defaultValue: 'iconOnly',
-              options: [
-                { label: 'Icon only (round)', value: 'iconOnly' },
-                { label: 'Icon + label (pill)', value: 'pill' },
-              ],
-            },
-            {
-              name: 'buttonLabel',
-              type: 'text',
-              defaultValue: 'Chat',
+              type: 'collapsible',
+              label: 'Warna Utama',
               admin: {
-                description: 'Teks di sebelah ikon (untuk style pill).',
-                condition: (_, d) => d?.buttonStyle === 'pill',
+                initCollapsed: false,
+                description: 'Warna floating button + header popup. Warna kartu channel diatur di section "Warna per Channel" di bawah.',
               },
-            },
-            {
-              name: 'brandColor',
-              type: 'text',
-              defaultValue: '#25D366',
-              admin: {
-                description:
-                  'HEX. Default WA green. Warna per-channel bisa override lewat brandColorOverride.',
-              },
-            },
-            {
-              name: 'size',
-              type: 'select',
-              defaultValue: 'md',
-              options: [
-                { label: 'SM (48px)', value: 'sm' },
-                { label: 'MD (56px)', value: 'md' },
-                { label: 'LG (64px)', value: 'lg' },
-              ],
-            },
-            {
-              type: 'row',
               fields: [
                 {
-                  name: 'pulseAnimation',
-                  type: 'checkbox',
-                  defaultValue: false,
-                  admin: { width: '50%', description: 'Efek denyut halus untuk narik perhatian.' },
+                  type: 'row',
+                  fields: [
+                    colorPickerField('brandColor', 'Button & Header', 'Warna floating button + header popup.', '#25D366', { width: '50%' }),
+                    colorPickerField('brandColorText', 'Text on brand', 'Warna teks/ikon di atas brand color (default putih).', '#FFFFFF', { width: '50%' }),
+                  ],
+                },
+              ],
+            },
+
+            // ── Warna Panel Chat (thread AI) ──────────────────────
+            {
+              type: 'collapsible',
+              label: 'Warna Panel Chat (AI)',
+              admin: {
+                initCollapsed: true,
+                description: 'Warna area thread AI: background + bubble user + bubble bot + tombol send/back.',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    colorPickerField('chatBackgroundColor', 'Background thread', 'Warna background area chat AI.', '#FFFFFF', { width: '50%' }),
+                    colorPickerField('chatBorderColor', 'Border / divider', 'Warna garis pembatas antar section popup.', '#E7E5E4', { width: '50%' }),
+                  ],
                 },
                 {
-                  name: 'entranceAnimation',
-                  type: 'select',
-                  defaultValue: 'fadeUp',
-                  admin: { width: '50%' },
-                  options: [
-                    { label: 'None', value: 'none' },
-                    { label: 'Fade up', value: 'fadeUp' },
-                    { label: 'Pop in', value: 'pop' },
+                  type: 'row',
+                  fields: [
+                    colorPickerField('userBubbleColor', 'User bubble', 'Warna bubble pesan visitor.', '#7C3AED', { width: '25%' }),
+                    colorPickerField('userBubbleTextColor', 'User text', 'Teks di bubble user.', '#FFFFFF', { width: '25%' }),
+                    colorPickerField('botBubbleColor', 'Bot bubble', 'Warna bubble balasan AI.', '#F5F5F4', { width: '25%' }),
+                    colorPickerField('botBubbleTextColor', 'Bot text', 'Teks di bubble bot.', '#1C1917', { width: '25%' }),
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    colorPickerField('sendButtonColor', 'Button Send', 'Warna tombol Send di form AI.', '#25D366', { width: '25%' }),
+                    colorPickerField('sendButtonTextColor', 'Send text', 'Warna teks tombol Send.', '#FFFFFF', { width: '25%' }),
+                    colorPickerField('backButtonColor', 'Button Back', 'Warna tombol Back (kembali ke menu).', '#FFFFFF33', { width: '25%' }),
+                    colorPickerField('backButtonTextColor', 'Back text', 'Warna ikon tombol Back.', '#FFFFFF', { width: '25%' }),
+                  ],
+                },
+              ],
+            },
+
+            // ── Warna per Channel Type (default) ──────────────────
+            {
+              type: 'collapsible',
+              label: 'Warna per Channel Type',
+              admin: {
+                initCollapsed: true,
+                description: 'Warna default per tipe kartu di popup. Bisa di-override per channel di tab Channels (field brandColorOverride).',
+              },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    colorPickerField('waChannelColor',       'WhatsApp',  'Warna kartu WhatsApp.',   '#25D366', { width: '25%' }),
+                    colorPickerField('aiChannelColor',       'AI Chatbot','Warna kartu AI Chatbot.', '#7C3AED', { width: '25%' }),
+                    colorPickerField('liveChatChannelColor', 'Live Chat', 'Warna kartu Live Chat.',  '#2563EB', { width: '25%' }),
+                    colorPickerField('emailChannelColor',    'Email',     'Warna kartu Email.',      '#0F766E', { width: '25%' }),
                   ],
                 },
               ],
@@ -309,60 +414,75 @@ export const ChatWidgetSettings: GlobalConfig = {
               blocks: [
                 {
                   slug: 'whatsappChannel',
-                  labels: { singular: 'WhatsApp', plural: 'WhatsApp' },
+                  labels: { singular: '📱 WhatsApp', plural: '📱 WhatsApp' },
                   fields: [
                     ...commonChannelFields,
                     {
-                      name: 'whatsappNumber',
-                      type: 'text',
-                      admin: {
-                        description:
-                          'Digits + country code, tanpa "+" (mis. 6281234567890). Kosong = fallback ke SiteSettings.contact.whatsapp.',
-                      },
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'whatsappNumber',
+                          type: 'text',
+                          admin: {
+                            width: '70%',
+                            description: 'Digits + country code tanpa "+" (mis. 6281234567890). Kosong = fallback SiteSettings.contact.whatsapp.',
+                          },
+                        },
+                        {
+                          name: 'appendUtm',
+                          type: 'checkbox',
+                          defaultValue: true,
+                          admin: { width: '30%', description: 'Append UTM ke wa.me link.' },
+                        },
+                      ],
                     },
                     {
                       name: 'prefilledMessage',
                       type: 'textarea',
                       admin: {
-                        rows: 4,
-                        description:
-                          'Pesan pre-fill saat visitor klik. Kosong = fallback ke SiteSettings.whatsappDefaults.greetingMessage (legacy).',
-                      },
-                    },
-                    {
-                      name: 'appendUtm',
-                      type: 'checkbox',
-                      defaultValue: true,
-                      admin: {
-                        description:
-                          'Append UTM params ke wa.me link untuk tracking di analytics.',
+                        rows: 3,
+                        description: 'Pesan pre-fill saat visitor klik. Kosong = fallback ke legacy greetingMessage.',
                       },
                     },
                   ],
                 },
                 {
                   slug: 'aiChatbotChannel',
-                  labels: { singular: 'AI Chatbot', plural: 'AI Chatbots' },
+                  labels: { singular: '✨ AI Chatbot', plural: '✨ AI Chatbots' },
                   fields: [
                     ...commonChannelFields,
                     {
-                      name: 'provider',
-                      type: 'select',
-                      defaultValue: 'anthropic',
-                      options: [
-                        { label: 'Anthropic (Claude)', value: 'anthropic' },
-                        { label: 'OpenAI', value: 'openai' },
-                        { label: 'Cloudflare Workers AI', value: 'workers-ai' },
-                        { label: 'Custom endpoint', value: 'custom' },
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'provider',
+                          type: 'select',
+                          defaultValue: 'anthropic',
+                          admin: { width: '30%' },
+                          options: [
+                            { label: 'Anthropic (Claude)', value: 'anthropic' },
+                            { label: 'OpenAI', value: 'openai' },
+                            { label: 'Cloudflare Workers AI', value: 'workers-ai' },
+                            { label: 'Custom endpoint', value: 'custom' },
+                          ],
+                        },
+                        {
+                          name: 'model',
+                          type: 'text',
+                          admin: {
+                            width: '35%',
+                            description: 'mis. claude-haiku-4-5, gpt-4o-mini, @cf/meta/llama-3.1-8b-instruct.',
+                          },
+                        },
+                        {
+                          name: 'apiKeyRef',
+                          type: 'text',
+                          admin: {
+                            width: '35%',
+                            description: 'NAMA env var (mis. ANTHROPIC_API_KEY). JANGAN paste raw key.',
+                          },
+                        },
                       ],
-                    },
-                    {
-                      name: 'model',
-                      type: 'text',
-                      admin: {
-                        description:
-                          'Model ID. mis. claude-haiku-4-5, gpt-4o-mini, @cf/meta/llama-3.1-8b.',
-                      },
                     },
                     {
                       name: 'endpointUrl',
@@ -376,73 +496,81 @@ export const ChatWidgetSettings: GlobalConfig = {
                       name: 'systemPrompt',
                       type: 'textarea',
                       admin: {
-                        rows: 8,
-                        description:
-                          'System prompt untuk chatbot. Jelaskan brand, tone, batasan, dan escalation ke WA.',
+                        rows: 6,
+                        description: 'System prompt: jelaskan brand, tone, batasan, dan escalation ke WA bila di luar scope.',
                       },
                     },
                     {
-                      name: 'welcomeMessage',
-                      type: 'text',
-                      admin: { description: 'Balasan pertama chatbot saat panel dibuka.' },
-                    },
-                    {
-                      name: 'streaming',
-                      type: 'checkbox',
-                      defaultValue: true,
-                      admin: { description: 'Streaming token-by-token (SSE).' },
-                    },
-                    {
-                      name: 'apiKeyRef',
-                      type: 'text',
-                      admin: {
-                        description:
-                          'NAMA env variable (mis. ANTHROPIC_API_KEY). JANGAN paste raw API key di sini.',
-                      },
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'welcomeMessage',
+                          type: 'text',
+                          admin: { width: '75%', description: 'Balasan pertama chatbot saat panel dibuka.' },
+                        },
+                        {
+                          name: 'streaming',
+                          type: 'checkbox',
+                          defaultValue: true,
+                          admin: { width: '25%', description: 'Streaming SSE (belum aktif; disiapkan).' },
+                        },
+                      ],
                     },
                   ],
                 },
                 {
                   slug: 'liveChatChannel',
-                  labels: { singular: 'Live Chat', plural: 'Live Chats' },
+                  labels: { singular: '💬 Live Chat', plural: '💬 Live Chats' },
                   fields: [
                     ...commonChannelFields,
                     {
-                      name: 'provider',
-                      type: 'select',
-                      defaultValue: 'crisp',
-                      options: [
-                        { label: 'Crisp', value: 'crisp' },
-                        { label: 'Tawk.to', value: 'tawk' },
-                        { label: 'Intercom', value: 'intercom' },
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'provider',
+                          type: 'select',
+                          defaultValue: 'crisp',
+                          admin: { width: '40%' },
+                          options: [
+                            { label: 'Crisp', value: 'crisp' },
+                            { label: 'Tawk.to', value: 'tawk' },
+                            { label: 'Intercom', value: 'intercom' },
+                          ],
+                        },
+                        {
+                          name: 'siteId',
+                          type: 'text',
+                          admin: { width: '60%', description: 'Site/widget ID dari dashboard provider.' },
+                        },
                       ],
-                    },
-                    {
-                      name: 'siteId',
-                      type: 'text',
-                      admin: { description: 'Site/widget ID dari dashboard provider.' },
                     },
                   ],
                 },
                 {
                   slug: 'emailChannel',
-                  labels: { singular: 'Email', plural: 'Emails' },
+                  labels: { singular: '✉️ Email', plural: '✉️ Emails' },
                   fields: [
                     ...commonChannelFields,
                     {
-                      name: 'toAddress',
-                      type: 'text',
-                      required: true,
-                      admin: { description: 'Alamat email tujuan.' },
-                    },
-                    {
-                      name: 'defaultSubject',
-                      type: 'text',
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'toAddress',
+                          type: 'text',
+                          required: true,
+                          admin: { width: '50%', description: 'Alamat email tujuan.' },
+                        },
+                        {
+                          name: 'defaultSubject',
+                          type: 'text',
+                          admin: { width: '50%', description: 'Subject pre-filled.' },
+                        },
+                      ],
                     },
                     {
                       name: 'defaultBody',
                       type: 'textarea',
-                      admin: { rows: 4 },
+                      admin: { rows: 3, description: 'Body pre-filled.' },
                     },
                   ],
                 },
@@ -687,7 +815,7 @@ export const ChatWidgetSettings: GlobalConfig = {
         {
           label: 'Security',
           description:
-            'Anti-spam multi-layer. Rate-limit, human-verification (Turnstile/reCAPTCHA), backend validation, bot signals, IP controls. Relevan terutama untuk channel AI chatbot & Email (backend-hit); channel WhatsApp/LiveChat client-side redirect jadi hanya sebagian layer applicable.',
+            '🛡️ Anti-spam multi-layer untuk backend-hit channels (AI + Email). Aktifkan layer secukupnya — makin banyak = makin ketat tapi bisa mengganggu user normal. Lihat panel per layer di bawah untuk fungsi & kapan pakai.',
           fields: [
             {
               name: 'securityVersion',
@@ -720,11 +848,11 @@ export const ChatWidgetSettings: GlobalConfig = {
             // ── Layer 1: Rate Limit ─────────────────────────────────
             {
               type: 'collapsible',
-              label: 'Layer 1 — Rate Limit',
+              label: '⏱️ Layer 1 — Rate Limit (per IP / cookie)',
               admin: {
                 initCollapsed: false,
                 description:
-                  'Sliding-window per IP dan/atau per visitor cookie. Multi-window supported (mis. 5/min AND 100/hour). Store: KV/DO (abstracted via RateLimitStore interface, bukan tabel Payload) → swappable ke Redis/D1 tanpa ganti schema.',
+                  '• FUNGSI: batasi jumlah request per periode waktu (mis. 5 pesan / menit / IP). Multi-window support (mis. 5/menit DAN 100/jam).\n• KAPAN PAKAI: WAJIB untuk AI channel — cegah brute-force spam. Set moderate agar tidak trip user normal.\n• STORAGE: Cloudflare KV (edge, ~10ms) — bukan tabel Payload.',
               },
               fields: [
                 {
@@ -801,11 +929,11 @@ export const ChatWidgetSettings: GlobalConfig = {
             // ── Layer 2: Human Verification (silent) ────────────────
             {
               type: 'collapsible',
-              label: 'Layer 2 — Human Verification',
+              label: '🤖 Layer 2 — Human Verification (Turnstile / reCAPTCHA v3)',
               admin: {
                 initCollapsed: false,
                 description:
-                  'Silent verification (invisible ke user normal). Trigger saat rate-limit challenge atau saat message pertama. Secret key TIDAK disimpan di DB — pakai apiKeyRef (env var).',
+                  '• FUNGSI: verifikasi silent bahwa request datang dari manusia (bukan bot). User normal tidak melihat challenge kecuali Cloudflare/Google deem suspicious.\n• KAPAN PAKAI: setelah rate-limit tidak cukup (masih ada bot yang lolos low-rate). Turnstile > reCAPTCHA v3 untuk privacy (Cloudflare native, no cookie tracking).\n• SECRET: JANGAN paste raw secret — pakai env var name (verificationSecretKeyRef).',
               },
               fields: [
                 {
@@ -878,11 +1006,11 @@ export const ChatWidgetSettings: GlobalConfig = {
             // ── Layer 3: Backend Validation ─────────────────────────
             {
               type: 'collapsible',
-              label: 'Layer 3 — Backend Validation',
+              label: '🔎 Layer 3 — Backend Validation (length / cooldown / duplicate / keyword)',
               admin: {
                 initCollapsed: false,
                 description:
-                  'Constraint di server. Frontend juga menghormati (disable button + maxlength) tapi server tetap authoritative.',
+                  '• FUNGSI: enforce constraint di server — panjang pesan, cooldown antar send, tolak duplikat pesan, block keyword/regex tertentu.\n• KAPAN PAKAI: SELALU aktif — cheap check, high value. Frontend juga menghormati (disable button + maxlength) tapi server tetap authoritative.\n• TIPS: mulai dari minMessageLength=2, maxMessageLength=1000, sendCooldownMs=1500. Adjust setelah lihat pattern spam.',
               },
               fields: [
                 {
@@ -969,11 +1097,11 @@ export const ChatWidgetSettings: GlobalConfig = {
             // ── Layer 4: Bot Signals ─────────────────────────────────
             {
               type: 'collapsible',
-              label: 'Layer 4 — Bot Signals',
+              label: '🐛 Layer 4 — Bot Signals (honeypot / timing / user-agent)',
               admin: {
                 initCollapsed: true,
                 description:
-                  'Deteksi bot pasif. Signal disimpan di chat-blocked-events.context (JSON) → tambah signal baru zero-migration.',
+                  '• FUNGSI: deteksi bot pasif — honeypot (field hidden yang harus kosong), timing (submit terlalu cepat = bot instant-fill), UA blocklist (curl/headless/wget).\n• KAPAN PAKAI: complement Layer 2 (kalau tidak pakai Turnstile). Cost = nol untuk user normal, catches ~80% naive bot.\n• EXTENSIBLE: signal baru (canvas fingerprint, WebGL) tinggal push ke chat-blocked-events.context (JSON) — no migration.',
               },
               fields: [
                 {
@@ -1019,11 +1147,11 @@ export const ChatWidgetSettings: GlobalConfig = {
             // ── Layer 5: IP / Country Controls ──────────────────────
             {
               type: 'collapsible',
-              label: 'Layer 5 — IP & Country Controls',
+              label: '🌍 Layer 5 — IP & Country Controls (blocklist / allowlist)',
               admin: {
                 initCollapsed: true,
                 description:
-                  'Blocklist eksplisit. Country pakai header CF-IPCountry (butuh Cloudflare Workers).',
+                  '• FUNGSI: block IP/CIDR eksplisit + filter berdasarkan negara (via CF-IPCountry header).\n• KAPAN PAKAI: setelah identify abuser tertentu (block by IP), atau bila layanan hanya untuk audience region tertentu (allowlist Indonesia saja).\n• HATI-HATI: allowlist terlalu ketat bisa block user VPN legit. Prefer blocklist untuk mulai.',
               },
               fields: [
                 {
@@ -1058,11 +1186,11 @@ export const ChatWidgetSettings: GlobalConfig = {
             // ── Visitor / Privacy ────────────────────────────────────
             {
               type: 'collapsible',
-              label: 'Visitor & Privacy',
+              label: '🔐 Visitor & Privacy (cookie / IP hash / retention)',
               admin: {
                 initCollapsed: true,
                 description:
-                  'Cookie visitor untuk tracking session lintas message. IP disimpan sebagai HMAC hash (GDPR-friendly), bukan raw.',
+                  '• FUNGSI: cookie visitor untuk correlate message lintas session (HMAC-signed, HttpOnly + Secure). Raw IP TIDAK disimpan — hanya HMAC-SHA256 hash (GDPR-friendly).\n• RETENTION: audit log purge otomatis via cron. Body pesan di-redact @ retentionDays/2, row di-delete @ retentionDays.\n• SALT ROTATION: rotasi CHAT_IP_HASH_SALT = invalidate seluruh riwayat hash (fitur privacy, bukan bug).',
               },
               fields: [
                 {

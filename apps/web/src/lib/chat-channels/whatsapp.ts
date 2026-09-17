@@ -40,7 +40,9 @@ export function resolveWhatsappChannel(
   const iconName =
     block?.iconOverride && block.iconOverride !== 'default' ? block.iconOverride : 'whatsapp'
   const brandColor =
-    (block?.brandColorOverride?.trim?.() as string) || '#25D366'
+    (block?.brandColorOverride?.trim?.() as string) ||
+    ctx.channelDefaultColors?.whatsappChannel ||
+    '#25D366'
 
   return {
     key: `wa-${index}`,

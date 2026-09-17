@@ -19,6 +19,8 @@ export interface ResolveContext {
   fallbackWhatsappMessage?: string
   /** UTM params dari ChatWidgetSettings.Tracking */
   utm?: { source?: string; medium?: string; campaign?: string }
+  /** Warna default per channel type (dari ChatWidgetSettings.Appearance). Override lokal per-channel tetap menang. */
+  channelDefaultColors?: Partial<Record<ChannelBlockType, string>>
 }
 
 /**

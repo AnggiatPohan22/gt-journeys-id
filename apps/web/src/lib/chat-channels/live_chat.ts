@@ -1,4 +1,4 @@
-import type { ResolvedChannel } from './types'
+import type { ResolvedChannel, ResolveContext } from './types'
 
 /**
  * Live Chat channel adapter — STUB (Phase 4.50.3).
@@ -12,6 +12,7 @@ import type { ResolvedChannel } from './types'
 export function resolveLiveChatChannel(
   block: any,
   index: number,
+  ctx?: ResolveContext,
 ): ResolvedChannel | null {
   if (block?.enabled === false) return null
 
@@ -19,7 +20,9 @@ export function resolveLiveChatChannel(
   const iconName =
     block?.iconOverride && block.iconOverride !== 'default' ? block.iconOverride : 'chat'
   const brandColor =
-    (block?.brandColorOverride?.trim?.() as string) || '#2563EB'
+    (block?.brandColorOverride?.trim?.() as string) ||
+    ctx?.channelDefaultColors?.liveChatChannel ||
+    '#2563EB'
 
   return {
     key: `lc-${index}`,

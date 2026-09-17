@@ -1,4 +1,4 @@
-import type { ResolvedChannel } from './types'
+import type { ResolvedChannel, ResolveContext } from './types'
 
 /**
  * Email channel adapter — Phase 4.50.3.
@@ -15,6 +15,7 @@ import type { ResolvedChannel } from './types'
 export function resolveEmailChannel(
   block: any,
   index: number,
+  ctx?: ResolveContext,
 ): ResolvedChannel | null {
   if (block?.enabled === false) return null
   const to = (block?.toAddress?.trim?.() as string) || ''
@@ -30,7 +31,9 @@ export function resolveEmailChannel(
   const iconName =
     block?.iconOverride && block.iconOverride !== 'default' ? block.iconOverride : 'mail'
   const brandColor =
-    (block?.brandColorOverride?.trim?.() as string) || '#0F766E'
+    (block?.brandColorOverride?.trim?.() as string) ||
+    ctx?.channelDefaultColors?.emailChannel ||
+    '#0F766E'
 
   return {
     key: `email-${index}`,

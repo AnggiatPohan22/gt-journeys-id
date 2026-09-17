@@ -16,9 +16,9 @@ export function resolveChannel(
   const type = block?.blockType
   switch (type) {
     case 'whatsappChannel':  return resolveWhatsappChannel(block, ctx, index)
-    case 'aiChatbotChannel': return resolveAiChatbotChannel(block, index)
-    case 'liveChatChannel':  return resolveLiveChatChannel(block, index)
-    case 'emailChannel':     return resolveEmailChannel(block, index)
+    case 'aiChatbotChannel': return resolveAiChatbotChannel(block, index, ctx)
+    case 'liveChatChannel':  return resolveLiveChatChannel(block, index, ctx)
+    case 'emailChannel':     return resolveEmailChannel(block, index, ctx)
     default:                 return null
   }
 }

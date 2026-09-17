@@ -44839,28 +44839,88 @@ export interface ChatWidget {
   hideOnDesktop?: boolean | null;
   position?: ('bottomRight' | 'bottomLeft') | null;
   /**
-   * px dari edge horizontal.
+   * px horizontal.
    */
   offsetX?: number | null;
   /**
-   * px dari edge vertikal.
+   * px vertikal.
    */
   offsetY?: number | null;
+  size?: ('sm' | 'md' | 'lg') | null;
   buttonStyle?: ('iconOnly' | 'pill') | null;
   /**
    * Teks di sebelah ikon (untuk style pill).
    */
   buttonLabel?: string | null;
   /**
-   * HEX. Default WA green. Warna per-channel bisa override lewat brandColorOverride.
-   */
-  brandColor?: string | null;
-  size?: ('sm' | 'md' | 'lg') | null;
-  /**
-   * Efek denyut halus untuk narik perhatian.
+   * Efek denyut halus untuk menarik perhatian.
    */
   pulseAnimation?: boolean | null;
   entranceAnimation?: ('none' | 'fadeUp' | 'pop') | null;
+  /**
+   * Warna floating button + header popup.
+   */
+  brandColor?: string | null;
+  /**
+   * Warna teks/ikon di atas brand color (default putih).
+   */
+  brandColorText?: string | null;
+  /**
+   * Warna background area chat AI.
+   */
+  chatBackgroundColor?: string | null;
+  /**
+   * Warna garis pembatas antar section popup.
+   */
+  chatBorderColor?: string | null;
+  /**
+   * Warna bubble pesan visitor.
+   */
+  userBubbleColor?: string | null;
+  /**
+   * Teks di bubble user.
+   */
+  userBubbleTextColor?: string | null;
+  /**
+   * Warna bubble balasan AI.
+   */
+  botBubbleColor?: string | null;
+  /**
+   * Teks di bubble bot.
+   */
+  botBubbleTextColor?: string | null;
+  /**
+   * Warna tombol Send di form AI.
+   */
+  sendButtonColor?: string | null;
+  /**
+   * Warna teks tombol Send.
+   */
+  sendButtonTextColor?: string | null;
+  /**
+   * Warna tombol Back (kembali ke menu).
+   */
+  backButtonColor?: string | null;
+  /**
+   * Warna ikon tombol Back.
+   */
+  backButtonTextColor?: string | null;
+  /**
+   * Warna kartu WhatsApp.
+   */
+  waChannelColor?: string | null;
+  /**
+   * Warna kartu AI Chatbot.
+   */
+  aiChannelColor?: string | null;
+  /**
+   * Warna kartu Live Chat.
+   */
+  liveChatChannelColor?: string | null;
+  /**
+   * Warna kartu Email.
+   */
+  emailChannelColor?: string | null;
   popupTitle?: string | null;
   popupSubtitle?: string | null;
   /**
@@ -44886,89 +44946,93 @@ export interface ChatWidget {
     | (
         | {
             /**
-             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             * Uncheck = hide tanpa hapus.
              */
             enabled?: boolean | null;
             /**
-             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             * Judul kartu popup.
              */
             label: string;
             /**
-             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             * Baris kecil di bawah label.
              */
             subtitle?: string | null;
             /**
-             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             * Nama agent/tim (opsional).
              */
             agentName?: string | null;
             /**
-             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             * Avatar. Preset tersedia di /chat-avatars/agent-{01-04}.svg — upload manual ke Media dulu.
              */
             agentAvatar?: (number | null) | Media;
             /**
-             * Override ikon kartu (default = mengikuti tipe channel).
+             * Override ikon (default = per-tipe).
              */
             iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
             /**
-             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             * Opsional. Kosong = pakai warna default per channel type (Appearance tab).
              */
             brandColorOverride?: string | null;
             /**
-             * Digits + country code, tanpa "+" (mis. 6281234567890). Kosong = fallback ke SiteSettings.contact.whatsapp.
+             * Digits + country code tanpa "+" (mis. 6281234567890). Kosong = fallback SiteSettings.contact.whatsapp.
              */
             whatsappNumber?: string | null;
             /**
-             * Pesan pre-fill saat visitor klik. Kosong = fallback ke SiteSettings.whatsappDefaults.greetingMessage (legacy).
-             */
-            prefilledMessage?: string | null;
-            /**
-             * Append UTM params ke wa.me link untuk tracking di analytics.
+             * Append UTM ke wa.me link.
              */
             appendUtm?: boolean | null;
+            /**
+             * Pesan pre-fill saat visitor klik. Kosong = fallback ke legacy greetingMessage.
+             */
+            prefilledMessage?: string | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'whatsappChannel';
           }
         | {
             /**
-             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             * Uncheck = hide tanpa hapus.
              */
             enabled?: boolean | null;
             /**
-             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             * Judul kartu popup.
              */
             label: string;
             /**
-             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             * Baris kecil di bawah label.
              */
             subtitle?: string | null;
             /**
-             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             * Nama agent/tim (opsional).
              */
             agentName?: string | null;
             /**
-             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             * Avatar. Preset tersedia di /chat-avatars/agent-{01-04}.svg — upload manual ke Media dulu.
              */
             agentAvatar?: (number | null) | Media;
             /**
-             * Override ikon kartu (default = mengikuti tipe channel).
+             * Override ikon (default = per-tipe).
              */
             iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
             /**
-             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             * Opsional. Kosong = pakai warna default per channel type (Appearance tab).
              */
             brandColorOverride?: string | null;
             provider?: ('anthropic' | 'openai' | 'workers-ai' | 'custom') | null;
             /**
-             * Model ID. mis. claude-haiku-4-5, gpt-4o-mini, @cf/meta/llama-3.1-8b.
+             * mis. claude-haiku-4-5, gpt-4o-mini, @cf/meta/llama-3.1-8b-instruct.
              */
             model?: string | null;
+            /**
+             * NAMA env var (mis. ANTHROPIC_API_KEY). JANGAN paste raw key.
+             */
+            apiKeyRef?: string | null;
             /**
              * HTTPS endpoint untuk provider custom.
              */
             endpointUrl?: string | null;
             /**
-             * System prompt untuk chatbot. Jelaskan brand, tone, batasan, dan escalation ke WA.
+             * System prompt: jelaskan brand, tone, batasan, dan escalation ke WA bila di luar scope.
              */
             systemPrompt?: string | null;
             /**
@@ -44976,44 +45040,40 @@ export interface ChatWidget {
              */
             welcomeMessage?: string | null;
             /**
-             * Streaming token-by-token (SSE).
+             * Streaming SSE (belum aktif; disiapkan).
              */
             streaming?: boolean | null;
-            /**
-             * NAMA env variable (mis. ANTHROPIC_API_KEY). JANGAN paste raw API key di sini.
-             */
-            apiKeyRef?: string | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'aiChatbotChannel';
           }
         | {
             /**
-             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             * Uncheck = hide tanpa hapus.
              */
             enabled?: boolean | null;
             /**
-             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             * Judul kartu popup.
              */
             label: string;
             /**
-             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             * Baris kecil di bawah label.
              */
             subtitle?: string | null;
             /**
-             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             * Nama agent/tim (opsional).
              */
             agentName?: string | null;
             /**
-             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             * Avatar. Preset tersedia di /chat-avatars/agent-{01-04}.svg — upload manual ke Media dulu.
              */
             agentAvatar?: (number | null) | Media;
             /**
-             * Override ikon kartu (default = mengikuti tipe channel).
+             * Override ikon (default = per-tipe).
              */
             iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
             /**
-             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             * Opsional. Kosong = pakai warna default per channel type (Appearance tab).
              */
             brandColorOverride?: string | null;
             provider?: ('crisp' | 'tawk' | 'intercom') | null;
@@ -45027,38 +45087,44 @@ export interface ChatWidget {
           }
         | {
             /**
-             * Uncheck untuk sembunyikan channel ini tanpa hapus data.
+             * Uncheck = hide tanpa hapus.
              */
             enabled?: boolean | null;
             /**
-             * Judul kartu di popup (mis. "Sales", "Support", "Ask AI").
+             * Judul kartu popup.
              */
             label: string;
             /**
-             * Baris kecil di bawah label (mis. "Reply in ~5 min").
+             * Baris kecil di bawah label.
              */
             subtitle?: string | null;
             /**
-             * Opsional. Nama agent/tim yang ditampilkan di kartu channel.
+             * Nama agent/tim (opsional).
              */
             agentName?: string | null;
             /**
-             * Opsional. Avatar agent/tim. Kotak/lingkaran, min 96×96.
+             * Avatar. Preset tersedia di /chat-avatars/agent-{01-04}.svg — upload manual ke Media dulu.
              */
             agentAvatar?: (number | null) | Media;
             /**
-             * Override ikon kartu (default = mengikuti tipe channel).
+             * Override ikon (default = per-tipe).
              */
             iconOverride?: ('default' | 'whatsapp' | 'chat' | 'sparkle' | 'mail') | null;
             /**
-             * HEX opsional (mis. #25D366). Kosong = pakai brandColor global widget.
+             * Opsional. Kosong = pakai warna default per channel type (Appearance tab).
              */
             brandColorOverride?: string | null;
             /**
              * Alamat email tujuan.
              */
             toAddress: string;
+            /**
+             * Subject pre-filled.
+             */
             defaultSubject?: string | null;
+            /**
+             * Body pre-filled.
+             */
             defaultBody?: string | null;
             id?: string | null;
             blockName?: string | null;
@@ -45723,12 +45789,27 @@ export interface ChatWidgetSelect<T extends boolean = true> {
   position?: T;
   offsetX?: T;
   offsetY?: T;
+  size?: T;
   buttonStyle?: T;
   buttonLabel?: T;
-  brandColor?: T;
-  size?: T;
   pulseAnimation?: T;
   entranceAnimation?: T;
+  brandColor?: T;
+  brandColorText?: T;
+  chatBackgroundColor?: T;
+  chatBorderColor?: T;
+  userBubbleColor?: T;
+  userBubbleTextColor?: T;
+  botBubbleColor?: T;
+  botBubbleTextColor?: T;
+  sendButtonColor?: T;
+  sendButtonTextColor?: T;
+  backButtonColor?: T;
+  backButtonTextColor?: T;
+  waChannelColor?: T;
+  aiChannelColor?: T;
+  liveChatChannelColor?: T;
+  emailChannelColor?: T;
   popupTitle?: T;
   popupSubtitle?: T;
   brandName?: T;
@@ -45749,8 +45830,8 @@ export interface ChatWidgetSelect<T extends boolean = true> {
               iconOverride?: T;
               brandColorOverride?: T;
               whatsappNumber?: T;
-              prefilledMessage?: T;
               appendUtm?: T;
+              prefilledMessage?: T;
               id?: T;
               blockName?: T;
             };
@@ -45766,11 +45847,11 @@ export interface ChatWidgetSelect<T extends boolean = true> {
               brandColorOverride?: T;
               provider?: T;
               model?: T;
+              apiKeyRef?: T;
               endpointUrl?: T;
               systemPrompt?: T;
               welcomeMessage?: T;
               streaming?: T;
-              apiKeyRef?: T;
               id?: T;
               blockName?: T;
             };

@@ -67,11 +67,21 @@ const utm = widget
     }
   : undefined
 
-let channels = resolveChannels(widget?.channels ?? [], {
+const channelDefaultColors = {
+  whatsappChannel: widget?.waChannelColor ?? '#25D366',
+  aiChatbotChannel: widget?.aiChannelColor ?? '#7C3AED',
+  liveChatChannel: widget?.liveChatChannelColor ?? '#2563EB',
+  emailChannel: widget?.emailChannelColor ?? '#0F766E',
+} as const
+
+const resolveCtx = {
   fallbackWhatsappNumber: fallbackNumber,
   fallbackWhatsappMessage: fallbackMessage,
   utm,
-})
+  channelDefaultColors,
+}
+
+let channels = resolveChannels(widget?.channels ?? [], resolveCtx)
 if (channels.length === 0 && fallbackNumber) {
   channels = resolveChannels(
     [
@@ -85,7 +95,7 @@ if (channels.length === 0 && fallbackNumber) {
         appendUtm: false,
       },
     ],
-    { fallbackWhatsappNumber: fallbackNumber, fallbackWhatsappMessage: fallbackMessage, utm },
+    resolveCtx,
   )
 }
 
@@ -96,8 +106,22 @@ const position: string = widget?.position ?? 'bottomRight'
 const offsetX = Number.isFinite(widget?.offsetX) ? widget.offsetX : 24
 const offsetY = Number.isFinite(widget?.offsetY) ? widget.offsetY : 24
 const globalBrand: string = widget?.brandColor ?? '#25D366'
+const brandTextColor: string = widget?.brandColorText ?? '#FFFFFF'
+const chatBg: string = widget?.chatBackgroundColor ?? '#FFFFFF'
+const chatBorder: string = widget?.chatBorderColor ?? '#E7E5E4'
+const userBubbleBg: string = widget?.userBubbleColor ?? globalBrand
+const userBubbleText: string = widget?.userBubbleTextColor ?? '#FFFFFF'
+const botBubbleBg: string = widget?.botBubbleColor ?? '#F5F5F4'
+const botBubbleText: string = widget?.botBubbleTextColor ?? '#1C1917'
+const sendBtnBg: string = widget?.sendButtonColor ?? globalBrand
+const sendBtnText: string = widget?.sendButtonTextColor ?? '#FFFFFF'
+const backBtnBg: string = widget?.backButtonColor ?? 'rgba(255,255,255,0.2)'
+const backBtnText: string = widget?.backButtonTextColor ?? '#FFFFFF'
 const sizeKey: 'sm' | 'md' | 'lg' = widget?.size ?? 'md'
 const sizePx = sizeKey === 'sm' ? 48 : sizeKey === 'lg' ? 64 : 56
+
+// Per-channel-type default color diteruskan ke adapters via ResolveContext.
+// (Widget resolve panggilan pertama sudah pakai ctx di atas — lihat resolveChannels di baris awal file.)
 
 const popupTitle: string = widget?.popupTitle ?? 'Start a Conversation'
 const popupSubtitle: string = widget?.popupSubtitle ?? 'The team typically replies in a few minutes.'
@@ -148,7 +172,7 @@ const clientConfig = {
 {shouldRender && (
   <div
     class="chat-widget-container fixed z-50 opacity-0"
-    style={positionStyles}
+    style={`${positionStyles} --user-bg: ${userBubbleBg}; --user-fg: ${userBubbleText}; --bot-bg: ${botBubbleBg}; --bot-fg: ${botBubbleText};`}
     data-open="false"
     data-mode="menu"
   >
@@ -160,15 +184,16 @@ const clientConfig = {
       aria-labelledby="chat-widget-title"
     >
       <!-- Shared header -->
-      <div class="text-white p-5 flex items-center gap-3" style={`background-color: ${globalBrand};`}>
+      <div class="p-5 flex items-center gap-3" style={`background-color: ${globalBrand}; color: ${brandTextColor};`}>
         <button
           type="button"
-          class="chat-back-btn hidden w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0 hover:bg-white/30 transition-colors"
+          class="chat-back-btn hidden w-8 h-8 rounded-full flex items-center justify-center shrink-0 hover:opacity-90 transition-opacity"
+          style={`background-color: ${backBtnBg}; color: ${backBtnText};`}
           aria-label="Back to menu"
         >
           <Icon name="chevron_left" class="w-4 h-4" />
         </button>
-        <div class="chat-header-avatar w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0 overflow-hidden">
+        <div class="chat-header-avatar w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden" style="background-color: rgba(255,255,255,0.2);">
           {headerAvatarUrl
             ? <img src={headerAvatarUrl} alt="" class="w-full h-full object-cover" />
             : <Icon name="chat" class="w-5 h-5" />
@@ -183,7 +208,8 @@ const clientConfig = {
         {clientConfig.behavior.dismissible && (
           <button
             type="button"
-            class="chat-dismiss-btn w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shrink-0 hover:bg-white/30 transition-colors"
+            class="chat-dismiss-btn w-7 h-7 rounded-full flex items-center justify-center shrink-0 hover:opacity-80 transition-opacity"
+            style={`background-color: ${backBtnBg}; color: ${backBtnText};`}
             aria-label="Dismiss chat"
             title="Sembunyikan"
           >
@@ -233,12 +259,12 @@ const clientConfig = {
       </div>
 
       <!-- CHAT VIEW: AI conversation thread (hidden by default) -->
-      <div class="chat-view-chat hidden bg-white flex flex-col" style="max-height: 480px;">
+      <div class="chat-view-chat hidden flex flex-col" style={`max-height: 480px; background-color: ${chatBg};`}>
         <div class="chat-thread flex-1 overflow-y-auto p-4 space-y-3" style="min-height: 200px;">
           <!-- messages inserted here at runtime -->
         </div>
         <div class="chat-error hidden px-4 py-2 text-xs text-red-600 border-t border-red-100 bg-red-50"></div>
-        <form class="chat-form border-t border-stone-light/20 p-3 flex flex-col gap-2" autocomplete="off">
+        <form class="chat-form p-3 flex flex-col gap-2" style={`border-top: 1px solid ${chatBorder};`} autocomplete="off">
           {/* Honeypot — hidden field. Bot naive akan fill. */}
           {clientConfig.security.enableHoneypot && (
             <div style="position:absolute; left:-9999px; height:0; overflow:hidden;" aria-hidden="true">
@@ -261,8 +287,8 @@ const clientConfig = {
             </span>
             <button
               type="submit"
-              class="chat-send-btn text-white text-sm font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-              style={`background-color: ${globalBrand};`}
+              class="chat-send-btn text-sm font-semibold px-4 py-1.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              style={`background-color: ${sendBtnBg}; color: ${sendBtnText};`}
               disabled
             >
               Send
@@ -318,13 +344,13 @@ const clientConfig = {
   }
   .chat-msg.chat-msg-user {
     margin-left: auto;
-    background-color: var(--brand, #7C3AED);
-    color: white;
+    background-color: var(--user-bg, #7C3AED);
+    color: var(--user-fg, white);
     border-bottom-right-radius: 4px;
   }
   .chat-msg.chat-msg-bot {
-    background-color: #F5F5F4;
-    color: #1C1917;
+    background-color: var(--bot-bg, #F5F5F4);
+    color: var(--bot-fg, #1C1917);
     border-bottom-left-radius: 4px;
   }
   .chat-typing {
@@ -554,7 +580,9 @@ const clientConfig = {
       messages.push({ role, content })
       const div = document.createElement('div')
       div.className = `chat-msg chat-msg-${role}`
-      if (role === 'user') div.style.setProperty('--brand', currentChannel?.brand ?? cfg.ui.globalBrand)
+      // CSS vars sudah di-set di container. User bubble tetap bisa
+      // di-override per-channel (mis. bila mau user bubble ikut warna
+      // channel bukan warna global). Untuk sekarang: ikut var global.
       div.textContent = content
       thread.appendChild(div)
       thread.scrollTop = thread.scrollHeight
