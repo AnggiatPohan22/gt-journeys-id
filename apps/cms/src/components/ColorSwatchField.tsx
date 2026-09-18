@@ -45,6 +45,7 @@ const ColorSwatchField: React.FC<any> = (props) => {
   const swatchDefault: string = props?.field?.admin?.custom?.swatchDefault ?? '#1B3A4B'
   const presets: string[] = props?.field?.admin?.custom?.presets ?? []
   const alpha: boolean = props?.field?.admin?.custom?.alpha !== false
+  const compact: boolean = props?.field?.admin?.custom?.compact === true
   const readOnly: boolean = props?.readOnly ?? false
 
   const { value, setValue, errorMessage } = useField<string>({ path })
@@ -151,10 +152,31 @@ const ColorSwatchField: React.FC<any> = (props) => {
         <label
           htmlFor={path}
           className="field-label"
-          style={{ display: 'block', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 500 }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.4rem', fontSize: '0.85rem', fontWeight: 500 }}
         >
-          {label || path}
-          {required && <span style={{ color: 'var(--theme-error-500)' }}> *</span>}
+          <span>{label || path}{required && <span style={{ color: 'var(--theme-error-500)' }}> *</span>}</span>
+          {/* Compact mode: description direlokasi ke tooltip "?" di ujung label.
+              Non-compact tetap render description sbg <p> di bawah swatch (behavior lama). */}
+          {compact && description && (
+            <span
+              aria-label={description}
+              title={description}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                border: '1px solid var(--theme-elevation-300)',
+                color: 'var(--theme-elevation-500)',
+                fontSize: '0.65rem',
+                lineHeight: 1,
+                cursor: 'help',
+                userSelect: 'none',
+              }}
+            >?</span>
+          )}
         </label>
       )}
 
@@ -174,27 +196,31 @@ const ColorSwatchField: React.FC<any> = (props) => {
             padding: 0,
           }}
         />
-        {/* Hex text input */}
-        <input
-          id={path}
-          type="text"
-          value={draft}
-          onChange={(e) => handleTextInput(e.currentTarget.value)}
-          placeholder={swatchDefault}
-          readOnly={readOnly}
-          spellCheck={false}
-          style={{
-            width: alpha ? '16ch' : '13ch',
-            padding: '0.4rem 0.6rem',
-            borderRadius: 6,
-            border: `1px solid ${draft && !isValid ? 'var(--theme-error-500)' : 'var(--theme-elevation-200)'}`,
-            background: 'var(--theme-input-bg, var(--theme-elevation-50))',
-            color: 'var(--theme-text)',
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            fontSize: '0.85rem',
-            outline: 'none',
-          }}
-        />
+        {/* Hex text input — hanya render di non-compact mode. Compact mode
+            edit hex lewat popover HexColorInput (di dalam picker) supaya
+            layout inline pendek: swatch + Reset saja. */}
+        {!compact && (
+          <input
+            id={path}
+            type="text"
+            value={draft}
+            onChange={(e) => handleTextInput(e.currentTarget.value)}
+            placeholder={swatchDefault}
+            readOnly={readOnly}
+            spellCheck={false}
+            style={{
+              width: alpha ? '16ch' : '13ch',
+              padding: '0.4rem 0.6rem',
+              borderRadius: 6,
+              border: `1px solid ${draft && !isValid ? 'var(--theme-error-500)' : 'var(--theme-elevation-200)'}`,
+              background: 'var(--theme-input-bg, var(--theme-elevation-50))',
+              color: 'var(--theme-text)',
+              fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+              fontSize: '0.85rem',
+              outline: 'none',
+            }}
+          />
+        )}
         {draft && !readOnly && (
           <button
             type="button"
@@ -286,9 +312,30 @@ const ColorSwatchField: React.FC<any> = (props) => {
         )}
       </div>
 
-      {description && (
+      {/* Compact mode: description sudah pindah ke tooltip "?" di label — skip <p>. */}
+      {!compact && description && (
         <p style={{ margin: '0.35rem 0 0', fontSize: '0.75rem', color: 'var(--theme-elevation-500)' }}>
           {description}
+        </p>
+      )}
+
+      {/* Compact mode: tampilkan kode hex read-only di bawah swatch supaya
+          editor tetap tahu nilai persisnya (edit lewat popover). Kosong =
+          placeholder default (kalau ada). */}
+      {compact && (
+        <p
+          style={{
+            margin: '0.35rem 0 0',
+            fontSize: '0.75rem',
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            color: draft
+              ? (isValid ? 'var(--theme-elevation-600)' : 'var(--theme-error-500)')
+              : 'var(--theme-elevation-400)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {draft || swatchDefault}
         </p>
       )}
       {errorMessage && (

@@ -21,6 +21,12 @@ export type ColorPickerOpts = {
   width?: string
   /** Matikan alpha channel di picker (default true = alpha ON). */
   alpha?: boolean
+  /**
+   * Compact mode (Phase 4.55): sembunyikan hex text input di sebelah swatch,
+   * pindahkan deskripsi ke tooltip "?" di ujung label. Hemat lebar horizontal
+   * — cocok utk block Advanced dgn banyak field warna dalam collapsible 50%.
+   */
+  compact?: boolean
 }
 
 export const colorPickerField = (
@@ -48,6 +54,7 @@ export const colorPickerField = (
       swatchDefault,
       presets: opts.presets ?? [],
       alpha: opts.alpha !== false,
+      compact: opts.compact === true,
     },
   },
 })

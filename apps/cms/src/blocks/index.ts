@@ -1,7 +1,6 @@
 import type { Block } from 'payload'
 import { mediaFields, buildFitPositionRow, imageFitOptions, imagePositionOptions } from '../fields/media'
 import { advancedStyleFields, advancedStyleFieldsNoButton } from '../fields/advancedStyle'
-import { buildTextStyleField } from '../fields/textStyle'
 import { superAdminFieldAccess } from '../access/roles'
 import { iconField } from '../fields/iconOptions'
 
@@ -87,11 +86,8 @@ const Hero: Block = {
         },
         {
           label: 'Advanced',
-          description: 'Section padding, background override, button styling & hover animations',
-          fields: [
-            ...advancedStyleFields,
-            buildTextStyleField(['heading', 'subheading']),
-          ],
+          description: 'Layout, background, button, text styles & spacing — sections collapsed by default (klik untuk expand).',
+          fields: advancedStyleFields({ textElements: ['heading', 'subheading'] }),
         },
       ],
     },
@@ -131,10 +127,7 @@ const RichText: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background, container width, entry animation, text style',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['paragraph']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['paragraph'] }),
         },
       ],
     },
@@ -183,10 +176,7 @@ const ImageBlock: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background, container width, entry animation, caption style',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['caption']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['caption'] }),
         },
       ],
     },
@@ -251,10 +241,7 @@ const Gallery: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background, container width, entry animation, caption style',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['caption']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['caption'] }),
         },
       ],
     },
@@ -319,10 +306,7 @@ const CTA: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background override, button styling, entry animation, text styles',
-          fields: [
-            ...advancedStyleFields,
-            buildTextStyleField(['heading', 'description']),
-          ],
+          fields: advancedStyleFields({ textElements: ['heading', 'description'] }),
         },
       ],
     },
@@ -359,10 +343,7 @@ const FAQ: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'quote']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'quote'] }),
         },
       ],
     },
@@ -417,10 +398,7 @@ const Testimonials: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'quote']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'quote'] }),
         },
       ],
     },
@@ -556,10 +534,7 @@ const ServiceGrid: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
         },
       ],
     },
@@ -590,10 +565,7 @@ const Contact: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['paragraph']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['paragraph'] }),
         },
       ],
     },
@@ -619,7 +591,7 @@ const Embed: Block = {
         },
         {
           label: 'Advanced',
-          fields: advancedStyleFieldsNoButton,
+          fields: advancedStyleFieldsNoButton(),
         },
       ],
     },
@@ -671,10 +643,7 @@ const ValuePropsBanner: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['label', 'subheading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['label', 'subheading'] }),
         },
       ],
     },
@@ -729,11 +698,10 @@ const StatsBanner: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            // Filter out background group to avoid column collision with existing backgroundImage field.
-            ...advancedStyleFieldsNoButton.filter((f: any) => f.name !== 'background'),
-            buildTextStyleField(['eyebrow', 'heading', 'label', 'caption']),
-          ],
+          fields: advancedStyleFieldsNoButton({
+            omitBackground: true, // legacy schema pakai kolom backgroundImage sendiri
+            textElements: ['eyebrow', 'heading', 'label', 'caption'],
+          }),
         },
       ],
     },
@@ -794,10 +762,7 @@ const TestimonialsCarousel: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['eyebrow', 'heading', 'quote']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['eyebrow', 'heading', 'quote'] }),
         },
       ],
     },
@@ -1039,10 +1004,7 @@ const ServiceListing: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['eyebrow', 'heading', 'description']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['eyebrow', 'heading', 'description'] }),
         },
       ],
     },
@@ -1100,10 +1062,7 @@ const TrustBadges: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'description']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'description'] }),
         },
       ],
     },
@@ -1167,10 +1126,7 @@ const PostList: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'description']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'description'] }),
         },
       ],
     },
@@ -1222,10 +1178,7 @@ const FeaturedPost: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
         },
       ],
     },
@@ -1279,10 +1232,7 @@ const CategoryGrid: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
         },
       ],
     },
@@ -1321,10 +1271,7 @@ const PopularPosts: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
         },
       ],
     },
@@ -1477,10 +1424,7 @@ const Newsletter: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'description']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'description'] }),
         },
       ],
     },

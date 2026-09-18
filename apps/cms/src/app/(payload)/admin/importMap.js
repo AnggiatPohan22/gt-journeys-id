@@ -2,6 +2,7 @@ import { default as default_71206546ade6f3e51000b567a053879f } from '../../../ad
 import { default as default_702836522fac5cda63df7aed9b79266c } from '../../../admin/cells/TemplateCell'
 import { default as default_8ffc032821a76393b4b822391a838861 } from '../../../admin/cells/BlockCountCell'
 import { default as default_646f34edcebed27cce5af4613beb5f20 } from '../../../admin/cells/RelativeDateCell'
+import { default as default_6b8ecc267399acc536623c5290b13b83 } from '../../../components/ColorSwatchField'
 import { default as default_cb06065eae342f52962c1f033278ce97 } from '../../../blocks/BlockLabel'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -38,7 +39,6 @@ import { default as default_68a1ee296a4d669462449170f13ac89f } from '../../../ad
 import { default as default_7d0add3028cddc531ec476c2b888fa4a } from '../../../admin/PasswordGeneratorButton'
 import { default as default_662c92c1b3d2933aea12433e4ed474d2 } from '../../../admin/ForceUnlockButton'
 import { TemplatePickerField as TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed } from '../../../components/TemplatePickerField'
-import { default as default_6b8ecc267399acc536623c5290b13b83 } from '../../../components/ColorSwatchField'
 import { TemplateImportExport as TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2 } from '../../../components/TemplateImportExport'
 import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../components/FooterLayoutRowLabel'
 import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
@@ -59,6 +59,7 @@ export const importMap = {
   "/admin/cells/TemplateCell#default": default_702836522fac5cda63df7aed9b79266c,
   "/admin/cells/BlockCountCell#default": default_8ffc032821a76393b4b822391a838861,
   "/admin/cells/RelativeDateCell#default": default_646f34edcebed27cce5af4613beb5f20,
+  "/components/ColorSwatchField#default": default_6b8ecc267399acc536623c5290b13b83,
   "/blocks/BlockLabel#default": default_cb06065eae342f52962c1f033278ce97,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -95,7 +96,6 @@ export const importMap = {
   "/admin/PasswordGeneratorButton#default": default_7d0add3028cddc531ec476c2b888fa4a,
   "/admin/ForceUnlockButton#default": default_662c92c1b3d2933aea12433e4ed474d2,
   "/components/TemplatePickerField#TemplatePickerField": TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed,
-  "/components/ColorSwatchField#default": default_6b8ecc267399acc536623c5290b13b83,
   "/components/TemplateImportExport#TemplateImportExport": TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2,
   "/components/FooterLayoutRowLabel#default": default_2d7391d3e6c490e87ec696da441ef264,
   "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,

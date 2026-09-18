@@ -153,15 +153,46 @@ export const resolveEntryAnimation = (v?: string) => {
   }
 }
 
-// ── Background ───────────────────────────────────────────────
-const bgColorMap: Record<string, string> = {
+// ── Dual-mode color helpers (Phase 4.55) ─────────────────────
+// Value bisa token slug lama (`"coral"`, `"ocean"`, …) atau free hex
+// (`"#E07A5F"`, `"#1B3A4B99"` dgn alpha). Backward compatible dgn data
+// pre-4.55 (semua block CMS diubah dari `select` ke `colorPickerField`).
+const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
+
+const TOKEN_BG_CLASS: Record<string, string> = {
   sand: 'bg-sand', ocean: 'bg-ocean', coral: 'bg-coral',
-  leaf: 'bg-leaf', stone: 'bg-stone', midnight: 'bg-midnight',
-  white: 'bg-white', default: '',
+  leaf: 'bg-leaf', stone: 'bg-stone', midnight: 'bg-midnight', white: 'bg-white',
+}
+const TOKEN_BORDER_CLASS: Record<string, string> = {
+  sand: 'border-sand', ocean: 'border-ocean', coral: 'border-coral',
+  leaf: 'border-leaf', stone: 'border-stone', midnight: 'border-midnight', white: 'border-white',
+}
+const TOKEN_TEXT_CLASS: Record<string, string> = {
+  sand: 'text-sand', ocean: 'text-ocean', coral: 'text-coral',
+  leaf: 'text-leaf', stone: 'text-stone', midnight: 'text-midnight', white: 'text-white',
 }
 
+/**
+ * Resolve color value → {className, style}. Hex → inline style, slug →
+ * Tailwind class. Sentinel values (`inherit`, `default`, empty) → keduanya kosong.
+ */
+export const resolveColorValue = (
+  val: string | undefined | null,
+  prefix: 'text' | 'bg' | 'border',
+): { className: string; style: string } => {
+  if (!val || val === 'inherit' || val === 'default') return { className: '', style: '' }
+  if (HEX_RE.test(val)) {
+    const prop = prefix === 'text' ? 'color' : prefix === 'bg' ? 'background-color' : 'border-color'
+    return { className: '', style: `${prop}:${val}` }
+  }
+  const map = prefix === 'text' ? TOKEN_TEXT_CLASS : prefix === 'bg' ? TOKEN_BG_CLASS : TOKEN_BORDER_CLASS
+  return { className: map[val] ?? '', style: '' }
+}
+
+// ── Background ───────────────────────────────────────────────
 export interface ResolvedBackground {
-  bgClass: string          // Solid color background class (empty = theme default)
+  bgClass: string          // Solid color background class (empty kalau hex/default)
+  bgStyle: string          // Inline style utk hex path (empty kalau slug)
   imageUrl: string         // Non-empty = render bg image
   overlayOpacity: number   // 0-1 (only used if imageUrl set)
 }
@@ -173,42 +204,54 @@ export const resolveBackground = (bg: any, themeDefault = ''): ResolvedBackgroun
     v && typeof v === 'object' ? (v as Media) : null
 
   if (type === 'color' && bg?.color) {
-    return { bgClass: bgColorMap[bg.color] ?? themeDefault, imageUrl: '', overlayOpacity: 0 }
+    const r = resolveColorValue(bg.color, 'bg')
+    return {
+      bgClass: r.className || (r.style ? '' : themeDefault),
+      bgStyle: r.style,
+      imageUrl: '',
+      overlayOpacity: 0,
+    }
   }
   if (type === 'image') {
     const img = asMedia(bg?.image)
     const url = img?.sizes?.hero?.url ?? img?.url ?? ''
-    return { bgClass: themeDefault, imageUrl: url, overlayOpacity }
+    return { bgClass: themeDefault, bgStyle: '', imageUrl: url, overlayOpacity }
   }
-  return { bgClass: themeDefault, imageUrl: '', overlayOpacity: 0 }
+  return { bgClass: themeDefault, bgStyle: '', imageUrl: '', overlayOpacity: 0 }
 }
 
 // ── Button ───────────────────────────────────────────────────
-const btnBgSolid: Record<string, string> = {
-  sand: 'bg-sand', ocean: 'bg-ocean', coral: 'bg-coral',
-  leaf: 'bg-leaf', stone: 'bg-stone', midnight: 'bg-midnight', white: 'bg-white',
-}
-const btnBorder: Record<string, string> = {
-  sand: 'border-sand', ocean: 'border-ocean', coral: 'border-coral',
-  leaf: 'border-leaf', stone: 'border-stone', midnight: 'border-midnight', white: 'border-white',
-}
-const btnText: Record<string, string> = {
-  sand: 'text-sand', ocean: 'text-ocean', coral: 'text-coral',
-  leaf: 'text-leaf', stone: 'text-stone', midnight: 'text-midnight', white: 'text-white',
+export interface ResolvedButton {
+  classes: string[]
+  style: string
 }
 
-export const resolveButtonClasses = (btn: any): string[] => {
+// Luma-based auto-contrast utk hex path (0.299R+0.587G+0.114B).
+const autoContrastFor = (val: string): { className: string; style: string } => {
+  if (HEX_RE.test(val)) {
+    const hex = val.slice(1)
+    const r = parseInt(hex.substring(0, 2) || '0', 16)
+    const g = parseInt(hex.substring(2, 4) || '0', 16)
+    const b = parseInt(hex.substring(4, 6) || '0', 16)
+    const luma = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luma > 0.7 ? { className: 'text-ocean', style: '' } : { className: 'text-white', style: '' }
+  }
+  return ['white', 'sand'].includes(val)
+    ? { className: 'text-ocean', style: '' }
+    : { className: 'text-white', style: '' }
+}
+
+export const resolveButtonClasses = (btn: any): ResolvedButton => {
   const variant = btn?.variant ?? 'solid'
-  const color = btn?.color ?? 'coral'
+  const color = (btn?.color ?? 'coral') as string
   const radius = btn?.radius ?? 'rounded'
   const hover = btn?.hoverAnimation ?? 'scale'
-  const textColor = btn?.textColor ?? 'default'
+  const textColor = (btn?.textColor ?? 'default') as string
 
   const radiusClass =
     radius === 'sharp' ? 'rounded-none' :
-    radius === 'pill' ? 'rounded-full' :
-                        'rounded-lg'
-
+    radius === 'pill'  ? 'rounded-full' :
+                         'rounded-lg'
   const hoverClass =
     hover === 'fade'      ? 'hover:opacity-80' :
     hover === 'underline' ? 'hover:underline underline-offset-4' :
@@ -217,27 +260,43 @@ export const resolveButtonClasses = (btn: any): string[] => {
 
   const base = ['inline-flex items-center gap-2 px-8 py-4 font-semibold no-underline transition-all', radiusClass, hoverClass]
 
-  const autoContrast = ['white', 'sand'].includes(color) ? 'text-ocean' : 'text-white'
+  const bgRes = resolveColorValue(color, 'bg')
+  const borderRes = resolveColorValue(color, 'border')
+  const txtRes = resolveColorValue(color, 'text')
 
-  if (variant === 'ghost') return [...base, btnText[color], 'hover:bg-white/10']
-  if (variant === 'outline') return [...base, 'border-2', btnBorder[color], btnText[color], `hover:${btnBgSolid[color]}`, 'hover:text-white']
+  const classes = [...base]
+  const styles: string[] = []
 
-  const textClass = textColor === 'default' ? autoContrast : btnText[textColor]
-  return [...base, btnBgSolid[color], textClass]
+  if (variant === 'ghost') {
+    classes.push(txtRes.className, 'hover:bg-white/10')
+    if (txtRes.style) styles.push(txtRes.style)
+  } else if (variant === 'outline') {
+    classes.push('border-2', borderRes.className, txtRes.className)
+    if (borderRes.style) styles.push(borderRes.style)
+    if (txtRes.style) styles.push(txtRes.style)
+    if (!bgRes.style) classes.push(`hover:${bgRes.className}`, 'hover:text-white')
+  } else {
+    classes.push(bgRes.className)
+    if (bgRes.style) styles.push(bgRes.style)
+    if (textColor && textColor !== 'default') {
+      const overrideRes = resolveColorValue(textColor, 'text')
+      classes.push(overrideRes.className)
+      if (overrideRes.style) styles.push(overrideRes.style)
+    } else {
+      const auto = autoContrastFor(color)
+      classes.push(auto.className)
+      if (auto.style) styles.push(auto.style)
+    }
+  }
+  return { classes: classes.filter(Boolean), style: styles.join(';') }
 }
 
 // ── Text color (per-element, from textStyles group) ─────────
-const textColorClassMap: Record<string, string> = {
-  inherit: '',
-  ocean: 'text-ocean',
-  coral: 'text-coral',
-  leaf: 'text-leaf',
-  sand: 'text-sand',
-  stone: 'text-stone',
-  midnight: 'text-midnight',
-  white: 'text-white',
-}
-export const resolveTextColor = (v?: string) => textColorClassMap[v ?? 'inherit'] ?? ''
+// Returns className string. Hex path → empty class → caller pakai
+// `resolveTextColorStyle(v)` untuk inline style (backward compat helper —
+// callers baru bisa pakai `resolveColorValue(v, 'text')` langsung).
+export const resolveTextColor = (v?: string) => resolveColorValue(v, 'text').className
+export const resolveTextColorStyle = (v?: string) => resolveColorValue(v, 'text').style
 
 // ── Per-element text entry animation ─────────────────────────
 // Returns className string for CSS keyframe entry. 'inherit' = no class

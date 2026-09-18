@@ -1,6 +1,6 @@
 ---
 import type { Page, Media } from '@shared/types/payload-types'
-import { resolvePadding as resolveBlockPadding } from '@lib/blockStyles'
+import { resolvePadding as resolveBlockPadding, resolveColorValue } from '@lib/blockStyles'
 
 type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'hero' }>
 interface Props { block: Block }
@@ -12,14 +12,17 @@ const { block } = Astro.props
 // loose cast supaya frontend tetap kompilasi.
 const b = block as any
 
-// Text style resolution (per-element color + animIn from textStyles group)
+// Text style resolution — pakai shared `resolveColorValue` helper dari
+// blockStyles.ts (dual-mode token slug/hex).
 const ts = b.ts ?? {}
-const headingColorMap: Record<string, string> = {
-  inherit: '', ocean: 'text-ocean', coral: 'text-coral', leaf: 'text-leaf',
-  sand: 'text-sand', stone: 'text-stone', midnight: 'text-midnight', white: 'text-white',
-}
-const headingColorClass = headingColorMap[ts.headingColor ?? 'inherit'] ?? ''
-const subheadingColorClass = headingColorMap[ts.subheadingColor ?? 'inherit'] ?? ''
+const HEX_RE = /^#([0-9a-fA-F]{3,8})$/
+const headingRes = resolveColorValue(ts.headingColor, 'text')
+const subheadingRes = resolveColorValue(ts.subheadingColor, 'text')
+// Hex color perlu di-set via CSS var supaya menang atas
+// `.hero-block h1 { color: var(--hero-heading-color, white) !important }`.
+const headingHexStyle = ts.headingColor && HEX_RE.test(String(ts.headingColor))
+  ? `--hero-heading-color:${ts.headingColor};color:${ts.headingColor}`
+  : headingRes.style
 const headingAnim = ts.headingAnimIn && ts.headingAnimIn !== 'inherit' && ts.headingAnimIn !== 'none' ? `text-anim-${ts.headingAnimIn}` : ''
 const subheadingAnim = ts.subheadingAnimIn && ts.subheadingAnimIn !== 'inherit' && ts.subheadingAnimIn !== 'none' ? `text-anim-${ts.subheadingAnimIn}` : ''
 
@@ -151,43 +154,44 @@ const entryClass = !useDataAnimate && entryAnimation !== 'none' ? `entry-${entry
 
 const bg = block.background ?? {}
 const bgType = bg.type ?? 'default'
-const bgColorMap: Record<string, string> = {
-  sand: 'bg-sand', ocean: 'bg-ocean', coral: 'bg-coral',
-  leaf: 'bg-leaf', stone: 'bg-stone', midnight: 'bg-midnight',
-  white: 'bg-white', default: 'bg-ocean',
-}
-const sectionBgClass = bgType === 'color' && bg.color ? bgColorMap[bg.color] : 'bg-ocean'
+// Phase 4.55 — bg color dual-mode. Fallback ocean bila default/kosong.
+const bgRes = bgType === 'color' && bg.color
+  ? resolveColorValue(bg.color as string, 'bg')
+  : { className: 'bg-ocean', style: '' }
+const sectionBgClass = bgRes.className || (bgRes.style ? '' : 'bg-ocean')
+const sectionBgStyle = bgRes.style
 const overlayOpacity = ((bg.overlayOpacity ?? 40) / 100)
 const bgImg = asMedia(bg.image)
 const bgImgUrl = bgImg?.sizes?.hero?.url ?? bgImg?.url ?? ''
 
-// Button resolution
+// Button resolution (Phase 4.55 — dual-mode color)
 const btn = block.button ?? {}
 const btnVariant = btn.variant ?? 'solid'
-const btnColor = btn.color ?? 'coral'
+const btnColorRaw = (btn.color ?? 'coral') as string
 const btnRadius = btn.radius ?? 'rounded'
 const btnHover = btn.hoverAnimation ?? 'scale'
-const btnTextColor = btn.textColor ?? 'default'
+const btnTextColorRaw = (btn.textColor ?? 'default') as string
 
-const btnBgSolid: Record<string, string> = {
-  sand: 'bg-sand', ocean: 'bg-ocean', coral: 'bg-coral',
-  leaf: 'bg-leaf', stone: 'bg-stone', midnight: 'bg-midnight', white: 'bg-white',
+// Auto-contrast helper untuk solid variant tanpa textColor manual.
+const autoContrastFor = (v: string): { className: string; style: string } => {
+  if (HEX_RE.test(v)) {
+    // Sederhana: hex terang → teks ocean; gelap → teks putih.
+    const hex = v.slice(1)
+    const r = parseInt(hex.substring(0, 2) || '0', 16)
+    const g = parseInt(hex.substring(2, 4) || '0', 16)
+    const b = parseInt(hex.substring(4, 6) || '0', 16)
+    const luma = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    return luma > 0.7 ? { className: 'text-ocean', style: '' } : { className: 'text-white', style: '' }
+  }
+  return ['white', 'sand'].includes(v)
+    ? { className: 'text-ocean', style: '' }
+    : { className: 'text-white', style: '' }
 }
-const btnBorder: Record<string, string> = {
-  sand: 'border-sand', ocean: 'border-ocean', coral: 'border-coral',
-  leaf: 'border-leaf', stone: 'border-stone', midnight: 'border-midnight', white: 'border-white',
-}
-const btnText: Record<string, string> = {
-  sand: 'text-sand', ocean: 'text-ocean', coral: 'text-coral',
-  leaf: 'text-leaf', stone: 'text-stone', midnight: 'text-midnight', white: 'text-white',
-}
-const autoContrastText = ['white', 'sand'].includes(btnColor) ? 'text-ocean' : 'text-white'
 
 const btnRadiusClass =
   btnRadius === 'sharp' ? 'rounded-none' :
-  btnRadius === 'pill' ? 'rounded-full' :
-                         'rounded-lg'
-
+  btnRadius === 'pill'  ? 'rounded-full' :
+                          'rounded-lg'
 const btnHoverClass =
   btnHover === 'fade'      ? 'hover:opacity-80' :
   btnHover === 'underline' ? 'hover:underline underline-offset-4' :
@@ -196,14 +200,43 @@ const btnHoverClass =
 
 const btnBaseClasses = ['inline-flex items-center gap-2 px-8 py-4 font-semibold no-underline transition-all', btnRadiusClass, btnHoverClass]
 
-let btnClasses: string[]
+// Build class list + inline style. Style dipisah supaya bisa di-inject
+// ke `style` attribute (hex path) tanpa mengganggu Tailwind class (token).
+let btnClasses: string[] = [...btnBaseClasses]
+let btnStyle = ''
+
+const btnBgRes = resolveColorValue(btnColorRaw, 'bg')
+const btnBorderRes = resolveColorValue(btnColorRaw, 'border')
+const btnTxtRes = resolveColorValue(btnColorRaw, 'text')
+
 if (btnVariant === 'ghost') {
-  btnClasses = [...btnBaseClasses, btnText[btnColor], 'hover:bg-white/10']
+  btnClasses.push(btnTxtRes.className, 'hover:bg-white/10')
+  if (btnTxtRes.style) btnStyle = btnTxtRes.style
 } else if (btnVariant === 'outline') {
-  btnClasses = [...btnBaseClasses, 'border-2', btnBorder[btnColor], btnText[btnColor], `hover:${btnBgSolid[btnColor]}`, 'hover:text-white']
+  btnClasses.push('border-2', btnBorderRes.className, btnTxtRes.className)
+  const styleParts: string[] = []
+  if (btnBorderRes.style) styleParts.push(btnBorderRes.style)
+  if (btnTxtRes.style)    styleParts.push(btnTxtRes.style)
+  btnStyle = styleParts.join(';')
+  // Note: hover state utk hex path pakai class fallback (skip auto-hover
+  // fill utk hex custom — editor bisa custom lewat CSS layer nanti kalau perlu).
+  if (!btnBgRes.style) btnClasses.push(`hover:${btnBgRes.className}`, 'hover:text-white')
 } else {
-  const textClass = btnTextColor === 'default' ? autoContrastText : btnText[btnTextColor]
-  btnClasses = [...btnBaseClasses, btnBgSolid[btnColor], textClass]
+  // Solid: bg = button color, text = textColor override kalau ada, else auto contrast.
+  btnClasses.push(btnBgRes.className)
+  const styleParts: string[] = []
+  if (btnBgRes.style) styleParts.push(btnBgRes.style)
+
+  if (btnTextColorRaw && btnTextColorRaw !== 'default') {
+    const btnTxtOverride = resolveColorValue(btnTextColorRaw, 'text')
+    btnClasses.push(btnTxtOverride.className)
+    if (btnTxtOverride.style) styleParts.push(btnTxtOverride.style)
+  } else {
+    const auto = autoContrastFor(btnColorRaw)
+    btnClasses.push(auto.className)
+    if (auto.style) styleParts.push(auto.style)
+  }
+  btnStyle = styleParts.join(';')
 }
 
 const hasMedia = (mediaType === 'single' && heroImageUrl) ||
@@ -224,7 +257,7 @@ const showOverlay = hasMedia || showBgImage
   ]}
 >
   <!-- BASE BG -->
-  <div class:list={['absolute inset-0 z-0', sectionBgClass]}></div>
+  <div class:list={['absolute inset-0 z-0', sectionBgClass]} style={sectionBgStyle || undefined}></div>
 
   <!-- BG image (Advanced tab override) -->
   {showBgImage && (
@@ -300,14 +333,16 @@ const showOverlay = hasMedia || showBgImage
   <!-- CONTENT -->
   <div class:list={['relative z-10', containerClass, alignTextClass, alignMarginClass, entryClass]}>
     <h1
-      class:list={['font-display text-4xl md:text-6xl lg:text-7xl font-bold max-w-4xl text-white drop-shadow-lg', alignMarginClass, headingColorClass, headingAnim]}
+      class:list={['font-display text-4xl md:text-6xl lg:text-7xl font-bold max-w-4xl text-white drop-shadow-lg', alignMarginClass, headingRes.className, headingAnim]}
+      style={headingHexStyle || undefined}
       data-animate={useDataAnimate && !headingAnim ? 'reveal' : undefined}
     >
       {block.heading}
     </h1>
     {block.subheading && (
       <p
-        class:list={['mt-6 text-lg md:text-xl text-white/90 max-w-2xl drop-shadow', alignMarginClass, subheadingColorClass, subheadingAnim]}
+        class:list={['mt-6 text-lg md:text-xl text-white/90 max-w-2xl drop-shadow', alignMarginClass, subheadingRes.className, subheadingAnim]}
+        style={subheadingRes.style || undefined}
         data-animate={useDataAnimate && !subheadingAnim ? 'reveal' : undefined}
       >
         {block.subheading}
@@ -315,7 +350,7 @@ const showOverlay = hasMedia || showBgImage
     )}
     {block.ctaText && block.ctaLink && (
       <div class="mt-10" data-animate={useDataAnimate ? 'reveal' : undefined}>
-        <a href={block.ctaLink} class:list={btnClasses}>
+        <a href={block.ctaLink} class:list={btnClasses} style={btnStyle || undefined}>
           {block.ctaText}
         </a>
       </div>
@@ -324,11 +359,13 @@ const showOverlay = hasMedia || showBgImage
 </section>
 
 <style>
-  /* Force white heading dalam hero — override global.css h1 color:ocean */
+  /* Force white heading dalam hero — override global.css h1 color:ocean.
+     Phase 4.55 — pakai CSS var supaya inline style hex bisa override lewat
+     `--hero-heading-color` (di-set di element saat editor pilih custom hex). */
   .hero-block h1,
   .hero-block h2,
   .hero-block h3 {
-    color: white !important;
+    color: var(--hero-heading-color, white) !important;
   }
 
   /* ── Slider transitions ────────────────────────────────── */

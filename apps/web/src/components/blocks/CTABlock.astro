@@ -71,10 +71,13 @@ const descTextAnim = resolveTextAnimIn(ts.descriptionAnimIn)
 const btn = b.button ?? {}
 const hasNewButton = btn.variant !== undefined || btn.color !== undefined
 let btnClasses: string[]
+let btnStyle = ''
 let isWA = false
 
 if (hasNewButton) {
-  btnClasses = resolveButtonClasses(btn)
+  const r = resolveButtonClasses(btn)
+  btnClasses = r.classes
+  btnStyle = r.style
 } else {
   // Legacy fallback
   const legacyStyle = block.style ?? 'primary'
@@ -138,7 +141,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={[align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-5xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
         <div class="scrolling-cols relative h-[500px] md:h-[600px] overflow-hidden rounded-xl">
           <div class="scroll-col scroll-col-a absolute inset-y-0 left-0 w-[calc(50%-8px)] flex flex-col gap-4">
@@ -166,7 +169,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={[align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-5xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
         <div class="relative aspect-square max-w-lg mx-auto md:mx-0 md:ml-auto w-full">
           {/* Back card */}
@@ -193,7 +196,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={[align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-4xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
       </div>
     ) : isStack ? (
@@ -203,7 +206,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={['w-full max-w-3xl', align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-4xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
       </div>
     ) : (
@@ -211,7 +214,7 @@ const descColorClass = descTextColor || defaultDesc
       <div class:list={['max-w-3xl', align.text, align.margin, contentColorClass]}>
         <h2 class:list={['font-display text-3xl md:text-4xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
         {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-        <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+        <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
       </div>
     )}
   </div>
