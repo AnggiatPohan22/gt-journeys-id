@@ -301,11 +301,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -430,11 +430,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -531,11 +531,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -650,11 +650,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -817,11 +817,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -950,11 +950,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1106,11 +1106,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1256,11 +1256,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1352,11 +1352,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1433,11 +1433,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1505,11 +1505,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1626,11 +1626,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -1815,11 +1815,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2066,11 +2066,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2200,11 +2200,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2311,11 +2311,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2420,11 +2420,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2523,11 +2523,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2609,11 +2609,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2729,11 +2729,11 @@ export interface Page {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3219,11 +3219,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3348,11 +3348,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3449,11 +3449,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3568,11 +3568,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3735,11 +3735,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3868,11 +3868,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4024,11 +4024,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4174,11 +4174,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4270,11 +4270,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4351,11 +4351,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4423,11 +4423,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4544,11 +4544,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -4733,11 +4733,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4984,11 +4984,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5118,11 +5118,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5229,11 +5229,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5338,11 +5338,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5441,11 +5441,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5527,11 +5527,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5647,11 +5647,11 @@ export interface Post {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6314,11 +6314,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6443,11 +6443,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6544,11 +6544,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6663,11 +6663,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6830,11 +6830,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6963,11 +6963,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7119,11 +7119,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7269,11 +7269,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7365,11 +7365,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7446,11 +7446,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7518,11 +7518,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7639,11 +7639,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -7828,11 +7828,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8079,11 +8079,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8213,11 +8213,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8324,11 +8324,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8433,11 +8433,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8536,11 +8536,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8622,11 +8622,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8742,11 +8742,11 @@ export interface Tour {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9165,11 +9165,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9294,11 +9294,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9395,11 +9395,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9514,11 +9514,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9681,11 +9681,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9814,11 +9814,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9970,11 +9970,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10120,11 +10120,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10216,11 +10216,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10297,11 +10297,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10382,11 +10382,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -10524,11 +10524,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10635,11 +10635,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10744,11 +10744,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10847,11 +10847,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10933,11 +10933,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11053,11 +11053,11 @@ export interface Accommodation {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11382,11 +11382,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11511,11 +11511,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11612,11 +11612,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11731,11 +11731,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11898,11 +11898,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12031,11 +12031,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12187,11 +12187,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12337,11 +12337,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12433,11 +12433,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12514,11 +12514,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12599,11 +12599,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -12738,11 +12738,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12847,11 +12847,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12950,11 +12950,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13036,11 +13036,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13156,11 +13156,11 @@ export interface WaterActivity {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13478,11 +13478,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13607,11 +13607,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13708,11 +13708,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13827,11 +13827,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13994,11 +13994,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14127,11 +14127,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14283,11 +14283,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14433,11 +14433,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14529,11 +14529,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14610,11 +14610,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14682,11 +14682,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14803,11 +14803,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -14992,11 +14992,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15243,11 +15243,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15377,11 +15377,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15488,11 +15488,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15597,11 +15597,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15700,11 +15700,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15786,11 +15786,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15906,11 +15906,11 @@ export interface Yacht {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16230,11 +16230,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16359,11 +16359,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16460,11 +16460,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16579,11 +16579,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16746,11 +16746,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16879,11 +16879,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17035,11 +17035,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17185,11 +17185,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17281,11 +17281,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17362,11 +17362,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17447,11 +17447,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -17706,11 +17706,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17840,11 +17840,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17951,11 +17951,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18060,11 +18060,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18163,11 +18163,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18249,11 +18249,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18369,11 +18369,11 @@ export interface Restaurant {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18710,11 +18710,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18839,11 +18839,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18940,11 +18940,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19059,11 +19059,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19226,11 +19226,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19359,11 +19359,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19515,11 +19515,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19665,11 +19665,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19761,11 +19761,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19842,11 +19842,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19914,11 +19914,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20035,11 +20035,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -20224,11 +20224,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20475,11 +20475,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20609,11 +20609,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20720,11 +20720,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20829,11 +20829,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20932,11 +20932,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21018,11 +21018,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21138,11 +21138,11 @@ export interface Venue {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21464,11 +21464,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21593,11 +21593,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21694,11 +21694,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21813,11 +21813,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21980,11 +21980,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22113,11 +22113,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22269,11 +22269,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22419,11 +22419,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22515,11 +22515,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22596,11 +22596,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22668,11 +22668,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22789,11 +22789,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -22978,11 +22978,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23229,11 +23229,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23363,11 +23363,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23474,11 +23474,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23583,11 +23583,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23686,11 +23686,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23772,11 +23772,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23892,11 +23892,11 @@ export interface Rental {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24218,11 +24218,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24347,11 +24347,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24448,11 +24448,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24567,11 +24567,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24734,11 +24734,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24867,11 +24867,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25023,11 +25023,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25173,11 +25173,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25269,11 +25269,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25350,11 +25350,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25422,11 +25422,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25543,11 +25543,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -25732,11 +25732,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25983,11 +25983,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26117,11 +26117,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26228,11 +26228,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26337,11 +26337,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26440,11 +26440,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26526,11 +26526,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26646,11 +26646,11 @@ export interface Spa {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27106,11 +27106,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27235,11 +27235,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27336,11 +27336,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27455,11 +27455,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27622,11 +27622,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27755,11 +27755,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27911,11 +27911,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28061,11 +28061,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28157,11 +28157,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28238,11 +28238,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28323,11 +28323,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -28462,11 +28462,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28571,11 +28571,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28674,11 +28674,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28760,11 +28760,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -28880,11 +28880,11 @@ export interface FerryTicket {
             /**
              * Kecepatan animasi masuk.
              */
-            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            entrySpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
             /**
              * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
              */
-            entryAnimationDurationMs?: number | null;
+            entryDurMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -29465,8 +29465,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29525,8 +29525,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29578,8 +29578,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29639,8 +29639,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29720,8 +29720,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29786,8 +29786,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29853,8 +29853,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29916,8 +29916,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -29965,8 +29965,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30013,8 +30013,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30068,8 +30068,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30128,8 +30128,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -30193,8 +30193,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30293,8 +30293,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30357,8 +30357,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30414,8 +30414,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30466,8 +30466,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30517,8 +30517,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30567,8 +30567,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30634,8 +30634,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30907,8 +30907,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -30967,8 +30967,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31020,8 +31020,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31081,8 +31081,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31162,8 +31162,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31228,8 +31228,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31295,8 +31295,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31358,8 +31358,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31407,8 +31407,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31455,8 +31455,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31510,8 +31510,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31570,8 +31570,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -31635,8 +31635,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31735,8 +31735,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31799,8 +31799,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31856,8 +31856,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31908,8 +31908,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -31959,8 +31959,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32009,8 +32009,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32076,8 +32076,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32298,8 +32298,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32358,8 +32358,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32411,8 +32411,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32472,8 +32472,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32553,8 +32553,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32619,8 +32619,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32686,8 +32686,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32749,8 +32749,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32798,8 +32798,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32846,8 +32846,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32901,8 +32901,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -32961,8 +32961,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -33026,8 +33026,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33126,8 +33126,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33190,8 +33190,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33247,8 +33247,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33299,8 +33299,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33350,8 +33350,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33400,8 +33400,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33467,8 +33467,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33669,8 +33669,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33729,8 +33729,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33782,8 +33782,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33843,8 +33843,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33924,8 +33924,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -33990,8 +33990,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34057,8 +34057,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34120,8 +34120,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34169,8 +34169,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34217,8 +34217,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34276,8 +34276,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -34334,8 +34334,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34391,8 +34391,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34443,8 +34443,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34494,8 +34494,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34544,8 +34544,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34611,8 +34611,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34766,8 +34766,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34826,8 +34826,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34879,8 +34879,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -34940,8 +34940,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35021,8 +35021,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35087,8 +35087,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35154,8 +35154,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35217,8 +35217,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35266,8 +35266,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35314,8 +35314,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35373,8 +35373,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -35426,8 +35426,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35478,8 +35478,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35529,8 +35529,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35579,8 +35579,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35646,8 +35646,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35812,8 +35812,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35872,8 +35872,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35925,8 +35925,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -35986,8 +35986,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36067,8 +36067,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36133,8 +36133,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36200,8 +36200,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36263,8 +36263,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36312,8 +36312,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36360,8 +36360,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36415,8 +36415,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36475,8 +36475,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -36540,8 +36540,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36640,8 +36640,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36704,8 +36704,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36761,8 +36761,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36813,8 +36813,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36864,8 +36864,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36914,8 +36914,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -36981,8 +36981,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37149,8 +37149,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37209,8 +37209,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37262,8 +37262,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37323,8 +37323,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37404,8 +37404,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37470,8 +37470,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37537,8 +37537,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37600,8 +37600,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37649,8 +37649,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37697,8 +37697,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37756,8 +37756,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -37850,8 +37850,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37914,8 +37914,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -37971,8 +37971,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38023,8 +38023,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38074,8 +38074,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38124,8 +38124,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38191,8 +38191,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38370,8 +38370,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38430,8 +38430,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38483,8 +38483,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38544,8 +38544,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38625,8 +38625,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38691,8 +38691,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38758,8 +38758,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38821,8 +38821,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38870,8 +38870,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38918,8 +38918,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -38973,8 +38973,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39033,8 +39033,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -39098,8 +39098,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39198,8 +39198,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39262,8 +39262,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39319,8 +39319,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39371,8 +39371,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39422,8 +39422,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39472,8 +39472,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39539,8 +39539,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39703,8 +39703,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39763,8 +39763,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39816,8 +39816,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39877,8 +39877,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -39958,8 +39958,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40024,8 +40024,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40091,8 +40091,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40154,8 +40154,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40203,8 +40203,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40251,8 +40251,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40306,8 +40306,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40366,8 +40366,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -40431,8 +40431,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40531,8 +40531,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40595,8 +40595,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40652,8 +40652,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40704,8 +40704,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40755,8 +40755,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40805,8 +40805,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -40872,8 +40872,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41036,8 +41036,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41096,8 +41096,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41149,8 +41149,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41210,8 +41210,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41291,8 +41291,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41357,8 +41357,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41424,8 +41424,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41487,8 +41487,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41536,8 +41536,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41584,8 +41584,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41639,8 +41639,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41699,8 +41699,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -41764,8 +41764,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41864,8 +41864,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41928,8 +41928,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -41985,8 +41985,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42037,8 +42037,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42088,8 +42088,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42138,8 +42138,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42205,8 +42205,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42382,8 +42382,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42442,8 +42442,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42495,8 +42495,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42556,8 +42556,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42637,8 +42637,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42703,8 +42703,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42770,8 +42770,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42833,8 +42833,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42882,8 +42882,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42930,8 +42930,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -42989,8 +42989,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               ts?:
                 | T
                 | {
@@ -43042,8 +43042,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -43094,8 +43094,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -43145,8 +43145,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -43195,8 +43195,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {
@@ -43262,8 +43262,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
-              entryAnimationSpeed?: T;
-              entryAnimationDurationMs?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
               background?:
                 | T
                 | {

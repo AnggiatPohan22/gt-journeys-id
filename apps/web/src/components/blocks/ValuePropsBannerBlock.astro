@@ -15,7 +15,7 @@ const b = block as any
 // Note: banner section-padding intentionally minimal — this block is meant
 // to overlap the block above (-mt-16). We honor entry animation + text
 // styling from Advanced tab but keep the overlap positioning.
-const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const bgResolved = resolveBackground(b.background)
 
 const ts = b.ts ?? {}

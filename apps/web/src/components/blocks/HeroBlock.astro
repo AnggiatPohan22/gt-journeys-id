@@ -147,7 +147,7 @@ const containerClass =
 // Phase 4.56 — pakai shared resolveEntryAnimation dari blockStyles.ts.
 // Semua preset non-`reveal` sekarang scroll-triggered via
 // IntersectionObserver di lib/animations.ts (bukan @keyframes on-load lagi).
-const entryAnimResolved = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
+const entryAnimResolved = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const useDataAnimate = entryAnimResolved.useDataAnimate
 const entryClass = entryAnimResolved.className
 const entryStyle = entryAnimResolved.style

@@ -15,7 +15,7 @@ const b = block as any
 const containerClass = resolveContainer(b.containerWidth)
 const paddingClass = resolvePadding(b)
 const padOverrideStyle = resolvePaddingOverrideStyle(b)
-const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const bgResolved = resolveBackground(b.background)
 
 const ts = b.ts ?? {}

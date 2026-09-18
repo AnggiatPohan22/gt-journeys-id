@@ -213,7 +213,7 @@ const totalPages = showLoadMore ? Math.ceil(items.length / perDesktop) : 1
 
 // ── Styling ─────────────────────────────────────────────
 const containerClass = resolveContainer(b.containerWidth)
-const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 
 const ts = b.ts ?? {}
 const eyebrowColor = resolveTextColor(ts.eyebrowColor)

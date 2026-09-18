@@ -103,7 +103,9 @@ const layoutRow: Field = {
 
 // Phase 4.56 — Entry animation dijalankan lewat IntersectionObserver saat
 // section mendekati viewport (bukan lagi @keyframes-on-load). Speed dipisah
-// jadi field sendiri, default 'normal' (900ms).
+// jadi field sendiri, default 'normal' (900ms). Nama field `entrySpeed` &
+// `entryDurMs` SENGAJA pendek supaya identifier enum di postgres/drizzle
+// tetap < 63 char pada table terpanjang (mis. water_activities_blocks_featured_post).
 const entryAnimationRow: Field = {
   type: 'row',
   fields: [
@@ -122,7 +124,8 @@ const entryAnimationRow: Field = {
       ],
     },
     {
-      name: 'entryAnimationSpeed',
+      name: 'entrySpeed',
+      label: 'Entry Animation Speed',
       type: 'select',
       defaultValue: 'normal',
       admin: {
@@ -141,14 +144,15 @@ const entryAnimationRow: Field = {
 }
 
 const entryAnimationCustomField: Field = {
-  name: 'entryAnimationDurationMs',
+  name: 'entryDurMs',
+  label: 'Entry Animation Duration (ms)',
   type: 'number',
   min: 100,
   max: 5000,
   defaultValue: 900,
   admin: {
     description: 'Durasi custom (ms) — hanya berlaku kalau Speed = Custom.',
-    condition: (_, s) => s?.entryAnimationSpeed === 'custom' && s?.entryAnimation && s.entryAnimation !== 'none',
+    condition: (_, s) => s?.entrySpeed === 'custom' && s?.entryAnimation && s.entryAnimation !== 'none',
   },
 }
 
