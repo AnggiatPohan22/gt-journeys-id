@@ -15,7 +15,7 @@ const b = block as any
 // Note: banner section-padding intentionally minimal — this block is meant
 // to overlap the block above (-mt-16). We honor entry animation + text
 // styling from Advanced tab but keep the overlap positioning.
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
 const bgResolved = resolveBackground(b.background)
 
 const ts = b.ts ?? {}
@@ -25,7 +25,7 @@ const subColor = resolveTextColor(ts.subheadingColor)
 const subAnim = resolveTextAnimIn(ts.subheadingAnimIn)
 ---
 
-<section class="relative -mt-16 z-10 container-content" data-animate={entry.dataAnimate}>
+<section class="relative -mt-16 z-10 container-content" data-animate={entry.dataAnimate} style={entry.style || undefined}>
   <div class:list={[
     'max-w-5xl mx-auto rounded-2xl shadow-xl border border-sand-dark/10 p-6 md:p-8 relative overflow-hidden',
     bgResolved.bgClass || 'bg-white',

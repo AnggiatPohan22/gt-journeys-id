@@ -53,6 +53,42 @@
   }
 }
 
+/* ── Block-level Entry Animations (Phase 4.56) ─────────────
+   Scroll-triggered via IntersectionObserver di lib/animations.ts.
+   Element mulai `opacity:0` + transform offset. Ketika observer masukin
+   class `.is-in-view`, transisi ke visible. Durasi via CSS var
+   `--entry-duration` (default 900ms).
+   NB: 'reveal' preset TIDAK pakai class ini — dia pakai jalur GSAP. */
+.entry-fade,
+.entry-zoom,
+.entry-slide-left,
+.entry-slide-right {
+  opacity: 0;
+  transition:
+    opacity var(--entry-duration, 900ms) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--entry-duration, 900ms) cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.entry-zoom        { transform: scale(0.92); }
+.entry-slide-left  { transform: translateX(-40px); }
+.entry-slide-right { transform: translateX(40px); }
+
+.entry-fade.is-in-view,
+.entry-zoom.is-in-view,
+.entry-slide-left.is-in-view,
+.entry-slide-right.is-in-view {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-fade, .entry-zoom, .entry-slide-left, .entry-slide-right {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ── Per-element text entry animations (Phase 3.6.3+) ──────
    Used by block components via `text-anim-*` classes.
    Sync with resolveTextAnimIn() in src/lib/blockStyles.ts. */

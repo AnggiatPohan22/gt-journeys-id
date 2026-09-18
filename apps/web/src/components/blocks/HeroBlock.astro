@@ -1,6 +1,6 @@
 ---
 import type { Page, Media } from '@shared/types/payload-types'
-import { resolvePadding as resolveBlockPadding, resolveColorValue } from '@lib/blockStyles'
+import { resolvePadding as resolveBlockPadding, resolveColorValue, resolveEntryAnimation } from '@lib/blockStyles'
 
 type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'hero' }>
 interface Props { block: Block }
@@ -144,13 +144,13 @@ const containerClass =
   containerWidth === 'narrow' ? 'w-full max-w-3xl px-4 sm:px-6 lg:px-8' :
                                 'w-full max-w-5xl px-4 sm:px-6 lg:px-8'
 
-const entryAnimation = (b.entryAnimation ?? 'reveal') as string
-// Map to data-animate value. `reveal` = default GSAP fade-up. Fallbacks:
-// - fade / zoom / slide-left / slide-right diimplementasi via CSS di
-//   `<style>` bawah supaya tidak bergantung GSAP preset (yg mungkin belum
-//   ada). 'reveal' tetap pakai existing data-animate.
-const useDataAnimate = entryAnimation === 'reveal'
-const entryClass = !useDataAnimate && entryAnimation !== 'none' ? `entry-${entryAnimation}` : ''
+// Phase 4.56 — pakai shared resolveEntryAnimation dari blockStyles.ts.
+// Semua preset non-`reveal` sekarang scroll-triggered via
+// IntersectionObserver di lib/animations.ts (bukan @keyframes on-load lagi).
+const entryAnimResolved = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
+const useDataAnimate = entryAnimResolved.useDataAnimate
+const entryClass = entryAnimResolved.className
+const entryStyle = entryAnimResolved.style
 
 const bg = block.background ?? {}
 const bgType = bg.type ?? 'default'
@@ -251,10 +251,12 @@ const showOverlay = hasMedia || showBgImage
   class:list={[
     'hero-block relative overflow-hidden flex flex-col justify-center',
     alignFlexClass,
+    entryClass,
     // Full-bleed rule: Hero SELALU edge-to-edge viewport.
     'w-screen relative left-1/2 right-1/2 -mx-[50vw]',
     paddingClass,
   ]}
+  style={entryStyle || undefined}
 >
   <!-- BASE BG -->
   <div class:list={['absolute inset-0 z-0', sectionBgClass]} style={sectionBgStyle || undefined}></div>
@@ -411,46 +413,9 @@ const showOverlay = hasMedia || showBgImage
     }
   }
 
-  /* ── Entry animations (CSS-only, tanpa dep GSAP) ─────────
-     'reveal' pakai data-animate GSAP existing. Preset lain via keyframes. */
-  .entry-fade,
-  .entry-zoom,
-  .entry-slide-left,
-  .entry-slide-right {
-    animation-duration: 900ms;
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-    animation-fill-mode: both;
-  }
-  .entry-fade      { animation-name: entryFade; }
-  .entry-zoom      { animation-name: entryZoom; }
-  .entry-slide-left  { animation-name: entrySlideLeft; }
-  .entry-slide-right { animation-name: entrySlideRight; }
-
-  @keyframes entryFade {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
-  @keyframes entryZoom {
-    from { opacity: 0; transform: scale(0.92); }
-    to   { opacity: 1; transform: scale(1); }
-  }
-  @keyframes entrySlideLeft {
-    from { opacity: 0; transform: translateX(-40px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-  @keyframes entrySlideRight {
-    from { opacity: 0; transform: translateX(40px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .entry-fade,
-    .entry-zoom,
-    .entry-slide-left,
-    .entry-slide-right {
-      animation: none;
-    }
-  }
+  /* Phase 4.56 — .entry-* class dipindah ke global.css (scroll-triggered
+     via IntersectionObserver di lib/animations.ts). Style block ini tidak
+     lagi include @keyframes lokal supaya observer transition-based menang. */
 </style>
 
 <script>

@@ -19,7 +19,7 @@ const bgUrl = bg?.sizes?.hero?.url ?? bg?.url ?? ''
 const containerClass = resolveContainer(b.containerWidth)
 const paddingClass = resolvePadding(b)
 const padOverrideStyle = resolvePaddingOverrideStyle(b)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
 
 const ts = b.ts ?? {}
 const eyebrowColor = resolveTextColor(ts.eyebrowColor)
@@ -51,7 +51,7 @@ const gridColsClass = (() => {
 })()
 ---
 
-<section class:list={['relative bg-ocean text-white overflow-hidden', paddingClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
+<section class:list={['relative bg-ocean text-white overflow-hidden', paddingClass]} data-animate={entry.dataAnimate} style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {bgUrl && (
     <div class="absolute inset-0 opacity-10">
       <img src={bgUrl} alt="" class="w-full h-full object-cover" />

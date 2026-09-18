@@ -141,15 +141,46 @@ export const resolveSpacingOverride = (block: any): string | undefined => {
 }
 
 // ── Entry animation ──────────────────────────────────────────
-// 'reveal' → gunakan data-animate GSAP existing.
-// Preset lain → class CSS-only (butuh matching @keyframes di block yg pakai).
-export const resolveEntryAnimation = (v?: string) => {
+// Phase 4.56 — SEMUA preset (reveal + fade/zoom/slide-*) scroll-triggered
+// via IntersectionObserver di `apps/web/src/lib/animations.ts`. CSS ada di
+// `global.css` — element mulai hidden, class `.is-in-view` di-toggle observer
+// saat section masuk viewport. Speed dari CMS jadi CSS var `--entry-duration`.
+//
+// `reveal` masih pakai GSAP path (durasi diperhatikan lewat data-entry-duration).
+// Preset lain pakai class `entry-<name>` + observer.
+const SPEED_MS: Record<string, number> = {
+  slow: 1500,
+  normal: 900,
+  fast: 500,
+}
+
+export interface ResolvedEntryAnimation {
+  useDataAnimate: boolean       // true untuk 'reveal' GSAP path
+  className: string             // 'entry-fade'/'entry-zoom'/dst (kosong kalau reveal/none)
+  dataAnimate: string | undefined
+  durationMs: number            // dipakai GSAP path & CSS var
+  style: string                 // '--entry-duration:900ms' (kosong kalau none)
+}
+
+export const resolveEntryAnimation = (
+  v?: string,
+  speed?: string,
+  customMs?: number | null,
+): ResolvedEntryAnimation => {
   const anim = v ?? 'reveal'
   const useDataAnimate = anim === 'reveal'
+  const isNone = anim === 'none'
+
+  const durationMs = speed === 'custom' && customMs
+    ? Math.max(100, Math.min(5000, customMs))
+    : (SPEED_MS[speed ?? 'normal'] ?? 900)
+
   return {
     useDataAnimate,
-    className: !useDataAnimate && anim !== 'none' ? `entry-${anim}` : '',
+    className: !useDataAnimate && !isNone ? `entry-${anim}` : '',
     dataAnimate: useDataAnimate ? 'reveal' : undefined,
+    durationMs,
+    style: isNone ? '' : `--entry-duration:${durationMs}ms`,
   }
 }
 

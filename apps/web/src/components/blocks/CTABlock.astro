@@ -55,7 +55,7 @@ const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth)
 const paddingClass = resolvePadding(b)
 const padOverrideStyle = resolvePaddingOverrideStyle(b)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
 const bgResolved = resolveBackground(b.background, 'bg-sand')
 
 // Text styles per-element
@@ -117,7 +117,7 @@ const descColorClass = descTextColor || defaultDesc
   ]}
   data-animate={entry.dataAnimate}
 
-  style={padOverrideStyle}>
+  style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {/* Background image (from Advanced tab) — only when no media background */}
   {!isBg && !isScrollCols && bgResolved.imageUrl && (
     <>
@@ -221,25 +221,8 @@ const descColorClass = descTextColor || defaultDesc
 </section>
 
 <style>
-  .entry-fade,
-  .entry-zoom,
-  .entry-slide-left,
-  .entry-slide-right {
-    animation-duration: 900ms;
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-    animation-fill-mode: both;
-  }
-  .entry-fade { animation-name: cFade; }
-  .entry-zoom { animation-name: cZoom; }
-  .entry-slide-left  { animation-name: cSlideLeft; }
-  .entry-slide-right { animation-name: cSlideRight; }
-  @keyframes cFade { from{opacity:0} to{opacity:1} }
-  @keyframes cZoom { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
-  @keyframes cSlideLeft  { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
-  @keyframes cSlideRight { from{opacity:0;transform:translateX(40px)}  to{opacity:1;transform:translateX(0)} }
-  @media (prefers-reduced-motion: reduce) {
-    .entry-fade,.entry-zoom,.entry-slide-left,.entry-slide-right { animation: none; }
-  }
+  /* Phase 4.56 — .entry-* class dipindah ke global.css (scroll-triggered
+     via IntersectionObserver). Style lokal dihapus. */
 
   /* Scrolling columns (CTA template 1) — vertical infinite loop.
      Each column duplicated in DOM; animation translates -50% (exactly one

@@ -30,7 +30,7 @@ const layout = (b.layout ?? 'stacked') as 'stacked' | 'centered'
 const containerClass = resolveContainer(b.containerWidth ?? 'wide')
 const paddingClass = resolvePadding(b)
 const padOverrideStyle = resolvePaddingOverrideStyle(b)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
 
 // Theme classes mirror footer NewsletterSignup + add `white` variant.
 const themeClasses: Record<typeof theme, { section: string; heading: string; body: string; input: string; button: string; card: string }> = {
@@ -72,7 +72,7 @@ const t = themeClasses[theme] ?? themeClasses.sand
 
 <section
   class:list={['newsletter-signup', paddingClass, t.section]}
-  style={padOverrideStyle}
+  style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}
   data-success-msg={successMessage}
   data-error-msg={errorMessage}
   data-animate={entry.dataAnimate}

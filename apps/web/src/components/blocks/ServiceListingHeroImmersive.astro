@@ -213,7 +213,7 @@ const totalPages = showLoadMore ? Math.ceil(items.length / perDesktop) : 1
 
 // ── Styling ─────────────────────────────────────────────
 const containerClass = resolveContainer(b.containerWidth)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
 
 const ts = b.ts ?? {}
 const eyebrowColor = resolveTextColor(ts.eyebrowColor)
@@ -233,7 +233,7 @@ const listingTitle = sp.listingTitle || 'Luxury Collections'
 const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & surrounding islands'
 ---
 
-<section class="relative bg-sand" data-animate={entry.dataAnimate}>
+<section class="relative bg-sand" data-animate={entry.dataAnimate} style={entry.style || undefined}>
   {/* ── Hero ────────────────────────────────────────── */}
   <div class:list={['relative w-full overflow-hidden', heroMinHeightClass[heroMinHeight]]}>
     {/* Media layer */}

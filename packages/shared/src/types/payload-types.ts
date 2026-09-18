@@ -298,6 +298,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -419,6 +427,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -512,6 +528,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -623,6 +647,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -782,6 +814,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -907,6 +947,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1055,6 +1103,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1197,6 +1253,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1285,6 +1349,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1358,6 +1430,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1422,6 +1502,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1535,6 +1623,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -1716,6 +1812,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -1959,6 +2063,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2085,6 +2197,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2188,6 +2308,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2289,6 +2417,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2384,6 +2520,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2462,6 +2606,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -2574,6 +2726,14 @@ export interface Page {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3056,6 +3216,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3177,6 +3345,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3270,6 +3446,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3381,6 +3565,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3540,6 +3732,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3665,6 +3865,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3813,6 +4021,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -3955,6 +4171,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4043,6 +4267,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4116,6 +4348,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4180,6 +4420,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4293,6 +4541,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -4474,6 +4730,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4717,6 +4981,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4843,6 +5115,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -4946,6 +5226,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5047,6 +5335,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5142,6 +5438,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5220,6 +5524,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5332,6 +5644,14 @@ export interface Post {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -5991,6 +6311,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6112,6 +6440,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6205,6 +6541,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6316,6 +6660,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6475,6 +6827,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6600,6 +6960,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6748,6 +7116,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6890,6 +7266,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -6978,6 +7362,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7051,6 +7443,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7115,6 +7515,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7228,6 +7636,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -7409,6 +7825,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7652,6 +8076,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7778,6 +8210,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7881,6 +8321,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -7982,6 +8430,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8077,6 +8533,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8155,6 +8619,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8267,6 +8739,14 @@ export interface Tour {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8682,6 +9162,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8803,6 +9291,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -8896,6 +9392,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9007,6 +9511,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9166,6 +9678,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9291,6 +9811,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9439,6 +9967,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9581,6 +10117,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9669,6 +10213,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9742,6 +10294,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -9819,6 +10379,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -9953,6 +10521,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10056,6 +10632,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10157,6 +10741,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10252,6 +10844,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10330,6 +10930,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10442,6 +11050,14 @@ export interface Accommodation {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10763,6 +11379,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10884,6 +11508,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -10977,6 +11609,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11088,6 +11728,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11247,6 +11895,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11372,6 +12028,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11520,6 +12184,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11662,6 +12334,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11750,6 +12430,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11823,6 +12511,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -11900,6 +12596,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -12031,6 +12735,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12132,6 +12844,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12227,6 +12947,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12305,6 +13033,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12417,6 +13153,14 @@ export interface WaterActivity {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12731,6 +13475,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12852,6 +13604,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -12945,6 +13705,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13056,6 +13824,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13215,6 +13991,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13340,6 +14124,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13488,6 +14280,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13630,6 +14430,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13718,6 +14526,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13791,6 +14607,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13855,6 +14679,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -13968,6 +14800,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -14149,6 +14989,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14392,6 +15240,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14518,6 +15374,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14621,6 +15485,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14722,6 +15594,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14817,6 +15697,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -14895,6 +15783,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15007,6 +15903,14 @@ export interface Yacht {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15323,6 +16227,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15444,6 +16356,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15537,6 +16457,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15648,6 +16576,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15807,6 +16743,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -15932,6 +16876,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16080,6 +17032,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16222,6 +17182,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16310,6 +17278,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16383,6 +17359,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16460,6 +17444,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -16711,6 +17703,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16837,6 +17837,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -16940,6 +17948,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17041,6 +18057,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17136,6 +18160,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17214,6 +18246,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17326,6 +18366,14 @@ export interface Restaurant {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17659,6 +18707,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17780,6 +18836,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17873,6 +18937,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -17984,6 +19056,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18143,6 +19223,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18268,6 +19356,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18416,6 +19512,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18558,6 +19662,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18646,6 +19758,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18719,6 +19839,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18783,6 +19911,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -18896,6 +20032,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -19077,6 +20221,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19320,6 +20472,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19446,6 +20606,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19549,6 +20717,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19650,6 +20826,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19745,6 +20929,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19823,6 +21015,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -19935,6 +21135,14 @@ export interface Venue {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20253,6 +21461,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20374,6 +21590,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20467,6 +21691,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20578,6 +21810,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20737,6 +21977,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -20862,6 +22110,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21010,6 +22266,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21152,6 +22416,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21240,6 +22512,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21313,6 +22593,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21377,6 +22665,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21490,6 +22786,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -21671,6 +22975,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -21914,6 +23226,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22040,6 +23360,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22143,6 +23471,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22244,6 +23580,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22339,6 +23683,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22417,6 +23769,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22529,6 +23889,14 @@ export interface Rental {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22847,6 +24215,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -22968,6 +24344,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23061,6 +24445,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23172,6 +24564,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23331,6 +24731,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23456,6 +24864,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23604,6 +25020,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23746,6 +25170,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23834,6 +25266,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23907,6 +25347,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -23971,6 +25419,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24084,6 +25540,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -24265,6 +25729,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24508,6 +25980,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24634,6 +26114,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24737,6 +26225,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24838,6 +26334,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -24933,6 +26437,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25011,6 +26523,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25123,6 +26643,14 @@ export interface Spa {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25575,6 +27103,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25696,6 +27232,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25789,6 +27333,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -25900,6 +27452,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26059,6 +27619,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26184,6 +27752,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26332,6 +27908,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26474,6 +28058,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26562,6 +28154,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26635,6 +28235,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26712,6 +28320,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             ts?: {
               /**
                * Warna eyebrow. Kosongkan = inherit theme/block.
@@ -26843,6 +28459,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -26944,6 +28568,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27039,6 +28671,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27117,6 +28757,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27229,6 +28877,14 @@ export interface FerryTicket {
              * Animasi masuk section saat mendekati viewport.
              */
             entryAnimation?: ('reveal' | 'fade' | 'zoom' | 'slide-left' | 'slide-right' | 'none') | null;
+            /**
+             * Kecepatan animasi masuk.
+             */
+            entryAnimationSpeed?: ('slow' | 'normal' | 'fast' | 'custom') | null;
+            /**
+             * Durasi custom (ms) — hanya berlaku kalau Speed = Custom.
+             */
+            entryAnimationDurationMs?: number | null;
             background?: {
               type?: ('default' | 'color' | 'image') | null;
               /**
@@ -27809,6 +29465,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -27867,6 +29525,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -27918,6 +29578,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -27977,6 +29639,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28056,6 +29720,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28120,6 +29786,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28185,6 +29853,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28246,6 +29916,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28293,6 +29965,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28339,6 +30013,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28392,6 +30068,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28450,6 +30128,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -28513,6 +30193,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28611,6 +30293,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28673,6 +30357,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28728,6 +30414,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28778,6 +30466,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28827,6 +30517,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28875,6 +30567,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -28940,6 +30634,8 @@ export interface PagesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29211,6 +30907,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29269,6 +30967,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29320,6 +31020,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29379,6 +31081,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29458,6 +31162,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29522,6 +31228,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29587,6 +31295,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29648,6 +31358,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29695,6 +31407,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29741,6 +31455,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29794,6 +31510,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -29852,6 +31570,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -29915,6 +31635,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30013,6 +31735,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30075,6 +31799,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30130,6 +31856,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30180,6 +31908,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30229,6 +31959,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30277,6 +32009,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30342,6 +32076,8 @@ export interface PostsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30562,6 +32298,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30620,6 +32358,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30671,6 +32411,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30730,6 +32472,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30809,6 +32553,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30873,6 +32619,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30938,6 +32686,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -30999,6 +32749,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31046,6 +32798,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31092,6 +32846,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31145,6 +32901,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31203,6 +32961,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -31266,6 +33026,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31364,6 +33126,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31426,6 +33190,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31481,6 +33247,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31531,6 +33299,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31580,6 +33350,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31628,6 +33400,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31693,6 +33467,8 @@ export interface ToursSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31893,6 +33669,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -31951,6 +33729,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32002,6 +33782,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32061,6 +33843,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32140,6 +33924,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32204,6 +33990,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32269,6 +34057,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32330,6 +34120,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32377,6 +34169,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32423,6 +34217,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32480,6 +34276,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -32536,6 +34334,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32591,6 +34391,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32641,6 +34443,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32690,6 +34494,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32738,6 +34544,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32803,6 +34611,8 @@ export interface AccommodationsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -32956,6 +34766,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33014,6 +34826,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33065,6 +34879,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33124,6 +34940,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33203,6 +35021,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33267,6 +35087,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33332,6 +35154,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33393,6 +35217,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33440,6 +35266,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33486,6 +35314,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33543,6 +35373,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -33594,6 +35426,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33644,6 +35478,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33693,6 +35529,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33741,6 +35579,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33806,6 +35646,8 @@ export interface WaterActivitiesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -33970,6 +35812,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34028,6 +35872,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34079,6 +35925,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34138,6 +35986,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34217,6 +36067,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34281,6 +36133,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34346,6 +36200,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34407,6 +36263,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34454,6 +36312,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34500,6 +36360,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34553,6 +36415,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34611,6 +36475,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -34674,6 +36540,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34772,6 +36640,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34834,6 +36704,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34889,6 +36761,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34939,6 +36813,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -34988,6 +36864,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35036,6 +36914,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35101,6 +36981,8 @@ export interface YachtsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35267,6 +37149,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35325,6 +37209,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35376,6 +37262,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35435,6 +37323,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35514,6 +37404,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35578,6 +37470,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35643,6 +37537,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35704,6 +37600,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35751,6 +37649,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35797,6 +37697,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -35854,6 +37756,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -35946,6 +37850,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36008,6 +37914,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36063,6 +37971,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36113,6 +38023,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36162,6 +38074,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36210,6 +38124,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36275,6 +38191,8 @@ export interface RestaurantsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36452,6 +38370,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36510,6 +38430,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36561,6 +38483,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36620,6 +38544,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36699,6 +38625,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36763,6 +38691,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36828,6 +38758,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36889,6 +38821,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36936,6 +38870,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -36982,6 +38918,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37035,6 +38973,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37093,6 +39033,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -37156,6 +39098,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37254,6 +39198,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37316,6 +39262,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37371,6 +39319,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37421,6 +39371,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37470,6 +39422,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37518,6 +39472,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37583,6 +39539,8 @@ export interface VenuesSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37745,6 +39703,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37803,6 +39763,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37854,6 +39816,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37913,6 +39877,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -37992,6 +39958,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38056,6 +40024,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38121,6 +40091,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38182,6 +40154,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38229,6 +40203,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38275,6 +40251,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38328,6 +40306,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38386,6 +40366,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -38449,6 +40431,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38547,6 +40531,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38609,6 +40595,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38664,6 +40652,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38714,6 +40704,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38763,6 +40755,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38811,6 +40805,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -38876,6 +40872,8 @@ export interface RentalsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39038,6 +41036,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39096,6 +41096,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39147,6 +41149,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39206,6 +41210,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39285,6 +41291,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39349,6 +41357,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39414,6 +41424,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39475,6 +41487,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39522,6 +41536,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39568,6 +41584,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39621,6 +41639,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39679,6 +41699,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -39742,6 +41764,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39840,6 +41864,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39902,6 +41928,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -39957,6 +41985,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40007,6 +42037,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40056,6 +42088,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40104,6 +42138,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40169,6 +42205,8 @@ export interface SpaSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40344,6 +42382,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40402,6 +42442,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40453,6 +42495,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40512,6 +42556,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40591,6 +42637,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40655,6 +42703,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40720,6 +42770,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40781,6 +42833,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40828,6 +42882,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40874,6 +42930,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -40931,6 +42989,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               ts?:
                 | T
                 | {
@@ -40982,6 +43042,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -41032,6 +43094,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -41081,6 +43145,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -41129,6 +43195,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {
@@ -41194,6 +43262,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
               contentAlignment?: T;
               containerWidth?: T;
               entryAnimation?: T;
+              entryAnimationSpeed?: T;
+              entryAnimationDurationMs?: T;
               background?:
                 | T
                 | {

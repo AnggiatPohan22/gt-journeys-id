@@ -101,19 +101,55 @@ const layoutRow: Field = {
   ],
 }
 
-const entryAnimationField: Field = {
-  name: 'entryAnimation',
-  type: 'select',
-  defaultValue: 'reveal',
-  admin: { description: 'Animasi masuk section saat mendekati viewport.' },
-  options: [
-    { label: 'Fade Up (reveal, default)', value: 'reveal' },
-    { label: 'Fade In', value: 'fade' },
-    { label: 'Zoom In', value: 'zoom' },
-    { label: 'Slide from Left', value: 'slide-left' },
-    { label: 'Slide from Right', value: 'slide-right' },
-    { label: 'None', value: 'none' },
+// Phase 4.56 — Entry animation dijalankan lewat IntersectionObserver saat
+// section mendekati viewport (bukan lagi @keyframes-on-load). Speed dipisah
+// jadi field sendiri, default 'normal' (900ms).
+const entryAnimationRow: Field = {
+  type: 'row',
+  fields: [
+    {
+      name: 'entryAnimation',
+      type: 'select',
+      defaultValue: 'reveal',
+      admin: { width: '50%', description: 'Animasi masuk section saat mendekati viewport.' },
+      options: [
+        { label: 'Fade Up (reveal, default)', value: 'reveal' },
+        { label: 'Fade In', value: 'fade' },
+        { label: 'Zoom In', value: 'zoom' },
+        { label: 'Slide from Left', value: 'slide-left' },
+        { label: 'Slide from Right', value: 'slide-right' },
+        { label: 'None', value: 'none' },
+      ],
+    },
+    {
+      name: 'entryAnimationSpeed',
+      type: 'select',
+      defaultValue: 'normal',
+      admin: {
+        width: '50%',
+        description: 'Kecepatan animasi masuk.',
+        condition: (_, s) => s?.entryAnimation && s.entryAnimation !== 'none',
+      },
+      options: [
+        { label: 'Slow (1500ms)', value: 'slow' },
+        { label: 'Normal (900ms, default)', value: 'normal' },
+        { label: 'Fast (500ms)', value: 'fast' },
+        { label: 'Custom (isi ms di bawah)', value: 'custom' },
+      ],
+    },
   ],
+}
+
+const entryAnimationCustomField: Field = {
+  name: 'entryAnimationDurationMs',
+  type: 'number',
+  min: 100,
+  max: 5000,
+  defaultValue: 900,
+  admin: {
+    description: 'Durasi custom (ms) — hanya berlaku kalau Speed = Custom.',
+    condition: (_, s) => s?.entryAnimationSpeed === 'custom' && s?.entryAnimation && s.entryAnimation !== 'none',
+  },
 }
 
 // ── Background collapsible (compact color picker) ─────────────────
@@ -399,7 +435,8 @@ const buildAdvancedRows = (opts: AdvancedFieldsOpts, withButton: boolean): Field
  */
 export const advancedStyleFields = (opts: AdvancedFieldsOpts = {}): Field[] => [
   layoutRow,
-  entryAnimationField,
+  entryAnimationRow,
+  entryAnimationCustomField,
   ...buildAdvancedRows(opts, true),
 ]
 
@@ -408,6 +445,7 @@ export const advancedStyleFields = (opts: AdvancedFieldsOpts = {}): Field[] => [
  */
 export const advancedStyleFieldsNoButton = (opts: AdvancedFieldsOpts = {}): Field[] => [
   layoutRow,
-  entryAnimationField,
+  entryAnimationRow,
+  entryAnimationCustomField,
   ...buildAdvancedRows(opts, false),
 ]

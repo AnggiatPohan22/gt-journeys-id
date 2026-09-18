@@ -7,10 +7,21 @@ export function initAnimations() {
 
   gsap.registerPlugin(ScrollTrigger)
 
-  // Scroll reveal for [data-animate="reveal"] elements
+  // Phase 4.56 — hormati per-section duration (CSS var `--entry-duration`
+  // di element, dalam ms). Fallback 800ms kalau tak diset.
+  const readDurationMs = (el: HTMLElement, fallback: number): number => {
+    const raw = getComputedStyle(el).getPropertyValue('--entry-duration').trim()
+    if (!raw) return fallback
+    const n = parseFloat(raw)
+    if (!isFinite(n) || n <= 0) return fallback
+    return raw.endsWith('ms') ? n : n * 1000
+  }
+
+  // Scroll reveal for [data-animate="reveal"] elements (jalur GSAP)
   gsap.utils.toArray('[data-animate="reveal"]').forEach((el: any) => {
+    const dur = readDurationMs(el as HTMLElement, 800) / 1000
     gsap.from(el, {
-      y: 40, opacity: 0, duration: 0.8, ease: 'power3.out',
+      y: 40, opacity: 0, duration: dur, ease: 'power3.out',
       scrollTrigger: { trigger: el, start: 'top 85%', once: true },
     })
   })
@@ -30,6 +41,27 @@ export function initAnimations() {
       scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 1 },
     })
   })
+
+  // Phase 4.56 — Block-level entry animations (preset non-reveal).
+  // CSS `.entry-fade/-zoom/-slide-left/-slide-right` di global.css mulai
+  // hidden + offset. Observer masukin `.is-in-view` saat section 15%
+  // masuk viewport → transisi CSS jalan (durasi dari `--entry-duration`).
+  const entrySelector = '.entry-fade, .entry-zoom, .entry-slide-left, .entry-slide-right'
+  const targets = Array.from(document.querySelectorAll<HTMLElement>(entrySelector))
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in-view')
+          observer.unobserve(entry.target)
+        }
+      }
+    }, {
+      threshold: 0.15,
+      rootMargin: '0px 0px -8% 0px',
+    })
+    targets.forEach((el) => io.observe(el))
+  }
 
   // Header solid on scroll
   const header = document.querySelector('[data-header]')

@@ -15,7 +15,7 @@ const b = block as any
 const containerClass = resolveContainer(b.containerWidth)
 const paddingClass = resolvePadding(b)
 const padOverrideStyle = resolvePaddingOverrideStyle(b)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entryAnimationSpeed, b.entryAnimationDurationMs)
 const bgResolved = resolveBackground(b.background)
 
 const ts = b.ts ?? {}
@@ -29,7 +29,7 @@ const badges = Array.isArray(b.badges) ? b.badges : []
 const isExternal = (u?: string) => (u ?? '').startsWith('http')
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={padOverrideStyle}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
