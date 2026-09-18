@@ -21,6 +21,7 @@ import * as migration_20260917_052423_chat_widget_init from './20260917_052423_c
 import * as migration_20260917_060000_chat_widget_data_move from './20260917_060000_chat_widget_data_move';
 import * as migration_20260917_112521_chat_widget_polish_colors from './20260917_112521_chat_widget_polish_colors';
 import * as migration_20260917_145526 from './20260917_145526';
+import * as migration_20260918_170000_phase_4_56_entry_speed from './20260918_170000_phase_4_56_entry_speed';
 
 export const migrations = [
   {
@@ -136,6 +137,11 @@ export const migrations = [
   {
     up: migration_20260917_145526.up,
     down: migration_20260917_145526.down,
-    name: '20260917_145526'
+    name: '20260917_145526',
+  },
+  {
+    up: migration_20260918_170000_phase_4_56_entry_speed.up,
+    down: migration_20260918_170000_phase_4_56_entry_speed.down,
+    name: '20260918_170000_phase_4_56_entry_speed'
   },
 ];
