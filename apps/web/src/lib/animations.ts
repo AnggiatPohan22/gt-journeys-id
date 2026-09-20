@@ -2,6 +2,12 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 export function initAnimations() {
+  // Idempotent — BaseLayout binds both DOMContentLoaded/immediate + astro:page-load,
+  // so this can be called more than once per page. Skip re-init to avoid dupe
+  // ScrollTriggers/observers.
+  if ((window as any).__dnjbAnimationsInited) return
+  ;(window as any).__dnjbAnimationsInited = true
+
   // Respect reduced motion preference
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
@@ -72,4 +78,16 @@ export function initAnimations() {
       onLeaveBack: () => header.classList.remove('header-solid'),
     })
   }
+
+  // Phase 4.56.1 — Recalculate ScrollTrigger start/end positions setelah
+  // full page load (fonts + images selesai). Tanpa ini, trigger dihitung
+  // saat init dgn layout awal → posisi bisa geser saat gambar tinggi
+  // masuk ke atas section, membuat sebagian animasi terlanjur "fired"
+  // sebelum user scroll ke sana.
+  if (document.readyState === 'complete') {
+    ScrollTrigger.refresh()
+  } else {
+    window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true })
+  }
 }
+

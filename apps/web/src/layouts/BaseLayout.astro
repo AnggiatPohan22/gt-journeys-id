@@ -148,7 +148,19 @@ try {
     <!-- GSAP init -->
     <script>
       import { initAnimations } from '@lib/animations'
-      document.addEventListener('astro:page-load', initAnimations)
+      // Phase 4.56.1 — `astro:page-load` HANYA fires kalau ClientRouter
+      // (View Transitions) aktif. Project ini tak pakai ClientRouter →
+      // event itu tidak pernah fire pada hard-refresh, akibatnya
+      // initAnimations tak pernah jalan dan scroll-triggered entry
+      // animation (baik GSAP `reveal` maupun CSS `.entry-*`) tak nyala.
+      // Fix: panggil langsung saat DOM ready. initAnimations idempotent
+      // (guard `__dnjbAnimationsInited`) — aman double-called.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initAnimations())
+      } else {
+        initAnimations()
+      }
+      document.addEventListener('astro:page-load', () => initAnimations())
     </script>
 
     {/* Cloudflare Web Analytics — beacon (privacy-first, cookieless). Only if token set. */}
