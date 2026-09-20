@@ -82,6 +82,31 @@ export async function isModuleEnabled(key: ServiceModule): Promise<boolean> {
   return f.modules[key] !== false
 }
 
+// Mapping dari service-type slug (CMS collection key) ke ServiceModule enum
+// di SiteFeatures. Kebalikan dari MODULE_TO_KEY di lib/serviceTypes.ts.
+const SERVICE_TYPE_TO_MODULE: Record<string, ServiceModule> = {
+  tours: 'tours',
+  accommodations: 'accommodations',
+  'water-activities': 'waterActivities',
+  yachts: 'yacht',
+  restaurants: 'restaurants',
+  venues: 'weddings',
+  rentals: 'rentals',
+  spa: 'spa',
+  'ferry-tickets': 'ferryTickets',
+}
+
+/**
+ * Cek apakah satu service-type (slug seperti `water-activities`, `yachts`)
+ * enabled — via SiteFeatures.modules toggle. Dipakai block seperti Service
+ * Grid supaya tidak render section untuk modul yang di-off oleh Super Admin.
+ */
+export async function isServiceTypeEnabled(serviceTypeKey: string): Promise<boolean> {
+  const mod = SERVICE_TYPE_TO_MODULE[serviceTypeKey]
+  if (!mod) return true
+  return isModuleEnabled(mod)
+}
+
 /** Cek section enabled (CMS-aware). */
 export async function isSectionEnabled(key: keyof SiteFeaturesShape['sections']): Promise<boolean> {
   const f = await getFeatures()

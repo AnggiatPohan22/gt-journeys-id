@@ -16,6 +16,7 @@ import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
 import Icon from '@components/common/Icon.astro'
 import CuratedCard from '@components/cards/CuratedCard.astro'
 import { getServiceTypeByKey } from '@lib/serviceTypes'
+import { isServiceTypeEnabled } from '@lib/features'
 
 import {
   getTours, getAccommodations, getWaterActivities, getYachts,
@@ -72,6 +73,11 @@ const opts = { limit, where, sort: 'sortOrder' }
 
 let allItems: any[] = []
 const serviceType = block.serviceType
+
+// Phase 4.57 — kalau modul untuk serviceType ini di-disable di SiteFeatures
+// (Super Admin), block ini tidak boleh render sama sekali (menghindari
+// ambigu: client cuma melihat modul yang mereka aktifkan).
+const moduleActive = await isServiceTypeEnabled(serviceType).catch(() => true)
 
 // Task 3.3 — heading fallback ke ServiceType.name (CMS-managed) kalau kosong.
 const svcMeta = await getServiceTypeByKey(serviceType).catch(() => null)
@@ -177,7 +183,7 @@ const curatedExplore = ((b.viewAllText as string) || '').trim() || curatedExplor
 const curatedExploreHref = ((b.viewAllLink as string) || '').trim() || (defaultViewAllHref[serviceType] ?? hrefBase)
 ---
 
-{isCurated ? (
+{!moduleActive ? null : isCurated ? (
   /* ─── Curated template — matches the (formerly) hardcoded
        "Curated Alternatives" section on each service detail page.
        Fixed 3-col grid, floating price chip, per-type meta line. ─── */
