@@ -22,6 +22,7 @@ import * as migration_20260917_060000_chat_widget_data_move from './20260917_060
 import * as migration_20260917_112521_chat_widget_polish_colors from './20260917_112521_chat_widget_polish_colors';
 import * as migration_20260917_145526 from './20260917_145526';
 import * as migration_20260918_170000_phase_4_56_entry_speed from './20260918_170000_phase_4_56_entry_speed';
+import * as migration_20260921_101203_phase_4_58_dashboard_widgets from './20260921_101203_phase_4_58_dashboard_widgets';
 
 export const migrations = [
   {
@@ -143,5 +144,10 @@ export const migrations = [
     up: migration_20260918_170000_phase_4_56_entry_speed.up,
     down: migration_20260918_170000_phase_4_56_entry_speed.down,
     name: '20260918_170000_phase_4_56_entry_speed'
+  },
+  {
+    up: migration_20260921_101203_phase_4_58_dashboard_widgets.up,
+    down: migration_20260921_101203_phase_4_58_dashboard_widgets.down,
+    name: '20260921_101203_phase_4_58_dashboard_widgets'
   },
 ];
