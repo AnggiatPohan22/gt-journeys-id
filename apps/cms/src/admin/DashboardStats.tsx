@@ -45,6 +45,7 @@ type IconName =
   | 'storage' | 'history'
   | 'compass' | 'bed' | 'wave' | 'anchor' | 'utensils' | 'building' | 'car'
   | 'flower' | 'sliders'
+  | 'sparkles' | 'trending' | 'alert' | 'tag'
 
 const ICON_PATHS: Record<IconName, React.ReactNode> = {
   pages: (<><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z" /><path d="M9 13h6M9 17h6" /></>),
@@ -72,6 +73,10 @@ const ICON_PATHS: Record<IconName, React.ReactNode> = {
   car: (<><path d="M5 17H4a1 1 0 0 1-1-1v-4l2-5h14l2 5v4a1 1 0 0 1-1 1h-1" /><circle cx="7.5" cy="17" r="1.8" /><circle cx="16.5" cy="17" r="1.8" /></>),
   flower: (<><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z" /><path d="M2 21c0-3 1.9-5.4 5.1-6" /></>),
   sliders: (<><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3" /><path d="M1 14h6M9 8h6M17 16h6" /></>),
+  sparkles: (<><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" /><circle cx="12" cy="12" r="2.5" /></>),
+  trending: (<><path d="M3 17l6-6 4 4 8-8" /><path d="M14 7h7v7" /></>),
+  alert: (<><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16.5h.01" /></>),
+  tag: (<><path d="M20 12 12 20a2 2 0 0 1-2.83 0L3 13.83V4h9.83L20 11.17a2 2 0 0 1 0 2.83Z" /><circle cx="7.5" cy="8.5" r="1.2" /></>),
 }
 
 const Icon = ({ name }: { name: IconName }) => (
@@ -143,38 +148,46 @@ const ACTIVITY_COLLECTIONS: { slug: string; titleField: string; label: string; i
   { slug: 'media', titleField: 'alt', label: 'Media', icon: 'image' },
 ]
 
-type Stat = { label: string; value: number; sub?: string; accent: string; icon: IconName }
-type Action = { title: string; href: string; accent: string; icon: IconName }
+type Stat = { key: string; label: string; value: number; sub?: string; accent: string; icon: IconName; href?: string }
+type Action = { key: string; title: string; href: string; accent: string; icon: IconName }
 type Recent = { label: string; icon: IconName; title: string; updatedAt: string; url: string }
+type HealthKey = 'media' | 'storage' | 'payload' | 'node' | 'backup'
 
 // ══════════════════════════════════════════════════════════
 //  Section render helpers
 // ══════════════════════════════════════════════════════════
 
-const StatRow = ({ stats }: { stats: Stat[] }) => (
-  <section className="dnj-frame" aria-label="Overview stats">
+const StatRow = ({ stats, clickable, title }: { stats: Stat[]; clickable: boolean; title: string }) => (
+  <section className="dnj-frame" aria-label={title}>
     <div className="dnj-frame__head">
-      <span className="dnj-frame__title">At a glance</span>
+      <span className="dnj-frame__title">{title}</span>
     </div>
     {/* Satu baris, tanpa swipe — kotak compact & proporsional. */}
     <div className="dnj-statgrid">
-      {stats.map((s) => (
-        <div key={s.label} className="dnj-stat">
-          <span className="dnj-stat__icon" style={tint(s.accent)}><Icon name={s.icon} /></span>
-          <div className="dnj-stat__value">{s.value.toLocaleString()}</div>
-          <div className="dnj-stat__label">{s.label}</div>
-        </div>
-      ))}
+      {stats.map((s) => {
+        const body = (
+          <>
+            <span className="dnj-stat__icon" style={tint(s.accent)}><Icon name={s.icon} /></span>
+            <div className="dnj-stat__value">{s.value.toLocaleString()}</div>
+            <div className="dnj-stat__label">{s.label}</div>
+          </>
+        )
+        return clickable && s.href ? (
+          <a key={s.key} href={s.href} className="dnj-stat dnj-stat--link" aria-label={`View ${s.label}`}>{body}</a>
+        ) : (
+          <div key={s.key} className="dnj-stat">{body}</div>
+        )
+      })}
     </div>
   </section>
 )
 
 /* Quick access ikon-only (tanpa teks) — nama tampil via tooltip (title). */
-const QuickAccess = ({ actions, prominent }: { actions: Action[]; prominent?: boolean }) => (
-  <section className={`dnj-quick${prominent ? ' dnj-quick--prominent' : ''}`} aria-label="Quick access">
-    <div className="dnj-quick__title">Quick access</div>
+const QuickAccess = ({ actions, prominent, title }: { actions: Action[]; prominent?: boolean; title: string }) => (
+  <section className={`dnj-quick${prominent ? ' dnj-quick--prominent' : ''}`} aria-label={title}>
+    <div className="dnj-quick__title">{title}</div>
     <div className="dnj-quick__grid">
-      {actions.slice(0, 10).map((a) => (
+      {actions.map((a) => (
         <a
           key={a.title}
           href={a.href}
@@ -190,10 +203,10 @@ const QuickAccess = ({ actions, prominent }: { actions: Action[]; prominent?: bo
   </section>
 )
 
-const AnalyticsCard = () => (
-  <section className="dnj-analytics" aria-label="Analytics">
+const AnalyticsCard = ({ title }: { title: string }) => (
+  <section className="dnj-analytics" aria-label={title}>
     <div className="dnj-analytics__head">
-      <span className="dnj-panel__title">Traffic &amp; Performance</span>
+      <span className="dnj-panel__title">{title}</span>
     </div>
     <div className="dnj-analytics__body">
       <span className="dnj-analytics__chart" style={tint(BRAND.leaf)}><Icon name="chart" /></span>
@@ -244,27 +257,219 @@ const InfoRow = ({ icon, label, value, accent }: { icon: IconName; label: string
 )
 
 const SystemHealth = ({
-  mediaCount, mediaSize, nodeVersion, full, horizontal,
-}: { mediaCount: number; mediaSize: string; nodeVersion?: string; full?: boolean; horizontal?: boolean }) => (
-  <section
-    className={`dnj-health${horizontal ? ' dnj-health--row' : ''}`}
-    aria-label={full ? 'System health' : 'Media usage'}
-  >
-    <div className="dnj-panel__title">
-      <Icon name="server" /> {full ? 'System Health' : 'Media Usage'}
-    </div>
-    <div className="dnj-health__rows">
-      <InfoRow icon="image" label="Media files" value={`${mediaCount.toLocaleString()} files`} accent={BRAND.coral} />
-      <InfoRow icon="storage" label="Storage" value={mediaSize} accent={BRAND.leaf} />
-      {full && (
-        <>
+  mediaCount, mediaSize, nodeVersion, healthKeys, horizontal, titleOverride,
+}: {
+  mediaCount: number
+  mediaSize: string
+  nodeVersion?: string
+  /** Phase 4.58.1 — which health rows to show. Empty = nothing rendered. */
+  healthKeys: HealthKey[]
+  horizontal?: boolean
+  /** Phase 4.58.3 — super-admin override; empty → auto ("Media Usage" / "System Health") */
+  titleOverride?: string
+}) => {
+  if (healthKeys.length === 0) return null
+  const has = (k: HealthKey) => healthKeys.includes(k)
+  // Title: super-admin override wins; else heuristic ("Media Usage" jika hanya media/storage, else "System Health").
+  const onlyMedia = healthKeys.every((k) => k === 'media' || k === 'storage')
+  const title = titleOverride?.trim() || (onlyMedia ? 'Media Usage' : 'System Health')
+  return (
+    <section
+      className={`dnj-health${horizontal ? ' dnj-health--row' : ''}`}
+      aria-label={title}
+    >
+      <div className="dnj-panel__title">
+        <Icon name="server" /> {title}
+      </div>
+      <div className="dnj-health__rows">
+        {has('media') && (
+          <InfoRow icon="image" label="Media files" value={`${mediaCount.toLocaleString()} files`} accent={BRAND.coral} />
+        )}
+        {has('storage') && (
+          <InfoRow icon="storage" label="Storage" value={mediaSize} accent={BRAND.leaf} />
+        )}
+        {has('payload') && (
           <InfoRow icon="server" label="Payload" value={`v${PAYLOAD_VERSION}`} accent={BRAND.ocean} />
+        )}
+        {has('node') && (
           <InfoRow icon="settings" label="Node" value={nodeVersion ?? '—'} accent={BRAND.stone} />
-          <InfoRow icon="history" label="Last backup" value={<span className="dnj-info__muted">No backups configured</span>} accent={BRAND.stone} />
-          <a className="dnj-health__link" href="/admin/globals/site-settings">Backup settings →</a>
-        </>
-      )}
+        )}
+        {has('backup') && (
+          <>
+            <InfoRow icon="history" label="Last backup" value={<span className="dnj-info__muted">No backups configured</span>} accent={BRAND.stone} />
+            <a className="dnj-health__link" href="/admin/globals/site-settings">Backup settings →</a>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+//  Phase 4.58 — Smart Insight + Top Performing widgets
+// ══════════════════════════════════════════════════════════
+
+interface SmartInsightItem {
+  key: string
+  label: string
+  count: number
+  hint: string
+  href: string
+  icon: IconName
+  accent: string
+}
+
+/**
+ * Heuristic SEO scan across pages + service collections + media.
+ * Returns 3 issue rows (missing meta desc, weak title length, missing alt).
+ * Zero AI call — rule-based, cheap.
+ */
+const buildSmartInsight = async (payload: Payload): Promise<SmartInsightItem[]> => {
+  // ── Missing meta description across pages + service collections ──
+  const seoTargets = ['pages', ...SERVICE_COLLECTIONS]
+  let missingMeta = 0
+  await Promise.all(
+    seoTargets.map(async (slug) => {
+      // Match: meta.description empty OR seo.metaDescription empty.
+      // Payload's `where` supports `or`; guard with try/catch since some
+      // service collections might not have the field yet.
+      const patterns: any[] = [
+        { or: [{ 'meta.description': { exists: false } }, { 'meta.description': { equals: '' } }] },
+        { or: [{ 'seo.metaDescription': { exists: false } }, { 'seo.metaDescription': { equals: '' } }] },
+      ]
+      for (const where of patterns) {
+        try {
+          const res = await payload.count({ collection: slug as any, where })
+          missingMeta += res.totalDocs
+          break // first matching schema wins
+        } catch {
+          continue
+        }
+      }
+    }),
+  )
+
+  // ── Missing alt text on media ─────────────────────────────
+  let missingAlt = 0
+  try {
+    const res = await payload.count({
+      collection: 'media' as any,
+      where: { or: [{ alt: { exists: false } }, { alt: { equals: '' } }] },
+    })
+    missingAlt = res.totalDocs
+  } catch {
+    /* ignore */
+  }
+
+  // ── Draft (unpublished) count across pages + services ─────
+  let drafts = 0
+  await Promise.all(
+    seoTargets.map(async (slug) => {
+      try {
+        const res = await payload.count({
+          collection: slug as any,
+          where: { _status: { equals: 'draft' } },
+        })
+        drafts += res.totalDocs
+      } catch {
+        /* skip collections without draft */
+      }
+    }),
+  )
+
+  return [
+    {
+      key: 'meta',
+      label: 'Meta description missing',
+      count: missingMeta,
+      hint: 'Pages / services tanpa meta description — perbaiki untuk SEO snippet.',
+      href: '/admin/collections/pages?limit=50',
+      icon: 'alert',
+      accent: BRAND.coral,
+    },
+    {
+      key: 'alt',
+      label: 'Images missing alt text',
+      count: missingAlt,
+      hint: 'Alt text penting untuk a11y + SEO gambar.',
+      href: '/admin/collections/media?limit=50',
+      icon: 'image',
+      accent: BRAND.leaf,
+    },
+    {
+      key: 'draft',
+      label: 'Drafts pending publish',
+      count: drafts,
+      hint: 'Konten status draft — publish supaya tampil di frontend.',
+      href: '/admin/collections/pages?where[_status][equals]=draft',
+      icon: 'clock',
+      accent: BRAND.ocean,
+    },
+  ]
+}
+
+const SmartInsightWidget = ({ items, imageTagEnabled, title }: { items: SmartInsightItem[]; imageTagEnabled: boolean; title: string }) => (
+  <section className="dnj-insight" aria-label={title}>
+    <div className="dnj-panel__title">
+      <Icon name="sparkles" /> {title}
+      <span className="dnj-insight__badge">Heuristic</span>
     </div>
+    <ul className="dnj-insight__list">
+      {items.map((it) => (
+        <li key={it.key} className="dnj-insight__row">
+          <a href={it.href} className="dnj-insight__link">
+            <span className="dnj-insight__icon" style={tint(it.accent)}><Icon name={it.icon} /></span>
+            <span className="dnj-insight__body">
+              <span className="dnj-insight__label">{it.label}</span>
+              <span className="dnj-insight__hint">{it.hint}</span>
+            </span>
+            <span className="dnj-insight__count" style={{ color: it.count > 0 ? it.accent : 'var(--theme-elevation-450)' }}>
+              {it.count}
+            </span>
+          </a>
+        </li>
+      ))}
+      {imageTagEnabled && (
+        <li className="dnj-insight__row dnj-insight__row--soon">
+          <span className="dnj-insight__link" style={{ cursor: 'default' }}>
+            <span className="dnj-insight__icon" style={tint(BRAND.stone)}><Icon name="tag" /></span>
+            <span className="dnj-insight__body">
+              <span className="dnj-insight__label">Auto Image Tagging</span>
+              <span className="dnj-insight__hint">AI vision — akan aktif di phase 4.58.x setelah provider di-wire.</span>
+            </span>
+            <span className="dnj-insight__count dnj-insight__count--muted">Soon</span>
+          </span>
+        </li>
+      )}
+    </ul>
+  </section>
+)
+
+const TopPerformingWidget = ({
+  provider, showViews, showInquiries, title,
+}: { provider: 'none' | 'own' | 'ga'; showViews: boolean; showInquiries: boolean; title: string }) => (
+  <section className="dnj-toppf" aria-label={title}>
+    <div className="dnj-panel__title">
+      <Icon name="trending" /> {title}
+      <span className="dnj-insight__badge">
+        {provider === 'none' ? 'Setup required' : provider === 'own' ? 'Own counter' : 'Google Analytics'}
+      </span>
+    </div>
+    {provider === 'none' ? (
+      <div className="dnj-toppf__empty">
+        <p className="dnj-toppf__msg">
+          Widget ini akan menampilkan destinasi / service dgn {showViews && showInquiries ? 'views + inquiries' : showViews ? 'views' : 'inquiries'} tertinggi.
+          Pilih Analytics Provider di <a href="/admin/globals/site-features">Pengaturan Fitur → Dashboard Widgets</a> untuk mengaktifkan.
+        </p>
+        <p className="dnj-toppf__hint">
+          <code>own</code> = beacon frontend + counter di DB (phase 4.58.1). <code>ga</code> = Google Analytics 4 Data API (phase 4.58.2).
+        </p>
+      </div>
+    ) : (
+      <div className="dnj-toppf__empty">
+        <p className="dnj-toppf__msg">Provider <strong>{provider === 'own' ? 'Own counter' : 'Google Analytics'}</strong> dipilih, tapi tracker belum di-wire (phase 4.58.{provider === 'own' ? '1' : '2'}).</p>
+      </div>
+    )}
   </section>
 )
 
@@ -290,24 +495,35 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
   }
   const mediaSize = formatBytes(mediaBytes)
 
-  // ── Stats: SEMUA role (super 6, admin 5, editor 5) ─────
-  const [pages, destinations, categories, media, serviceCounts, users] = await Promise.all([
+  // ── Stats: SEMUA role, registry keyed by slug — Phase 4.58.1 configurable
+  const [pages, destinations, categories, media, serviceCounts, users, toursCount, accCount, waterCount, yachtCount, restCount] = await Promise.all([
     safeCount(payload, 'pages'),
     safeCount(payload, 'destinations'),
     safeCount(payload, 'categories'),
     safeCount(payload, 'media'),
     Promise.all(SERVICE_COLLECTIONS.map((s) => safeCount(payload, s))),
     isSuper ? safeCount(payload, 'users') : Promise.resolve(0),
+    safeCount(payload, 'tours'),
+    safeCount(payload, 'accommodations'),
+    safeCount(payload, 'water-activities'),
+    safeCount(payload, 'yachts'),
+    safeCount(payload, 'restaurants'),
   ])
   const services = serviceCounts.reduce((a, b) => a + b, 0)
-  const stats: Stat[] = [
-    { label: 'Pages', value: pages, accent: BRAND.ocean, icon: 'pages' },
-    { label: 'Destinations', value: destinations, accent: BRAND.coral, icon: 'map' },
-    { label: 'Categories', value: categories, accent: BRAND.stone, icon: 'category' },
-    { label: 'Services', value: services, accent: BRAND.leaf, icon: 'services' },
-    { label: 'Media', value: media, accent: BRAND.coral, icon: 'image' },
-  ]
-  if (isSuper) stats.push({ label: 'Users', value: users, accent: BRAND.ocean, icon: 'users' })
+  const STAT_REGISTRY: Record<string, Stat> = {
+    pages:            { key: 'pages',            label: 'Pages',            value: pages,        accent: BRAND.ocean, icon: 'pages',    href: '/admin/collections/pages' },
+    destinations:     { key: 'destinations',     label: 'Destinations',     value: destinations, accent: BRAND.coral, icon: 'map',      href: '/admin/collections/destinations' },
+    categories:       { key: 'categories',       label: 'Categories',       value: categories,   accent: BRAND.stone, icon: 'category', href: '/admin/collections/categories' },
+    services:         { key: 'services',         label: 'Services',         value: services,     accent: BRAND.leaf,  icon: 'services', href: '/admin/collections/tours' /* aggregated → tours as anchor */ },
+    media:            { key: 'media',            label: 'Media',            value: media,        accent: BRAND.coral, icon: 'image',    href: '/admin/collections/media' },
+    users:            { key: 'users',            label: 'Users',            value: users,        accent: BRAND.ocean, icon: 'users',    href: '/admin/collections/users' },
+    tours:            { key: 'tours',            label: 'Tours',            value: toursCount,   accent: BRAND.leaf,  icon: 'compass',  href: '/admin/collections/tours' },
+    accommodations:   { key: 'accommodations',   label: 'Accommodations',   value: accCount,     accent: BRAND.ocean, icon: 'bed',      href: '/admin/collections/accommodations' },
+    'water-activities': { key: 'water-activities', label: 'Water Activities', value: waterCount, accent: BRAND.coral, icon: 'wave',    href: '/admin/collections/water-activities' },
+    yachts:           { key: 'yachts',           label: 'Yachts',           value: yachtCount,   accent: BRAND.stone, icon: 'anchor',   href: '/admin/collections/yachts' },
+    restaurants:      { key: 'restaurants',      label: 'Restaurants',      value: restCount,    accent: BRAND.coral, icon: 'utensils', href: '/admin/collections/restaurants' },
+  }
+  const DEFAULT_STAT_KEYS = ['pages', 'destinations', 'categories', 'services', 'media', 'users']
 
   // ── Recent activity (last 10 across collections) ───────
   const recents: Recent[] = []
@@ -329,42 +545,206 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
     }),
   )
   recents.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-  const recent10 = recents.slice(0, 10)
+  const recentAll = recents // sliced later based on configured limit
 
-  // ── Quick access (ikon-only, per role, maks 10) ────────
+  // ── Quick access — Phase 4.58.1 registry (keyed by slug) ────
+  // Super-admin bisa memilih apa yang tampil untuk Admin & Editor via
+  // SiteFeatures.dashboardWidgets.quickAccessAdmin/Editor. Super sendiri
+  // tetap dapat set lengkap (tak dibatasi CMS toggle).
+  const ACTION_REGISTRY: Record<string, Action> = {
+    pages:              { key: 'pages',              title: 'Pages',              href: '/admin/collections/pages',              accent: BRAND.ocean, icon: 'pages' },
+    tours:              { key: 'tours',              title: 'Tours',              href: '/admin/collections/tours',              accent: BRAND.leaf,  icon: 'compass' },
+    accommodations:     { key: 'accommodations',     title: 'Accommodations',     href: '/admin/collections/accommodations',     accent: BRAND.ocean, icon: 'bed' },
+    'water-activities': { key: 'water-activities',   title: 'Water Activities',   href: '/admin/collections/water-activities',   accent: BRAND.coral, icon: 'wave' },
+    yachts:             { key: 'yachts',             title: 'Yachts',             href: '/admin/collections/yachts',             accent: BRAND.stone, icon: 'anchor' },
+    restaurants:        { key: 'restaurants',        title: 'Restaurants',        href: '/admin/collections/restaurants',        accent: BRAND.coral, icon: 'utensils' },
+    venues:             { key: 'venues',             title: 'Venues',             href: '/admin/collections/venues',             accent: BRAND.leaf,  icon: 'building' },
+    rentals:            { key: 'rentals',            title: 'Rentals',            href: '/admin/collections/rentals',            accent: BRAND.stone, icon: 'car' },
+    spa:                { key: 'spa',                title: 'Spa',                href: '/admin/collections/spa',                accent: BRAND.leaf,  icon: 'flower' },
+    'ferry-tickets':    { key: 'ferry-tickets',      title: 'Ferry Tickets',      href: '/admin/collections/ferry-tickets',      accent: BRAND.stone, icon: 'anchor' },
+    destinations:       { key: 'destinations',       title: 'Destinations',       href: '/admin/collections/destinations',       accent: BRAND.coral, icon: 'map' },
+    categories:         { key: 'categories',         title: 'Categories',         href: '/admin/collections/categories',         accent: BRAND.stone, icon: 'category' },
+    menu:               { key: 'menu',               title: 'Menu',               href: '/admin/collections/menus',              accent: BRAND.ocean, icon: 'menu' },
+    media:              { key: 'media',              title: 'Media',              href: '/admin/collections/media',              accent: BRAND.coral, icon: 'image' },
+    users:              { key: 'users',              title: 'Users',              href: '/admin/collections/users',              accent: BRAND.ocean, icon: 'users' },
+    'site-features':    { key: 'site-features',      title: 'Site Features',      href: '/admin/globals/site-features',          accent: BRAND.leaf,  icon: 'sliders' },
+    'site-settings':    { key: 'site-settings',      title: 'Site Settings',      href: '/admin/globals/site-settings',          accent: BRAND.stone, icon: 'settings' },
+  }
+  const DEFAULT_ADMIN_ACTION_KEYS = ['pages', 'tours', 'accommodations', 'water-activities', 'yachts', 'restaurants', 'venues', 'rentals', 'spa', 'menu']
+  const DEFAULT_EDITOR_ACTION_KEYS = ['pages', 'tours', 'accommodations', 'water-activities', 'yachts', 'restaurants', 'venues', 'rentals', 'spa', 'media']
   const superActions: Action[] = [
-    { title: 'New Page', href: '/admin/collections/pages/create', accent: BRAND.ocean, icon: 'plus' },
-    { title: 'New Destination', href: '/admin/collections/destinations/create', accent: BRAND.coral, icon: 'map' },
-    { title: 'New Category', href: '/admin/collections/categories/create', accent: BRAND.stone, icon: 'category' },
-    { title: 'Menu', href: '/admin/collections/menus', accent: BRAND.leaf, icon: 'menu' },
-    { title: 'Media', href: '/admin/collections/media', accent: BRAND.coral, icon: 'image' },
-    { title: 'Users', href: '/admin/collections/users', accent: BRAND.ocean, icon: 'users' },
-    { title: 'Site Features', href: '/admin/globals/site-features', accent: BRAND.leaf, icon: 'sliders' },
-    { title: 'Site Settings', href: '/admin/globals/site-settings', accent: BRAND.stone, icon: 'settings' },
+    { key: 'new-page',       title: 'New Page',        href: '/admin/collections/pages/create',        accent: BRAND.ocean, icon: 'plus' },
+    { key: 'new-dest',       title: 'New Destination', href: '/admin/collections/destinations/create', accent: BRAND.coral, icon: 'map' },
+    { key: 'new-cat',        title: 'New Category',    href: '/admin/collections/categories/create',   accent: BRAND.stone, icon: 'category' },
+    ACTION_REGISTRY.menu,
+    ACTION_REGISTRY.media,
+    ACTION_REGISTRY.users,
+    ACTION_REGISTRY['site-features'],
+    ACTION_REGISTRY['site-settings'],
   ]
-  // Services (Pages + 8 modul layanan). Untuk admin/editor.
-  const serviceActions: Action[] = [
-    { title: 'Pages', href: '/admin/collections/pages', accent: BRAND.ocean, icon: 'pages' },
-    { title: 'Tours', href: '/admin/collections/tours', accent: BRAND.leaf, icon: 'compass' },
-    { title: 'Accommodation', href: '/admin/collections/accommodations', accent: BRAND.ocean, icon: 'bed' },
-    { title: 'Water Activities', href: '/admin/collections/water-activities', accent: BRAND.coral, icon: 'wave' },
-    { title: 'Yachts', href: '/admin/collections/yachts', accent: BRAND.stone, icon: 'anchor' },
-    { title: 'Restaurants', href: '/admin/collections/restaurants', accent: BRAND.coral, icon: 'utensils' },
-    { title: 'Venues', href: '/admin/collections/venues', accent: BRAND.leaf, icon: 'building' },
-    { title: 'Rentals', href: '/admin/collections/rentals', accent: BRAND.stone, icon: 'car' },
-    { title: 'Spa', href: '/admin/collections/spa', accent: BRAND.leaf, icon: 'flower' },
-  ]
-  const adminActions: Action[] = [
-    ...serviceActions,
-    { title: 'Menu', href: '/admin/collections/menus', accent: BRAND.ocean, icon: 'menu' },
-  ]
-  const editorActions: Action[] = [
-    ...serviceActions,
-    { title: 'Media', href: '/admin/collections/media', accent: BRAND.coral, icon: 'image' },
-  ]
-  const actions: Action[] = isSuper ? superActions : isAdminUp ? adminActions : editorActions
 
   const nodeVersion = typeof process !== 'undefined' ? process.version : undefined
+
+  // ── Phase 4.58 + 4.58.1 + 4.58.2 — Dashboard Widgets config ─
+  // Load semua toggle, pilihan array, DAN status modul layanan dari
+  // SiteFeatures. Modul yg di-off = otomatis di-skip di Quick Access.
+  // Kalau global belum ada (pre-migration) atau field kosong → pakai default
+  // hardcoded (dashboard tampil sama seperti sebelum Phase 4.58).
+  let widgetToggles = {
+    smartInsightSeo: false,
+    smartInsightImageTag: false,
+    topPerformingViews: false,
+    topPerformingInquiries: false,
+    analyticsProvider: 'none' as 'none' | 'own' | 'ga',
+    atAGlanceEnabled: true,
+    atAGlanceClickable: true,
+    atAGlanceStats: [] as string[],
+    recentActivityEnabled: true,
+    recentActivityLimit: 10,
+    quickAccessAdmin: [] as string[],
+    quickAccessEditor: [] as string[],
+    systemHealthAdmin: [] as HealthKey[],
+    systemHealthEditor: [] as HealthKey[],
+    // Phase 4.58.3 — title overrides (empty string → fallback default)
+    headerTitle: '',
+    headerSubtitle: '',
+    atAGlanceTitle: '',
+    recentActivityTitle: '',
+    quickAccessTitle: '',
+    systemHealthTitle: '',
+    smartInsightTitle: '',
+    topPerformingTitle: '',
+    analyticsCardTitle: '',
+  }
+  let siteModules: Record<string, boolean> = {}
+  try {
+    const sf = await payload.findGlobal({ slug: 'site-features' as any })
+    siteModules = (sf as any)?.modules ?? {}
+    const dw = (sf as any)?.dashboardWidgets
+    if (dw) {
+      widgetToggles = {
+        smartInsightSeo: dw.smartInsightSeo !== false,
+        smartInsightImageTag: dw.smartInsightImageTag === true,
+        topPerformingViews: dw.topPerformingViews !== false,
+        topPerformingInquiries: dw.topPerformingInquiries !== false,
+        analyticsProvider: (dw.analyticsProvider ?? 'none') as 'none' | 'own' | 'ga',
+        atAGlanceEnabled: dw.atAGlanceEnabled !== false,
+        atAGlanceClickable: dw.atAGlanceClickable !== false,
+        atAGlanceStats: Array.isArray(dw.atAGlanceStats) ? dw.atAGlanceStats : [],
+        recentActivityEnabled: dw.recentActivityEnabled !== false,
+        recentActivityLimit: Number(dw.recentActivityLimit ?? 10),
+        quickAccessAdmin: Array.isArray(dw.quickAccessAdmin) ? dw.quickAccessAdmin : [],
+        quickAccessEditor: Array.isArray(dw.quickAccessEditor) ? dw.quickAccessEditor : [],
+        systemHealthAdmin: Array.isArray(dw.systemHealthAdmin) ? dw.systemHealthAdmin : [],
+        systemHealthEditor: Array.isArray(dw.systemHealthEditor) ? dw.systemHealthEditor : [],
+        headerTitle: String(dw.headerTitle ?? ''),
+        headerSubtitle: String(dw.headerSubtitle ?? ''),
+        atAGlanceTitle: String(dw.atAGlanceTitle ?? ''),
+        recentActivityTitle: String(dw.recentActivityTitle ?? ''),
+        quickAccessTitle: String(dw.quickAccessTitle ?? ''),
+        systemHealthTitle: String(dw.systemHealthTitle ?? ''),
+        smartInsightTitle: String(dw.smartInsightTitle ?? ''),
+        topPerformingTitle: String(dw.topPerformingTitle ?? ''),
+        analyticsCardTitle: String(dw.analyticsCardTitle ?? ''),
+      }
+    }
+  } catch {
+    /* pre-migration or read error — keep defaults */
+  }
+
+  // ── Phase 4.58.3 — resolve title dgn fallback ke default hardcoded
+  const t = (custom: string, fallback: string) => (custom.trim() || fallback)
+  const titles = {
+    header:         t(widgetToggles.headerTitle,         'Overview'),
+    atAGlance:      t(widgetToggles.atAGlanceTitle,      'At a glance'),
+    recentActivity: t(widgetToggles.recentActivityTitle, 'Recent activity'),
+    quickAccess:    t(widgetToggles.quickAccessTitle,    'Quick access'),
+    smartInsight:   t(widgetToggles.smartInsightTitle,   'Smart Insight'),
+    topPerforming:  t(widgetToggles.topPerformingTitle,  'Top Performing'),
+    analyticsCard:  t(widgetToggles.analyticsCardTitle,  'Traffic & Performance'),
+  }
+  // Subtitle: template dgn `{name}` placeholder → replace runtime.
+  const subtitleTemplate = widgetToggles.headerSubtitle.trim()
+    || 'Welcome back, {name} — here’s what’s happening across your site.'
+  const subtitle = subtitleTemplate.replace(/\{name\}/g, String(displayName))
+
+  // ── Phase 4.58.2 — Filter service slugs yg modulnya di-off ─
+  // Peta slug (di-share Quick Access & At A Glance) → ServiceModule key di
+  // SiteFeatures.modules. Sama dgn `SERVICE_TYPE_TO_MODULE` di
+  // apps/web/src/lib/features.ts.
+  const SLUG_TO_MODULE: Record<string, string> = {
+    tours: 'tours',
+    accommodations: 'accommodations',
+    'water-activities': 'waterActivities',
+    yachts: 'yacht',
+    restaurants: 'restaurants',
+    venues: 'weddings',
+    rentals: 'rentals',
+    spa: 'spa',
+    'ferry-tickets': 'ferryTickets',
+  }
+  const isModuleActive = (slug: string): boolean => {
+    const modKey = SLUG_TO_MODULE[slug]
+    if (!modKey) return true // non-service slug (pages/media/menu/dst) — selalu aktif
+    return siteModules[modKey] !== false
+  }
+
+  // ── Resolve stats untuk At A Glance (Phase 4.58.1 → 4.58.2) ─
+  // Config array kosong → default (Pages/Dest/Cat/Services/Media/Users).
+  // Filter `users` untuk non-super. Modul yg di-off di SiteFeatures →
+  // stat modul spesifik (tours/accommodations/dst) di-hide.
+  // Cap 6 (guard walau CMS sudah maxRows 6).
+  const selectedStatKeys = widgetToggles.atAGlanceStats.length > 0
+    ? widgetToggles.atAGlanceStats
+    : DEFAULT_STAT_KEYS
+  const stats: Stat[] = selectedStatKeys
+    .filter((k) => k !== 'users' || isSuper)
+    .filter((k) => isModuleActive(k)) // hide stat untuk modul off
+    .map((k) => STAT_REGISTRY[k])
+    .filter((s): s is Stat => Boolean(s))
+    .slice(0, 6)
+
+  // ── Resolve Quick Access per role (Phase 4.58.1 → 4.58.2) ─
+  // Super = superActions (hardcoded 8, tak difilter CMS).
+  // Admin/Editor = pilih dari registry via array config; kalau kosong → default.
+  // 4.58.2: modul layanan yg di-off di SiteFeatures.modules OTOMATIS di-hide
+  // dari Quick Access — mencegah ambigu (icon service yg module-nya inactive).
+  // Cap 12 icon supaya muat 1 baris di kolom `.dnj-col--main` (2fr).
+  const QUICK_ACCESS_CAP = 12
+  const resolveActions = (roleKey: 'admin' | 'editor'): Action[] => {
+    const selected = roleKey === 'admin' ? widgetToggles.quickAccessAdmin : widgetToggles.quickAccessEditor
+    const defaults = roleKey === 'admin' ? DEFAULT_ADMIN_ACTION_KEYS : DEFAULT_EDITOR_ACTION_KEYS
+    const keys = selected.length > 0 ? selected : defaults
+    return keys
+      .filter(isModuleActive)
+      .map((k) => ACTION_REGISTRY[k])
+      .filter((a): a is Action => Boolean(a))
+      .slice(0, QUICK_ACCESS_CAP)
+  }
+  const actions: Action[] = isSuper
+    ? superActions
+    : role === 'admin'
+      ? resolveActions('admin')
+      : resolveActions('editor')
+
+  // ── Resolve System Health per role (Phase 4.58.1) ─────────
+  // Super = full list (5 rows). Admin/Editor = via CMS config; empty → default.
+  const DEFAULT_HEALTH_ADMIN: HealthKey[] = ['media', 'storage', 'payload', 'node', 'backup']
+  const DEFAULT_HEALTH_EDITOR: HealthKey[] = ['media', 'storage']
+  const healthKeys: HealthKey[] = isSuper
+    ? DEFAULT_HEALTH_ADMIN
+    : role === 'admin'
+      ? (widgetToggles.systemHealthAdmin.length > 0 ? widgetToggles.systemHealthAdmin : DEFAULT_HEALTH_ADMIN)
+      : (widgetToggles.systemHealthEditor.length > 0 ? widgetToggles.systemHealthEditor : DEFAULT_HEALTH_EDITOR)
+
+  const showAtAGlance = widgetToggles.atAGlanceEnabled && stats.length > 0
+  const showRecentActivity = widgetToggles.recentActivityEnabled
+  const showSmartInsight = isAdminUp && widgetToggles.smartInsightSeo
+  const showTopPerforming = isAdminUp && (widgetToggles.topPerformingViews || widgetToggles.topPerformingInquiries)
+  const smartInsightItems: SmartInsightItem[] = showSmartInsight ? await buildSmartInsight(payload) : []
+
+  // Trim recent list to configured limit
+  const recentList = recentAll.slice(0, Math.max(3, Math.min(20, widgetToggles.recentActivityLimit)))
 
   // ══ Render ═══════════════════════════════════════════════
   return (
@@ -372,33 +752,46 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
       {/* Header — judul saja. Logo situs ada di breadcrumb top-bar (graphics.Icon). */}
       <div className="dnj-dash__head">
         <div>
-          <h2 className="dnj-dash__title">Overview</h2>
-          <p className="dnj-dash__subtitle">
-            Welcome back, {displayName} — here’s what’s happening across your site.
-          </p>
+          <h2 className="dnj-dash__title">{titles.header}</h2>
+          <p className="dnj-dash__subtitle">{subtitle}</p>
         </div>
       </div>
 
       {role === 'editor' ? (
         /* ── EDITOR: stat row + quick access, Media Usage (horizontal), activity ── */
         <>
-          <StatRow stats={stats} />
-          <QuickAccess actions={actions} prominent />
-          <SystemHealth mediaCount={mediaCount} mediaSize={mediaSize} horizontal />
+          {showAtAGlance && <StatRow stats={stats} clickable={widgetToggles.atAGlanceClickable} title={titles.atAGlance} />}
+          <QuickAccess actions={actions} prominent title={titles.quickAccess} />
+          <SystemHealth mediaCount={mediaCount} mediaSize={mediaSize} healthKeys={healthKeys} horizontal titleOverride={widgetToggles.systemHealthTitle} />
           {/* Site-wide: collections don't track an editor (no updatedBy field). */}
-          <RecentActivity recents={recent10} title="Recent activity" />
+          {showRecentActivity && <RecentActivity recents={recentList} title={titles.recentActivity} />}
         </>
       ) : (
         /* ── ADMIN / SUPER-ADMIN ── */
         <>
-          <StatRow stats={stats} />
+          {showAtAGlance && <StatRow stats={stats} clickable={widgetToggles.atAGlanceClickable} title={titles.atAGlance} />}
+          {(showSmartInsight || showTopPerforming) && (
+            <div className="dnj-widgets">
+              {showSmartInsight && (
+                <SmartInsightWidget items={smartInsightItems} imageTagEnabled={widgetToggles.smartInsightImageTag} title={titles.smartInsight} />
+              )}
+              {showTopPerforming && (
+                <TopPerformingWidget
+                  provider={widgetToggles.analyticsProvider}
+                  showViews={widgetToggles.topPerformingViews}
+                  showInquiries={widgetToggles.topPerformingInquiries}
+                  title={titles.topPerforming}
+                />
+              )}
+            </div>
+          )}
           <div className="dnj-cols">
             <div className="dnj-col dnj-col--main">
-              <AnalyticsCard />
-              <QuickAccess actions={actions} />
+              <AnalyticsCard title={titles.analyticsCard} />
+              <QuickAccess actions={actions} title={titles.quickAccess} />
             </div>
             <div className="dnj-col dnj-col--side">
-              <RecentActivity recents={recent10} title="Recent activity" />
+              {showRecentActivity && <RecentActivity recents={recentList} title={titles.recentActivity} />}
             </div>
           </div>
           {/* System Health / Media Usage — memanjang horizontal di bawah. */}
@@ -406,8 +799,9 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
             mediaCount={mediaCount}
             mediaSize={mediaSize}
             nodeVersion={nodeVersion}
-            full={isSuper}
+            healthKeys={healthKeys}
             horizontal
+            titleOverride={widgetToggles.systemHealthTitle}
           />
         </>
       )}

@@ -19,6 +19,40 @@ const SERVICE_MODULES = [
   { name: 'ferryTickets',     label: 'Ferry Tickets' },
 ] as const
 
+// ── Phase 4.58.1 — Dashboard widgets: option registries ────────────
+// Kunci di sini SINGLE SOURCE OF TRUTH untuk fetch di DashboardStats.tsx.
+// Tambah option baru = 1 entry di array + 1 case di runtime consumer.
+const QUICK_ACCESS_OPTIONS = [
+  { label: 'Pages', value: 'pages' },
+  { label: 'Tours', value: 'tours' },
+  { label: 'Accommodations', value: 'accommodations' },
+  { label: 'Water Activities', value: 'water-activities' },
+  { label: 'Yachts', value: 'yachts' },
+  { label: 'Restaurants', value: 'restaurants' },
+  { label: 'Venues', value: 'venues' },
+  { label: 'Rentals', value: 'rentals' },
+  { label: 'Spa', value: 'spa' },
+  { label: 'Ferry Tickets', value: 'ferry-tickets' },
+  { label: 'Destinations', value: 'destinations' },
+  { label: 'Categories', value: 'categories' },
+  { label: 'Menu', value: 'menu' },
+  { label: 'Media', value: 'media' },
+  { label: 'Users', value: 'users' },
+  { label: 'Site Features', value: 'site-features' },
+  { label: 'Site Settings', value: 'site-settings' },
+] as const
+
+const SYSTEM_HEALTH_OPTIONS = [
+  { label: 'Media files count', value: 'media' },
+  { label: 'Storage usage', value: 'storage' },
+  { label: 'Payload version', value: 'payload' },
+  { label: 'Node version', value: 'node' },
+  { label: 'Last backup', value: 'backup' },
+] as const
+
+const quickAccessOptions = () => [...QUICK_ACCESS_OPTIONS]
+const systemHealthOptions = () => [...SYSTEM_HEALTH_OPTIONS]
+
 // Bagi dua-per-baris (row) supaya layout tetap seperti sebelumnya.
 const moduleRowFields = (): Field[] => {
   const rows: Field[] = []
@@ -181,6 +215,348 @@ export const SiteFeatures: GlobalConfig = {
                   label: 'Enable Ad Slots',
                   defaultValue: false,
                   admin: { description: 'Off = block AdSlot dilewati saat render (posisi kosong, tidak ada script AdSense yang dimuat).' },
+                },
+              ],
+            },
+          ],
+        },
+
+        // ══ Tab: Dashboard Widgets (Phase 4.58 → 4.58.1 → 4.58.2) ════════
+        {
+          label: 'Dashboard Widgets',
+          description: 'Konfigurasi 6 widget di admin dashboard, dikelompokkan jadi 3 seksi: Core Panels · Access Control (per-role) · Insight Widgets.',
+          fields: [
+            {
+              name: 'dashboardWidgets',
+              type: 'group',
+              label: 'Dashboard Widgets',
+              admin: {
+                description: 'Kosongkan field pemilihan (multi-select) → dashboard fallback ke default hardcoded. Modul layanan yang di-off di tab "Modul Layanan" otomatis di-skip di Quick Access & At A Glance walaupun terpilih di sini.',
+              },
+              fields: [
+                // ═════════ SEKSI 0 — DASHBOARD HEADER (Phase 4.58.3) ═══
+                // Header title + subtitle di atas dashboard.
+                {
+                  type: 'collapsible',
+                  label: '🎯 Header · Judul & Subjudul Dashboard',
+                  admin: {
+                    initCollapsed: true,
+                    description: 'Text di paling atas dashboard admin. Kosongkan → default: "Overview" + "Welcome back, {name} — …".',
+                  },
+                  fields: [
+                    {
+                      name: 'headerTitle',
+                      type: 'text',
+                      label: 'Judul Dashboard',
+                      admin: {
+                        placeholder: 'Overview',
+                        description: 'Kosongkan → "Overview". Bisa disesuaikan mis. "Beranda Admin" / "Ringkasan Situs".',
+                      },
+                    },
+                    {
+                      name: 'headerSubtitle',
+                      type: 'textarea',
+                      label: 'Subjudul Dashboard',
+                      admin: {
+                        placeholder: 'Welcome back, {name} — here’s what’s happening across your site.',
+                        description: 'Gunakan `{name}` sebagai placeholder nama user. Kosongkan → pakai default English.',
+                      },
+                    },
+                  ],
+                },
+
+                // ═════════ SEKSI 1 — CORE PANELS ═══════════════════════
+                // At A Glance + Recent Activity — 2 panel dasar di semua role.
+
+                // ── At A Glance ──────────────────────────────────────
+                {
+                  type: 'collapsible',
+                  label: '📊 Core · At A Glance (Stat Row)',
+                  admin: { initCollapsed: false },
+                  fields: [
+                    {
+                      name: 'atAGlanceTitle',
+                      type: 'text',
+                      label: 'Judul panel',
+                      admin: {
+                        placeholder: 'At a glance',
+                        description: 'Kosongkan → "At a glance".',
+                      },
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'atAGlanceEnabled',
+                          type: 'checkbox',
+                          label: 'Tampilkan panel',
+                          defaultValue: true,
+                          admin: { width: '50%', description: 'Master switch untuk stat row.' },
+                        },
+                        {
+                          name: 'atAGlanceClickable',
+                          type: 'checkbox',
+                          label: 'Klik → collection listing',
+                          defaultValue: true,
+                          admin: { width: '50%', description: 'Setiap kotak jadi link ke listing terkait.' },
+                        },
+                      ],
+                    },
+                    {
+                      name: 'atAGlanceStats',
+                      type: 'select',
+                      label: 'Pilih stat (max 6)',
+                      hasMany: true,
+                      defaultValue: ['pages', 'destinations', 'categories', 'services', 'media', 'users'],
+                      options: [
+                        { label: 'Pages', value: 'pages' },
+                        { label: 'Destinations', value: 'destinations' },
+                        { label: 'Categories', value: 'categories' },
+                        { label: 'Services (agregat semua modul)', value: 'services' },
+                        { label: 'Media', value: 'media' },
+                        { label: 'Users (super-admin only)', value: 'users' },
+                        { label: 'Tours', value: 'tours' },
+                        { label: 'Accommodations', value: 'accommodations' },
+                        { label: 'Water Activities', value: 'water-activities' },
+                        { label: 'Yachts', value: 'yachts' },
+                        { label: 'Restaurants', value: 'restaurants' },
+                      ],
+                      admin: {
+                        description: 'Kosongkan → default 6 stat (Pages/Destinations/Categories/Services/Media/Users). Runtime cap 6, "Users" hanya super-admin.',
+                      },
+                    },
+                  ],
+                },
+
+                // ── Recent Activity ──────────────────────────────────
+                {
+                  type: 'collapsible',
+                  label: '🕒 Core · Recent Activity',
+                  admin: { initCollapsed: false },
+                  fields: [
+                    {
+                      name: 'recentActivityTitle',
+                      type: 'text',
+                      label: 'Judul panel',
+                      admin: {
+                        placeholder: 'Recent activity',
+                        description: 'Kosongkan → "Recent activity".',
+                      },
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'recentActivityEnabled',
+                          type: 'checkbox',
+                          label: 'Tampilkan panel',
+                          defaultValue: true,
+                          admin: { width: '50%' },
+                        },
+                        {
+                          name: 'recentActivityLimit',
+                          type: 'number',
+                          label: 'Jumlah item (3–20)',
+                          defaultValue: 10,
+                          min: 3,
+                          max: 20,
+                          admin: { width: '50%', description: 'Berlaku untuk semua role.' },
+                        },
+                      ],
+                    },
+                  ],
+                },
+
+                // ═════════ SEKSI 2 — ACCESS CONTROL (per-role) ═════════
+                // Super-admin memilih item yg tampil di Quick Access & System
+                // Health untuk role Admin & Editor. Super sendiri = set penuh.
+
+                // ── Quick Access ─────────────────────────────────────
+                {
+                  type: 'collapsible',
+                  label: '⚡ Access · Quick Access (per role)',
+                  admin: {
+                    initCollapsed: true,
+                    description: 'Max 12 icon per baris (di-cap runtime supaya tetap 1 baris). Modul layanan yang di-off di tab "Modul Layanan" otomatis di-hide walaupun terpilih di sini.',
+                  },
+                  fields: [
+                    {
+                      name: 'quickAccessTitle',
+                      type: 'text',
+                      label: 'Judul panel',
+                      admin: {
+                        placeholder: 'Quick access',
+                        description: 'Kosongkan → "Quick access".',
+                      },
+                    },
+                    {
+                      name: 'quickAccessAdmin',
+                      type: 'select',
+                      label: 'Admin — pilih icon',
+                      hasMany: true,
+                      options: quickAccessOptions(),
+                      admin: { description: 'Kosongkan → default: semua service module aktif + Menu. Order sesuai urutan pilih.' },
+                    },
+                    {
+                      name: 'quickAccessEditor',
+                      type: 'select',
+                      label: 'Editor — pilih icon',
+                      hasMany: true,
+                      options: quickAccessOptions(),
+                      admin: { description: 'Kosongkan → default: semua service module aktif + Media. Order sesuai urutan pilih.' },
+                    },
+                  ],
+                },
+
+                // ── System Health ────────────────────────────────────
+                {
+                  type: 'collapsible',
+                  label: '🩺 Access · System Health (per role)',
+                  admin: {
+                    initCollapsed: true,
+                    description: 'Info teknis di bawah dashboard. Super-admin selalu lihat set lengkap.',
+                  },
+                  fields: [
+                    {
+                      name: 'systemHealthTitle',
+                      type: 'text',
+                      label: 'Judul panel (opsional)',
+                      admin: {
+                        placeholder: 'System Health / Media Usage (auto)',
+                        description: 'Kosongkan → auto: "Media Usage" kalau hanya Media+Storage, else "System Health". Isi manual untuk override.',
+                      },
+                    },
+                    {
+                      name: 'systemHealthAdmin',
+                      type: 'select',
+                      label: 'Admin — pilih info',
+                      hasMany: true,
+                      options: systemHealthOptions(),
+                      admin: { description: 'Kosongkan → default: semua 5 info (Media/Storage/Payload/Node/Backup).' },
+                    },
+                    {
+                      name: 'systemHealthEditor',
+                      type: 'select',
+                      label: 'Editor — pilih info',
+                      hasMany: true,
+                      options: systemHealthOptions(),
+                      admin: { description: 'Kosongkan → default: Media + Storage (title jadi "Media Usage" kalau hanya 2 itu).' },
+                    },
+                  ],
+                },
+
+                // ═════════ SEKSI 3 — INSIGHT WIDGETS (admin+) ══════════
+                // Widget analitik & AI, admin + super-admin only. Smart
+                // Insight = heuristic, real AI menyusul di phase 4.58.4.
+
+                // ── Smart Insight ────────────────────────────────────
+                {
+                  type: 'collapsible',
+                  label: '✨ Insight · AI Smart Insight',
+                  admin: { initCollapsed: true },
+                  fields: [
+                    {
+                      name: 'smartInsightTitle',
+                      type: 'text',
+                      label: 'Judul panel',
+                      admin: {
+                        placeholder: 'Smart Insight',
+                        description: 'Kosongkan → "Smart Insight".',
+                      },
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'smartInsightSeo',
+                          type: 'checkbox',
+                          label: 'SEO & Content Suggestions',
+                          defaultValue: true,
+                          admin: {
+                            width: '50%',
+                            description: 'Scan issue SEO umum (rule-based heuristic).',
+                          },
+                        },
+                        {
+                          name: 'smartInsightImageTag',
+                          type: 'checkbox',
+                          label: 'Auto Image Tagging',
+                          defaultValue: false,
+                          admin: {
+                            width: '50%',
+                            description: 'Placeholder untuk AI vision (butuh provider). Wiring 4.58.4.',
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+
+                // ── Traffic & Performance ────────────────────────────
+                {
+                  type: 'collapsible',
+                  label: '📈 Insight · Traffic & Top Performing',
+                  admin: { initCollapsed: true },
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'analyticsCardTitle',
+                          type: 'text',
+                          label: 'Judul kartu Traffic',
+                          admin: {
+                            width: '50%',
+                            placeholder: 'Traffic & Performance',
+                            description: 'Kartu GA setup. Kosongkan → default.',
+                          },
+                        },
+                        {
+                          name: 'topPerformingTitle',
+                          type: 'text',
+                          label: 'Judul Top Performing',
+                          admin: {
+                            width: '50%',
+                            placeholder: 'Top Performing',
+                            description: 'Widget analytics. Kosongkan → default.',
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      type: 'row',
+                      fields: [
+                        {
+                          name: 'topPerformingViews',
+                          type: 'checkbox',
+                          label: 'Top Views',
+                          defaultValue: true,
+                          admin: { width: '50%', description: 'Destinasi/service dgn view tertinggi.' },
+                        },
+                        {
+                          name: 'topPerformingInquiries',
+                          type: 'checkbox',
+                          label: 'Top Inquiries',
+                          defaultValue: true,
+                          admin: { width: '50%', description: 'Yg dpt WhatsApp click / form submit terbanyak.' },
+                        },
+                      ],
+                    },
+                    {
+                      name: 'analyticsProvider',
+                      type: 'select',
+                      label: 'Analytics Provider',
+                      defaultValue: 'none',
+                      options: [
+                        { label: '⏸️  Belum diaktifkan (placeholder)', value: 'none' },
+                        { label: '🗄️  Own counter (frontend beacon → DB) — phase 4.58.2', value: 'own' },
+                        { label: '📊  Google Analytics 4 Data API — phase 4.58.3', value: 'ga' },
+                      ],
+                      admin: {
+                        description: 'Sumber data widget Top Performing. `none` → tampil placeholder. Provider wiring akan datang di phase berikutnya.',
+                      },
+                    },
+                  ],
                 },
               ],
             },

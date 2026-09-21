@@ -44145,6 +44145,154 @@ export interface SiteFeature {
     enableAds?: boolean | null;
   };
   /**
+   * Kosongkan field pemilihan (multi-select) → dashboard fallback ke default hardcoded. Modul layanan yang di-off di tab "Modul Layanan" otomatis di-skip di Quick Access & At A Glance walaupun terpilih di sini.
+   */
+  dashboardWidgets?: {
+    /**
+     * Kosongkan → "Overview". Bisa disesuaikan mis. "Beranda Admin" / "Ringkasan Situs".
+     */
+    headerTitle?: string | null;
+    /**
+     * Gunakan `{name}` sebagai placeholder nama user. Kosongkan → pakai default English.
+     */
+    headerSubtitle?: string | null;
+    /**
+     * Kosongkan → "At a glance".
+     */
+    atAGlanceTitle?: string | null;
+    /**
+     * Master switch untuk stat row.
+     */
+    atAGlanceEnabled?: boolean | null;
+    /**
+     * Setiap kotak jadi link ke listing terkait.
+     */
+    atAGlanceClickable?: boolean | null;
+    /**
+     * Kosongkan → default 6 stat (Pages/Destinations/Categories/Services/Media/Users). Runtime cap 6, "Users" hanya super-admin.
+     */
+    atAGlanceStats?:
+      | (
+          | 'pages'
+          | 'destinations'
+          | 'categories'
+          | 'services'
+          | 'media'
+          | 'users'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+        )[]
+      | null;
+    /**
+     * Kosongkan → "Recent activity".
+     */
+    recentActivityTitle?: string | null;
+    recentActivityEnabled?: boolean | null;
+    /**
+     * Berlaku untuk semua role.
+     */
+    recentActivityLimit?: number | null;
+    /**
+     * Kosongkan → "Quick access".
+     */
+    quickAccessTitle?: string | null;
+    /**
+     * Kosongkan → default: semua service module aktif + Menu. Order sesuai urutan pilih.
+     */
+    quickAccessAdmin?:
+      | (
+          | 'pages'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+          | 'venues'
+          | 'rentals'
+          | 'spa'
+          | 'ferry-tickets'
+          | 'destinations'
+          | 'categories'
+          | 'menu'
+          | 'media'
+          | 'users'
+          | 'site-features'
+          | 'site-settings'
+        )[]
+      | null;
+    /**
+     * Kosongkan → default: semua service module aktif + Media. Order sesuai urutan pilih.
+     */
+    quickAccessEditor?:
+      | (
+          | 'pages'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+          | 'venues'
+          | 'rentals'
+          | 'spa'
+          | 'ferry-tickets'
+          | 'destinations'
+          | 'categories'
+          | 'menu'
+          | 'media'
+          | 'users'
+          | 'site-features'
+          | 'site-settings'
+        )[]
+      | null;
+    /**
+     * Kosongkan → auto: "Media Usage" kalau hanya Media+Storage, else "System Health". Isi manual untuk override.
+     */
+    systemHealthTitle?: string | null;
+    /**
+     * Kosongkan → default: semua 5 info (Media/Storage/Payload/Node/Backup).
+     */
+    systemHealthAdmin?: ('media' | 'storage' | 'payload' | 'node' | 'backup')[] | null;
+    /**
+     * Kosongkan → default: Media + Storage (title jadi "Media Usage" kalau hanya 2 itu).
+     */
+    systemHealthEditor?: ('media' | 'storage' | 'payload' | 'node' | 'backup')[] | null;
+    /**
+     * Kosongkan → "Smart Insight".
+     */
+    smartInsightTitle?: string | null;
+    /**
+     * Scan issue SEO umum (rule-based heuristic).
+     */
+    smartInsightSeo?: boolean | null;
+    /**
+     * Placeholder untuk AI vision (butuh provider). Wiring 4.58.4.
+     */
+    smartInsightImageTag?: boolean | null;
+    /**
+     * Kartu GA setup. Kosongkan → default.
+     */
+    analyticsCardTitle?: string | null;
+    /**
+     * Widget analytics. Kosongkan → default.
+     */
+    topPerformingTitle?: string | null;
+    /**
+     * Destinasi/service dgn view tertinggi.
+     */
+    topPerformingViews?: boolean | null;
+    /**
+     * Yg dpt WhatsApp click / form submit terbanyak.
+     */
+    topPerformingInquiries?: boolean | null;
+    /**
+     * Sumber data widget Top Performing. `none` → tampil placeholder. Provider wiring akan datang di phase berikutnya.
+     */
+    analyticsProvider?: ('none' | 'own' | 'ga') | null;
+  };
+  /**
    * Toggle floating widget & fitur global lain.
    */
   features?: {
@@ -45257,6 +45405,33 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
     | {
         enabled?: T;
         enableAds?: T;
+      };
+  dashboardWidgets?:
+    | T
+    | {
+        headerTitle?: T;
+        headerSubtitle?: T;
+        atAGlanceTitle?: T;
+        atAGlanceEnabled?: T;
+        atAGlanceClickable?: T;
+        atAGlanceStats?: T;
+        recentActivityTitle?: T;
+        recentActivityEnabled?: T;
+        recentActivityLimit?: T;
+        quickAccessTitle?: T;
+        quickAccessAdmin?: T;
+        quickAccessEditor?: T;
+        systemHealthTitle?: T;
+        systemHealthAdmin?: T;
+        systemHealthEditor?: T;
+        smartInsightTitle?: T;
+        smartInsightSeo?: T;
+        smartInsightImageTag?: T;
+        analyticsCardTitle?: T;
+        topPerformingTitle?: T;
+        topPerformingViews?: T;
+        topPerformingInquiries?: T;
+        analyticsProvider?: T;
       };
   features?:
     | T
