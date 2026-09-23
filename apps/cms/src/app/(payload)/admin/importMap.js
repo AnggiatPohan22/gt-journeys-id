@@ -35,6 +35,7 @@ import { default as default_23885d6272f4ed228f60c129608ba160 } from '../../../ad
 import { default as default_bdf34549d93d2f3ad9f92f8d63d4ab79 } from '../../../admin/GalleryBulkUpload'
 import { MenuChildRowLabel as MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d } from '../../../components/MenuChildRowLabel'
 import { MenuItemRowLabel as MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091 } from '../../../components/MenuItemRowLabel'
+import { default as default_4c2ec00ea115e2699bb215dc8a5b472d } from '../../../admin/MediaThumbnailCell'
 import { default as default_68a1ee296a4d669462449170f13ac89f } from '../../../admin/cells/UserAvatarCell'
 import { default as default_7d0add3028cddc531ec476c2b888fa4a } from '../../../admin/PasswordGeneratorButton'
 import { default as default_662c92c1b3d2933aea12433e4ed474d2 } from '../../../admin/ForceUnlockButton'
@@ -92,6 +93,7 @@ export const importMap = {
   "/admin/GalleryBulkUpload#default": default_bdf34549d93d2f3ad9f92f8d63d4ab79,
   "/components/MenuChildRowLabel#MenuChildRowLabel": MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d,
   "/components/MenuItemRowLabel#MenuItemRowLabel": MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091,
+  "/admin/MediaThumbnailCell#default": default_4c2ec00ea115e2699bb215dc8a5b472d,
   "/admin/cells/UserAvatarCell#default": default_68a1ee296a4d669462449170f13ac89f,
   "/admin/PasswordGeneratorButton#default": default_7d0add3028cddc531ec476c2b888fa4a,
   "/admin/ForceUnlockButton#default": default_662c92c1b3d2933aea12433e4ed474d2,

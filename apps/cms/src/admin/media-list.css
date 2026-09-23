@@ -211,105 +211,66 @@ body[data-view-mode="l"] .collection-list .table tbody td {
   border: 0;
 }
 
-/* Show: filename cell (thumbnail + name), _select checkbox (overlay),
-   mimeType (badge overlay), filesize (subtext). Hide the rest. */
-body[data-view-mode="s"] .collection-list .table tbody td:not(.cell-filename):not(.cell-_select):not(.cell-mimeType):not(.cell-filesize),
-body[data-view-mode="m"] .collection-list .table tbody td:not(.cell-filename):not(.cell-_select):not(.cell-mimeType):not(.cell-filesize),
-body[data-view-mode="l"] .collection-list .table tbody td:not(.cell-filename):not(.cell-_select):not(.cell-mimeType):not(.cell-filesize) {
+/* Phase 4.59 (final v4) — Show: `.cell-thumbnail` (our custom UI cell,
+   dedicated column, renders <img> langsung), `.cell-_select` (checkbox
+   overlay), `.cell-mimeType` (badge overlay), `.cell-filesize` (subtext).
+   Hide the rest — termasuk `.cell-filename` (kalau kolom Filename ada
+   biar user tak double-lihat text nama file, karena `.dnj-media-thumb`
+   di dalam `.cell-thumbnail` sudah cukup). */
+body[data-view-mode="s"] .collection-list .table tbody td:not(.cell-thumbnail):not(.cell-_select):not(.cell-mimeType):not(.cell-filesize),
+body[data-view-mode="m"] .collection-list .table tbody td:not(.cell-thumbnail):not(.cell-_select):not(.cell-mimeType):not(.cell-filesize),
+body[data-view-mode="l"] .collection-list .table tbody td:not(.cell-thumbnail):not(.cell-_select):not(.cell-mimeType):not(.cell-filesize) {
   display: none;
 }
 
-/* ── FILENAME CELL — becomes the thumbnail + name block. ──
-   AUDIT NOTE (2026-08-28): previous version used `aspect-ratio` +
-   `min-height: 0` on `.thumbnail` inside a flex-column parent. Payload's
-   own layered `.thumbnail:not(.thumbnail--size-none)` rule sets
-   `min-height: 100%` — and although unlayered rules technically win the
-   cascade, a couple of browsers collapsed the thumbnail box when the
-   parent height was still resolving. Fix: use EXPLICIT fixed heights per
-   view-mode + heavy `!important`, and don't force the .file wrapper into
-   flex — let it flow naturally so the thumbnail width is inherited from
-   the td (the grid cell), not computed against a 0-height flex parent.
-*/
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename {
+/* ── THUMBNAIL CELL (custom UI field) — image + optional filename below.
+   Rendered by `MediaThumbnailCell.tsx` inside `.dnj-media-thumb`.
+   In grid mode, jadi seluruh isi card (image fills card). */
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail {
   padding: 0 !important;
   order: 1;
   display: block !important;
   width: 100%;
 }
-/* The .file wrapper is a plain block — natural flow, no flex needed.
-   Include the anchor Payload wraps around cell contents when `link=true`. */
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename > *,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename > *,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename > *,
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename .file,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename .file,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .file {
+/* Payload wraps cell content in `<a>` when link=true — treat as plain block. */
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail > *,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail > *,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail > * {
   display: block !important;
   width: 100%;
-  height: auto;
   padding: 0;
   margin: 0;
-  gap: 0;
   text-decoration: none;
   color: inherit;
 }
-
-/* THUMBNAIL — bulletproof positioning strategy (2026-08-28 rewrite).
-   Previous version used `display: flex + align-items: center` on the
-   .thumbnail box, which fought Payload's own `img { width:100%; height:100% }`
-   rule in Flex context — image collapsed to intrinsic size.
-   Fix: `position: relative` box + `position: absolute; inset: 0` on the
-   img so it fills regardless of flex/align cascade quirks. */
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename .thumbnail,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename .thumbnail,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .thumbnail {
+/* .dnj-media-thumb (our container) di grid mode: fill card horizontally. */
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb {
   display: block !important;
-  position: relative !important;
   width: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
   background: var(--theme-elevation-50) !important;
   overflow: hidden !important;
-  flex-shrink: 0 !important;
-  align-self: stretch !important;
-  /* Backup thumbnail (set by MediaListEnhancer via `--dnj-thumb-url`
-     from the row's img src). Guarantees a picture even if Payload's
-     own <img> sizing breaks. */
-  background-image: var(--dnj-thumb-url, none) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
+  position: relative !important;
 }
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename .thumbnail { height: 92px !important; }
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename .thumbnail { height: 140px !important; }
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .thumbnail { height: 200px !important; }
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb { height: 92px !important; }
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb { height: 140px !important; }
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb { height: 200px !important; }
 
-/* IMAGE — absolute fill (survives flex/align cascade). */
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename .thumbnail img,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename .thumbnail img,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .thumbnail img {
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__img,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__img,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__img {
   display: block !important;
-  position: absolute !important;
-  inset: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  max-width: none !important;
-  max-height: none !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
   object-fit: cover !important;
   object-position: center !important;
 }
-/* SVG File-icon placeholder — absolute-centered (non-image files). */
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename .thumbnail svg,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename .thumbnail svg,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .thumbnail svg {
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__icon,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__icon,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__icon {
   display: block !important;
   position: absolute !important;
   top: 50% !important;
@@ -317,17 +278,60 @@ body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .thumbna
   transform: translate(-50%, -50%) !important;
   width: 40% !important;
   height: 40% !important;
-  object-fit: contain !important;
   color: var(--theme-elevation-400) !important;
 }
-/* ShimmerEffect wrapper — Payload wraps loading state in a div. */
-body[data-view-mode="s"] .collection-list .table tbody td.cell-filename .thumbnail > div,
-body[data-view-mode="m"] .collection-list .table tbody td.cell-filename .thumbnail > div,
-body[data-view-mode="l"] .collection-list .table tbody td.cell-filename .thumbnail > div {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
+
+/* ── DETAIL MODE (table) — kompak thumbnail 48×32 di sisi kiri row. */
+body[data-view-mode="detail"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb,
+body[data-view-mode] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb {
+  display: inline-block;
+  width: 48px;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--theme-elevation-50);
+  vertical-align: middle;
+  position: relative;
+}
+body[data-view-mode="detail"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__img,
+body[data-view-mode] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+body[data-view-mode="detail"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__icon,
+body[data-view-mode] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 55%;
+  height: 55%;
+  color: var(--theme-elevation-400);
+}
+
+/* Phase 4.59 addendum — click-through anchor variant. `.dnj-media-thumb--link`
+   is an <a> element that inherits all box styles above (matches
+   `.dnj-media-thumb` selector list). We add cursor pointer + subtle hover so
+   the thumbnail feels tappable. */
+.collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link:hover,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link:hover,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link:hover {
+  filter: brightness(1.05);
+}
+body[data-view-mode="s"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link:hover .dnj-media-thumb__img,
+body[data-view-mode="m"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link:hover .dnj-media-thumb__img,
+body[data-view-mode="l"] .collection-list .table tbody td.cell-thumbnail .dnj-media-thumb--link:hover .dnj-media-thumb__img {
+  transform: scale(1.03);
 }
 
 /* FILENAME text — caption below the thumbnail, truncated. */

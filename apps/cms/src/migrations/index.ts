@@ -25,6 +25,7 @@ import * as migration_20260918_170000_phase_4_56_entry_speed from './20260918_17
 import * as migration_20260921_101203_phase_4_58_dashboard_widgets from './20260921_101203_phase_4_58_dashboard_widgets';
 import * as migration_20260921_103429_phase_4_58_1_dashboard_widget_config from './20260921_103429_phase_4_58_1_dashboard_widget_config';
 import * as migration_20260921_110920_phase_4_58_3_dashboard_titles from './20260921_110920_phase_4_58_3_dashboard_titles';
+import * as migration_20260922_160606_phase_4_59_media_enrichment from './20260922_160606_phase_4_59_media_enrichment';
 
 export const migrations = [
   {
@@ -161,5 +162,10 @@ export const migrations = [
     up: migration_20260921_110920_phase_4_58_3_dashboard_titles.up,
     down: migration_20260921_110920_phase_4_58_3_dashboard_titles.down,
     name: '20260921_110920_phase_4_58_3_dashboard_titles'
+  },
+  {
+    up: migration_20260922_160606_phase_4_59_media_enrichment.up,
+    down: migration_20260922_160606_phase_4_59_media_enrichment.down,
+    name: '20260922_160606_phase_4_59_media_enrichment'
   },
 ];

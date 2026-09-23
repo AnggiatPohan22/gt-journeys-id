@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isSuperAdmin, authenticatedRead, superAdminFieldAccess } from '../access/roles'
-import { sidebarTabsField, withSidebarTab } from '../fields/sidebarTabs'
+import { sidebarTabsFieldWith, withSidebarTab } from '../fields/sidebarTabs'
 import { updatedAtRelativeField } from '../fields/listCells'
 import { updateLastLogin } from '../hooks/updateLastLogin'
 
@@ -47,7 +47,12 @@ export const Users: CollectionConfig = {
   },
   fields: [
     // ── Sidebar ─────────────────────────────────────
-    sidebarTabsField,
+    // Phase 4.59 audit fix — Users only has `general` (role) + `status`
+    // (enabled) sidebar groups, no SEO fields. The default `sidebarTabsField`
+    // always renders all 3 tabs (General/SEO/Publishing), which left a dead
+    // empty "SEO" tab in the sidebar. Use the explicit-list variant instead
+    // (same pattern as ServiceTypes, phase-4.9).
+    sidebarTabsFieldWith(['general', 'status']),
     withSidebarTab(
       {
         name: 'role',

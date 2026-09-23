@@ -71,6 +71,38 @@ const Toolbar: React.FC = () => {
     const m = readMode()
     setMode(m)
     document.body.setAttribute(ATTR, m)
+    // Phase 4.59 (v6 - definitif) — audit findings:
+    //
+    // Payload list view server (@payloadcms/next views/List/index.js L70)
+    // UPSERTS preferences on every request with columns from URL. On next
+    // request, prefs.columns override defaults. Just stripping URL params
+    // is NOT enough — Payload re-writes URL from prefs.
+    //
+    // Fix: (a) DELETE server-side preference record for `collection-media`
+    // via REST API; (b) rewrite URL `columns` to include `thumbnail`
+    // explicitly + strip disabled sub-field entries. This forces Payload's
+    // isColumnActive to return true for thumbnail on next render.
+    ;(async () => {
+      const cols = params?.get('columns') ?? ''
+      const needsFix = !cols || !/"thumbnail"/.test(cols)
+      if (!needsFix) return
+      // eslint-disable-next-line no-console
+      console.info('[dnj-media] resetting stale prefs & URL columns (no thumbnail)')
+      try {
+        // Delete preference record. Endpoint: DELETE /api/payload-preferences/collection-media
+        await fetch('/api/payload-preferences/collection-media', {
+          method: 'DELETE',
+          credentials: 'include',
+        }).catch(() => {})
+      } catch { /* ignore */ }
+      // Push fresh URL with clean defaults — Payload will re-upsert prefs
+      // from these clean columns on next request.
+      const p = new URLSearchParams(params?.toString() ?? '')
+      const freshCols = ['thumbnail', 'filename', 'alt', 'updatedAt']
+      p.set('columns', JSON.stringify(freshCols))
+      router.replace(`?${p.toString()}`, { scroll: false })
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const pushSort = (nextField: SortField, nextDesc: boolean) => {
@@ -91,6 +123,18 @@ const Toolbar: React.FC = () => {
     setMode(m)
     document.body.setAttribute(ATTR, m)
     try { localStorage.setItem(STORAGE_KEY, m) } catch { /* noop */ }
+
+    // Phase 4.59 (final v4) — grid mode butuh `.cell-thumbnail` in DOM.
+    // Reset `columns` param kalau `thumbnail` tak included / hidden.
+    if (m !== 'detail') {
+      const cols = params?.get('columns') ?? ''
+      const hasThumbHidden = /"-thumbnail"/.test(cols) || (cols && !/"thumbnail"/.test(cols))
+      if (hasThumbHidden) {
+        const p = new URLSearchParams(params?.toString() ?? '')
+        p.delete('columns')
+        router.push(`?${p.toString()}`, { scroll: false })
+      }
+    }
   }
 
   return (
@@ -156,36 +200,33 @@ const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children 
       return
     }
 
-    const findAndSet = () => {
+    // Phase 4.59 (final v4) — thumbnail rendering pindah ke custom Cell
+    // component `MediaThumbnailCell.tsx` (registered pada UI field
+    // `thumbnail` di Media collection). Cell render `<img>` langsung dari
+    // rowData.thumbnailURL — zero lifecycle state, zero API fetch.
+    // Enhancer sekarang cuma:
+    //   1. Portal toolbar (Group by + View mode)
+    //   2. Set `body[data-view-mode]` attribute untuk CSS grid transform
+    //   3. Locate `.list-controls` container untuk portal target
+    const findContainer = () => {
       const el = document.querySelector<HTMLElement>('.list-controls')
       setContainer((prev) => (prev === el ? prev : el))
-      // Belt-and-braces thumbnail: copy each row's <img src> onto the row
-      // as a CSS var (`--dnj-thumb-url`). The grid-mode CSS uses this as
-      // a background-image on `.thumbnail`, so even if Payload's own <img>
-      // sizing ever collapses again, the picture still shows.
-      document.querySelectorAll<HTMLElement>('.collection-list .table tbody tr').forEach((tr) => {
-        const img = tr.querySelector<HTMLImageElement>('.cell-filename .thumbnail img[src]')
-        if (img?.src) {
-          const cell = tr.querySelector<HTMLElement>('.cell-filename .thumbnail')
-          if (cell && cell.style.getPropertyValue('--dnj-thumb-url') !== `url("${img.src}")`) {
-            cell.style.setProperty('--dnj-thumb-url', `url("${img.src}")`)
-          }
-        }
+    }
+    findContainer()
+    let raf = 0
+    const schedule = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        findContainer()
       })
     }
-    findAndSet()
-
-    // Shallow observer only — Payload re-renders list-controls when sort/
-    // page/where changes. We just re-locate the target if it's swapped.
-    const obs = new MutationObserver(() => requestAnimationFrame(findAndSet))
-    obs.observe(document.body, { childList: true })
-    const app = document.querySelector<HTMLElement>('.template-default__wrap, main')
-    const appObs = app ? new MutationObserver(() => requestAnimationFrame(findAndSet)) : null
-    if (app && appObs) appObs.observe(app, { childList: true })
+    const obs = new MutationObserver(schedule)
+    obs.observe(document.body, { childList: true, subtree: true })
 
     return () => {
       obs.disconnect()
-      appObs?.disconnect()
+      if (raf) cancelAnimationFrame(raf)
       document.body.removeAttribute(ATTR)
     }
   }, [isMedia])
