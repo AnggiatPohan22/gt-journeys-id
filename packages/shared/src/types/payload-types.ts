@@ -2846,41 +2846,23 @@ export interface Page {
 export interface Media {
   id: number;
   /**
-   * Describe the image for accessibility and SEO (max ~125 chars for screen readers).
+   * For accessibility & SEO (~125 chars).
    */
   alt: string;
   /**
-   * Short caption shown under the image in galleries / lightboxes.
+   * Shown under the image in galleries / lightboxes.
    */
   caption?: string | null;
   /**
-   * Longer descriptive text for gallery detail / lightbox context. Max 500 characters.
+   * Longer text for gallery / lightbox detail (max 500).
    */
   description?: string | null;
-  /**
-   * High-level classification. Helps content editors filter media library.
-   */
   category?: ('hero' | 'gallery' | 'thumbnail' | 'icon' | 'testimonial' | 'background' | 'other') | null;
-  /**
-   * Free-form keywords for search + organization. Examples: beach, sunset, villa-interior, wedding-decor, food.
-   */
-  tags?: string[] | null;
-  /**
-   * Attribution shown near the image (photographer name, watermark text, etc.).
-   */
-  credit?: string | null;
-  /**
-   * Legal usage rights. Pair with Photo Credit for audit trail; helps avoid copyright disputes.
-   */
   license?:
     ('own' | 'stock-licensed' | 'cc-attribution' | 'client-provided' | 'photographer-contract' | 'unknown') | null;
-  /**
-   * Optional — the location this photo was taken (Ubud, Seminyak, Nusa Penida, etc.).
-   */
+  credit?: string | null;
+  tags?: string[] | null;
   relatedDestination?: (number | null) | Destination;
-  /**
-   * Optional — link to specific service this photo belongs to (a villa, tour package, restaurant, etc.).
-   */
   relatedService?:
     | ({
         relationTo: 'tours';
@@ -43458,9 +43440,9 @@ export interface MediaSelect<T extends boolean = true> {
   caption?: T;
   description?: T;
   category?: T;
-  tags?: T;
-  credit?: T;
   license?: T;
+  credit?: T;
+  tags?: T;
   relatedDestination?: T;
   relatedService?: T;
   folder?: T;

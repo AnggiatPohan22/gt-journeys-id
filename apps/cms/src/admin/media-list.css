@@ -572,6 +572,20 @@ body[data-media-filebird] .collection-list__tables {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   MEDIA EDIT VIEW — compact fields (Phase 4.60.1)
+   ---------------------------------------------------------------
+   The main win is the field split in Media.ts: main column keeps
+   Alt/Caption/Description; Category/License/Credit/Tags/Related*
+   move to the sidebar — no more long stack of full-width fields.
+   Just trim the fields gutter's tall bottom padding on this route
+   to reclaim a little height. `data-media-edit` is set by
+   MediaListEnhancer. (Payload's edit form fills the viewport by
+   design; that global behavior is left untouched.) */
+body[data-media-edit] .document-fields__main .gutter {
+  padding-bottom: 16px !important;
+}
+
 /* ── Sidebar shell ─────────────────────────────────────────── */
 .dnj-fb {
   display: flex;

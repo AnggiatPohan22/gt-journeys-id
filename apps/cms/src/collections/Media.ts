@@ -74,13 +74,17 @@ export const Media: CollectionConfig = {
         },
       },
     },
+    // ── MAIN COLUMN — editorial text (Phase 4.60.1 compact layout) ──────
+    // Only the descriptive fields stay in the wide main column; everything
+    // else (classification, licensing, cross-links) moves to the sidebar so
+    // the edit view stays short and scannable instead of one long scroll.
     {
       name: 'alt',
       type: 'text',
       required: true,
       label: 'Alt Text',
       admin: {
-        description: 'Describe the image for accessibility and SEO (max ~125 chars for screen readers).',
+        description: 'For accessibility & SEO (~125 chars).',
       },
     },
     {
@@ -88,20 +92,23 @@ export const Media: CollectionConfig = {
       type: 'text',
       label: 'Caption',
       admin: {
-        description: 'Short caption shown under the image in galleries / lightboxes.',
+        description: 'Shown under the image in galleries / lightboxes.',
       },
     },
-    // ── Phase 4.59 addendum (2026-09-22) — media library enhancement ─────
-    // Field baru untuk organisasi, licensing, dan cross-link ke service.
     {
       name: 'description',
       type: 'textarea',
       label: 'Description',
       maxLength: 500,
       admin: {
-        description: 'Longer descriptive text for gallery detail / lightbox context. Max 500 characters.',
+        rows: 3,
+        description: 'Longer text for gallery / lightbox detail (max 500).',
       },
     },
+
+    // ── SIDEBAR — classification, licensing & cross-links ───────────────
+    // `position: 'sidebar'` tucks these compact fields beside the main
+    // column (Phase 4.60.1) — no more long vertical stack.
     {
       name: 'category',
       type: 'select',
@@ -116,24 +123,7 @@ export const Media: CollectionConfig = {
         { label: 'Other', value: 'other' },
       ],
       admin: {
-        description: 'High-level classification. Helps content editors filter media library.',
-      },
-    },
-    {
-      name: 'tags',
-      type: 'text',
-      hasMany: true,
-      label: 'Tags',
-      admin: {
-        description: 'Free-form keywords for search + organization. Examples: beach, sunset, villa-interior, wedding-decor, food.',
-      },
-    },
-    {
-      name: 'credit',
-      type: 'text',
-      label: 'Photo Credit',
-      admin: {
-        description: 'Attribution shown near the image (photographer name, watermark text, etc.).',
+        position: 'sidebar',
       },
     },
     {
@@ -150,7 +140,24 @@ export const Media: CollectionConfig = {
         { label: 'Unknown / to be verified', value: 'unknown' },
       ],
       admin: {
-        description: 'Legal usage rights. Pair with Photo Credit for audit trail; helps avoid copyright disputes.',
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'credit',
+      type: 'text',
+      label: 'Photo Credit',
+      admin: {
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'tags',
+      type: 'text',
+      hasMany: true,
+      label: 'Tags',
+      admin: {
+        position: 'sidebar',
       },
     },
     {
@@ -159,7 +166,7 @@ export const Media: CollectionConfig = {
       relationTo: 'destinations',
       label: 'Related Destination',
       admin: {
-        description: 'Optional — the location this photo was taken (Ubud, Seminyak, Nusa Penida, etc.).',
+        position: 'sidebar',
       },
     },
     {
@@ -178,7 +185,7 @@ export const Media: CollectionConfig = {
       ],
       label: 'Related Service',
       admin: {
-        description: 'Optional — link to specific service this photo belongs to (a villa, tour package, restaurant, etc.).',
+        position: 'sidebar',
       },
     },
   ],

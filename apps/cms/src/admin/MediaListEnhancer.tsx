@@ -64,6 +64,10 @@ const MEDIA_LIST_RE = /^\/admin\/collections\/media\/?$/
 // Payload's per-collection folder view lives at /collections/media/<foldersSlug>
 // where foldersSlug defaults to `payload-folders` (NOT `folders`).
 const FOLDER_ROUTE_RE = /^\/admin\/(browse-by-folder|collections\/media\/payload-folders)\/?$/
+// Media edit/create form: /collections/media/<id> or /create (Phase 4.60.1).
+// Excludes the list and the payload-folders view.
+const MEDIA_EDIT_RE = /^\/admin\/collections\/media\/(?!payload-folders$)[^/]+\/?$/
+const EDIT_ATTR = 'data-media-edit'
 
 const readMode = (): Mode => {
   try {
@@ -306,8 +310,17 @@ const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children 
   const isList = useMemo(() => MEDIA_LIST_RE.test(pathname ?? ''), [pathname])
   const isFolder = useMemo(() => FOLDER_ROUTE_RE.test(pathname ?? ''), [pathname])
 
+  const isEdit = useMemo(() => MEDIA_EDIT_RE.test(pathname ?? ''), [pathname])
   const [listContainer, setListContainer] = useState<HTMLElement | null>(null)
   const [folderContainer, setFolderContainer] = useState<HTMLElement | null>(null)
+
+  // Phase 4.60.1 — mark the media edit/create route so CSS can drop Payload's
+  // viewport-filling form min-height (keeps the compact edit view scroll-free).
+  useEffect(() => {
+    if (isEdit) document.body.setAttribute(EDIT_ATTR, '')
+    else document.body.removeAttribute(EDIT_ATTR)
+    return () => document.body.removeAttribute(EDIT_ATTR)
+  }, [isEdit])
 
   useEffect(() => {
     if (!isList && !isFolder) {
