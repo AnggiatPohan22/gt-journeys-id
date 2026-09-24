@@ -2,7 +2,7 @@
 **Tanggal**: 2026-09-24
 **Status**: Selesai (verifikasi visual via browser pane, login super-admin)
 **Dikerjakan oleh**: Claude Code (Opus 4.8)
-**Berkaitan dengan**: [`phase-4.60-media-folders-filebird-layout.md`](../phases/phase-4.60-media-folders-filebird-layout.md) — lanjutan Media CMS.
+**Berkaitan dengan**: [`phase-4.60-media-folders-filebird-layout.md`](phase-4.60-media-folders-filebird-layout.md) — lanjutan Media CMS.
 
 ### Ringkasan
 Tampilan **edit gambar** (`/admin/collections/media/<id>`) dibuat lebih ringkas &
