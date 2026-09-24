@@ -1,5 +1,6 @@
 import type { GlobalConfig, Field } from 'payload'
 import { isSuperAdmin } from '../access/roles'
+import { syncMediaFoldersToFeatures } from '../hooks/syncMediaFoldersToFeatures'
 
 // ── Modul Layanan registry (Phase 4.49) ─────────────────────────────
 // Single source untuk daftar modul layanan — description auto-count di
@@ -100,6 +101,11 @@ export const SiteFeatures: GlobalConfig = {
   access: {
     read: () => true,
     update: isSuperAdmin,
+  },
+  // Phase 4.61 — when a module is disabled, move its media folder images to
+  // Uncategorized (the folder itself is hidden from the library sidebar).
+  hooks: {
+    afterChange: [syncMediaFoldersToFeatures],
   },
   fields: [
     {

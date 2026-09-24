@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { superAdminFieldAccess } from '../access/roles'
 import { moduleAccess } from '../access/moduleAccess'
 import { generateSlug } from '../hooks/generateSlug'
+import { assignMediaFolder } from '../hooks/assignMediaFolder'
 import { seoFields } from '../fields/seo'
 import { locationFields } from '../fields/location'
 import { whatsappField } from '../fields/whatsapp'
@@ -18,6 +19,7 @@ const s = cfg // shorthand for section lookups
 
 export const Accommodations: CollectionConfig = {
   slug: 'accommodations',
+  hooks: { afterChange: [assignMediaFolder('accommodations')] },
   admin: {
     useAsTitle: 'name',
     group: 'Services',

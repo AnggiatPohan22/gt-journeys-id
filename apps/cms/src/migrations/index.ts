@@ -26,6 +26,7 @@ import * as migration_20260921_101203_phase_4_58_dashboard_widgets from './20260
 import * as migration_20260921_103429_phase_4_58_1_dashboard_widget_config from './20260921_103429_phase_4_58_1_dashboard_widget_config';
 import * as migration_20260921_110920_phase_4_58_3_dashboard_titles from './20260921_110920_phase_4_58_3_dashboard_titles';
 import * as migration_20260922_160606_phase_4_59_media_enrichment from './20260922_160606_phase_4_59_media_enrichment';
+import * as migration_20260924_032356_phase_4_60_media_folders from './20260924_032356_phase_4_60_media_folders';
 
 export const migrations = [
   {
@@ -146,26 +147,31 @@ export const migrations = [
   {
     up: migration_20260918_170000_phase_4_56_entry_speed.up,
     down: migration_20260918_170000_phase_4_56_entry_speed.down,
-    name: '20260918_170000_phase_4_56_entry_speed'
+    name: '20260918_170000_phase_4_56_entry_speed',
   },
   {
     up: migration_20260921_101203_phase_4_58_dashboard_widgets.up,
     down: migration_20260921_101203_phase_4_58_dashboard_widgets.down,
-    name: '20260921_101203_phase_4_58_dashboard_widgets'
+    name: '20260921_101203_phase_4_58_dashboard_widgets',
   },
   {
     up: migration_20260921_103429_phase_4_58_1_dashboard_widget_config.up,
     down: migration_20260921_103429_phase_4_58_1_dashboard_widget_config.down,
-    name: '20260921_103429_phase_4_58_1_dashboard_widget_config'
+    name: '20260921_103429_phase_4_58_1_dashboard_widget_config',
   },
   {
     up: migration_20260921_110920_phase_4_58_3_dashboard_titles.up,
     down: migration_20260921_110920_phase_4_58_3_dashboard_titles.down,
-    name: '20260921_110920_phase_4_58_3_dashboard_titles'
+    name: '20260921_110920_phase_4_58_3_dashboard_titles',
   },
   {
     up: migration_20260922_160606_phase_4_59_media_enrichment.up,
     down: migration_20260922_160606_phase_4_59_media_enrichment.down,
-    name: '20260922_160606_phase_4_59_media_enrichment'
+    name: '20260922_160606_phase_4_59_media_enrichment',
+  },
+  {
+    up: migration_20260924_032356_phase_4_60_media_folders.up,
+    down: migration_20260924_032356_phase_4_60_media_folders.down,
+    name: '20260924_032356_phase_4_60_media_folders'
   },
 ];

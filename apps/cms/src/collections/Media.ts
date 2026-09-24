@@ -3,6 +3,13 @@ import { authenticatedRead, isAdmin } from '../access/roles'
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  // Phase 4.60 — Payload native Folders. Media docs gain a `folder`
+  // relationship (→ payload-folders) + a "Browse by Folder" view. Docs
+  // without a folder show at root (= Uncategorized). Folder tree, create
+  // folder/subfolder, and drag-drop are all built-in. Auto-routing of
+  // service uploads into their module folder is handled by the
+  // assignMediaFolder afterChange hook on each service collection.
+  folders: true,
   upload: {
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'video/mp4'],
     // Phase 4.59 BUG #1 addendum — hide imageSize sub-fields (url/width/
@@ -41,6 +48,11 @@ export const Media: CollectionConfig = {
     // `admin.disableListColumn: true` di setiap size — mencegah URL bloat.
     defaultColumns: ['thumbnail', 'filename', 'alt', 'updatedAt'],
     listSearchableFields: ['alt', 'caption', 'filename'],
+    // Phase 4.61 — explicit Select all / Deselect all bar above the grid
+    // (the native select-all lives in the table header, which grid mode hides).
+    components: {
+      beforeListTable: ['/admin/MediaSelectionBar#default'],
+    },
   },
   access: {
     read: () => true, // Public — images need to be accessible

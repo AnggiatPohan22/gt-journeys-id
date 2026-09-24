@@ -101,6 +101,21 @@ export default buildConfig({
   }),
   sharp, // auto resize gambar
 
+  // ── Folders (Phase 4.60) ────────────────────
+  // Native Payload folder organization. Only Media opts in (folders: true).
+  // `collectionSpecific: true` scopes each folder to the collection(s) it
+  // holds via folderType — our folders are media-only. `browseByFolder`
+  // adds the /admin/browse-by-folder route (folder tree + card grid).
+  // Slug stays default `payload-folders`, field default `folder`.
+  // Phase 4.61 — `browseByFolder: false` removes the global "Browse by Folder"
+  // item from the left admin nav (cleaner sidebar). The per-collection
+  // "By Folder" toggle on the Media page top-right stays (it's gated by the
+  // collection's own `folders: true`, not this root flag).
+  folders: {
+    collectionSpecific: true,
+    browseByFolder: false,
+  },
+
   // ── CORS ────────────────────────────────────
   // Allow frontend origins to fetch API (metadata + media). Tanpa ini,
   // browser browser preview/frontend akan gagal load /api/media/file/*
@@ -193,6 +208,8 @@ export default buildConfig({
       providers: [
         '/admin/AdminStyles#default',
         '/admin/MediaListEnhancer#default',
+        // Phase 4.61 — FileBird-style folder sidebar on the media list route.
+        '/admin/MediaFolderSidebar#default',
       ],
       // Brand mark menggantikan logo/icon default Payload (login + sidebar).
       graphics: {

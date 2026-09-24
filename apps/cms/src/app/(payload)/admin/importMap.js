@@ -36,9 +36,13 @@ import { default as default_bdf34549d93d2f3ad9f92f8d63d4ab79 } from '../../../ad
 import { MenuChildRowLabel as MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d } from '../../../components/MenuChildRowLabel'
 import { MenuItemRowLabel as MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091 } from '../../../components/MenuItemRowLabel'
 import { default as default_4c2ec00ea115e2699bb215dc8a5b472d } from '../../../admin/MediaThumbnailCell'
+import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { default as default_f125baa29bb109655620d04723c42d5b } from '../../../admin/MediaSelectionBar'
 import { default as default_68a1ee296a4d669462449170f13ac89f } from '../../../admin/cells/UserAvatarCell'
 import { default as default_7d0add3028cddc531ec476c2b888fa4a } from '../../../admin/PasswordGeneratorButton'
 import { default as default_662c92c1b3d2933aea12433e4ed474d2 } from '../../../admin/ForceUnlockButton'
+import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { TemplatePickerField as TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed } from '../../../components/TemplatePickerField'
 import { TemplateImportExport as TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2 } from '../../../components/TemplateImportExport'
 import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../components/FooterLayoutRowLabel'
@@ -52,6 +56,7 @@ import { default as default_c7f94ec6c782a5d98a056d471ed23545 } from '../../../ad
 import { default as default_63426120d5a18e206c5d223aa70a260c } from '../../../admin/NavDashboardLink'
 import { default as default_901f7f3b3bb38a7ce0b6851f39b0b655 } from '../../../admin/AdminStyles'
 import { default as default_59e5997061b2252debbddcc96648def1 } from '../../../admin/MediaListEnhancer'
+import { default as default_bd18a6d6300bc040c70a2d345f4c6906 } from '../../../admin/MediaFolderSidebar'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -94,9 +99,13 @@ export const importMap = {
   "/components/MenuChildRowLabel#MenuChildRowLabel": MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d,
   "/components/MenuItemRowLabel#MenuItemRowLabel": MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091,
   "/admin/MediaThumbnailCell#default": default_4c2ec00ea115e2699bb215dc8a5b472d,
+  "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "/admin/MediaSelectionBar#default": default_f125baa29bb109655620d04723c42d5b,
   "/admin/cells/UserAvatarCell#default": default_68a1ee296a4d669462449170f13ac89f,
   "/admin/PasswordGeneratorButton#default": default_7d0add3028cddc531ec476c2b888fa4a,
   "/admin/ForceUnlockButton#default": default_662c92c1b3d2933aea12433e4ed474d2,
+  "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
   "/components/TemplatePickerField#TemplatePickerField": TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed,
   "/components/TemplateImportExport#TemplateImportExport": TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2,
   "/components/FooterLayoutRowLabel#default": default_2d7391d3e6c490e87ec696da441ef264,
@@ -110,5 +119,6 @@ export const importMap = {
   "/admin/NavDashboardLink#default": default_63426120d5a18e206c5d223aa70a260c,
   "/admin/AdminStyles#default": default_901f7f3b3bb38a7ce0b6851f39b0b655,
   "/admin/MediaListEnhancer#default": default_59e5997061b2252debbddcc96648def1,
+  "/admin/MediaFolderSidebar#default": default_bd18a6d6300bc040c70a2d345f4c6906,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

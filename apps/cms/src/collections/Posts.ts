@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { authenticatedUpdate, superAdminDelete, superAdminFieldAccess } from '../access/roles'
 import { generateSlug } from '../hooks/generateSlug'
+import { assignMediaFolder } from '../hooks/assignMediaFolder'
 import { seoFields } from '../fields/seo'
 import { statusField, sortOrderField, isFeaturedField } from '../fields/status'
 import { sidebarTabsField, withSidebarTab } from '../fields/sidebarTabs'
@@ -27,6 +28,7 @@ import { SELECTION_MODE_OPTIONS } from '../globals/BlogSettings'
 
 export const Posts: CollectionConfig = {
   slug: 'posts',
+  hooks: { afterChange: [assignMediaFolder('posts')] },
   admin: {
     useAsTitle: 'title',
     group: 'Posts',

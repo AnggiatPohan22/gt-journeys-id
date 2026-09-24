@@ -22,6 +22,7 @@
     "seed:service-types": "tsx src/scripts/seed-service-types.ts",
     "seed:testimonials": "tsx src/scripts/seed-testimonials.ts",
     "seed:blog-index": "tsx src/scripts/seed-blog-index-page.ts",
+    "seed:media-folders": "tsx src/scripts/seed-media-folders.ts",
     "retention:chat": "tsx src/scripts/chat-retention.ts"
   },
   "dependencies": {

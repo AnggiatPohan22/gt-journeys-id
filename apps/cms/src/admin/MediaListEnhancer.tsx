@@ -1,26 +1,31 @@
 'use client'
 /**
- * DnJourneysBali — Media Library toolbar (Phase 4.11 · revised).
+ * DnJourneysBali — Media Library toolbar (Phase 4.11 · revised 4.60).
  *
  * Mounted globally via `admin.components.providers`. Self-hides on every
- * route except `/admin/collections/media`. On that route it portals a
- * toolbar into Payload's `.list-controls` with:
+ * route except the media library. It enhances TWO surfaces:
  *
- *   1. Group By dropdown — Name / Date Modified / Type / Size.
- *      Writes `?sort=<field>` (asc) / `?sort=-<field>` (desc) to the URL
- *      via Next.js router → Payload re-fetches with the new sort.
- *   2. Sort direction toggle — flips the `-` prefix.
- *   3. View size selector — Detail / S / M / L. Detail keeps Payload's
- *      table; S/M/L transform the same table into a card grid via CSS.
- *      Persisted to localStorage.
+ * A) FLAT LIST — `/admin/collections/media`
+ *    Portals a toolbar into Payload's `.list-controls`:
+ *      1. Group By dropdown (Name / Date / Type / Size) → `?sort=`.
+ *      2. Sort direction toggle.
+ *      3. View size selector — Detail / S / M / L. Detail keeps Payload's
+ *         table; S/M/L transform the table into a card grid via CSS
+ *         (`body[data-view-mode]`). Persisted to localStorage.
  *
- * Payload's own Group By / Sort / Where / Columns toggles are hidden by
- * CSS (`media-list.css`) on this route — the custom toolbar covers the
- * cases we care about, and native ones would clutter the UI.
+ * B) FOLDER VIEW (Phase 4.60) — `/admin/browse-by-folder` and
+ *    `/admin/collections/media/payload-folders`
+ *    Payload's native folder view already renders the folder structure,
+ *    a Sort pill and a grid/list toggle. We add the ONE thing it lacks:
+ *    card DENSITY. Portals a Detail / S / M / L segmented control into
+ *    `.search-bar__actions` (next to the native pills):
+ *      - Detail → clicks Payload's native "list" toggle (table view).
+ *      - S/M/L  → ensures grid view, then sizes `.item-card-grid` cards
+ *        via CSS (`body[data-folder-density]`). Persisted to localStorage.
  *
- * Performance: uses `usePathname` for route detection (no polling).
- * `createPortal` re-renders when its container detaches (SPA nav) via a
- * shallow MutationObserver on <body>.
+ * Performance: `usePathname` for route detection (no polling). Portal
+ * containers are (re)located via a shallow MutationObserver on <body>
+ * to survive SPA navigation.
  */
 import React, { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -30,11 +35,16 @@ type Mode = 'detail' | 's' | 'm' | 'l'
 type SortField = 'filename' | 'updatedAt' | 'mimeType' | 'filesize'
 
 const MODES: Array<{ key: Mode; label: string; title: string }> = [
-  { key: 'detail', label: 'Detail', title: 'Table view (default)' },
-  { key: 's',      label: 'S',      title: 'Small thumbnails' },
-  { key: 'm',      label: 'M',      title: 'Medium thumbnails' },
-  { key: 'l',      label: 'L',      title: 'Large thumbnails' },
+  { key: 'detail', label: 'Detail', title: 'Table view — 10 per page' },
+  { key: 's',      label: 'S',      title: 'Small — 6 × 4 = 24 per page' },
+  { key: 'm',      label: 'M',      title: 'Medium — 4 × 3 = 12 per page' },
+  { key: 'l',      label: 'L',      title: 'Large — 2 × 2 = 4 per page' },
 ]
+
+// Phase 4.61 — fixed page size per view so the grid stays a few rows tall
+// (no long vertical scroll). Column counts live in media-list.css and are
+// paired with these limits: S 6×4, M 4×3, L 2×2, Detail = 10 rows.
+const LIMITS: Record<Mode, number> = { detail: 10, s: 24, m: 12, l: 4 }
 
 const GROUPS: Array<{ field: SortField; label: string; ascHint: string; descHint: string }> = [
   { field: 'filename',  label: 'Name',          ascHint: 'A → Z',          descHint: 'Z → A' },
@@ -46,16 +56,36 @@ const GROUPS: Array<{ field: SortField; label: string; ascHint: string; descHint
 const STORAGE_KEY = 'dnj-media-view-mode'
 const ATTR = 'data-view-mode'
 
+// Phase 4.60 — folder view density.
+const FOLDER_STORAGE_KEY = 'dnj-media-folder-density'
+const FOLDER_ATTR = 'data-folder-density'
+
 const MEDIA_LIST_RE = /^\/admin\/collections\/media\/?$/
+// Payload's per-collection folder view lives at /collections/media/<foldersSlug>
+// where foldersSlug defaults to `payload-folders` (NOT `folders`).
+const FOLDER_ROUTE_RE = /^\/admin\/(browse-by-folder|collections\/media\/payload-folders)\/?$/
 
 const readMode = (): Mode => {
   try {
     const s = localStorage.getItem(STORAGE_KEY) as Mode | null
     if (s && MODES.some((m) => m.key === s)) return s
   } catch { /* noop */ }
-  return 'detail'
+  // Phase 4.61 — default to a medium card grid to match the FileBird-style
+  // two-pane layout (folder sidebar + asset grid). Users can still pick Detail.
+  return 'm'
 }
 
+const readFolderMode = (): Mode => {
+  try {
+    const s = localStorage.getItem(FOLDER_STORAGE_KEY) as Mode | null
+    if (s && MODES.some((m) => m.key === s)) return s
+  } catch { /* noop */ }
+  return 'm'
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   A) FLAT LIST toolbar
+   ══════════════════════════════════════════════════════════════════ */
 const Toolbar: React.FC = () => {
   const router = useRouter()
   const params = useSearchParams()
@@ -83,24 +113,33 @@ const Toolbar: React.FC = () => {
     // explicitly + strip disabled sub-field entries. This forces Payload's
     // isColumnActive to return true for thumbnail on next render.
     ;(async () => {
-      const cols = params?.get('columns') ?? ''
-      const needsFix = !cols || !/"thumbnail"/.test(cols)
-      if (!needsFix) return
-      // eslint-disable-next-line no-console
-      console.info('[dnj-media] resetting stale prefs & URL columns (no thumbnail)')
-      try {
-        // Delete preference record. Endpoint: DELETE /api/payload-preferences/collection-media
-        await fetch('/api/payload-preferences/collection-media', {
-          method: 'DELETE',
-          credentials: 'include',
-        }).catch(() => {})
-      } catch { /* ignore */ }
-      // Push fresh URL with clean defaults — Payload will re-upsert prefs
-      // from these clean columns on next request.
       const p = new URLSearchParams(params?.toString() ?? '')
-      const freshCols = ['thumbnail', 'filename', 'alt', 'updatedAt']
-      p.set('columns', JSON.stringify(freshCols))
-      router.replace(`?${p.toString()}`, { scroll: false })
+      let changed = false
+
+      // (a) Ensure the thumbnail column is present (see Phase 4.59 note above).
+      const cols = p.get('columns') ?? ''
+      const needsColFix = !cols || !/"thumbnail"/.test(cols)
+      if (needsColFix) {
+        // eslint-disable-next-line no-console
+        console.info('[dnj-media] resetting stale prefs & URL columns (no thumbnail)')
+        try {
+          await fetch('/api/payload-preferences/collection-media', {
+            method: 'DELETE',
+            credentials: 'include',
+          }).catch(() => {})
+        } catch { /* ignore */ }
+        p.set('columns', JSON.stringify(['thumbnail', 'filename', 'alt', 'updatedAt']))
+        changed = true
+      }
+
+      // (b) Ensure the page limit matches the active view (Phase 4.61).
+      const wantLimit = String(LIMITS[m])
+      if ((p.get('limit') ?? '') !== wantLimit) {
+        p.set('limit', wantLimit)
+        changed = true
+      }
+
+      if (changed) router.replace(`?${p.toString()}`, { scroll: false })
     })()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -124,17 +163,19 @@ const Toolbar: React.FC = () => {
     document.body.setAttribute(ATTR, m)
     try { localStorage.setItem(STORAGE_KEY, m) } catch { /* noop */ }
 
+    const p = new URLSearchParams(params?.toString() ?? '')
+    // Phase 4.61 — fixed page size per view (no long scroll), reset to page 1.
+    p.set('limit', String(LIMITS[m]))
+    p.delete('page')
+
     // Phase 4.59 (final v4) — grid mode butuh `.cell-thumbnail` in DOM.
     // Reset `columns` param kalau `thumbnail` tak included / hidden.
     if (m !== 'detail') {
-      const cols = params?.get('columns') ?? ''
+      const cols = p.get('columns') ?? ''
       const hasThumbHidden = /"-thumbnail"/.test(cols) || (cols && !/"thumbnail"/.test(cols))
-      if (hasThumbHidden) {
-        const p = new URLSearchParams(params?.toString() ?? '')
-        p.delete('columns')
-        router.push(`?${p.toString()}`, { scroll: false })
-      }
+      if (hasThumbHidden) p.delete('columns')
     }
+    router.push(`?${p.toString()}`, { scroll: false })
   }
 
   return (
@@ -187,38 +228,113 @@ const Toolbar: React.FC = () => {
   )
 }
 
-const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const pathname = usePathname()
-  const isMedia = useMemo(() => MEDIA_LIST_RE.test(pathname ?? ''), [pathname])
+/* ══════════════════════════════════════════════════════════════════
+   B) FOLDER VIEW density control (Phase 4.60)
+   ══════════════════════════════════════════════════════════════════ */
 
-  const [container, setContainer] = useState<HTMLElement | null>(null)
+/** Payload's native grid/list toggle buttons: [0]=grid, [1]=list. */
+const nativeToggleButtons = (): HTMLButtonElement[] =>
+  Array.from(
+    document.querySelectorAll<HTMLButtonElement>('.folder-view-toggle-button'),
+  )
+
+/** True when Payload's native view is currently "list" (table). */
+const isNativeListActive = (): boolean => {
+  const btns = nativeToggleButtons()
+  // The list button is the second one; active class = --active.
+  return !!btns[1]?.classList.contains('folder-view-toggle-button--active')
+}
+
+const FolderControls: React.FC = () => {
+  const [mode, setMode] = useState<Mode>('m')
 
   useEffect(() => {
-    if (!isMedia) {
-      setContainer(null)
+    const m = readFolderMode()
+    setMode(m)
+    // Only apply density when in grid view. If Payload is in list/table
+    // mode, density has no visual target — leave the attribute unset.
+    if (m === 'detail' || isNativeListActive()) {
+      document.body.removeAttribute(FOLDER_ATTR)
+    } else {
+      document.body.setAttribute(FOLDER_ATTR, m)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const choose = (m: Mode) => {
+    setMode(m)
+    try { localStorage.setItem(FOLDER_STORAGE_KEY, m) } catch { /* noop */ }
+
+    const btns = nativeToggleButtons()
+    if (m === 'detail') {
+      // Switch Payload to its native list/table view.
+      document.body.removeAttribute(FOLDER_ATTR)
+      if (!isNativeListActive()) btns[1]?.click()
+    } else {
+      // Ensure grid view is active, then apply card density.
+      if (isNativeListActive()) btns[0]?.click()
+      document.body.setAttribute(FOLDER_ATTR, m)
+    }
+  }
+
+  return (
+    <div className="dnj-folder-density" role="group" aria-label="Card size">
+      <span className="dnj-folder-density__label">Size</span>
+      <div className="dnj-folder-density__group">
+        {MODES.map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            className={`dnj-folder-density__btn${mode === m.key ? ' dnj-folder-density__btn--active' : ''}`}
+            title={m.title}
+            aria-pressed={mode === m.key}
+            onClick={() => choose(m.key)}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Mount orchestrator
+   ══════════════════════════════════════════════════════════════════ */
+const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname()
+  const isList = useMemo(() => MEDIA_LIST_RE.test(pathname ?? ''), [pathname])
+  const isFolder = useMemo(() => FOLDER_ROUTE_RE.test(pathname ?? ''), [pathname])
+
+  const [listContainer, setListContainer] = useState<HTMLElement | null>(null)
+  const [folderContainer, setFolderContainer] = useState<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (!isList && !isFolder) {
+      setListContainer(null)
+      setFolderContainer(null)
       document.body.removeAttribute(ATTR)
+      document.body.removeAttribute(FOLDER_ATTR)
       return
     }
 
-    // Phase 4.59 (final v4) — thumbnail rendering pindah ke custom Cell
-    // component `MediaThumbnailCell.tsx` (registered pada UI field
-    // `thumbnail` di Media collection). Cell render `<img>` langsung dari
-    // rowData.thumbnailURL — zero lifecycle state, zero API fetch.
-    // Enhancer sekarang cuma:
-    //   1. Portal toolbar (Group by + View mode)
-    //   2. Set `body[data-view-mode]` attribute untuk CSS grid transform
-    //   3. Locate `.list-controls` container untuk portal target
-    const findContainer = () => {
-      const el = document.querySelector<HTMLElement>('.list-controls')
-      setContainer((prev) => (prev === el ? prev : el))
+    const find = () => {
+      if (isList) {
+        const el = document.querySelector<HTMLElement>('.list-controls')
+        setListContainer((prev) => (prev === el ? prev : el))
+      }
+      if (isFolder) {
+        const el = document.querySelector<HTMLElement>('.search-bar__actions')
+        setFolderContainer((prev) => (prev === el ? prev : el))
+      }
     }
-    findContainer()
+    find()
     let raf = 0
     const schedule = () => {
       if (raf) return
       raf = requestAnimationFrame(() => {
         raf = 0
-        findContainer()
+        find()
       })
     }
     const obs = new MutationObserver(schedule)
@@ -227,14 +343,16 @@ const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children 
     return () => {
       obs.disconnect()
       if (raf) cancelAnimationFrame(raf)
-      document.body.removeAttribute(ATTR)
+      if (!isList) document.body.removeAttribute(ATTR)
+      if (!isFolder) document.body.removeAttribute(FOLDER_ATTR)
     }
-  }, [isMedia])
+  }, [isList, isFolder])
 
   return (
     <>
       {children}
-      {isMedia && container ? createPortal(<Toolbar />, container) : null}
+      {isList && listContainer ? createPortal(<Toolbar />, listContainer) : null}
+      {isFolder && folderContainer ? createPortal(<FolderControls />, folderContainer) : null}
     </>
   )
 }

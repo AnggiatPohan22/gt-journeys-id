@@ -775,6 +775,23 @@ Ingat: di SQLite, kolom `json` **tidak** ter-indeks by default. Kalau butuh quer
 
 ---
 
+## Media Folders (Phase 4.60)
+
+Sejak Phase 4.60, Media memakai fitur **Folders bawaan Payload** (`folders: true`).
+Ini menambah:
+
+- Tabel sistem **`payload_folders`** (`id`, `name`, `folder_id` self-ref parent,
+  `updated_at`, `created_at`) + **`payload_folders_folder_type`** (array `folderType`,
+  di-scope ke `['media']`).
+- Kolom **`media.folder_id`** (FK → `payload_folders.id`, `ON DELETE set null`).
+- Kolom **`payload_locked_documents_rels.payload_folders_id`**.
+
+Media tanpa `folder_id` = root/Uncategorized. Struktur folder di-seed via
+`pnpm --filter cms seed:media-folders` (11 modul × Featured/Gallery + Uncategorized)
+dan di-maintain otomatis oleh hook `assignMediaFolder` di collection service + Posts.
+Migrasi: `20260924_032356_phase_4_60_media_folders` (batch 27). Detail:
+[`docs/reports/phase-media-folders.md`](reports/phase-media-folders.md).
+
 ## Referensi silang
 
 - Access control & role field-level → **04-RBAC.md**

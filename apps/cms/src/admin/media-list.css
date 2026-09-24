@@ -131,12 +131,32 @@ body[data-view-mode] .column-selector {
   display: none !important;
 }
 
-/* Give the search input room + push our toolbar to the right end. */
+/* Give the search input room + push our toolbar to the right end.
+   Phase 4.61 — keep search ON THE SAME ROW as our toolbar (previously the
+   search stacked above, wasting a row and pushing the grid down). */
 body[data-view-mode] .list-controls {
   display: flex;
+  /* Payload's default is `flex-direction: column` (search stacks above the
+     controls). Force a single row so search sits inline with our toolbar. */
+  flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+}
+/* Search input becomes a flexible inline field instead of a full-width row. */
+body[data-view-mode] .list-controls > .search-bar,
+body[data-view-mode] .list-controls > .search-filter {
+  flex: 1 1 240px;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  order: 0;
+}
+body[data-view-mode] .dnj-media-toolbar {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  order: 1;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -170,9 +190,12 @@ body[data-view-mode="l"] .collection-list .table tbody {
   gap: 14px;
   padding: 4px 0 12px;
 }
-body[data-view-mode="s"] .collection-list .table tbody { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); }
-body[data-view-mode="m"] .collection-list .table tbody { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-body[data-view-mode="l"] .collection-list .table tbody { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+/* Phase 4.61 — FIXED column counts (paired with per-view page limits in
+   MediaListEnhancer): S 6×4=24, M 4×3=12, L 2×2=4. Fixed columns keep each
+   page a predictable few rows tall → no long vertical scroll. */
+body[data-view-mode="s"] .collection-list .table tbody { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+body[data-view-mode="m"] .collection-list .table tbody { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+body[data-view-mode="l"] .collection-list .table tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 /* Row → card. */
 body[data-view-mode="s"] .collection-list .table tbody tr,
@@ -406,9 +429,396 @@ body[data-view-mode="l"] .collection-list .table tbody td.cell-_select {
   order: 0;
 }
 
-/* Responsive tweaks. */
-@media (max-width: 700px) {
-  body[data-view-mode="l"] .collection-list .table tbody { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-  body[data-view-mode="m"] .collection-list .table tbody { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+/* Responsive tweaks — fewer columns on small screens (some scroll is fine
+   here; the fixed desktop counts are what matter for the no-scroll goal). */
+@media (max-width: 900px) {
+  body[data-view-mode="s"] .collection-list .table tbody { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  body[data-view-mode="m"] .collection-list .table tbody { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body[data-view-mode="l"] .collection-list .table tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dnj-media-toolbar { gap: 8px; }
+}
+@media (max-width: 560px) {
+  body[data-view-mode="s"] .collection-list .table tbody { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body[data-view-mode="m"] .collection-list .table tbody { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body[data-view-mode="l"] .collection-list .table tbody { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FOLDER VIEW density (Phase 4.60)
+   ---------------------------------------------------------------
+   Payload's native folder view (/admin/browse-by-folder and
+   /admin/collections/media/payload-folders) already shows the folder
+   structure + a grid/list toggle + sort. We add card DENSITY:
+   FolderControls (portalled into `.search-bar__actions`) writes
+   `body[data-folder-density]` and we resize `.item-card-grid`
+   (the shared grid for both the Folders and Documents sections).
+   Native default is minmax(250px, 1fr); we override per size.
+   ═══════════════════════════════════════════════════════════════ */
+body[data-folder-density="s"] .item-card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+}
+body[data-folder-density="m"] .item-card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+}
+body[data-folder-density="l"] .item-card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+}
+
+/* ── Density segmented control — styled to sit among Payload's pills
+   in `.search-bar__actions`. Mirrors the flat-list view switch. */
+.dnj-folder-density {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.dnj-folder-density__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-500);
+}
+.dnj-folder-density__group {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 9px;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+}
+.dnj-folder-density__btn {
+  min-width: 32px;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-elevation-600);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+.dnj-folder-density__btn:hover {
+  color: var(--dnj-accent, #1b3a4b);
+  background: var(--dnj-hover-bg, rgba(0, 0, 0, 0.05));
+}
+.dnj-folder-density__btn--active {
+  background: var(--theme-elevation-0);
+  color: var(--dnj-accent, #1b3a4b);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+html[data-theme='dark'] .dnj-folder-density__btn--active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--dnj-accent, #8bd6b6);
+  box-shadow: none;
+}
+@media (max-width: 700px) {
+  .dnj-folder-density__label { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILEBIRD-STYLE TWO-PANE MEDIA LIST (Phase 4.61)
+   ---------------------------------------------------------------
+   MediaFolderSidebar sets `body[data-media-filebird]` on
+   /admin/collections/media and portals `.dnj-fb` into
+   `.collection-list__wrap`. Layout = native list in normal flow (right)
+   + folder sidebar absolutely positioned on the left. Absolute keeps the
+   sidebar OUT of the wrap's height calc, so it can never inflate the page
+   (an earlier CSS-grid row-span generated phantom rows that added ~400px
+   and forced a vertical scrollbar). Colors use admin theme tokens.
+   ═══════════════════════════════════════════════════════════════ */
+body[data-media-filebird] .collection-list__wrap {
+  position: relative;
+  max-width: none;
+  /* Reserve the left column for the sidebar (296px) + gap (18px). */
+  padding-left: 314px;
+  /* Trim Payload's large bottom padding so pagination stays in the viewport. */
+  padding-bottom: 12px;
+}
+body[data-media-filebird] .dnj-fb {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 296px;
+  /* Bounded to the viewport so a long folder list never grows the page;
+     the folder list scrolls inside the sidebar instead. */
+  max-height: calc(100vh - 40px);
+}
+
+/* ── Fit-to-viewport (Phase 4.61) ───────────────────────────────
+   Keep the whole media page within the viewport — no page scroll —
+   for every view mode. Only the grid/table area scrolls internally
+   (safety net; per-mode page limits usually make it unnecessary).
+   Header, filter row, selection slot and pagination stay put.
+   `--dnj-media-chrome` = combined height of the app header + list
+   header + filter row + selection slot + pagination + paddings.
+   Tune it here if your admin header differs. */
+body[data-media-filebird] .collection-list__tables {
+  max-height: calc(100vh - var(--dnj-media-chrome, 300px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+@media (max-width: 1023px) {
+  /* Stack: sidebar on top, full width, in normal flow. */
+  body[data-media-filebird] .collection-list__wrap {
+    padding-left: 0;
+  }
+  body[data-media-filebird] .dnj-fb {
+    position: static;
+    width: auto;
+    margin-bottom: 14px;
+    max-height: none;
+  }
+}
+
+/* ── Sidebar shell ─────────────────────────────────────────── */
+.dnj-fb {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 12px;
+  background: var(--theme-elevation-0);
+  box-shadow: 0 1px 2px rgba(13, 27, 42, 0.04);
+  max-height: calc(100vh - 24px);
+}
+
+/* Header: brand + New Folder */
+.dnj-fb__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--theme-elevation-100);
+}
+.dnj-fb__brand { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.dnj-fb__brand-icon { color: var(--dnj-accent, #1b3a4b); display: inline-flex; }
+.dnj-fb__brand-text {
+  font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--theme-text);
+}
+.dnj-fb__new {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border: 0; border-radius: 8px;
+  background: var(--dnj-accent, #1b3a4b); color: #fff;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.02em; cursor: pointer;
+  transition: filter 0.14s ease, opacity 0.14s ease;
+}
+.dnj-fb__new:hover { filter: brightness(1.08); }
+.dnj-fb__new:disabled { opacity: 0.5; cursor: default; }
+
+/* Action toolbar */
+.dnj-fb__actions {
+  display: flex; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 9px;
+  background: var(--theme-elevation-50);
+}
+.dnj-fb__act {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--theme-elevation-600); cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.dnj-fb__act:hover { background: var(--theme-elevation-0); color: var(--dnj-accent, #1b3a4b); }
+.dnj-fb__act--danger:hover { color: var(--theme-error-500, #ba1a1a); }
+.dnj-fb__act--on { background: var(--theme-elevation-0); color: var(--dnj-accent, #1b3a4b); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.dnj-fb__act--end { margin-left: auto; }
+.dnj-fb__act:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+
+/* Filter input */
+.dnj-fb__filter { position: relative; }
+.dnj-fb__filter-icon {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  color: var(--theme-elevation-400); display: inline-flex; pointer-events: none;
+}
+.dnj-fb__filter-input {
+  width: 100%; box-sizing: border-box;
+  padding: 7px 10px 7px 30px; border-radius: 8px;
+  border: 1px solid var(--theme-elevation-100);
+  background: var(--theme-elevation-50); color: var(--theme-text);
+  font-size: 12px; transition: background 0.14s ease, border-color 0.14s ease;
+}
+.dnj-fb__filter-input:focus {
+  outline: none; background: var(--theme-elevation-0);
+  border-color: var(--dnj-accent, #1b3a4b);
+}
+
+/* Folder list */
+.dnj-fb__list {
+  display: flex; flex-direction: column; gap: 2px;
+  overflow-y: auto; padding-right: 2px; flex: 1 1 auto; min-height: 0;
+}
+.dnj-fb__item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; box-sizing: border-box; text-align: left;
+  padding: 7px 10px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--theme-elevation-700); cursor: pointer;
+  font-size: 13px; transition: background 0.12s ease, color 0.12s ease;
+}
+.dnj-fb__item:hover { background: var(--theme-elevation-50); color: var(--theme-text); }
+.dnj-fb__item--active {
+  background: color-mix(in srgb, var(--dnj-accent, #1b3a4b) 12%, transparent);
+  color: var(--dnj-accent, #1b3a4b); font-weight: 600;
+}
+html[data-theme='dark'] .dnj-fb__item--active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--dnj-accent, #8bd6b6);
+}
+.dnj-fb__item--root { font-weight: 600; }
+.dnj-fb__item-label { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.dnj-fb__item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dnj-fb__folder-ico { color: var(--dnj-accent, #1b3a4b); display: inline-flex; flex-shrink: 0; }
+html[data-theme='dark'] .dnj-fb__folder-ico { color: var(--dnj-accent, #8bd6b6); }
+.dnj-fb__count {
+  flex-shrink: 0; min-width: 22px; text-align: center;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--theme-elevation-100); color: var(--theme-elevation-600);
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.dnj-fb__item--active .dnj-fb__count {
+  background: color-mix(in srgb, var(--dnj-accent, #1b3a4b) 20%, transparent);
+  color: var(--dnj-accent, #1b3a4b);
+}
+.dnj-fb__section {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px 2px; margin-top: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--theme-elevation-400);
+}
+.dnj-fb__empty { padding: 10px; font-size: 12px; color: var(--theme-elevation-400); }
+
+/* Footer */
+.dnj-fb__foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 4px; padding: 8px 10px; border-radius: 8px;
+  background: var(--theme-elevation-50);
+}
+.dnj-fb__foot-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; color: var(--theme-elevation-500);
+}
+.dnj-fb__foot-link {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 11px; font-weight: 600; color: var(--dnj-accent, #1b3a4b);
+}
+.dnj-fb__foot-link:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SELECTION BAR (Phase 4.61) — Select all / Deselect all above grid
+   (grid mode hides the native table-header select-all checkbox).
+   Rendered by MediaSelectionBar via Media.admin.components.beforeListTable.
+   ═══════════════════════════════════════════════════════════════ */
+/* Fixed-height slot reserves space so the grid never shifts when selection
+   toggles. Empty when nothing is selected (just a minimal gap); the framed
+   bar fills it once a selection exists. */
+.dnj-media-selbar-slot {
+  display: flex;
+  align-items: stretch;
+  min-height: 34px;
+  margin: 0 0 8px;
+}
+.dnj-media-selbar {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0 !important;
+  padding: 2px 10px !important;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 8px;
+  background: var(--theme-elevation-50);
+  min-height: 0 !important;
+  line-height: 1.3;
+}
+.dnj-media-selbar__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-text);
+}
+.dnj-media-selbar__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--dnj-accent, #1b3a4b);
+}
+html[data-theme='dark'] .dnj-media-selbar__dot { background: var(--dnj-accent, #8bd6b6); }
+.dnj-media-selbar__actions { display: inline-flex; align-items: center; gap: 4px; }
+.dnj-media-selbar__link {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dnj-accent, #1b3a4b);
+  transition: background 0.14s ease, color 0.14s ease;
+}
+html[data-theme='dark'] .dnj-media-selbar__link { color: var(--dnj-accent, #8bd6b6); }
+.dnj-media-selbar__link:hover { background: var(--dnj-hover-bg, rgba(0, 0, 0, 0.06)); }
+.dnj-media-selbar__link--muted { color: var(--theme-elevation-600); }
+.dnj-media-selbar__link--muted:hover { color: var(--theme-error-500, #ba1a1a); }
+/* Bulk Edit/Delete (Payload's EditMany/DeleteMany pills) live inside the bar.
+   Keep them compact so the bar stays a single slim row. */
+.dnj-media-selbar__bulk { display: inline-flex; align-items: center; gap: 6px; }
+.dnj-media-selbar__bulk .edit-many,
+.dnj-media-selbar__bulk .edit-many__toggle {
+  display: inline-flex !important;
+  align-items: center;
+  margin: 0 !important;
+}
+/* Edit / Delete (Payload's EditMany/DeleteMany use `.list-selection__button`,
+   a bare underlined text link) → styled as proper buttons with hover. */
+.dnj-media-selbar__bulk .list-selection__button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  margin: 0 !important;
+  padding: 4px 10px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-radius: 6px !important;
+  background: var(--theme-elevation-0) !important;
+  color: var(--theme-text) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.dnj-media-selbar__bulk .list-selection__button:hover {
+  background: var(--theme-elevation-50) !important;
+  border-color: var(--theme-elevation-300) !important;
+}
+/* Second bulk button is Delete → danger hover. */
+.dnj-media-selbar__bulk .delete-documents .list-selection__button:hover,
+.dnj-media-selbar__bulk > *:last-child .list-selection__button:hover {
+  color: var(--theme-error-500, #ba1a1a) !important;
+  border-color: var(--theme-error-500, #ba1a1a) !important;
+}
+
+/* Keep every child vertically centered on one slim row + defeat any layered
+   min-height so the frame can't grow tall. */
+.dnj-media-selbar > *,
+.dnj-media-selbar__actions > *,
+.dnj-media-selbar__bulk > * { align-self: center; }
+.dnj-media-selbar,
+.dnj-media-selbar * { min-height: 0 !important; }
+
+/* Hide the native selection cluster ("N selected · Select all · Edit ·
+   Delete") in the list header — MediaSelectionBar consolidates it. The
+   "By Folder" toggle (.default-list-view-tabs) is a sibling and stays.
+   `.collection-list__list-selection` is the small-screen variant. */
+body[data-media-filebird] .list-selection,
+body[data-media-filebird] .collection-list__list-selection {
+  display: none !important;
 }

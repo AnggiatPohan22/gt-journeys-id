@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { superAdminFieldAccess } from '../access/roles'
 import { moduleAccess } from '../access/moduleAccess'
 import { generateSlug } from '../hooks/generateSlug'
+import { assignMediaFolder } from '../hooks/assignMediaFolder'
 import { seoFields } from '../fields/seo'
 import { pricingFields } from '../fields/pricing'
 import { whatsappField } from '../fields/whatsapp'
@@ -18,6 +19,7 @@ const s = cfg
 
 export const Tours: CollectionConfig = {
   slug: 'tours',
+  hooks: { afterChange: [assignMediaFolder('tours')] },
   admin: {
     useAsTitle: 'title',
     group: 'Services',

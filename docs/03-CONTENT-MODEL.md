@@ -327,6 +327,29 @@ Tugas yang butuh perubahan kode di `apps/`:
 
 ---
 
+## 5. Media Library — Folder Organization (Phase 4.60)
+
+Media kini terorganisir dalam **folder** (fitur Folders bawaan Payload):
+
+- **Struktur otomatis**: tiap service (Tours, Accommodations, dst.) + Blog +
+  Pages punya folder sendiri, masing-masing dengan sub-folder **Featured** dan
+  **Gallery**. Media yang belum masuk folder ada di root (**Uncategorized**).
+- **Auto-routing saat simpan**: ketika SU/Admin menyimpan sebuah service/post,
+  `featuredImage`-nya dipindah ke `<Modul>/Featured` dan `gallery`-nya ke
+  `<Modul>/Gallery` — **hanya** jika media itu belum punya folder. Penempatan
+  manual (drag-drop) tidak pernah ditimpa. (Hook: `assignMediaFolder`.)
+- **Buat folder sendiri**: user bisa membuat folder & sub-folder baru langsung
+  dari view "Browse by Folder" dan memindah gambar via drag-drop.
+- **Tampilan**: view folder menampilkan struktur folder + kartu gambar, dengan
+  kontrol ukuran **Detail / S / M / L** (Detail = tampilan tabel; S/M/L = ukuran
+  kartu). Label folder & pemetaan modul diedit di
+  `apps/cms/src/config/mediaFolders.ts` (satu tempat).
+- **Pengelolaan**: seed struktur awal via `pnpm --filter cms seed:media-folders`.
+
+Panduan teknis lengkap: [`docs/reports/phase-media-folders.md`](reports/phase-media-folders.md).
+
+---
+
 ## Referensi silang
 
 - Arsitektur monorepo & alur data → [01-ARCHITECTURE.md](docs/01-ARCHITECTURE.md)
