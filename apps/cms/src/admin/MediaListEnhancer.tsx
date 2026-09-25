@@ -27,7 +27,7 @@
  * containers are (re)located via a shallow MutationObserver on <body>
  * to survive SPA navigation.
  */
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
@@ -60,6 +60,13 @@ const ATTR = 'data-view-mode'
 const FOLDER_STORAGE_KEY = 'dnj-media-folder-density'
 const FOLDER_ATTR = 'data-folder-density'
 
+// Phase 4.60.2 — "Choose from existing" media picker (ListDrawer) density.
+// Independent state from the flat list so adjusting the picker never rewrites
+// the list route's view. Applied to the `.list-drawer` element (NOT body), so
+// CSS keys on `.list-drawer[data-drawer-view]` and can't leak to any route.
+const DRAWER_STORAGE_KEY = 'dnj-media-drawer-view'
+const DRAWER_ATTR = 'data-drawer-view'
+
 const MEDIA_LIST_RE = /^\/admin\/collections\/media\/?$/
 // Payload's per-collection folder view lives at /collections/media/<foldersSlug>
 // where foldersSlug defaults to `payload-folders` (NOT `folders`).
@@ -85,6 +92,15 @@ const readFolderMode = (): Mode => {
     if (s && MODES.some((m) => m.key === s)) return s
   } catch { /* noop */ }
   return 'm'
+}
+
+const readDrawerMode = (): Mode => {
+  try {
+    const s = localStorage.getItem(DRAWER_STORAGE_KEY) as Mode | null
+    if (s && MODES.some((m) => m.key === s)) return s
+  } catch { /* noop */ }
+  // Default to the compact Detail list (matches Phase 4.60.2 baseline).
+  return 'detail'
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -303,6 +319,56 @@ const FolderControls: React.FC = () => {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   C) MEDIA PICKER DRAWER density control (Phase 4.60.2)
+   ══════════════════════════════════════════════════════════════════
+   Segmented Detail / S / M / L control portalled into the media
+   "Choose from existing" ListDrawer. Sets `data-drawer-view` on the
+   enclosing `.list-drawer` element (found via `.closest`), so the grid
+   CSS (`.list-drawer[data-drawer-view=…]`) reshapes only the picker. */
+const DrawerDensityControl: React.FC = () => {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [mode, setMode] = useState<Mode>('detail')
+
+  const applyToDrawer = (m: Mode) => {
+    const drawer = rootRef.current?.closest('.list-drawer')
+    if (drawer) drawer.setAttribute(DRAWER_ATTR, m)
+  }
+
+  useEffect(() => {
+    const m = readDrawerMode()
+    setMode(m)
+    applyToDrawer(m)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const choose = (m: Mode) => {
+    setMode(m)
+    try { localStorage.setItem(DRAWER_STORAGE_KEY, m) } catch { /* noop */ }
+    applyToDrawer(m)
+  }
+
+  return (
+    <div ref={rootRef} className="dnj-drawer-density" role="group" aria-label="Media picker view size">
+      <span className="dnj-drawer-density__label">View</span>
+      <div className="dnj-drawer-density__group">
+        {MODES.map((m) => (
+          <button
+            key={m.key}
+            type="button"
+            className={`dnj-drawer-density__btn${mode === m.key ? ' dnj-drawer-density__btn--active' : ''}`}
+            title={m.label === 'Detail' ? 'Compact list' : `${m.label} cards`}
+            aria-pressed={mode === m.key}
+            onClick={() => choose(m.key)}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
    Mount orchestrator
    ══════════════════════════════════════════════════════════════════ */
 const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
@@ -313,6 +379,9 @@ const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children 
   const isEdit = useMemo(() => MEDIA_EDIT_RE.test(pathname ?? ''), [pathname])
   const [listContainer, setListContainer] = useState<HTMLElement | null>(null)
   const [folderContainer, setFolderContainer] = useState<HTMLElement | null>(null)
+  // Phase 4.60.2 — the media picker drawer can open from ANY route (edit views),
+  // so it is detected via DOM (not pathname).
+  const [drawerContainer, setDrawerContainer] = useState<HTMLElement | null>(null)
 
   // Phase 4.60.1 — mark the media edit/create route so CSS can drop Payload's
   // viewport-filling form min-height (keeps the compact edit view scroll-free).
@@ -361,11 +430,42 @@ const MediaListEnhancer: React.FC<{ children?: React.ReactNode }> = ({ children 
     }
   }, [isList, isFolder])
 
+  // Phase 4.60.2 — detect the media "Choose from existing" ListDrawer on any
+  // route and portal a Detail/S/M/L control into its search-bar actions. Only
+  // matches a drawer whose list is the media collection (`.collection-list--media`).
+  useEffect(() => {
+    const find = () => {
+      const drawer = document.querySelector<HTMLElement>('.list-drawer')
+      const isMediaDrawer = !!drawer?.querySelector('.collection-list--media')
+      const target =
+        drawer && isMediaDrawer
+          ? drawer.querySelector<HTMLElement>('.search-bar__actions')
+          : null
+      setDrawerContainer((prev) => (prev === target ? prev : target))
+    }
+    find()
+    let raf = 0
+    const schedule = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        find()
+      })
+    }
+    const obs = new MutationObserver(schedule)
+    obs.observe(document.body, { childList: true, subtree: true })
+    return () => {
+      obs.disconnect()
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
   return (
     <>
       {children}
       {isList && listContainer ? createPortal(<Toolbar />, listContainer) : null}
       {isFolder && folderContainer ? createPortal(<FolderControls />, folderContainer) : null}
+      {drawerContainer ? createPortal(<DrawerDensityControl />, drawerContainer) : null}
     </>
   )
 }

@@ -836,3 +836,282 @@ body[data-media-filebird] .list-selection,
 body[data-media-filebird] .collection-list__list-selection {
   display: none !important;
 }
+
+/* ═════════════════════════════════════════════════════════════════
+   Phase 4.60.2 — "Choose from existing" media picker (ListDrawer)
+   ═════════════════════════════════════════════════════════════════
+   The MediaListEnhancer only writes `body[data-view-mode]` on the media
+   list ROUTE — never inside a drawer overlay (the drawer is a portal, not
+   a navigation). So the picker falls back to Payload's raw table, where our
+   custom thumbnail cell (MediaThumbnailCell) renders the image at full size
+   → 185px-tall rows = "berantakan".
+
+   These rules are scoped to `.list-drawer .collection-list--media`, so they
+   affect ONLY the media "Choose from existing" drawer — never the main media
+   list route, never any other collection's drawer.
+
+   Row now reads cleanly: [compact preview] · File name · Alt Text · Updated.
+   The thumbnail is the select button (see MediaThumbnailCell drawer branch);
+   a hover ring signals it is clickable → selects the image + closes drawer. */
+
+/* Preview column — shrink to content, keep vertically centered. */
+.list-drawer .collection-list--media .table td.cell-thumbnail {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+  padding-block: 8px;
+}
+
+/* Compact, uniform thumbnail box (image OR file-icon). Overrides the
+   unconstrained natural-size render that made rows huge. */
+.list-drawer .collection-list--media .table td.cell-thumbnail .dnj-media-thumb {
+  display: block;
+  width: 72px;
+  height: 54px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  background: var(--theme-elevation-50);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, filter 0.15s ease;
+}
+/* Neutralise native <button> chrome for the select variant. */
+.list-drawer .collection-list--media .table td.cell-thumbnail .dnj-media-thumb--select {
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: initial;
+}
+.list-drawer .collection-list--media .table td.cell-thumbnail .dnj-media-thumb__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.list-drawer .collection-list--media .table td.cell-thumbnail .dnj-media-thumb__icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 46%;
+  height: 46%;
+  color: var(--theme-elevation-400);
+}
+/* Clickable affordance — the whole thumbnail selects the image. */
+.list-drawer .collection-list--media .table td.cell-thumbnail .dnj-media-thumb:hover {
+  box-shadow: 0 0 0 2px var(--theme-success-500, #4caf7d);
+  filter: brightness(1.04);
+}
+.list-drawer .collection-list--media .table td.cell-thumbnail .dnj-media-thumb:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--theme-success-500, #4caf7d);
+}
+
+/* Keep the remaining text cells centered on the now-shorter row. */
+.list-drawer .collection-list--media .table tbody td {
+  vertical-align: middle;
+}
+
+/* The File Name cell carries its own tiny duplicate thumbnail. With the
+   Preview column present that is redundant + adds clutter — hide it so the
+   image is shown once and the filename text reads clean. */
+.list-drawer .collection-list--media .table td.cell-filename .file__thumbnail {
+  display: none;
+}
+.list-drawer .collection-list--media .table td.cell-filename .file__filename {
+  font-weight: 500;
+}
+
+/* ── Phase 4.60.2 — Detail/S/M/L control inside the picker drawer.
+   Portalled by MediaListEnhancer into `.list-drawer .search-bar__actions`.
+   Styling mirrors `.dnj-folder-density` for consistency. */
+.dnj-drawer-density {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: 4px;
+}
+.dnj-drawer-density__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-500);
+}
+.dnj-drawer-density__group {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 9px;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+}
+.dnj-drawer-density__btn {
+  min-width: 32px;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-elevation-600);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, box-shadow 0.14s ease;
+}
+.dnj-drawer-density__btn:hover {
+  color: var(--dnj-accent, #1b3a4b);
+  background: var(--dnj-hover-bg, rgba(0, 0, 0, 0.05));
+}
+.dnj-drawer-density__btn--active {
+  background: var(--theme-elevation-0);
+  color: var(--dnj-accent, #1b3a4b);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+html[data-theme='dark'] .dnj-drawer-density__btn--active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--dnj-accent, #8bd6b6);
+  box-shadow: none;
+}
+@media (max-width: 700px) {
+  .dnj-drawer-density__label { display: none; }
+}
+
+/* ── Phase 4.60.2 — GRID TRANSFORM for the picker drawer (S / M / L).
+   Dormant for Detail (falls back to the compact list above). Reshapes the
+   drawer's rendered <table> into a responsive card grid — scoped to
+   `.list-drawer[data-drawer-view=…] .collection-list--media` so nothing
+   outside the media picker is touched. Selection still works: the thumbnail
+   is the <button> that fires onSelect (see MediaThumbnailCell). */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table {
+  overflow: visible;
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table > table,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table > table,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table > table {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table thead,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table thead,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table thead {
+  display: none;
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody {
+  display: grid;
+  gap: 14px;
+  padding: 6px 0 12px;
+}
+/* Responsive auto-fill — the drawer width varies, so size by min card width
+   rather than a fixed column count. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody {
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+}
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody {
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+}
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+/* Row → card. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody tr,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody tr,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody tr {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 10px;
+  background: var(--theme-elevation-0);
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody tr:hover,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody tr:hover,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(13, 27, 42, 0.10);
+  border-color: var(--theme-elevation-200);
+}
+html[data-theme='dark'] .list-drawer[data-drawer-view="s"] .collection-list--media .table tbody tr:hover,
+html[data-theme='dark'] .list-drawer[data-drawer-view="m"] .collection-list--media .table tbody tr:hover,
+html[data-theme='dark'] .list-drawer[data-drawer-view="l"] .collection-list--media .table tbody tr:hover {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+/* Cell defaults inside a card. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+/* The Detail-mode compact rule pins `.cell-thumbnail { width: 1% }` — in grid
+   mode the cell must span the whole card, else the thumbnail collapses to a
+   1px sliver (no image, nothing to click). Override width + wrapping here. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-thumbnail,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-thumbnail,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-thumbnail {
+  width: 100%;
+  white-space: normal;
+  padding: 0;
+}
+
+/* Show ONLY the thumbnail (image) + filename caption. Hide alt/date columns. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-alt,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-alt,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-alt,
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-updatedAt,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-updatedAt,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-updatedAt {
+  display: none;
+}
+/* Thumbnail fills the card top; the <button>/<a> becomes the whole image. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  background: var(--theme-elevation-50);
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb { height: 96px; }
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb { height: 132px; }
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb { height: 180px; }
+/* Hover ring becomes an inset highlight on the card image. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb:hover,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb:hover,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-thumbnail .dnj-media-thumb:hover {
+  box-shadow: inset 0 0 0 3px var(--theme-success-500, #4caf7d);
+}
+/* Filename caption under the image. */
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-filename,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-filename,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-filename {
+  padding: 8px 10px 10px;
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-filename .file__filename,
+.list-drawer[data-drawer-view="m"] .collection-list--media .table tbody td.cell-filename .file__filename,
+.list-drawer[data-drawer-view="l"] .collection-list--media .table tbody td.cell-filename .file__filename {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--theme-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.list-drawer[data-drawer-view="s"] .collection-list--media .table tbody td.cell-filename .file__filename {
+  font-size: 11px;
+}
