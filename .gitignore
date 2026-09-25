@@ -32,3 +32,6 @@ media/
 
 # TypeScript incremental build cache — should never be committed
 *.tsbuildinfo
+
+# AI local reference material (design refs / scratch) — keep on disk, not in git
+ai/reference/
