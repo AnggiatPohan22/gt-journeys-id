@@ -1,24 +1,11 @@
 import type { GlobalConfig, Field } from 'payload'
 import { isSuperAdmin } from '../access/roles'
 import { syncMediaFoldersToFeatures } from '../hooks/syncMediaFoldersToFeatures'
+import { SERVICE_MODULES, CARD_DESIGN_OPTIONS } from '../config/serviceModules'
 
-// ── Modul Layanan registry (Phase 4.49) ─────────────────────────────
-// Single source untuk daftar modul layanan — description auto-count di
-// tab, row checkbox auto-generate 2-per-baris. Tambah modul baru = 1
-// entry di array ini, otomatis muncul di CMS tanpa update description.
-// Nama harus match dgn `apps/web/src/config/modules.ts` ServiceModule enum
-// dan `apps/web/src/lib/features.ts` DEFAULT_FEATURES.modules.
-const SERVICE_MODULES = [
-  { name: 'tours',            label: 'Tours & Activities' },
-  { name: 'accommodations',   label: 'Villas & Hotels' },
-  { name: 'waterActivities',  label: 'Water Activities' },
-  { name: 'yacht',            label: 'Private Yacht' },
-  { name: 'restaurants',      label: 'Restaurants' },
-  { name: 'weddings',         label: 'Weddings & Events' },
-  { name: 'rentals',          label: 'Rental Service' },
-  { name: 'spa',              label: 'Spa & Wellness' },
-  { name: 'ferryTickets',     label: 'Ferry Tickets' },
-] as const
+// ── Modul Layanan registry ──────────────────────────────────────────
+// Single source of truth ada di `config/serviceModules.ts` (dipakai bareng
+// komponen admin ServiceModulesManager). Tambah modul baru = 1 entry di sana.
 
 // ── Phase 4.58.1 — Dashboard widgets: option registries ────────────
 // Kunci di sini SINGLE SOURCE OF TRUTH untuk fetch di DashboardStats.tsx.
@@ -54,23 +41,39 @@ const SYSTEM_HEALTH_OPTIONS = [
 const quickAccessOptions = () => [...QUICK_ACCESS_OPTIONS]
 const systemHealthOptions = () => [...SYSTEM_HEALTH_OPTIONS]
 
-// Bagi dua-per-baris (row) supaya layout tetap seperti sebelumnya.
-const moduleRowFields = (): Field[] => {
-  const rows: Field[] = []
-  for (let i = 0; i < SERVICE_MODULES.length; i += 2) {
-    const pair = SERVICE_MODULES.slice(i, i + 2)
-    rows.push({
-      type: 'row',
-      fields: pair.map((m) => ({
-        name: m.name,
-        type: 'checkbox' as const,
-        label: m.label,
-        defaultValue: true,
-        admin: { width: pair.length === 1 ? '100%' : '50%' },
-      })),
+// Phase 4.61.2 — data fields disembunyikan (hidden); UI dikelola komponen
+// custom `ServiceModulesManager` (grid kartu per service: toggle aktif + pemilih
+// 3 desain kartu). Field hidden tetap menyimpan data & bisa dibaca useField.
+// Ke-3 opsi desain (compact/detailed/ticket) tersedia untuk SEMUA service.
+const designSelectOptions = CARD_DESIGN_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
+
+const moduleGroupFields = (): Field[] => {
+  const dataFields: Field[] = []
+  for (const m of SERVICE_MODULES) {
+    dataFields.push({
+      name: m.name,
+      type: 'checkbox',
+      label: m.label,
+      defaultValue: true,
+      admin: { hidden: true },
+    })
+    dataFields.push({
+      name: `${m.name}Design`,
+      type: 'select',
+      label: `${m.label} — Card design`,
+      defaultValue: m.defaultDesign,
+      options: designSelectOptions,
+      admin: { hidden: true },
     })
   }
-  return rows
+  return [
+    {
+      name: 'serviceModulesUI',
+      type: 'ui',
+      admin: { components: { Field: '/admin/ServiceModulesManager#default' } },
+    },
+    ...dataFields,
+  ]
 }
 
 /**
@@ -121,9 +124,9 @@ export const SiteFeatures: GlobalConfig = {
               type: 'group',
               label: 'Modul Layanan',
               admin: {
-                description: `Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Terdaftar ${SERVICE_MODULES.length} modul; menambah modul baru = 1 entry di SERVICE_MODULES registry di globals/SiteFeatures.ts.`,
+                description: `Aktifkan modul & pilih desain kartunya. Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Menambah modul baru = 1 entry di config/serviceModules.ts.`,
               },
-              fields: moduleRowFields(),
+              fields: moduleGroupFields(),
             },
           ],
         },

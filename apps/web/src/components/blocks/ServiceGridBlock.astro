@@ -21,7 +21,9 @@ import { isServiceTypeEnabled } from '@lib/features'
 import {
   getTours, getAccommodations, getWaterActivities, getYachts,
   getRestaurants, getVenues, getRentals, getSpas, getFerryTickets,
+  getSiteFeatures,
 } from '@lib/payload'
+import { resolveCardVariant } from '@lib/serviceCards'
 import {
   resolveAlignment, resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
   resolveEntryAnimation, resolveBackground,
@@ -66,8 +68,9 @@ const where: Record<string, any> = {
 }
 // Phase 4.15 — card variant (mirrors ServiceListing). Fallback to
 // `compact` so existing block instances render byte-identical.
-const cardVariant: 'compact' | 'detailed' =
-  (block as any).cardVariant === 'detailed' ? 'detailed' : 'compact'
+// Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
+const gridFeatures = await getSiteFeatures().catch(() => null)
+const cardVariant = resolveCardVariant(block.serviceType, gridFeatures)
 
 const opts = { limit, where, sort: 'sortOrder' }
 
@@ -237,7 +240,7 @@ const curatedExploreHref = ((b.viewAllLink as string) || '').trim() || (defaultV
     ) : (
       <>
         <div
-          class:list={['grid md:grid-cols-2 lg:grid-cols-3 gap-6', paginate && 'pg-swipe']}
+          class:list={[cardVariant === 'ticket' ? 'grid grid-cols-1 gap-5' : 'grid md:grid-cols-2 lg:grid-cols-3 gap-6', paginate && 'pg-swipe']}
           data-animate="stagger"
           data-pgrid={gridId}
           data-pagination={paginate ? pageMode : 'none'}

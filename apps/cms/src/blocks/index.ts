@@ -444,10 +444,14 @@ const ServiceGrid: Block = {
               options: [
                 { label: 'Compact (default — image + title + price)', value: 'compact' },
                 { label: 'Detailed (multi-image, rating, description, amenity badges, Book Now)', value: 'detailed' },
+                { label: 'Ticket (route card — ferry/transport only)', value: 'ticket' },
               ],
               admin: {
-                description: 'Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.',
-                condition: (_, sib) => (sib?.template ?? 'default') === 'default',
+                // Phase 4.61.1 — DEPRECATED: desain kartu kini ditentukan terpusat di
+                // Settings → Pengaturan Fitur → Modul Layanan (per-service). Field ini
+                // disembunyikan & diabaikan frontend. Kolom DB dibiarkan (non-destruktif).
+                description: 'DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.',
+                condition: () => false,
               },
             },
             // ── Phase 4.16 (Pass 1) — template + selection mode ───
@@ -934,8 +938,13 @@ const ServiceListing: Block = {
               options: [
                 { label: 'Compact (default — image + title + price)', value: 'compact' },
                 { label: 'Detailed (multi-image, rating, description, amenity badges, Book Now)', value: 'detailed' },
+                { label: 'Ticket (route card — ferry/transport only)', value: 'ticket' },
               ],
-              admin: { description: 'Detailed variant matches Hero Immersive template but works with any layout.' },
+              admin: {
+                // Phase 4.61.1 — DEPRECATED: lihat catatan di block sebelumnya.
+                description: 'DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.',
+                condition: () => false,
+              },
             },
             {
               type: 'row',

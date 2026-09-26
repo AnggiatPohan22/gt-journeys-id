@@ -72,6 +72,7 @@ export interface Config {
     destinations: Destination;
     'destination-types': DestinationType;
     categories: Category;
+    locations: Location;
     testimonials: Testimonial;
     authors: Author;
     posts: Post;
@@ -110,6 +111,7 @@ export interface Config {
     destinations: DestinationsSelect<false> | DestinationsSelect<true>;
     'destination-types': DestinationTypesSelect<false> | DestinationTypesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    locations: LocationsSelect<false> | LocationsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
@@ -1206,9 +1208,9 @@ export interface Page {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -2032,9 +2034,9 @@ export interface Page {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -4248,9 +4250,9 @@ export interface Tour {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -5074,9 +5076,9 @@ export interface Tour {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -7039,9 +7041,9 @@ export interface Post {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -7865,9 +7867,9 @@ export interface Post {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -9974,9 +9976,9 @@ export interface Accommodation {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -12191,9 +12193,9 @@ export interface WaterActivity {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -14287,9 +14289,9 @@ export interface Yacht {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -15113,9 +15115,9 @@ export interface Yacht {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -17039,9 +17041,9 @@ export interface Restaurant {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -17576,9 +17578,9 @@ export interface Restaurant {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -19519,9 +19521,9 @@ export interface Venue {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -20345,9 +20347,9 @@ export interface Venue {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -22273,9 +22275,9 @@ export interface Rental {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -23099,9 +23101,9 @@ export interface Rental {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -25027,9 +25029,9 @@ export interface Spa {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -25853,9 +25855,9 @@ export interface Spa {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Detailed variant matches Hero Immersive template but works with any layout.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Enable pagination — show items in batches
              */
@@ -26678,13 +26680,21 @@ export interface FerryTicket {
   destination: number | Destination;
   category?: (number | null) | Category;
   /**
-   * Pelabuhan asal keberangkatan.
+   * Lokasi/pelabuhan asal keberangkatan. Tambah lokasi baru di Content → Locations.
    */
-  origin: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+  originLocation?: (number | null) | Location;
   /**
-   * Pelabuhan tujuan.
+   * Lokasi/pelabuhan tujuan.
    */
-  arrival: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+  arrivalLocation?: (number | null) | Location;
+  /**
+   * DEPRECATED — dipindah ke Origin Location (relationship).
+   */
+  origin?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
+  /**
+   * DEPRECATED — dipindah ke Arrival Location (relationship).
+   */
+  arrival?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
   /**
    * Mis: "1h 15m", "2 Hours"
    */
@@ -26736,6 +26746,24 @@ export interface FerryTicket {
       }[]
     | null;
   /**
+   * Logo operator (opsional), tampil di kartu Ticket. Mis. logo "Batam Fast".
+   */
+  operatorLogo?: (number | null) | Media;
+  /**
+   * Jumlah booking (opsional), mis. 1707 → tampil "1,707 booked".
+   */
+  bookedCount?: number | null;
+  /**
+   * Badge kecil di atas kartu (opsional, max 3). Mis. "Recommended", "Instant confirmation".
+   */
+  badges?:
+    | {
+        text: string;
+        style?: ('ocean' | 'leaf' | 'coral') | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Main hero image.
    */
   featuredImage: number | Media;
@@ -26759,13 +26787,21 @@ export interface FerryTicket {
   scheduleTime?:
     | {
         /**
-         * Pelabuhan asal.
+         * Pelabuhan asal. Tambah lokasi baru di Content → Locations.
          */
-        departurePort: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+        departureLocation?: (number | null) | Location;
         /**
          * Pelabuhan tujuan.
          */
-        arrivalPort: 'batam' | 'tanjungpinang' | 'singapore' | 'malaysia';
+        arrivalLocation?: (number | null) | Location;
+        /**
+         * DEPRECATED — dipindah ke Departure Location.
+         */
+        departurePort?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
+        /**
+         * DEPRECATED — dipindah ke Arrival Location.
+         */
+        arrivalPort?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
         /**
          * Mis: "08:00"
          */
@@ -26826,6 +26862,10 @@ export interface FerryTicket {
          * Harga per child (opsional).
          */
         childPrice?: number | null;
+        /**
+         * Harga asli sebelum diskon (opsional). Jika > adultPrice → tampil harga coret + "Save X%" di kartu.
+         */
+        originalPrice?: number | null;
         images?:
           | {
               image?: (number | null) | Media;
@@ -27915,9 +27955,9 @@ export interface FerryTicket {
             limit?: number | null;
             featuredOnly?: boolean | null;
             /**
-             * Card layout for the Default template. Compact = small grid tile. Detailed = richer per-item info. Ignored when template = Curated.
+             * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
-            cardVariant?: ('compact' | 'detailed') | null;
+            cardVariant?: ('compact' | 'detailed' | 'ticket') | null;
             /**
              * Card presentation template. Curated is designed for the bottom of a service detail page.
              */
@@ -28889,6 +28929,45 @@ export interface FerryTicket {
   createdAt: string;
 }
 /**
+ * Lokasi / pelabuhan reusable (mis. Batam, Singapore). Dipakai sebagai Origin/Arrival di Ferry Tickets. Tambah lokasi baru di sini — otomatis muncul sebagai pilihan.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "locations".
+ */
+export interface Location {
+  id: number;
+  /**
+   * Nama tampilan lokasi, mis: "Batam", "Singapore", "Tanjung Pinang".
+   */
+  name: string;
+  /**
+   * Nama terminal/pelabuhan (opsional), mis: "Singapore Cruise Center", "Batam Centre Terminal-BTC". Tampil sebagai baris kedua di card.
+   */
+  terminalName?: string | null;
+  /**
+   * Negara (opsional), mis: "Indonesia", "Singapore".
+   */
+  country?: string | null;
+  /**
+   * Kode singkat (opsional), mis: "BTM", "SIN".
+   */
+  code?: string | null;
+  /**
+   * Auto dari name.
+   */
+  slug: string;
+  /**
+   * Nonaktifkan untuk menyembunyikan lokasi dari pilihan (data tetap ada).
+   */
+  isActive?: boolean | null;
+  /**
+   * Kosongkan saat create → otomatis max+1. Kecil di atas.
+   */
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-folders".
  */
@@ -29369,6 +29448,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'locations';
+        value: number | Location;
       } | null)
     | ({
         relationTo: 'testimonials';
@@ -30866,6 +30949,21 @@ export interface CategoriesSelect<T extends boolean = true> {
   icon?: T;
   featuredImage?: T;
   status?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "locations_select".
+ */
+export interface LocationsSelect<T extends boolean = true> {
+  name?: T;
+  terminalName?: T;
+  country?: T;
+  code?: T;
+  slug?: T;
+  isActive?: T;
   sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -42356,6 +42454,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
   subtitle?: T;
   destination?: T;
   category?: T;
+  originLocation?: T;
+  arrivalLocation?: T;
   origin?: T;
   arrival?: T;
   duration?: T;
@@ -42376,6 +42476,15 @@ export interface FerryTicketsSelect<T extends boolean = true> {
         text?: T;
         id?: T;
       };
+  operatorLogo?: T;
+  bookedCount?: T;
+  badges?:
+    | T
+    | {
+        text?: T;
+        style?: T;
+        id?: T;
+      };
   featuredImage?: T;
   gallery?:
     | T
@@ -42388,6 +42497,8 @@ export interface FerryTicketsSelect<T extends boolean = true> {
   scheduleTime?:
     | T
     | {
+        departureLocation?: T;
+        arrivalLocation?: T;
         departurePort?: T;
         arrivalPort?: T;
         departureTime?: T;
@@ -42406,6 +42517,7 @@ export interface FerryTicketsSelect<T extends boolean = true> {
         currency?: T;
         adultPrice?: T;
         childPrice?: T;
+        originalPrice?: T;
         images?:
           | T
           | {
@@ -44198,18 +44310,27 @@ export interface HomepageContent {
 export interface SiteFeature {
   id: number;
   /**
-   * Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Terdaftar 9 modul; menambah modul baru = 1 entry di SERVICE_MODULES registry di globals/SiteFeatures.ts.
+   * Aktifkan modul & pilih desain kartunya. Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Menambah modul baru = 1 entry di config/serviceModules.ts.
    */
   modules?: {
     tours?: boolean | null;
+    toursDesign?: ('compact' | 'detailed' | 'ticket') | null;
     accommodations?: boolean | null;
+    accommodationsDesign?: ('compact' | 'detailed' | 'ticket') | null;
     waterActivities?: boolean | null;
+    waterActivitiesDesign?: ('compact' | 'detailed' | 'ticket') | null;
     yacht?: boolean | null;
+    yachtDesign?: ('compact' | 'detailed' | 'ticket') | null;
     restaurants?: boolean | null;
+    restaurantsDesign?: ('compact' | 'detailed' | 'ticket') | null;
     weddings?: boolean | null;
+    weddingsDesign?: ('compact' | 'detailed' | 'ticket') | null;
     rentals?: boolean | null;
+    rentalsDesign?: ('compact' | 'detailed' | 'ticket') | null;
     spa?: boolean | null;
+    spaDesign?: ('compact' | 'detailed' | 'ticket') | null;
     ferryTickets?: boolean | null;
+    ferryTicketsDesign?: ('compact' | 'detailed' | 'ticket') | null;
   };
   /**
    * Toggle section besar di homepage / landing pages.
@@ -45482,14 +45603,23 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
     | T
     | {
         tours?: T;
+        toursDesign?: T;
         accommodations?: T;
+        accommodationsDesign?: T;
         waterActivities?: T;
+        waterActivitiesDesign?: T;
         yacht?: T;
+        yachtDesign?: T;
         restaurants?: T;
+        restaurantsDesign?: T;
         weddings?: T;
+        weddingsDesign?: T;
         rentals?: T;
+        rentalsDesign?: T;
         spa?: T;
+        spaDesign?: T;
         ferryTickets?: T;
+        ferryTicketsDesign?: T;
       };
   sections?:
     | T

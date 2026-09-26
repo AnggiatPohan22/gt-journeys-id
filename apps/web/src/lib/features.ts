@@ -13,8 +13,12 @@
 import { modules, type ServiceModule, type ModuleConfig } from '@config/modules'
 import { getSiteFeatures } from '@lib/payload'
 
+export type CardDesign = 'compact' | 'detailed' | 'ticket'
+
 export interface SiteFeaturesShape {
   modules: Record<ServiceModule, boolean>
+  /** Phase 4.61.1 — desain kartu per-service (single source of truth). */
+  serviceCards: Record<ServiceModule, CardDesign>
   sections: {
     testimonials: boolean
     faq: boolean
@@ -43,6 +47,17 @@ const DEFAULT_FEATURES: SiteFeaturesShape = {
     spa: true,
     ferryTickets: true,
   },
+  serviceCards: {
+    tours: 'compact',
+    accommodations: 'compact',
+    waterActivities: 'compact',
+    yacht: 'compact',
+    restaurants: 'compact',
+    weddings: 'compact',
+    rentals: 'compact',
+    spa: 'compact',
+    ferryTickets: 'ticket',
+  },
   sections: { testimonials: true, faq: true, promoBanner: false, newsletter: false },
   features: { whatsappFloat: true, announcementBar: false },
   blog: { enabled: true, enableAds: false },
@@ -62,8 +77,24 @@ export async function getFeatures(): Promise<SiteFeaturesShape> {
   if (!isDev && cache) return cache
   try {
     const raw = await getSiteFeatures()
+    const rawModules = (raw?.modules ?? {}) as Record<string, unknown>
+    // Phase 4.61.1 — desain kartu disimpan di modules.<key>Design; ekstrak ke
+    // serviceCards. Nilai invalid/absent → fallback ke default.
+    const serviceCards = { ...DEFAULT_FEATURES.serviceCards }
+    for (const key of Object.keys(DEFAULT_FEATURES.serviceCards) as ServiceModule[]) {
+      const v = rawModules[`${key}Design`]
+      if (v === 'compact' || v === 'detailed' || v === 'ticket') {
+        serviceCards[key] = v
+      }
+    }
+    // modules: hanya ambil flag boolean (buang key *Design agar kontrak tetap bersih).
+    const modules = { ...DEFAULT_FEATURES.modules }
+    for (const key of Object.keys(DEFAULT_FEATURES.modules) as ServiceModule[]) {
+      if (typeof rawModules[key] === 'boolean') modules[key] = rawModules[key] as boolean
+    }
     const fresh: SiteFeaturesShape = {
-      modules: { ...DEFAULT_FEATURES.modules, ...(raw?.modules ?? {}) },
+      modules,
+      serviceCards,
       sections: { ...DEFAULT_FEATURES.sections, ...(raw?.sections ?? {}) },
       features: { ...DEFAULT_FEATURES.features, ...(raw?.features ?? {}) },
       blog: { ...DEFAULT_FEATURES.blog, ...((raw as any)?.blog ?? {}) },

@@ -16,6 +16,7 @@ import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
 import SpaCard from '@components/cards/SpaCard.astro'
 import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
+import { resolveCardVariant } from '@lib/serviceCards'
 import {
   resolveContainer, resolveEntryAnimation,
   resolveTextColor, resolveTextAnimIn,
@@ -201,7 +202,8 @@ const filterDestinations = enableDestFilter
   : []
 
 // ── Card + pagination ───────────────────────────────────
-const cardVariant: 'compact' | 'detailed' = b.cardVariant === 'compact' ? 'compact' : 'detailed'
+// Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
+const cardVariant = resolveCardVariant(serviceType, features)
 const showLoadMore = b.showLoadMore === true
 const paginationType: 'load-more' | 'pages' = b.paginationType === 'pages' ? 'pages' : 'load-more'
 // Phase 4.53 — per-breakpoint counts (mirror Editorial).
@@ -412,7 +414,12 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
     {visibleItems.length > 0 && (
       <>
         <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+          class:list={[
+            'grid',
+            cardVariant === 'ticket'
+              ? 'grid-cols-1 gap-5'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8',
+          ]}
           data-role="grid"
           data-listing-id={listingId}
           data-pagination={showLoadMore ? paginationType : 'none'}

@@ -11,18 +11,12 @@ import { getServiceWhatsApp, getServiceTypeByKey } from '@lib/serviceTypes'
 import { formatPrice } from '@shared/utils/format-price'
 import { siteConfig } from '@config/site'
 import { lexicalToPlainText } from '@lib/lexical'
+import { resolveLocation, routeLabelFrom } from '@lib/location'
 import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import StructuredData from '@components/common/StructuredData.astro'
 import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
 import { serviceItemSchema } from '@lib/structuredData'
 import type { FerryTicket, Media } from '@shared/types/payload-types'
-
-const portLabel: Record<string, string> = {
-  batam: 'Batam',
-  tanjungpinang: 'Tanjung Pinang',
-  singapore: 'Singapore',
-  malaysia: 'Malaysia',
-}
 
 export async function getStaticPaths() {
   if (!(await isModuleEnabled('ferryTickets'))) return []
@@ -77,8 +71,10 @@ const highlights = ((item as any).highlights ?? []) as Array<{ text: string }>
 
 // Schedule Time (new)
 type ScheduleTime = {
-  departurePort: string
-  arrivalPort: string
+  departurePort?: string
+  arrivalPort?: string
+  departureLocation?: unknown
+  arrivalLocation?: unknown
   departureTime: string
   arrivalTime: string
   duration?: string
@@ -91,12 +87,16 @@ const subtitle = (item as any).subtitle as string | undefined
 // Sidebar tags — top highlights (parity dgn villa highlightTags)
 const topTags = highlights.slice(0, 4).map((h) => h.text)
 
-// Ferry-specific fields
-const origin = (item as any).origin as string | undefined
-const arrival = (item as any).arrival as string | undefined
+// Ferry-specific fields — Origin/Arrival kini relationship → `locations`
+// (Phase 4.61); fallback ke enum lama selama masa transisi.
 const operator = (item as any).operator as string | undefined
 const departureTime = (item as any).departureTime as string | undefined
-const routeLabel = origin && arrival ? `${portLabel[origin] ?? origin} → ${portLabel[arrival] ?? arrival}` : undefined
+const routeLabel = routeLabelFrom(
+  (item as any).originLocation,
+  (item as any).arrivalLocation,
+  (item as any).origin,
+  (item as any).arrival,
+)
 
 // Quick specs — CMS override or derive
 type QuickSpec = { iconName: string; label: string; subtitle?: string }
@@ -241,12 +241,16 @@ const itemSchema = serviceItemSchema({
         <div class="mb-12 pb-12 border-b border-sand-dark/30" id="schedule">
           <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Schedule Time</h2>
           <div class="space-y-4">
-            {scheduleTime.map((s) => (
+            {scheduleTime.map((s) => {
+              const dep = resolveLocation(s.departureLocation, s.departurePort)
+              const arr = resolveLocation(s.arrivalLocation, s.arrivalPort)
+              return (
               <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6">
                 <div class="flex flex-wrap items-center gap-3 md:gap-6">
                   <div class="flex-1 min-w-0">
                     <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Departure</p>
-                    <p class="font-display text-lg text-ocean">{portLabel[s.departurePort] ?? s.departurePort}</p>
+                    <p class="font-display text-lg text-ocean">{dep?.name ?? '—'}</p>
+                    {dep?.terminal && <p class="text-xs text-stone-light">{dep.terminal}</p>}
                     <p class="text-2xl font-bold text-coral mt-1">{s.departureTime}</p>
                   </div>
                   <div class="flex flex-col items-center text-stone-light">
@@ -255,13 +259,15 @@ const itemSchema = serviceItemSchema({
                   </div>
                   <div class="flex-1 min-w-0 text-right">
                     <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Arrival</p>
-                    <p class="font-display text-lg text-ocean">{portLabel[s.arrivalPort] ?? s.arrivalPort}</p>
+                    <p class="font-display text-lg text-ocean">{arr?.name ?? '—'}</p>
+                    {arr?.terminal && <p class="text-xs text-stone-light">{arr.terminal}</p>}
                     <p class="text-2xl font-bold text-coral mt-1">{s.arrivalTime}</p>
                   </div>
                 </div>
                 {s.notes && <p class="mt-4 pt-4 border-t border-sand-dark/10 text-sm text-stone italic">{s.notes}</p>}
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

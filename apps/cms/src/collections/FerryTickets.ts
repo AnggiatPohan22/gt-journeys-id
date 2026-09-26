@@ -23,7 +23,7 @@ export const FerryTickets: CollectionConfig = {
     useAsTitle: 'title',
     group: 'Services',
     defaultColumns: ['title', 'destination', 'status', 'isFeatured', 'updatedAtRelative'],
-    preview: makePreview('/tour'),
+    preview: makePreview('/ferry-tickets'),
   },
   access: moduleAccess('ferryTickets'),
   fields: [
@@ -60,10 +60,27 @@ export const FerryTickets: CollectionConfig = {
                   type: 'row',
                   fields: [
                     {
+                      name: 'originLocation',
+                      type: 'relationship',
+                      relationTo: 'locations',
+                      admin: { width: '50%', description: 'Lokasi/pelabuhan asal keberangkatan. Tambah lokasi baru di Content → Locations.' },
+                    },
+                    {
+                      name: 'arrivalLocation',
+                      type: 'relationship',
+                      relationTo: 'locations',
+                      admin: { width: '50%', description: 'Lokasi/pelabuhan tujuan.' },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  admin: { condition: () => false }, // DEPRECATED (Phase 4.61) — disembunyikan; dihapus di Stage 4 setelah backfill
+                  fields: [
+                    {
                       name: 'origin',
                       type: 'select',
-                      required: true,
-                      admin: { width: '50%', description: 'Pelabuhan asal keberangkatan.' },
+                      admin: { width: '50%', description: 'DEPRECATED — dipindah ke Origin Location (relationship).' },
                       options: [
                         { label: 'Batam', value: 'batam' },
                         { label: 'Tanjung Pinang', value: 'tanjungpinang' },
@@ -74,8 +91,7 @@ export const FerryTickets: CollectionConfig = {
                     {
                       name: 'arrival',
                       type: 'select',
-                      required: true,
-                      admin: { width: '50%', description: 'Pelabuhan tujuan.' },
+                      admin: { width: '50%', description: 'DEPRECATED — dipindah ke Arrival Location (relationship).' },
                       options: [
                         { label: 'Batam', value: 'batam' },
                         { label: 'Tanjung Pinang', value: 'tanjungpinang' },
@@ -130,6 +146,54 @@ export const FerryTickets: CollectionConfig = {
                   admin: { description: 'Tour highlights (bullet points, max ~8).' },
                   fields: [
                     { name: 'text', type: 'text', required: true },
+                  ],
+                },
+              ],
+            },
+            // ── Card Display (Ticket) — Phase 4.61 Stage 5 ──
+            // Field OPSIONAL untuk tampilan kartu "Ticket Route" (variant=ticket).
+            // Kosongkan → elemen terkait otomatis disembunyikan di kartu.
+            {
+              type: 'collapsible',
+              label: 'Card Display (Ticket)',
+              admin: { initCollapsed: true, className: sectionClass(s.overview.color, s.overview.sections.quickSpecs.icon) },
+              fields: [
+                {
+                  name: 'operatorLogo',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: { description: 'Logo operator (opsional), tampil di kartu Ticket. Mis. logo "Batam Fast".' },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'bookedCount', type: 'number', min: 0, admin: { width: '50%', description: 'Jumlah booking (opsional), mis. 1707 → tampil "1,707 booked".' } },
+                  ],
+                },
+                {
+                  name: 'badges',
+                  type: 'array',
+                  maxRows: 3,
+                  label: 'Badges',
+                  admin: { description: 'Badge kecil di atas kartu (opsional, max 3). Mis. "Recommended", "Instant confirmation".' },
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'text', type: 'text', required: true, admin: { width: '60%' } },
+                        {
+                          name: 'style',
+                          type: 'select',
+                          defaultValue: 'leaf',
+                          admin: { width: '40%' },
+                          options: [
+                            { label: 'Blue (Recommended)', value: 'ocean' },
+                            { label: 'Green (Instant confirmation)', value: 'leaf' },
+                            { label: 'Coral', value: 'coral' },
+                          ],
+                        },
+                      ],
+                    },
                   ],
                 },
               ],
@@ -211,10 +275,27 @@ export const FerryTickets: CollectionConfig = {
                       type: 'row',
                       fields: [
                         {
+                          name: 'departureLocation',
+                          type: 'relationship',
+                          relationTo: 'locations',
+                          admin: { width: '50%', description: 'Pelabuhan asal. Tambah lokasi baru di Content → Locations.' },
+                        },
+                        {
+                          name: 'arrivalLocation',
+                          type: 'relationship',
+                          relationTo: 'locations',
+                          admin: { width: '50%', description: 'Pelabuhan tujuan.' },
+                        },
+                      ],
+                    },
+                    {
+                      type: 'row',
+                      admin: { condition: () => false }, // DEPRECATED (Phase 4.61) — dihapus di Stage 4 setelah backfill
+                      fields: [
+                        {
                           name: 'departurePort',
                           type: 'select',
-                          required: true,
-                          admin: { width: '50%', description: 'Pelabuhan asal.' },
+                          admin: { width: '50%', description: 'DEPRECATED — dipindah ke Departure Location.' },
                           options: [
                             { label: 'Batam (Batam Center / Harbour Bay / Sekupang)', value: 'batam' },
                             { label: 'Tanjung Pinang (Sri Bintan Pura)', value: 'tanjungpinang' },
@@ -225,8 +306,7 @@ export const FerryTickets: CollectionConfig = {
                         {
                           name: 'arrivalPort',
                           type: 'select',
-                          required: true,
-                          admin: { width: '50%', description: 'Pelabuhan tujuan.' },
+                          admin: { width: '50%', description: 'DEPRECATED — dipindah ke Arrival Location.' },
                           options: [
                             { label: 'Batam (Batam Center / Harbour Bay / Sekupang)', value: 'batam' },
                             { label: 'Tanjung Pinang (Sri Bintan Pura)', value: 'tanjungpinang' },
@@ -304,8 +384,9 @@ export const FerryTickets: CollectionConfig = {
                     {
                       type: 'row',
                       fields: [
-                        { name: 'adultPrice', type: 'number', min: 0, required: true, admin: { width: '50%', description: 'Harga per adult.' } },
-                        { name: 'childPrice', type: 'number', min: 0, admin: { width: '50%', description: 'Harga per child (opsional).' } },
+                        { name: 'adultPrice', type: 'number', min: 0, required: true, admin: { width: '34%', description: 'Harga per adult.' } },
+                        { name: 'childPrice', type: 'number', min: 0, admin: { width: '33%', description: 'Harga per child (opsional).' } },
+                        { name: 'originalPrice', type: 'number', min: 0, admin: { width: '33%', description: 'Harga asli sebelum diskon (opsional). Jika > adultPrice → tampil harga coret + "Save X%" di kartu.' } },
                       ],
                     },
                     { name: 'images', type: 'array', fields: [{ name: 'image', type: 'upload', relationTo: 'media' }] },

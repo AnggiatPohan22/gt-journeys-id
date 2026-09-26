@@ -2,13 +2,15 @@
 import type { FerryTicket } from '@shared/types/payload-types'
 import { formatPrice } from '@shared/utils/format-price'
 import { lexicalToPlainText } from '@lib/lexical'
+import { routeLabelFrom, resolveLocation } from '@lib/location'
 import DetailedCard from './DetailedCard.astro'
+import TicketRouteCard from './TicketRouteCard.astro'
 
 interface Props {
   ferryTicket: FerryTicket
   /** Detail route base (default '/ferry-tickets'). */
   hrefBase?: string
-  variant?: 'compact' | 'detailed'
+  variant?: 'compact' | 'detailed' | 'ticket'
 }
 const { ferryTicket, hrefBase = '/ferry-tickets', variant = 'compact' } = Astro.props
 
@@ -17,7 +19,7 @@ const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
 const imgAlt = img?.alt ?? ferryTicket.title
 const dest = typeof ferryTicket.destination === 'object' ? ferryTicket.destination : null
 
-const ferryClasses = ((ferryTicket as any).ferryClasses ?? []) as Array<{ adultPrice?: number; currency?: string }>
+const ferryClasses = ((ferryTicket as any).ferryClasses ?? []) as Array<{ adultPrice?: number; currency?: string; originalPrice?: number; classType?: string }>
 const cheapest = ferryClasses
   .map((c) => c.adultPrice)
   .filter((p): p is number => typeof p === 'number' && p > 0)
@@ -26,18 +28,38 @@ const cheapestObj = ferryClasses.find((c) => c.adultPrice === cheapest)
 const adultPrice = cheapest ?? null
 const currency = cheapestObj?.currency ?? 'IDR'
 
-const portLabel: Record<string, string> = {
-  batam: 'Batam',
-  tanjungpinang: 'Tanjung Pinang',
-  singapore: 'Singapore',
-  malaysia: 'Malaysia',
-}
-
-const origin = (ferryTicket as any).origin as string | undefined
-const arrival = (ferryTicket as any).arrival as string | undefined
-const routeLabel = origin && arrival ? `${portLabel[origin] ?? origin} → ${portLabel[arrival] ?? arrival}` : undefined
+// Origin/Arrival kini relationship → `locations` (Phase 4.61). Fallback ke
+// enum lama (`origin`/`arrival`) selama masa transisi.
+const routeLabel = routeLabelFrom(
+  (ferryTicket as any).originLocation,
+  (ferryTicket as any).arrivalLocation,
+  (ferryTicket as any).origin,
+  (ferryTicket as any).arrival,
+)
 const operator = (ferryTicket as any).operator as string | undefined
 const duration = (ferryTicket as any).duration as string | undefined
+
+// ── Ticket variant (Phase 4.61 Stage 5) ──────────────────────
+const detailHref = `${hrefBase}/${ferryTicket.slug}`
+const fromLoc = resolveLocation((ferryTicket as any).originLocation, (ferryTicket as any).origin)
+const toLoc = resolveLocation((ferryTicket as any).arrivalLocation, (ferryTicket as any).arrival)
+const schedule0 = Array.isArray((ferryTicket as any).scheduleTime) ? (ferryTicket as any).scheduleTime[0] : null
+const opLogo = typeof (ferryTicket as any).operatorLogo === 'object' ? (ferryTicket as any).operatorLogo : null
+const opLogoUrl = opLogo?.sizes?.thumbnail?.url ?? opLogo?.url ?? undefined
+const badges = (((ferryTicket as any).badges ?? []) as Array<{ text?: string; style?: 'ocean' | 'leaf' | 'coral' }>)
+  .filter((b) => b?.text)
+  .map((b) => ({ text: b.text as string, style: b.style }))
+const bookedCount = (ferryTicket as any).bookedCount as number | undefined
+const classTypeLabel: Record<string, string> = { ekonomi: 'Ekonomi', emerald: 'Emerald' }
+const ticketPrice = adultPrice
+  ? {
+      amount: adultPrice,
+      currency,
+      per: 'Per person',
+      className: cheapestObj?.classType ? classTypeLabel[cheapestObj.classType] ?? cheapestObj.classType : undefined,
+      original: cheapestObj?.originalPrice && cheapestObj.originalPrice > adultPrice ? cheapestObj.originalPrice : undefined,
+    }
+  : undefined
 
 const galleryFromArr = Array.isArray((ferryTicket as any).gallery)
   ? (ferryTicket as any).gallery
@@ -53,7 +75,27 @@ const detailedAmenities = [
 ].filter(Boolean) as { name: string; icon?: string }[]
 ---
 
-{variant === 'detailed' ? (
+{variant === 'ticket' ? (
+  <TicketRouteCard
+    href={detailHref}
+    bookHref={detailHref}
+    moreInfoHref={detailHref}
+    operator={{ name: operator, logo: opLogoUrl }}
+    badges={badges}
+    image={imgUrl ? { url: imgUrl, alt: imgAlt } : undefined}
+    from={{ name: fromLoc?.name ?? '—', terminal: fromLoc?.terminal, time: schedule0?.departureTime }}
+    to={{ name: toLoc?.name ?? '—', terminal: toLoc?.terminal, time: schedule0?.arrivalTime }}
+    middle={{
+      label: 'Ferry',
+      icon: 'ship',
+      duration: schedule0?.duration ?? duration,
+      bookedLabel: typeof bookedCount === 'number' ? `${bookedCount.toLocaleString('en-US')} booked` : undefined,
+    }}
+    price={ticketPrice}
+    bookText="Book Now"
+    moreInfoText="More info"
+  />
+) : variant === 'detailed' ? (
   <DetailedCard
     href={`${hrefBase}/${ferryTicket.slug}`}
     images={detailedImages}

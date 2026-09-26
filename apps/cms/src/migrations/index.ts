@@ -27,6 +27,9 @@ import * as migration_20260921_103429_phase_4_58_1_dashboard_widget_config from 
 import * as migration_20260921_110920_phase_4_58_3_dashboard_titles from './20260921_110920_phase_4_58_3_dashboard_titles';
 import * as migration_20260922_160606_phase_4_59_media_enrichment from './20260922_160606_phase_4_59_media_enrichment';
 import * as migration_20260924_032356_phase_4_60_media_folders from './20260924_032356_phase_4_60_media_folders';
+import * as migration_20260925_163237_phase_4_61_locations from './20260925_163237_phase_4_61_locations';
+import * as migration_20260925_171415_phase_4_61_ticket_fields from './20260925_171415_phase_4_61_ticket_fields';
+import * as migration_20260925_184020_phase_4_61_1_service_card_designs from './20260925_184020_phase_4_61_1_service_card_designs';
 
 export const migrations = [
   {
@@ -172,6 +175,21 @@ export const migrations = [
   {
     up: migration_20260924_032356_phase_4_60_media_folders.up,
     down: migration_20260924_032356_phase_4_60_media_folders.down,
-    name: '20260924_032356_phase_4_60_media_folders'
+    name: '20260924_032356_phase_4_60_media_folders',
+  },
+  {
+    up: migration_20260925_163237_phase_4_61_locations.up,
+    down: migration_20260925_163237_phase_4_61_locations.down,
+    name: '20260925_163237_phase_4_61_locations',
+  },
+  {
+    up: migration_20260925_171415_phase_4_61_ticket_fields.up,
+    down: migration_20260925_171415_phase_4_61_ticket_fields.down,
+    name: '20260925_171415_phase_4_61_ticket_fields',
+  },
+  {
+    up: migration_20260925_184020_phase_4_61_1_service_card_designs.up,
+    down: migration_20260925_184020_phase_4_61_1_service_card_designs.down,
+    name: '20260925_184020_phase_4_61_1_service_card_designs'
   },
 ];

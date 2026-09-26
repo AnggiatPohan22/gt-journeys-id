@@ -32,6 +32,7 @@ import { Rentals } from './collections/Rentals'
 import { Destinations } from './collections/Destinations'
 import { DestinationTypes } from './collections/DestinationTypes'
 import { Categories } from './collections/Categories'
+import { Locations } from './collections/Locations'
 import { Menus } from './collections/Menus'
 import { Testimonials } from './collections/Testimonials'
 import { ServiceTypes } from './collections/ServiceTypes'
@@ -158,6 +159,7 @@ export default buildConfig({
     Destinations,
     DestinationTypes,
     Categories,        // cross-module (tours/villa/…) — stays in Content
+    Locations,         // reusable lokasi/pelabuhan (Phase 4.61) — Origin/Arrival Ferry
     Testimonials,
     Authors,
     // ── POSTS group (Phase 4.35.3) ──────────────

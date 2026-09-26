@@ -46,6 +46,7 @@ import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } f
 import { TemplatePickerField as TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed } from '../../../components/TemplatePickerField'
 import { TemplateImportExport as TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2 } from '../../../components/TemplateImportExport'
 import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../components/FooterLayoutRowLabel'
+import { default as default_717e86c8ff0d6e16710fe7573de37930 } from '../../../admin/ServiceModulesManager'
 import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
 import { default as default_88541c286955dbac4d90fb5ed606381c } from '../../../admin/graphics/Logo'
 import { default as default_64c2e44a9325dc37c881505671c0a779 } from '../../../admin/SidebarFooter'
@@ -109,6 +110,7 @@ export const importMap = {
   "/components/TemplatePickerField#TemplatePickerField": TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed,
   "/components/TemplateImportExport#TemplateImportExport": TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2,
   "/components/FooterLayoutRowLabel#default": default_2d7391d3e6c490e87ec696da441ef264,
+  "/admin/ServiceModulesManager#default": default_717e86c8ff0d6e16710fe7573de37930,
   "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,
   "/admin/graphics/Logo#default": default_88541c286955dbac4d90fb5ed606381c,
   "/admin/SidebarFooter#default": default_64c2e44a9325dc37c881505671c0a779,

@@ -8,6 +8,7 @@ import {
 } from '@lib/payload'
 import { lexicalToPlainText } from '@lib/lexical'
 import { formatPrice } from '@shared/utils/format-price'
+import { resolveCardVariant } from '@lib/serviceCards'
 import AccommodationCard from '@components/cards/AccommodationCard.astro'
 import TourCard from '@components/cards/TourCard.astro'
 import WaterActivityCard from '@components/cards/WaterActivityCard.astro'
@@ -190,7 +191,8 @@ const descColor = resolveTextColor(ts.descriptionColor)
 const descAnim = resolveTextAnimIn(ts.descriptionAnimIn)
 
 // Card variant + pagination
-const cardVariant: 'compact' | 'detailed' = b.cardVariant === 'detailed' ? 'detailed' : 'compact'
+// Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
+const cardVariant = resolveCardVariant(serviceType, features)
 const showLoadMore = b.showLoadMore === true
 const paginationType: 'load-more' | 'pages' = b.paginationType === 'pages' ? 'pages' : 'load-more'
 // Phase 4.53 — per-breakpoint pagination counts. Desktop = source of truth
@@ -353,7 +355,12 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
         </div>
 
         <div
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+          class:list={[
+            'grid',
+            cardVariant === 'ticket'
+              ? 'grid-cols-1 gap-5'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8',
+          ]}
           data-role="grid"
           data-listing-id={listingId}
           data-pagination={showLoadMore ? paginationType : 'none'}
