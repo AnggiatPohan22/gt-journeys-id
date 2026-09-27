@@ -73,8 +73,66 @@ const moduleGroupFields = (): Field[] => {
       admin: { components: { Field: '/admin/ServiceModulesManager#default' } },
     },
     ...dataFields,
+    ...ticketBgFields(),
   ]
 }
+
+// Phase 4.61.3 — background/corak per-service untuk kartu Ticket. Muncul HANYA
+// saat service aktif & desainnya 'ticket' (biar tab tetap rapi). Upload = super-
+// admin only (update global sudah di-gate isSuperAdmin). Ringan: dirender sebagai
+// layer dekoratif opacity rendah di frontend, pakai ukuran media 'card' (800px).
+const bgPositionOptions = [
+  { label: 'Kanan (watermark)', value: 'right' },
+  { label: 'Cover (penuh)', value: 'cover' },
+  { label: 'Tile (diulang)', value: 'tile' },
+  { label: 'Tengah', value: 'center' },
+]
+// Phase 4.61.4 — background/corak per-service kini berlaku untuk SEMUA desain
+// kartu service tsb (compact / detailed / ticket), bukan hanya ticket. Muncul
+// selama modul aktif. (Field names tettap `*TicketBg*` dari 4.61.3 → reuse kolom,
+// tanpa migration; secara fungsi generic "card background".)
+const ticketBgFields = (): Field[] =>
+  SERVICE_MODULES.map((m) => ({
+    type: 'collapsible' as const,
+    label: `${m.icon} ${m.label} — Card Background`,
+    admin: {
+      initCollapsed: true,
+      condition: (data: any) => data?.modules?.[m.name] !== false,
+    },
+    fields: [
+      {
+        name: `${m.name}TicketBg`,
+        type: 'upload' as const,
+        relationTo: 'media' as const,
+        label: 'Background image (opsional)',
+        admin: {
+          description: 'Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.',
+        },
+      },
+      {
+        type: 'row' as const,
+        fields: [
+          {
+            name: `${m.name}TicketBgOpacity`,
+            type: 'number' as const,
+            label: 'Opacity (%)',
+            defaultValue: 8,
+            min: 0,
+            max: 100,
+            admin: { width: '50%', description: 'Kecil (5–15%) biar teks tetap jelas.' },
+          },
+          {
+            name: `${m.name}TicketBgPosition`,
+            type: 'select' as const,
+            label: 'Posisi',
+            defaultValue: 'right',
+            options: bgPositionOptions,
+            admin: { width: '50%' },
+          },
+        ],
+      },
+    ],
+  }))
 
 /**
  * Site Features — master toggle untuk modul, section, dan fitur opsional.

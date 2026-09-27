@@ -50,6 +50,8 @@ export interface Props {
   price?: TicketPrice
   bookText?: string
   moreInfoText?: string
+  /** Phase 4.61.3 — corak/watermark dekoratif (opsional). */
+  background?: { url: string; opacity: number; position: 'right' | 'cover' | 'tile' | 'center' }
 }
 
 const {
@@ -65,7 +67,23 @@ const {
   price,
   bookText = 'Book Now',
   moreInfoText = 'More info',
+  background,
 } = Astro.props
+
+// Phase 4.61.3 — style layer background dekoratif. Ringan: 1 <div> CSS bg,
+// tanpa <img> tambahan di DOM konten; URL sama antar kartu → 1x download.
+const bgSizeByPos: Record<string, string> = { right: 'auto 100%', cover: 'cover', tile: 'auto', center: 'contain' }
+const bgRepeatByPos: Record<string, string> = { right: 'no-repeat', cover: 'no-repeat', tile: 'repeat', center: 'no-repeat' }
+const bgPosByPos: Record<string, string> = { right: 'right center', cover: 'center', tile: 'top left', center: 'center' }
+const bgStyle = background
+  ? [
+      `background-image:url('${background.url}')`,
+      `background-size:${bgSizeByPos[background.position] ?? 'auto 100%'}`,
+      `background-repeat:${bgRepeatByPos[background.position] ?? 'no-repeat'}`,
+      `background-position:${bgPosByPos[background.position] ?? 'right center'}`,
+      `opacity:${background.opacity}`,
+    ].join(';')
+  : ''
 
 const badgeClass: Record<string, string> = {
   ocean: 'bg-ocean/10 text-ocean',
@@ -83,8 +101,15 @@ const midLabel = middle.label ?? 'Ferry'
 const midIcon = middle.icon ?? 'ship'
 ---
 
-<article class="group bg-white rounded-2xl border border-sand-dark/10 shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-  <div class="p-5 md:p-6">
+<article class="group relative bg-white rounded-2xl border border-sand-dark/10 shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+  {background && (
+    <div
+      class="absolute inset-0 pointer-events-none"
+      style={bgStyle}
+      aria-hidden="true"
+    ></div>
+  )}
+  <div class="relative p-5 md:p-6">
     {/* ── Top: operator + badges (left) · price (right) ── */}
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">

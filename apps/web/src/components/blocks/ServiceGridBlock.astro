@@ -23,7 +23,7 @@ import {
   getRestaurants, getVenues, getRentals, getSpas, getFerryTickets,
   getSiteFeatures,
 } from '@lib/payload'
-import { resolveCardVariant } from '@lib/serviceCards'
+import { resolveCardVariant, resolveCardBackground } from '@lib/serviceCards'
 import {
   resolveAlignment, resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
   resolveEntryAnimation, resolveBackground,
@@ -71,6 +71,7 @@ const where: Record<string, any> = {
 // Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
 const gridFeatures = await getSiteFeatures().catch(() => null)
 const cardVariant = resolveCardVariant(block.serviceType, gridFeatures)
+const cardBg = resolveCardBackground(block.serviceType, gridFeatures)
 
 const opts = { limit, where, sort: 'sortOrder' }
 
@@ -250,15 +251,15 @@ const curatedExploreHref = ((b.viewAllLink as string) || '').trim() || (defaultV
             const hidden = paginate && idx >= pageSize
             return (
               <div class:list={['pg-item', paginate && 'pg-swipe-item', hidden && 'pg-hidden']} style={hidden ? 'display:none' : undefined}>
-                {serviceType === 'tours' && <TourCard tour={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={hrefBase} variant={cardVariant} />}
-                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={hrefBase} variant={cardVariant} />}
+                {serviceType === 'tours' && <TourCard tour={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
               </div>
             )
           })}

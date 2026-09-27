@@ -3,9 +3,11 @@ import type { Venue } from '@shared/types/payload-types'
 import { formatPrice } from '@shared/utils/format-price'
 import { lexicalToPlainText } from '@lib/lexical'
 import DetailedCard from './DetailedCard.astro'
+import CardBgLayer from './CardBgLayer.astro'
+import type { CardBackground } from '@lib/serviceCards'
 
-interface Props { venue: Venue; hrefBase?: string; variant?: 'compact' | 'detailed' }
-const { venue, hrefBase = '/venue', variant = 'compact' } = Astro.props
+interface Props { venue: Venue; hrefBase?: string; variant?: 'compact' | 'detailed'; background?: CardBackground }
+const { venue, hrefBase = '/venue', variant = 'compact', background } = Astro.props
 
 const img = typeof venue.featuredImage === 'object' ? venue.featuredImage : null
 const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
@@ -53,10 +55,12 @@ const capacityText = venue.capacity && (venue.capacity.minGuests || venue.capaci
     amenities={detailedAmenities}
     price={cheapest ? { value: cheapest, currency, unit: 'starting package' } : undefined}
     bookText="Enquire"
+    background={background}
   />
 ) : (
-<article class="group bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
-  <a href={`${hrefBase}/${venue.slug}`} class="block no-underline text-current">
+<article class="group relative bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+  <CardBgLayer background={background} />
+  <a href={`${hrefBase}/${venue.slug}`} class="relative block no-underline text-current">
     <div class="relative aspect-[4/3] overflow-hidden bg-sand">
       {imgUrl ? (
         <img src={imgUrl} alt={imgAlt} loading="lazy"

@@ -44331,6 +44331,87 @@ export interface SiteFeature {
     spaDesign?: ('compact' | 'detailed' | 'ticket') | null;
     ferryTickets?: boolean | null;
     ferryTicketsDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    toursTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    toursTicketBgOpacity?: number | null;
+    toursTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    accommodationsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    accommodationsTicketBgOpacity?: number | null;
+    accommodationsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    waterActivitiesTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    waterActivitiesTicketBgOpacity?: number | null;
+    waterActivitiesTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    yachtTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    yachtTicketBgOpacity?: number | null;
+    yachtTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    restaurantsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    restaurantsTicketBgOpacity?: number | null;
+    restaurantsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    weddingsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    weddingsTicketBgOpacity?: number | null;
+    weddingsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    rentalsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    rentalsTicketBgOpacity?: number | null;
+    rentalsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    spaTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    spaTicketBgOpacity?: number | null;
+    spaTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    ferryTicketsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    ferryTicketsTicketBgOpacity?: number | null;
+    ferryTicketsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
   };
   /**
    * Toggle section besar di homepage / landing pages.
@@ -45620,6 +45701,33 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
         spaDesign?: T;
         ferryTickets?: T;
         ferryTicketsDesign?: T;
+        toursTicketBg?: T;
+        toursTicketBgOpacity?: T;
+        toursTicketBgPosition?: T;
+        accommodationsTicketBg?: T;
+        accommodationsTicketBgOpacity?: T;
+        accommodationsTicketBgPosition?: T;
+        waterActivitiesTicketBg?: T;
+        waterActivitiesTicketBgOpacity?: T;
+        waterActivitiesTicketBgPosition?: T;
+        yachtTicketBg?: T;
+        yachtTicketBgOpacity?: T;
+        yachtTicketBgPosition?: T;
+        restaurantsTicketBg?: T;
+        restaurantsTicketBgOpacity?: T;
+        restaurantsTicketBgPosition?: T;
+        weddingsTicketBg?: T;
+        weddingsTicketBgOpacity?: T;
+        weddingsTicketBgPosition?: T;
+        rentalsTicketBg?: T;
+        rentalsTicketBgOpacity?: T;
+        rentalsTicketBgPosition?: T;
+        spaTicketBg?: T;
+        spaTicketBgOpacity?: T;
+        spaTicketBgPosition?: T;
+        ferryTicketsTicketBg?: T;
+        ferryTicketsTicketBgOpacity?: T;
+        ferryTicketsTicketBgPosition?: T;
       };
   sections?:
     | T

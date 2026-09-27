@@ -3,14 +3,17 @@ import type { Tour } from '@shared/types/payload-types'
 import { formatPrice } from '@shared/utils/format-price'
 import { lexicalToPlainText } from '@lib/lexical'
 import DetailedCard from './DetailedCard.astro'
+import CardBgLayer from './CardBgLayer.astro'
+import type { CardBackground } from '@lib/serviceCards'
 
 interface Props {
   tour: Tour
   /** Detail route base (default '/tour', singular canonical). */
   hrefBase?: string
   variant?: 'compact' | 'detailed'
+  background?: CardBackground
 }
-const { tour, hrefBase = '/tour', variant = 'compact' } = Astro.props
+const { tour, hrefBase = '/tour', variant = 'compact', background } = Astro.props
 
 const img = typeof tour.featuredImage === 'object' ? tour.featuredImage : null
 const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
@@ -39,10 +42,12 @@ const detailedAmenities = Array.isArray((tour as any).highlights)
     amenities={detailedAmenities}
     price={price ? { value: price, currency, unit: tour.pricing?.priceNote ?? 'per person' } : undefined}
     bookText="Book Now"
+    background={background}
   />
 ) : (
-<article class="group bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
-  <a href={`${hrefBase}/${tour.slug}`} class="block no-underline text-current">
+<article class="group relative bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+  <CardBgLayer background={background} />
+  <a href={`${hrefBase}/${tour.slug}`} class="relative block no-underline text-current">
     <div class="aspect-[4/3] overflow-hidden bg-sand">
       {imgUrl ? (
         <img

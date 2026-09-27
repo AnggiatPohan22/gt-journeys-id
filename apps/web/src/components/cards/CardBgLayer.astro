@@ -1,0 +1,29 @@
+---
+/**
+ * CardBgLayer — layer background/corak dekoratif reusable (Phase 4.61.4).
+ *
+ * Dipakai di kartu compact (tiap service), DetailedCard, dan TicketRouteCard
+ * (ticket punya implementasi sendiri). Ringan: 1 <div> CSS, tanpa <img> konten,
+ * aria-hidden + pointer-events none. Letakkan sebagai anak PERTAMA di dalam
+ * container ber-`position:relative overflow-hidden`, dan pastikan konten utama
+ * `relative` agar tampil di atas layer ini.
+ */
+import type { CardBackground } from '@lib/serviceCards'
+interface Props { background?: CardBackground }
+const { background } = Astro.props
+
+const sizeBy: Record<string, string> = { right: 'auto 100%', cover: 'cover', tile: 'auto', center: 'contain' }
+const repeatBy: Record<string, string> = { right: 'no-repeat', cover: 'no-repeat', tile: 'repeat', center: 'no-repeat' }
+const posBy: Record<string, string> = { right: 'right center', cover: 'center', tile: 'top left', center: 'center' }
+
+const style = background
+  ? [
+      `background-image:url('${background.url}')`,
+      `background-size:${sizeBy[background.position] ?? 'auto 100%'}`,
+      `background-repeat:${repeatBy[background.position] ?? 'no-repeat'}`,
+      `background-position:${posBy[background.position] ?? 'right center'}`,
+      `opacity:${background.opacity}`,
+    ].join(';')
+  : ''
+---
+{background && <div class="absolute inset-0 pointer-events-none z-0" style={style} aria-hidden="true"></div>}

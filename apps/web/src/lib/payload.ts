@@ -105,8 +105,9 @@ export async function fetchBySlug<T>(
   return data.docs[0] || null
 }
 
-export async function fetchGlobal<T>(slug: string): Promise<T> {
-  const res = await fetch(`${CMS_URL}/api/globals/${slug}`)
+export async function fetchGlobal<T>(slug: string, depth = 0): Promise<T> {
+  const q = depth > 0 ? `?depth=${encodeURIComponent(String(depth))}` : ''
+  const res = await fetch(`${CMS_URL}/api/globals/${slug}${q}`)
   if (!res.ok) throw new Error(`CMS global error: ${res.status}`)
   return res.json() as Promise<T>
 }
@@ -206,7 +207,9 @@ export const getMenuBySlug = (slug: string) => fetchBySlug<Menu>('menus', slug)
 export const getSiteSettings = () => fetchGlobal<SiteSetting>('site-settings')
 export const getHeaderSettings = () => fetchGlobal<any>('header-settings')
 export const getFooterSettings = () => fetchGlobal<any>('footer-settings')
-export const getSiteFeatures = () => fetchGlobal<any>('site-features')
+// depth=1 supaya upload (ticket card background per-service) ter-populate jadi
+// objek media (url + sizes), bukan sekadar id. (Phase 4.61.3)
+export const getSiteFeatures = () => fetchGlobal<any>('site-features', 1)
 export const getHomepageContent = () => fetchGlobal<any>('homepage-content')
 export const getAnnouncementBar = () => fetchGlobal<any>('announcement-bar')
 export const getPromoBanner = () => fetchGlobal<any>('promo-banner')

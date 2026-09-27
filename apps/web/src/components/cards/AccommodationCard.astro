@@ -3,14 +3,17 @@ import type { Accommodation } from '@shared/types/payload-types'
 import { formatPrice } from '@shared/utils/format-price'
 import { lexicalToPlainText } from '@lib/lexical'
 import DetailedCard from './DetailedCard.astro'
+import CardBgLayer from './CardBgLayer.astro'
+import type { CardBackground } from '@lib/serviceCards'
 
 interface Props {
   accommodation: Accommodation
   /** Detail route base (default '/villa', singular canonical — all types). */
   hrefBase?: string
   variant?: 'compact' | 'detailed'
+  background?: CardBackground
 }
-const { accommodation, hrefBase = '/villa', variant = 'compact' } = Astro.props
+const { accommodation, hrefBase = '/villa', variant = 'compact', background } = Astro.props
 
 const img = typeof accommodation.featuredImage === 'object' ? accommodation.featuredImage : null
 const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
@@ -62,10 +65,12 @@ const detailedDescription = (accommodation as any).subtitle
     amenities={detailedAmenities}
     price={cheapest ? { value: cheapest, currency, unit: 'per night' } : undefined}
     bookText="Book Now"
+    background={background}
   />
 ) : (
-  <article class="group bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
-    <a href={`${hrefBase}/${accommodation.slug}`} class="block no-underline text-current">
+  <article class="group relative bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+    <CardBgLayer background={background} />
+    <a href={`${hrefBase}/${accommodation.slug}`} class="relative block no-underline text-current">
       <div class="relative aspect-[4/3] overflow-hidden bg-sand">
         {imgUrl ? (
           <img

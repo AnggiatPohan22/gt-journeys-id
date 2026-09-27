@@ -16,7 +16,7 @@ import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
 import SpaCard from '@components/cards/SpaCard.astro'
 import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
-import { resolveCardVariant } from '@lib/serviceCards'
+import { resolveCardVariant, resolveCardBackground } from '@lib/serviceCards'
 import {
   resolveContainer, resolveEntryAnimation,
   resolveTextColor, resolveTextAnimIn,
@@ -204,6 +204,8 @@ const filterDestinations = enableDestFilter
 // ── Card + pagination ───────────────────────────────────
 // Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
 const cardVariant = resolveCardVariant(serviceType, features)
+// Phase 4.61.3: background/corak kartu ticket (per-service).
+const cardBg = resolveCardBackground(serviceType, features)
 const showLoadMore = b.showLoadMore === true
 const paginationType: 'load-more' | 'pages' = b.paginationType === 'pages' ? 'pages' : 'load-more'
 // Phase 4.53 — per-breakpoint counts (mirror Editorial).
@@ -443,15 +445,15 @@ const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & su
                 data-name={name}
                 style={hiddenByPagination ? 'display:none' : undefined}
               >
-                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'tours' && <TourCard tour={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={detailBase} variant={cardVariant} />}
+                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'tours' && <TourCard tour={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
               </div>
             )
           })}

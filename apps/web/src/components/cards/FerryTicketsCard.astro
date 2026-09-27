@@ -5,14 +5,18 @@ import { lexicalToPlainText } from '@lib/lexical'
 import { routeLabelFrom, resolveLocation } from '@lib/location'
 import DetailedCard from './DetailedCard.astro'
 import TicketRouteCard from './TicketRouteCard.astro'
+import CardBgLayer from './CardBgLayer.astro'
+import type { CardBackground } from '@lib/serviceCards'
 
 interface Props {
   ferryTicket: FerryTicket
   /** Detail route base (default '/ferry-tickets'). */
   hrefBase?: string
   variant?: 'compact' | 'detailed' | 'ticket'
+  /** Phase 4.61.3/4.61.4 — corak/watermark dekoratif (semua desain). */
+  background?: CardBackground
 }
-const { ferryTicket, hrefBase = '/ferry-tickets', variant = 'compact' } = Astro.props
+const { ferryTicket, hrefBase = '/ferry-tickets', variant = 'compact', background } = Astro.props
 
 const img = typeof ferryTicket.featuredImage === 'object' ? ferryTicket.featuredImage : null
 const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
@@ -92,6 +96,7 @@ const detailedAmenities = [
       bookedLabel: typeof bookedCount === 'number' ? `${bookedCount.toLocaleString('en-US')} booked` : undefined,
     }}
     price={ticketPrice}
+    background={background}
     bookText="Book Now"
     moreInfoText="More info"
   />
@@ -106,10 +111,12 @@ const detailedAmenities = [
     amenities={detailedAmenities}
     price={adultPrice ? { value: adultPrice, currency, unit: '/ pax' } : undefined}
     bookText="Book Ferry"
+    background={background}
   />
 ) : (
-<article class="group bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
-  <a href={`${hrefBase}/${ferryTicket.slug}`} class="block no-underline text-current">
+<article class="group relative bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+  <CardBgLayer background={background} />
+  <a href={`${hrefBase}/${ferryTicket.slug}`} class="relative block no-underline text-current">
     <div class="relative aspect-[4/3] overflow-hidden bg-sand">
       {imgUrl ? (
         <img src={imgUrl} alt={imgAlt} loading="lazy"
