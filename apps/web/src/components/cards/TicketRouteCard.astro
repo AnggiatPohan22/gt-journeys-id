@@ -1,14 +1,20 @@
 ---
 /**
- * TicketRouteCard — kartu tiket rute horizontal yang REUSABLE (Phase 4.61).
+ * TicketRouteCard — kartu tiket rute REUSABLE (Phase 4.61 / redesign 4.61.5).
  *
- * Generik & tidak tahu domain (ferry/bus/train) — cukup dikirim props di bawah.
- * Dipakai FerryTicketsCard (variant="ticket"); modul transport lain nanti bisa
- * memanggil komponen ini langsung dengan bentuk data yang sama.
+ * Generik & tidak tahu domain (ferry/bus/train). Dipakai FerryTicketsCard
+ * (variant="ticket").
  *
- * Layout: badges + harga (kanan atas), operator (kiri atas), baris rute
- * Origin → Arrival (thumbnail, nama, terminal, jam, tanggal, durasi, booked),
- * lalu tombol More info + Book Now. Responsif: kolom rute menumpuk di mobile.
+ * PENTING (Phase 4.61.5): seluruh responsivitas kartu ini digerakkan lewat
+ * <style> ber-media-query (bukan util `sm:`/`lg:` Tailwind). Alasannya, di dev
+ * server Tailwind ter-inject 2× (integrasi + @import global.css) sehingga util
+ * responsif Tailwind "ketimpa" base utility. CSS scoped Astro TIDAK terpengaruh
+ * masalah itu → tampilan konsisten antara `pnpm dev` dan production build.
+ *
+ * Layout mengikuti ai/reference/cards-ticket:
+ *   - Mobile / Tablet: badges → (logo+nama · harga) → rute 3 kolom → perforasi
+ *     tiket (garis putus + takik) → tombol. TANPA foto.
+ *   - Desktop: sama, plus FOTO di kiri baris rute.
  */
 import Icon from '@components/common/Icon.astro'
 import { formatPrice } from '@shared/utils/format-price'
@@ -70,8 +76,7 @@ const {
   background,
 } = Astro.props
 
-// Phase 4.61.3 — style layer background dekoratif. Ringan: 1 <div> CSS bg,
-// tanpa <img> tambahan di DOM konten; URL sama antar kartu → 1x download.
+// Phase 4.61.3 — style layer background dekoratif (corak world-map dari CMS).
 const bgSizeByPos: Record<string, string> = { right: 'auto 100%', cover: 'cover', tile: 'auto', center: 'contain' }
 const bgRepeatByPos: Record<string, string> = { right: 'no-repeat', cover: 'no-repeat', tile: 'repeat', center: 'no-repeat' }
 const bgPosByPos: Record<string, string> = { right: 'right center', cover: 'center', tile: 'top left', center: 'center' }
@@ -85,12 +90,6 @@ const bgStyle = background
     ].join(';')
   : ''
 
-const badgeClass: Record<string, string> = {
-  ocean: 'bg-ocean/10 text-ocean',
-  leaf: 'bg-leaf/15 text-leaf',
-  coral: 'bg-coral/15 text-coral',
-}
-
 const savePct =
   price?.savePct ??
   (price?.original && price.original > price.amount
@@ -101,109 +100,268 @@ const midLabel = middle.label ?? 'Ferry'
 const midIcon = middle.icon ?? 'ship'
 ---
 
-<article class="group relative bg-white rounded-2xl border border-sand-dark/10 shadow-sm hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-  {background && (
-    <div
-      class="absolute inset-0 pointer-events-none"
-      style={bgStyle}
-      aria-hidden="true"
-    ></div>
-  )}
-  <div class="relative p-5 md:p-6">
-    {/* ── Top: operator + badges (left) · price (right) ── */}
-    <div class="flex flex-wrap items-start justify-between gap-4">
-      <div class="min-w-0">
-        {badges.length > 0 && (
-          <div class="flex flex-wrap gap-2 mb-3">
-            {badges.map((b) => (
-              <span class={`px-2.5 py-1 rounded-md text-xs font-semibold ${badgeClass[b.style ?? 'leaf']}`}>
-                {b.text}
-              </span>
-            ))}
-          </div>
-        )}
-        {(operator?.logo || operator?.name) && (
-          <div class="flex items-center gap-2.5">
-            {operator?.logo && (
-              <img src={operator.logo} alt={operator?.name ?? 'Operator'} loading="lazy" class="h-7 w-auto max-w-[120px] object-contain" />
-            )}
-            {operator?.name && <span class="font-semibold text-ocean text-lg">{operator.name}</span>}
-          </div>
-        )}
+<article class="tkc">
+  {background && <div class="tkc__bg" style={bgStyle} aria-hidden="true"></div>}
+
+  <div class="tkc__inner">
+    {/* ── Badges ── */}
+    {badges.length > 0 && (
+      <div class="tkc__badges">
+        {badges.map((b) => (
+          <span class="tkc__badge" data-style={b.style ?? 'leaf'}>{b.text}</span>
+        ))}
       </div>
+    )}
+
+    {/* ── Header: operator (logo + nama) · harga ── */}
+    <div class="tkc__head">
+      {(operator?.logo || operator?.name) && (
+        <div class="tkc__op">
+          {operator?.logo && (
+            <span class="tkc__logo">
+              <img src={operator.logo} alt={operator?.name ?? 'Operator'} loading="lazy" />
+            </span>
+          )}
+          {operator?.name && (
+            <span class="tkc__opname">
+              {operator.name.trim().split(/\s+/).map((w, i, arr) => (
+                <Fragment><span class="tkc__opword">{w}</span>{i < arr.length - 1 ? ' ' : ''}</Fragment>
+              ))}
+            </span>
+          )}
+        </div>
+      )}
 
       {price && (
-        <div class="text-right shrink-0">
-          <p class="font-display text-2xl md:text-3xl font-bold text-ocean leading-none">
-            {formatPrice(price.amount, price.currency)}
-          </p>
-          {price.per && <p class="text-xs text-stone-light mt-1">{price.per}</p>}
+        <div class="tkc__price">
+          <p class="tkc__amount">{formatPrice(price.amount, price.currency)}</p>
+          {price.per && <p class="tkc__per">{price.per}</p>}
           {typeof price.total === 'number' && (
-            <p class="text-xs text-stone-light font-semibold">Total {formatPrice(price.total, price.currency)}</p>
+            <p class="tkc__total">Total {formatPrice(price.total, price.currency)}</p>
           )}
-          <div class="flex items-center justify-end gap-2 mt-1.5">
-            {price.className && (
-              <span class="px-2 py-0.5 rounded border border-sand-dark/30 text-[11px] text-stone">{price.className}</span>
-            )}
-            {price.original && price.original > price.amount && (
-              <span class="text-xs text-stone-light line-through">{formatPrice(price.original, price.currency)}</span>
-            )}
-            {savePct && savePct > 0 && (
-              <span class="px-2 py-0.5 rounded bg-coral text-white text-[11px] font-semibold">Save {savePct}%</span>
-            )}
-          </div>
+          {(price.className || (price.original && price.original > price.amount) || (savePct && savePct > 0)) && (
+            <div class="tkc__pmeta">
+              {price.className && <span class="tkc__class">{price.className}</span>}
+              {price.original && price.original > price.amount && (
+                <span class="tkc__orig">{formatPrice(price.original, price.currency)}</span>
+              )}
+              {savePct && savePct > 0 && <span class="tkc__save">Save {savePct}%</span>}
+            </div>
+          )}
         </div>
       )}
     </div>
 
-    {/* ── Route row ── */}
-    <a href={href} class="block no-underline text-current mt-5">
-      <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-        {image?.url && (
-          <div class="w-full md:w-32 lg:w-40 shrink-0 aspect-[4/3] md:aspect-square rounded-xl overflow-hidden bg-sand">
-            <img src={image.url} alt={image.alt ?? from.name} loading="lazy"
-                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-          </div>
-        )}
+    {/* ── Rute (foto hanya desktop) ── */}
+    <a href={href} class="tkc__route">
+      {image?.url && (
+        <div class="tkc__photo">
+          <img src={image.url} alt={image.alt ?? from.name} loading="lazy" />
+        </div>
+      )}
 
-        <div class="flex-1 grid grid-cols-1 md:grid-cols-3 items-center gap-4">
-          {/* From */}
-          <div class="min-w-0">
-            <p class="font-display text-lg md:text-xl font-bold text-ocean leading-tight truncate">{from.name}</p>
-            {from.terminal && <p class="text-sm text-stone-light truncate">{from.terminal}</p>}
-            {from.time && <p class="font-display text-2xl font-bold text-ocean mt-1">{from.time}</p>}
-            {from.date && <p class="text-xs text-stone-light">{from.date}</p>}
-          </div>
+      <div class="tkc__cols">
+        <div class="tkc__ep">
+          <p class="tkc__name">{from.name}</p>
+          {from.terminal && <p class="tkc__term">{from.terminal}</p>}
+          {from.time && <p class="tkc__time">{from.time}</p>}
+          {from.date && <p class="tkc__date">{from.date}</p>}
+        </div>
 
-          {/* Middle */}
-          <div class="flex flex-col items-center text-center">
-            <p class="text-xs text-stone-light">{midLabel}</p>
-            <Icon name={midIcon} class="w-6 h-6 text-coral my-1" />
-            {middle.duration && <p class="text-sm font-semibold text-coral">{middle.duration}</p>}
-            {middle.bookedLabel && <p class="text-xs text-stone-light">{middle.bookedLabel}</p>}
-          </div>
+        <div class="tkc__mid">
+          <p class="tkc__midlabel">{midLabel}</p>
+          <span class="tkc__midicon"><Icon name={midIcon} class="" /></span>
+          {middle.duration && <p class="tkc__dur">{middle.duration}</p>}
+          {middle.bookedLabel && <p class="tkc__booked">{middle.bookedLabel}</p>}
+        </div>
 
-          {/* To */}
-          <div class="min-w-0 md:text-right">
-            <p class="font-display text-lg md:text-xl font-bold text-ocean leading-tight truncate">{to.name}</p>
-            {to.terminal && <p class="text-sm text-stone-light truncate">{to.terminal}</p>}
-            {to.time && <p class="font-display text-2xl font-bold text-ocean mt-1">{to.time}</p>}
-            {to.date && <p class="text-xs text-stone-light">{to.date}</p>}
-          </div>
+        <div class="tkc__ep tkc__ep--to">
+          <p class="tkc__name">{to.name}</p>
+          {to.terminal && <p class="tkc__term">{to.terminal}</p>}
+          {to.time && <p class="tkc__time">{to.time}</p>}
+          {to.date && <p class="tkc__date">{to.date}</p>}
         </div>
       </div>
     </a>
 
-    {/* ── Actions ── */}
-    <div class="flex items-stretch gap-3 mt-5 pt-5 border-t border-sand-dark/10">
-      <a href={moreInfoHref ?? href}
-         class="px-5 py-3 rounded-xl bg-sand text-stone font-semibold text-sm hover:bg-sand-dark/20 transition-colors no-underline flex items-center justify-center">
-        {moreInfoText}
-      </a>
-      <a href={bookHref}
-         class="flex-1 px-5 py-3 rounded-xl bg-coral hover:bg-coral-dark text-white font-semibold text-center transition-colors no-underline flex items-center justify-center">
-        {bookText}
-      </a>
+    {/* ── Pembatas gaya tiket (garis putus-putus + takik di tepi) ── */}
+    <div class="tkc__perf" aria-hidden="true"></div>
+
+    {/* ── Tombol ── */}
+    <div class="tkc__actions">
+      <a href={moreInfoHref ?? href} class="tkc__btn tkc__btn--more">{moreInfoText}</a>
+      <a href={bookHref} class="tkc__btn tkc__btn--book">{bookText}</a>
     </div>
   </div>
 </article>
+
+<style>
+  .tkc {
+    /* brand tokens */
+    --ocean: #1B3A4B;
+    --coral: #E07A5F;
+    --coral-d: #C4583E;
+    --leaf: #4A6B5C;
+    --stone: #3D405B;
+    --stoneL: #6B6E8A;
+    --sand: #F5F0E8;
+    --sandD: #D4C5A9;
+    /* warna takik = warna latar section listing (sand) */
+    --tkc-notch: #F5F0E8;
+
+    position: relative;
+    background: #fff;
+    border: 1px solid rgba(212, 197, 169, 0.4);
+    border-radius: 1.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+  .tkc:hover { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+
+  .tkc__bg { position: absolute; inset: 0; pointer-events: none; }
+
+  .tkc__inner { position: relative; padding: 1.25rem; }
+  @media (min-width: 768px) { .tkc__inner { padding: 1.5rem; } }
+
+  /* Badges */
+  .tkc__badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.85rem; }
+  .tkc__badge {
+    padding: 0.25rem 0.625rem; border-radius: 0.375rem;
+    font-size: 11px; font-weight: 600; line-height: 1.2;
+  }
+  .tkc__badge[data-style="ocean"] { background: rgba(27, 58, 75, 0.10); color: var(--ocean); }
+  .tkc__badge[data-style="leaf"]  { background: rgba(107, 144, 128, 0.16); color: var(--leaf); }
+  .tkc__badge[data-style="coral"] { background: rgba(224, 122, 95, 0.16); color: var(--coral-d); }
+  @media (min-width: 640px) { .tkc__badge { font-size: 12px; padding: 0.3rem 0.7rem; } }
+
+  /* Header */
+  .tkc__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+  @media (min-width: 640px) { .tkc__head { gap: 1rem; } }
+
+  /* Nama di SAMPING logo di semua mode. Di mobile nama mengecil & tiap kata
+     turun ke baris bawah; ruang nama dijaga dgn membatasi lebar blok harga. */
+  .tkc__op { display: flex; flex-direction: row; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  @media (min-width: 640px) { .tkc__op { gap: 0.75rem; } }
+
+  .tkc__logo { display: flex; align-items: center; justify-content: center; flex: none; height: 72px; width: 100px; }
+  .tkc__logo img { max-height: 100%; max-width: 100%; width: auto; object-fit: contain; }
+  @media (min-width: 640px) { .tkc__logo { height: 92px; width: auto; max-width: 220px; } }
+  @media (min-width: 1024px) { .tkc__logo { height: 96px; max-width: 260px; } }
+
+  .tkc__opname {
+    font-weight: 600; color: var(--ocean); font-size: 8px; line-height: 1.25; min-width: 0;
+    flex: 1;
+    /* Mobile: SETIAP kata title turun ke baris sendiri (Batam / Fast,
+       Bintan / Resort / Ferries) — tiap .tkc__opword jadi block. */
+    display: block; overflow: hidden;
+  }
+  .tkc__opword { display: block; }
+  @media (min-width: 640px) {
+    /* Tablet: nama dikecilkan (logo lebih besar) biar tak jomplang; kata inline 1 baris. */
+    .tkc__opname { font-size: 16px; flex: none; }
+    .tkc__opword { display: inline; }
+  }
+  @media (min-width: 1024px) { .tkc__opname { font-size: 22px; } }
+
+  /* Price */
+  .tkc__price { text-align: right; flex: none; max-width: 130px; }
+  .tkc__amount { font-weight: 700; color: var(--ocean); font-size: 18px; line-height: 1.05; letter-spacing: -0.01em; }
+  @media (min-width: 640px) { .tkc__amount { font-size: 24px; } }
+  @media (min-width: 1024px) { .tkc__amount { font-size: 32px; } }
+
+  .tkc__per { font-size: 9px; color: var(--stoneL); margin-top: 3px; }
+  .tkc__total { font-size: 9px; color: var(--stoneL); font-weight: 600; margin-top: 1px; }
+  @media (min-width: 640px) { .tkc__per, .tkc__total { font-size: 12px; } }
+  @media (min-width: 1024px) { .tkc__per, .tkc__total { font-size: 13px; } }
+
+  .tkc__pmeta { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 0.4rem; margin-top: 6px; }
+  .tkc__class { padding: 1px 6px; border: 1px solid rgba(212, 197, 169, 0.8); border-radius: 6px; font-size: 9px; color: var(--stone); }
+  .tkc__orig { font-size: 9px; color: var(--stoneL); text-decoration: line-through; }
+  .tkc__save { padding: 2px 6px; border-radius: 6px; background: var(--coral); color: #fff; font-size: 9px; font-weight: 700; }
+  /* Tablet+ dikembalikan ke ukuran semula (perubahan di atas khusus mobile) */
+  @media (min-width: 640px) {
+    .tkc__price { max-width: none; }
+    .tkc__pmeta { gap: 0.5rem; margin-top: 7px; }
+    .tkc__class { padding: 1px 8px; font-size: 11px; }
+    .tkc__orig { font-size: 12px; }
+    .tkc__save { padding: 2px 8px; font-size: 11px; }
+  }
+
+  /* Route */
+  .tkc__route { display: flex; align-items: flex-start; gap: 1rem; margin-top: 1.25rem; text-decoration: none; color: inherit; }
+  @media (min-width: 1024px) { .tkc__route { gap: 1.5rem; align-items: center; } }
+
+  .tkc__photo { display: none; }
+  @media (min-width: 1024px) {
+    .tkc__photo { display: block; flex: none; width: 170px; aspect-ratio: 1 / 1; border-radius: 0.75rem; overflow: hidden; background: var(--sand); }
+  }
+  .tkc__photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .tkc:hover .tkc__photo img { transform: scale(1.05); }
+
+  .tkc__cols { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(3, 1fr); align-items: start; gap: 0.5rem; }
+  @media (min-width: 640px) { .tkc__cols { gap: 1rem; } }
+  @media (min-width: 1024px) { .tkc__cols { align-items: center; gap: 1.5rem; } }
+
+  .tkc__ep { min-width: 0; }
+  .tkc__ep--to { text-align: right; }
+
+  .tkc__name {
+    font-weight: 700; color: var(--ocean); font-size: 13px; line-height: 1.15;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  }
+  @media (min-width: 640px) { .tkc__name { font-size: 16px; } }
+  @media (min-width: 1024px) { .tkc__name { font-size: 20px; } }
+
+  .tkc__term {
+    font-size: 11px; color: var(--stoneL); line-height: 1.3; margin-top: 2px;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  }
+  @media (min-width: 640px) { .tkc__term { font-size: 13px; } }
+  @media (min-width: 1024px) { .tkc__term { font-size: 14px; } }
+
+  .tkc__time { font-weight: 700; color: var(--ocean); font-size: 16px; line-height: 1.1; margin-top: 5px; }
+  @media (min-width: 640px) { .tkc__time { font-size: 22px; } }
+  @media (min-width: 1024px) { .tkc__time { font-size: 30px; } }
+
+  .tkc__date { font-size: 10px; color: var(--stoneL); margin-top: 3px; }
+  @media (min-width: 640px) { .tkc__date { font-size: 12px; } }
+
+  /* Middle */
+  .tkc__mid { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 0 2px; }
+  .tkc__midlabel { font-size: 11px; color: var(--stoneL); line-height: 1; }
+  @media (min-width: 640px) { .tkc__midlabel { font-size: 12px; } }
+
+  .tkc__midicon { display: block; width: 28px; height: 28px; margin: 5px 0; color: var(--coral); }
+  .tkc__midicon :global(svg) { width: 100% !important; height: 100% !important; display: block; }
+  @media (min-width: 640px) { .tkc__midicon { width: 38px; height: 38px; } }
+  @media (min-width: 1024px) { .tkc__midicon { width: 40px; height: 40px; } }
+
+  .tkc__dur { font-size: 11px; font-weight: 600; color: var(--coral); line-height: 1.15; }
+  @media (min-width: 640px) { .tkc__dur { font-size: 14px; } }
+  .tkc__booked { font-size: 10px; color: var(--stoneL); line-height: 1.15; margin-top: 2px; }
+  @media (min-width: 640px) { .tkc__booked { font-size: 12px; } }
+
+  /* Pembatas tiket (garis putus + takik lingkaran di tepi) */
+  .tkc__perf { position: relative; height: 0; margin: 1.25rem -1.25rem 0; border-top: 2px dashed var(--sandD); }
+  @media (min-width: 768px) { .tkc__perf { margin: 1.5rem -1.5rem 0; } }
+  .tkc__perf::before, .tkc__perf::after {
+    content: ""; position: absolute; top: 0; width: 18px; height: 18px;
+    border-radius: 9999px; background: var(--tkc-notch); transform: translate(-50%, -50%);
+  }
+  .tkc__perf::before { left: 0; }
+  .tkc__perf::after { left: 100%; }
+
+  /* Actions */
+  .tkc__actions { display: flex; align-items: stretch; gap: 0.75rem; margin-top: 1.25rem; }
+  .tkc__btn {
+    padding: 0.75rem 1.25rem; border-radius: 0.75rem; font-weight: 600; font-size: 14px;
+    text-decoration: none; display: flex; align-items: center; justify-content: center;
+    transition: background-color 0.2s ease; white-space: nowrap;
+  }
+  @media (min-width: 640px) { .tkc__btn { font-size: 15px; padding: 0.8rem 1.5rem; } }
+  .tkc__btn--more { background: var(--sand); color: var(--stone); flex: none; }
+  .tkc__btn--more:hover { background: var(--sandD); }
+  .tkc__btn--book { background: var(--coral); color: #fff; flex: 1; }
+  .tkc__btn--book:hover { background: var(--coral-d); }
+</style>
