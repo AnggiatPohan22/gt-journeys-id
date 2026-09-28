@@ -46,6 +46,7 @@ import { NewsletterSubscribers } from './collections/NewsletterSubscribers'
 import { ChatVisitors } from './collections/ChatVisitors'
 import { ChatMessages } from './collections/ChatMessages'
 import { ChatBlockedEvents } from './collections/ChatBlockedEvents'
+import { Bookings } from './collections/Bookings'
 
 // Globals
 import { SiteSettings } from './globals/SiteSettings'
@@ -185,6 +186,7 @@ export default buildConfig({
     ChatVisitors,
     ChatMessages,
     ChatBlockedEvents,
+    Bookings,
   ],
 
   // ── Globals (Settings) ─────────────────────

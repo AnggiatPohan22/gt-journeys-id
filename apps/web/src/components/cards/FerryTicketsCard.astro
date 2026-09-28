@@ -45,6 +45,9 @@ const duration = (ferryTicket as any).duration as string | undefined
 
 // ── Ticket variant (Phase 4.61 Stage 5) ──────────────────────
 const detailHref = `${hrefBase}/${ferryTicket.slug}`
+// Phase 4.62 — Book Now di listing card → langsung ke checkout, konsisten
+// dgn detail page. More info tetap ke detail.
+const checkoutHref = `/checkout/ferry-tickets/${ferryTicket.slug}`
 const fromLoc = resolveLocation((ferryTicket as any).originLocation, (ferryTicket as any).origin)
 const toLoc = resolveLocation((ferryTicket as any).arrivalLocation, (ferryTicket as any).arrival)
 const schedule0 = Array.isArray((ferryTicket as any).scheduleTime) ? (ferryTicket as any).scheduleTime[0] : null
@@ -82,7 +85,7 @@ const detailedAmenities = [
 {variant === 'ticket' ? (
   <TicketRouteCard
     href={detailHref}
-    bookHref={detailHref}
+    bookHref={checkoutHref}
     moreInfoHref={detailHref}
     operator={{ name: operator, logo: opLogoUrl }}
     badges={badges}

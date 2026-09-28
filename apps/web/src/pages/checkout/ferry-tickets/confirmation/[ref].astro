@@ -1,0 +1,156 @@
+---
+/**
+ * Booking confirmation — Ferry Ticket (Phase 4.62).
+ *
+ * SSR: fetch booking by ref → resolve the active checkout channel →
+ * render summary + primary handoff button. Manual-WhatsApp is today's
+ * default; the same page will keep working when a gateway channel is
+ * added (only `channel` in DB changes; page uses `resolveChannel` to
+ * pick the label & URL).
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import Breadcrumbs from '@components/common/Breadcrumbs.astro'
+import { getBookingByRef } from '@lib/checkout/store'
+import { resolveChannel, getManualWaHandoff } from '@lib/checkout/channels'
+import { formatPrice } from '@shared/utils/format-price'
+
+export const prerender = false
+
+const { ref } = Astro.params
+if (!ref) return Astro.redirect('/')
+
+const booking = await getBookingByRef(ref)
+if (!booking) return Astro.redirect('/404')
+
+const currency = (booking.currency as 'IDR' | 'USD' | undefined) ?? 'IDR'
+const unit = booking.unitPrice != null ? formatPrice(booking.unitPrice, currency) : null
+const total = booking.totalEstimate != null ? formatPrice(booking.totalEstimate, currency) : null
+
+const channel = await resolveChannel('ferry-ticket')
+const handoff = await channel.handle(booking)
+
+const manualHandoff =
+  channel.slug === 'manual_wa' ? handoff : await getManualWaHandoff(booking)
+
+const ferryTitle =
+  typeof booking.ferryTicket === 'object' && booking.ferryTicket && 'title' in booking.ferryTicket
+    ? (booking.ferryTicket as { title?: string }).title
+    : null
+
+const detailUrl =
+  typeof booking.ferryTicket === 'object' && booking.ferryTicket && 'slug' in booking.ferryTicket
+    ? `/ferry-tickets/${(booking.ferryTicket as { slug?: string }).slug ?? ''}`
+    : '/ferry-tickets'
+
+const crumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Ferry Tickets', url: '/ferry-tickets' },
+  { name: 'Confirmation', url: `/checkout/ferry-tickets/confirmation/${ref}` },
+]
+---
+
+<PageLayout title={`Booking ${booking.bookingRef}`} description="Konfirmasi booking Ferry Ticket.">
+  <Breadcrumbs items={crumbs} />
+
+  <section class="container-content py-10 lg:py-16">
+    <div class="max-w-3xl mx-auto">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-leaf/15 text-leaf mb-4">
+          <Icon name="check_circle" class="w-10 h-10" />
+        </div>
+        <p class="text-xs uppercase tracking-widest text-coral font-semibold mb-2">Step 2 of 2 · Konfirmasi</p>
+        <h1 class="font-display text-3xl md:text-4xl text-ocean mb-2">Booking berhasil dibuat</h1>
+        <p class="text-stone">Ref booking Anda: <span class="font-mono font-bold text-ocean">{booking.bookingRef}</span></p>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 mb-6">
+        <h2 class="font-display text-xl text-ocean mb-5">Ringkasan Booking</h2>
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8 text-sm">
+          {ferryTitle && (
+            <>
+              <dt class="text-stone-light">Ferry</dt>
+              <dd class="text-ocean font-semibold">{ferryTitle}</dd>
+            </>
+          )}
+          <dt class="text-stone-light">Rute</dt>
+          <dd class="text-ocean">{[booking.originLocation, booking.destinationLocation].filter(Boolean).join(' → ') || '—'}</dd>
+
+          {booking.scheduleTimeLabel && (
+            <>
+              <dt class="text-stone-light">Jadwal</dt>
+              <dd class="text-ocean">{booking.scheduleTimeLabel}</dd>
+            </>
+          )}
+
+          <dt class="text-stone-light">Tanggal keberangkatan</dt>
+          <dd class="text-ocean">{booking.departureDate ? String(booking.departureDate).slice(0, 10) : '—'}</dd>
+
+          <dt class="text-stone-light">Penumpang</dt>
+          <dd class="text-ocean">{booking.adults ?? 1} dewasa{booking.children ? ` · ${booking.children} anak` : ''}</dd>
+
+          {booking.ferryClassName && (
+            <>
+              <dt class="text-stone-light">Kelas</dt>
+              <dd class="text-ocean">{booking.ferryClassName}</dd>
+            </>
+          )}
+
+          {unit && (
+            <>
+              <dt class="text-stone-light">Harga / dewasa</dt>
+              <dd class="text-coral font-semibold">{unit}</dd>
+            </>
+          )}
+          {total && (
+            <>
+              <dt class="text-stone-light">Estimasi total</dt>
+              <dd class="text-coral font-bold">{total}</dd>
+            </>
+          )}
+        </dl>
+
+        <div class="mt-6 pt-6 border-t border-sand-dark/10 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8 text-sm">
+          <dt class="text-stone-light">Nama</dt>
+          <dd class="text-ocean">{booking.customerName}</dd>
+          <dt class="text-stone-light">WhatsApp</dt>
+          <dd class="text-ocean">{booking.customerWhatsapp}</dd>
+          {booking.customerEmail && (<><dt class="text-stone-light">Email</dt><dd class="text-ocean">{booking.customerEmail}</dd></>)}
+          {booking.customerCountry && (<><dt class="text-stone-light">Negara</dt><dd class="text-ocean">{booking.customerCountry}</dd></>)}
+          {booking.customerNotes && (<><dt class="text-stone-light">Catatan</dt><dd class="text-stone">{booking.customerNotes}</dd></>)}
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-ocean to-midnight text-white rounded-2xl p-6 md:p-8 mb-6">
+        <p class="text-xs uppercase tracking-widest text-white/70 font-semibold mb-2">Langkah selanjutnya</p>
+        <h2 class="font-display text-2xl md:text-3xl mb-3">Konfirmasi via {handoff.channelLabel}</h2>
+        <p class="text-sm text-white/80 mb-6">Klik tombol di bawah untuk mengirim ringkasan booking ke admin. Kami akan konfirmasi ketersediaan & instruksi pembayaran.</p>
+        <a
+          href={handoff.redirectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 bg-white text-ocean hover:bg-sand transition-colors px-8 py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider shadow-lg no-underline"
+        >
+          <Icon name="chat" class="w-5 h-5" />
+          {handoff.buttonLabel}
+        </a>
+        {channel.slug !== 'manual_wa' && manualHandoff.redirectUrl !== handoff.redirectUrl && (
+          <a
+            href={manualHandoff.redirectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="ml-3 inline-flex items-center justify-center gap-2 border border-white/40 text-white hover:bg-white/10 transition-colors px-6 py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider no-underline"
+          >
+            <Icon name="headset_mic" class="w-5 h-5" />
+            Manual WhatsApp
+          </a>
+        )}
+      </div>
+
+      <div class="text-center text-sm text-stone-light">
+        <p>Simpan ref booking <strong class="text-ocean font-mono">{booking.bookingRef}</strong> untuk referensi.</p>
+        <p class="mt-2"><a href={detailUrl} class="underline underline-offset-4 hover:text-ocean">← Kembali ke detail ferry</a></p>
+      </div>
+    </div>
+  </section>
+</PageLayout>

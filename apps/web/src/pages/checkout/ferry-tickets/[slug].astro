@@ -1,0 +1,262 @@
+---
+/**
+ * Checkout / Customer Information — Ferry Ticket (Phase 4.62).
+ *
+ * SSR (prerender=false) supaya bisa terima query params dari halaman detail
+ * dan generate `formStamp` yang di-sign server-side per-request.
+ *
+ * Alur: detail ticket → halaman ini (form) → POST /api/bookings/create →
+ *   confirmation. Payment gateway TIDAK diketahui halaman ini — abstraksi
+ *   channel di-resolve saat konfirmasi.
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import Breadcrumbs from '@components/common/Breadcrumbs.astro'
+import { getFerryTicketsBySlug } from '@lib/payload'
+import { isModuleEnabled } from '@lib/features'
+import { formatPrice } from '@shared/utils/format-price'
+import { resolveLocation, routeLabelFrom } from '@lib/location'
+import { issueFormStamp } from '@lib/checkout/signedToken'
+import type { Media } from '@shared/types/payload-types'
+
+export const prerender = false
+
+const { slug } = Astro.params
+if (!slug) return Astro.redirect('/ferry-tickets')
+
+if (!(await isModuleEnabled('ferryTickets'))) return Astro.redirect('/')
+
+const item = await getFerryTicketsBySlug(slug)
+if (!item) return Astro.redirect('/404')
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const heroImg = asMedia(item.featuredImage)
+const heroUrl = heroImg?.sizes?.card?.url ?? heroImg?.url ?? ''
+
+const url = new URL(Astro.request.url)
+const qDate = url.searchParams.get('date') ?? ''
+const qAdults = Math.max(1, Math.min(50, Number(url.searchParams.get('adults')) || 1))
+const qChildren = Math.max(0, Math.min(50, Number(url.searchParams.get('children')) || 0))
+const qClass = url.searchParams.get('class') ?? ''
+const errCode = url.searchParams.get('err') ?? ''
+
+type FerryClass = {
+  name: string
+  classType: 'ekonomi' | 'emerald'
+  currency?: string
+  adultPrice: number
+  childPrice?: number
+}
+const ferryClasses = ((item as any).ferryClasses ?? []) as FerryClass[]
+const sortedClasses = ferryClasses.slice().sort((a, b) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
+const preselected =
+  sortedClasses.find((c) => c.classType === qClass) ?? sortedClasses[0] ?? null
+
+const routeLabel = routeLabelFrom(
+  (item as any).originLocation,
+  (item as any).arrivalLocation,
+  (item as any).origin,
+  (item as any).arrival,
+)
+const originLoc =
+  resolveLocation((item as any).originLocation, (item as any).origin)?.name ?? ''
+const destinationLoc =
+  resolveLocation((item as any).arrivalLocation, (item as any).arrival)?.name ?? ''
+
+const currency = preselected?.currency ?? 'IDR'
+const unitPrice = preselected?.adultPrice ?? null
+const priceFormatted = unitPrice ? formatPrice(unitPrice, currency) : null
+
+const formStamp = await issueFormStamp()
+
+const detailUrl = `/ferry-tickets/${slug}`
+const crumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Ferry Tickets', url: '/ferry-tickets' },
+  { name: item.title, url: detailUrl },
+  { name: 'Checkout', url: `/checkout/ferry-tickets/${slug}` },
+]
+
+const errorMessages: Record<string, string> = {
+  invalid_body: 'Terjadi kesalahan mengirim form. Coba lagi.',
+  invalid_fields: 'Isi semua field wajib (nama, WhatsApp, tanggal keberangkatan).',
+  stamp_malformed: 'Session form kadaluarsa. Silakan reload halaman.',
+  stamp_bad_signature: 'Session form invalid. Silakan reload halaman.',
+  stamp_too_fast: 'Mohon isi form dengan seksama sebelum submit (min. 3 detik).',
+  stamp_expired: 'Form kadaluarsa. Silakan reload dan isi ulang.',
+  store_misconfigured: 'Layanan booking sedang tidak tersedia. Silakan hubungi admin via WhatsApp.',
+  store_server_error: 'Gagal menyimpan booking. Silakan coba lagi atau hubungi admin.',
+}
+const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba lagi.' : ''
+---
+
+<PageLayout title={`Checkout — ${item.title}`} description={`Isi data penumpang untuk booking ${item.title}.`}>
+  <Breadcrumbs items={crumbs} />
+
+  <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 py-10 lg:py-16">
+    <div class="lg:col-span-8">
+      <p class="text-xs uppercase tracking-widest text-coral mb-2 font-semibold">Checkout · Step 1 of 2</p>
+      <h1 class="font-display text-3xl md:text-4xl text-ocean mb-3">Customer Information</h1>
+      <p class="text-stone mb-8">Isi data di bawah untuk melanjutkan booking. Konfirmasi & pembayaran akan diproses via WhatsApp (fallback manual) untuk sekarang.</p>
+
+      {errorMsg && (
+        <div class="mb-6 p-4 bg-coral/10 border border-coral/30 rounded-lg text-sm text-stone">
+          <strong class="text-coral">Perhatian:</strong> {errorMsg}
+        </div>
+      )}
+
+      <form
+        method="POST"
+        action="/api/bookings/create"
+        class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 space-y-6"
+      >
+        <input type="hidden" name="slug" value={slug} />
+        <input type="hidden" name="ferryTicketId" value={String(item.id)} />
+        <input type="hidden" name="originLocation" value={originLoc} />
+        <input type="hidden" name="destinationLocation" value={destinationLoc} />
+        <input type="hidden" name="formStamp" value={formStamp} />
+        <div class="hidden" aria-hidden="true">
+          <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <div>
+          <h2 class="font-display text-xl text-ocean mb-4">Data Kontak</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Nama Lengkap <span class="text-coral">*</span></span>
+              <input type="text" name="customerName" required minlength="2" maxlength="200"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">WhatsApp <span class="text-coral">*</span></span>
+              <input type="tel" name="customerWhatsapp" required minlength="6" maxlength="40" placeholder="+62 812xxxx"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Email (opsional)</span>
+              <input type="email" name="customerEmail" maxlength="200"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Negara Asal (opsional)</span>
+              <input type="text" name="customerCountry" maxlength="100"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+            </label>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-sand-dark/10">
+          <h2 class="font-display text-xl text-ocean mb-4">Detail Perjalanan</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Tanggal Keberangkatan <span class="text-coral">*</span></span>
+              <input type="date" name="departureDate" required value={qDate}
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Jumlah Dewasa <span class="text-coral">*</span></span>
+              <select name="adults" required
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                  <option value={n} selected={n === qAdults}>{n}</option>
+                ))}
+              </select>
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Jumlah Anak</span>
+              <select name="children"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
+                {Array.from({ length: 7 }, (_, i) => i).map((n) => (
+                  <option value={n} selected={n === qChildren}>{n}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {sortedClasses.length > 0 && (
+            <div class="mt-4">
+              <span class="block text-xs font-semibold text-stone mb-2">Kelas Ferry</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {sortedClasses.map((c) => (
+                  <label class="flex items-start gap-3 p-4 bg-sand rounded-lg border border-sand-dark/30 hover:border-ocean cursor-pointer has-[:checked]:border-ocean has-[:checked]:ring-1 has-[:checked]:ring-ocean transition-colors">
+                    <input
+                      type="radio"
+                      name="ferryClassType"
+                      value={c.classType}
+                      class="mt-1 accent-ocean"
+                      checked={preselected?.classType === c.classType}
+                    />
+                    <span class="flex-1">
+                      <span class="block font-semibold text-ocean text-sm">{c.name}</span>
+                      <span class="block text-xs text-stone-light mt-0.5">{formatPrice(c.adultPrice, c.currency ?? 'IDR')} / dewasa</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {preselected && (
+            <>
+              <input type="hidden" name="ferryClassName" value={preselected.name} />
+              <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
+              <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
+            </>
+          )}
+        </div>
+
+        <div class="pt-6 border-t border-sand-dark/10">
+          <label class="block">
+            <span class="block text-xs font-semibold text-stone mb-1">Catatan Tambahan (opsional)</span>
+            <textarea name="customerNotes" rows="3" maxlength="1000"
+              placeholder="Contoh: perlu jemput ke hotel, request kursi dekat jendela, dll."
+              class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean"></textarea>
+          </label>
+        </div>
+
+        <div class="pt-6 border-t border-sand-dark/10 flex flex-col md:flex-row-reverse items-center gap-3">
+          <button type="submit"
+            class="w-full md:w-auto bg-coral hover:bg-coral-dark text-white px-8 py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md">
+            Lanjut ke Konfirmasi
+          </button>
+          <a href={detailUrl}
+            class="text-sm text-stone hover:text-ocean underline underline-offset-4">← Kembali ke detail ticket</a>
+        </div>
+      </form>
+    </div>
+
+    <aside class="lg:col-span-4">
+      <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-lg border border-sand-dark/10 p-6">
+        <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-3">Ringkasan Booking</p>
+        <div class="flex gap-3 mb-4 pb-4 border-b border-sand-dark/10">
+          {heroUrl && (
+            <div class="w-20 h-20 rounded-lg overflow-hidden bg-sand shrink-0">
+              <img src={heroUrl} alt={item.title} class="w-full h-full object-cover" loading="lazy" />
+            </div>
+          )}
+          <div class="min-w-0">
+            <h2 class="font-display text-base text-ocean line-clamp-2">{item.title}</h2>
+            {routeLabel && <p class="text-xs text-stone-light mt-1 flex items-center gap-1"><Icon name="location_on" class="w-3 h-3 text-coral" />{routeLabel}</p>}
+          </div>
+        </div>
+        <dl class="space-y-2 text-sm">
+          {preselected && (
+            <div class="flex justify-between">
+              <dt class="text-stone-light">Kelas</dt>
+              <dd class="text-ocean font-semibold">{preselected.name}</dd>
+            </div>
+          )}
+          {priceFormatted && (
+            <div class="flex justify-between">
+              <dt class="text-stone-light">Harga / dewasa</dt>
+              <dd class="text-coral font-semibold">{priceFormatted}</dd>
+            </div>
+          )}
+        </dl>
+        <p class="mt-6 text-xs text-stone-light leading-relaxed">
+          Anda tidak dikenai biaya sekarang. Setelah submit, tim kami mengkonfirmasi ketersediaan & instruksi pembayaran via WhatsApp.
+        </p>
+      </div>
+    </aside>
+  </section>
+</PageLayout>

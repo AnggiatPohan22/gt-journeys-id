@@ -31,6 +31,7 @@ import * as migration_20260925_163237_phase_4_61_locations from './20260925_1632
 import * as migration_20260925_171415_phase_4_61_ticket_fields from './20260925_171415_phase_4_61_ticket_fields';
 import * as migration_20260925_184020_phase_4_61_1_service_card_designs from './20260925_184020_phase_4_61_1_service_card_designs';
 import * as migration_20260926_052238_phase_4_61_3_ticket_card_bg from './20260926_052238_phase_4_61_3_ticket_card_bg';
+import * as migration_20260927_142814_phase_4_62_bookings from './20260927_142814_phase_4_62_bookings';
 
 export const migrations = [
   {
@@ -196,6 +197,11 @@ export const migrations = [
   {
     up: migration_20260926_052238_phase_4_61_3_ticket_card_bg.up,
     down: migration_20260926_052238_phase_4_61_3_ticket_card_bg.down,
-    name: '20260926_052238_phase_4_61_3_ticket_card_bg'
+    name: '20260926_052238_phase_4_61_3_ticket_card_bg',
+  },
+  {
+    up: migration_20260927_142814_phase_4_62_bookings.up,
+    down: migration_20260927_142814_phase_4_62_bookings.down,
+    name: '20260927_142814_phase_4_62_bookings',
   },
 ];
