@@ -26676,39 +26676,47 @@ export interface FerryTicket {
   isFeatured?: boolean | null;
   title: string;
   /**
-   * Short tagline (opsional)
+   * Short tagline (optional).
    */
   subtitle?: string | null;
   destination: number | Destination;
   category?: (number | null) | Category;
   /**
-   * Lokasi/pelabuhan asal keberangkatan. Tambah lokasi baru di Content → Locations.
+   * Departure port / location. Add new locations under Content → Locations.
    */
   originLocation?: (number | null) | Location;
   /**
-   * Lokasi/pelabuhan tujuan.
+   * Arrival port / location.
    */
   arrivalLocation?: (number | null) | Location;
   /**
-   * DEPRECATED — dipindah ke Origin Location (relationship).
+   * DEPRECATED — moved to Origin Location (relationship).
    */
   origin?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
   /**
-   * DEPRECATED — dipindah ke Arrival Location (relationship).
+   * DEPRECATED — moved to Arrival Location (relationship).
    */
   arrival?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
   /**
-   * Mis: "1h 15m", "2 Hours"
-   */
-  duration?: string | null;
-  /**
-   * Nama operator ferry (mis: "Batam Fast", "Majestic Ferry")
+   * Ferry operator name (e.g. "Batam Fast", "Majestic Ferry").
    */
   operator?: string | null;
   /**
-   * Jam keberangkatan (mis: "08:00, 12:00, 17:00")
+   * Departure time in HH:mm (24-hour). Click to open the wheel picker (scroll hours & minutes). One ticket = one departure.
    */
   departureTime?: string | null;
+  /**
+   * Arrival time at the destination port (local time). Click to open the wheel picker. Used to auto-compute the duration.
+   */
+  arrivalTime?: string | null;
+  /**
+   * Auto-computed on save from departure/arrival times and location timezones. Enable "Override" to keep a manual value (e.g. "1h 15m", "2 Hours").
+   */
+  duration?: string | null;
+  /**
+   * Check to disable auto-compute (e.g. overnight ferry or special cases).
+   */
+  durationOverride?: boolean | null;
   description: {
     root: {
       type: string;
@@ -26731,7 +26739,7 @@ export interface FerryTicket {
     | {
         iconName: string;
         /**
-         * Mis: "6 Hours"
+         * E.g. "6 Hours".
          */
         label: string;
         subtitle?: string | null;
@@ -26748,15 +26756,15 @@ export interface FerryTicket {
       }[]
     | null;
   /**
-   * Logo operator (opsional), tampil di kartu Ticket. Mis. logo "Batam Fast".
+   * Operator logo (optional). Shown on the Ticket card. E.g. "Batam Fast" logo.
    */
   operatorLogo?: (number | null) | Media;
   /**
-   * Jumlah booking (opsional), mis. 1707 → tampil "1,707 booked".
+   * Booking count (optional). E.g. 1707 renders as "1,707 booked".
    */
   bookedCount?: number | null;
   /**
-   * Badge kecil di atas kartu (opsional, max 3). Mis. "Recommended", "Instant confirmation".
+   * Small badges above the card (optional, max 3). E.g. "Recommended", "Instant confirmation".
    */
   badges?:
     | {
@@ -26770,7 +26778,7 @@ export interface FerryTicket {
    */
   featuredImage: number | Media;
   /**
-   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.
+   * Additional photos (max 10). Grid: ← → reorder, ✎ edit/replace (Payload drawer), 🗑 delete.
    */
   gallery?:
     | {
@@ -26780,51 +26788,87 @@ export interface FerryTicket {
       }[]
     | null;
   /**
-   * YouTube atau Vimeo URL
+   * YouTube or Vimeo URL.
    */
   videoUrl?: string | null;
   /**
-   * Jadwal keberangkatan & kedatangan ferry. Bisa multi-schedule (mis. pagi, siang, sore).
+   * Ferry departure & arrival schedule. Supports multiple entries.
    */
   scheduleTime?:
     | {
         /**
-         * Pelabuhan asal. Tambah lokasi baru di Content → Locations.
+         * Departure port. Add new locations under Content → Locations.
          */
         departureLocation?: (number | null) | Location;
         /**
-         * Pelabuhan tujuan.
+         * Arrival port.
          */
         arrivalLocation?: (number | null) | Location;
         /**
-         * DEPRECATED — dipindah ke Departure Location.
+         * DEPRECATED — moved to Departure Location.
          */
         departurePort?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
         /**
-         * DEPRECATED — dipindah ke Arrival Location.
+         * DEPRECATED — moved to Arrival Location.
          */
         arrivalPort?: ('batam' | 'tanjungpinang' | 'singapore' | 'malaysia') | null;
         /**
-         * Mis: "08:00"
+         * E.g. "08:00".
          */
         departureTime: string;
         /**
-         * Mis: "09:15"
+         * E.g. "09:15".
          */
         arrivalTime: string;
         /**
-         * Mis: "1h 15m"
+         * E.g. "1h 15m".
          */
         duration?: string | null;
         /**
-         * Catatan tambahan (opsional). Mis: "Weekday only", "Return trip available".
+         * Extra notes (optional). E.g. "Weekday only", "Return trip available".
          */
         notes?: string | null;
         id?: string | null;
       }[]
     | null;
   /**
-   * Informasi tambahan / catatan penting mengenai keberangkatan (opsional). Mis: instruksi khusus, kontak pelabuhan, dsb.
+   * Class / cabin options (e.g. Economy, Emerald). Each class has adult & child pricing.
+   */
+  ferryClasses?:
+    | {
+        /**
+         * Ferry / class name (e.g. "Batam Fast — Emerald").
+         */
+        name: string;
+        description?: string | null;
+        /**
+         * Class type.
+         */
+        classType: 'ekonomi' | 'emerald';
+        currency?: ('IDR' | 'USD' | 'SGD' | 'MYR') | null;
+        /**
+         * Adult price.
+         */
+        adultPrice: number;
+        /**
+         * Child price (optional).
+         */
+        childPrice?: number | null;
+        /**
+         * Original price before discount (optional). If greater than adultPrice → renders a strikethrough price + "Save X%" on the card.
+         */
+        originalPrice?: number | null;
+        images?:
+          | {
+              image?: (number | null) | Media;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Additional info / important notes about the departure (optional). E.g. special instructions, port contact, etc.
    */
   additionalRemark?: {
     root: {
@@ -26842,47 +26886,11 @@ export interface FerryTicket {
     [k: string]: unknown;
   } | null;
   /**
-   * Kelas / cabin options (mis: Ekonomi, Emerald). Setiap kelas punya harga adult & child.
-   */
-  ferryClasses?:
-    | {
-        /**
-         * Nama ferry / kelas (mis: "Batam Fast — Emerald").
-         */
-        name: string;
-        description?: string | null;
-        /**
-         * Tipe kelas.
-         */
-        classType: 'ekonomi' | 'emerald';
-        currency?: ('IDR' | 'USD' | 'SGD' | 'MYR') | null;
-        /**
-         * Harga per adult.
-         */
-        adultPrice: number;
-        /**
-         * Harga per child (opsional).
-         */
-        childPrice?: number | null;
-        /**
-         * Harga asli sebelum diskon (opsional). Jika > adultPrice → tampil harga coret + "Save X%" di kartu.
-         */
-        originalPrice?: number | null;
-        images?:
-          | {
-              image?: (number | null) | Media;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
    * Template pesan WhatsApp yang akan terisi otomatis saat visitor klik tombol booking
    */
   whatsappMessage?: string | null;
   /**
-   * Instruksi check-in di pelabuhan (mis. datang 60 menit sebelum keberangkatan, bawa passport, dsb).
+   * Port check-in instructions (e.g. arrive 60 minutes before departure, bring passport, etc.).
    */
   howToCheckIn?: {
     root: {
@@ -26900,7 +26908,7 @@ export interface FerryTicket {
     [k: string]: unknown;
   } | null;
   /**
-   * Ketentuan pembelian & refund (mis. tiket tidak dapat direfund, wajib passport valid > 6 bulan, dsb).
+   * Purchase & refund terms (e.g. non-refundable ticket, passport must be valid > 6 months, etc.).
    */
   purchaseNotice?: {
     root: {
@@ -26918,7 +26926,7 @@ export interface FerryTicket {
     [k: string]: unknown;
   } | null;
   /**
-   * Additional info: dress code, restrictions, cancellation policy, dsb.
+   * Additional info: dress code, restrictions, cancellation policy, etc.
    */
   additionalInfo?: {
     root: {
@@ -26952,7 +26960,7 @@ export interface FerryTicket {
    */
   relatedManualPicks?: (number | FerryTicket)[] | null;
   /**
-   * Block dirender berurutan setelah main sections.
+   * Blocks rendered in order after the main sections.
    */
   additionalBlocks?:
     | (
@@ -28931,7 +28939,7 @@ export interface FerryTicket {
   createdAt: string;
 }
 /**
- * Lokasi / pelabuhan reusable (mis. Batam, Singapore). Dipakai sebagai Origin/Arrival di Ferry Tickets. Tambah lokasi baru di sini — otomatis muncul sebagai pilihan.
+ * Reusable locations / ports (e.g. Batam, Singapore). Used as Origin/Arrival on Ferry Tickets. Add new locations here — they show up automatically as options.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "locations".
@@ -28939,31 +28947,43 @@ export interface FerryTicket {
 export interface Location {
   id: number;
   /**
-   * Nama tampilan lokasi, mis: "Batam", "Singapore", "Tanjung Pinang".
+   * Display name, e.g. "Batam", "Singapore", "Tanjung Pinang".
    */
   name: string;
   /**
-   * Nama terminal/pelabuhan (opsional), mis: "Singapore Cruise Center", "Batam Centre Terminal-BTC". Tampil sebagai baris kedua di card.
+   * Terminal / port name (optional). E.g. "Singapore Cruise Center", "Batam Centre Terminal-BTC". Rendered as the second line on cards.
    */
   terminalName?: string | null;
   /**
-   * Negara (opsional), mis: "Indonesia", "Singapore".
+   * Country (optional). E.g. "Indonesia", "Singapore".
    */
   country?: string | null;
   /**
-   * Kode singkat (opsional), mis: "BTM", "SIN".
+   * Short code (optional). E.g. "BTM", "SIN".
    */
   code?: string | null;
   /**
-   * Auto dari name.
+   * IANA timezone. Used to compute cross-timezone ferry duration (e.g. Batam WIB → Singapore SGT). Required for ferry locations.
+   */
+  timezone?: ('Asia/Jakarta' | 'Asia/Makassar' | 'Asia/Jayapura' | 'Asia/Singapore' | 'Asia/Kuala_Lumpur') | null;
+  /**
+   * Google Maps → "Share" → "Embed a map" tab → copy only the src value from the <iframe>. Example: https://www.google.com/maps/embed?pb=!1m18...
+   */
+  mapEmbedUrl?: string | null;
+  /**
+   * Plain Google Maps URL for the "Open in Maps" button (opens native Google/Apple Maps on mobile). Example: https://maps.google.com/?q=1.234,103.456 or a share link. Leave empty to fall back to the embed URL.
+   */
+  mapLink?: string | null;
+  /**
+   * Auto-generated from name.
    */
   slug: string;
   /**
-   * Nonaktifkan untuk menyembunyikan lokasi dari pilihan (data tetap ada).
+   * Uncheck to hide this location from selection (data preserved).
    */
   isActive?: boolean | null;
   /**
-   * Kosongkan saat create → otomatis max+1. Kecil di atas.
+   * Leave empty on create → auto max+1. Lower values appear first.
    */
   sortOrder?: number | null;
   updatedAt: string;
@@ -31097,6 +31117,9 @@ export interface LocationsSelect<T extends boolean = true> {
   terminalName?: T;
   country?: T;
   code?: T;
+  timezone?: T;
+  mapEmbedUrl?: T;
+  mapLink?: T;
   slug?: T;
   isActive?: T;
   sortOrder?: T;
@@ -42593,9 +42616,11 @@ export interface FerryTicketsSelect<T extends boolean = true> {
   arrivalLocation?: T;
   origin?: T;
   arrival?: T;
-  duration?: T;
   operator?: T;
   departureTime?: T;
+  arrivalTime?: T;
+  duration?: T;
+  durationOverride?: T;
   description?: T;
   quickSpecs?:
     | T
@@ -42642,7 +42667,6 @@ export interface FerryTicketsSelect<T extends boolean = true> {
         notes?: T;
         id?: T;
       };
-  additionalRemark?: T;
   ferryClasses?:
     | T
     | {
@@ -42661,6 +42685,7 @@ export interface FerryTicketsSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  additionalRemark?: T;
   whatsappMessage?: T;
   howToCheckIn?: T;
   purchaseNotice?: T;

@@ -23,7 +23,24 @@ export interface ResolvedLocation {
   /** Nama terminal/sub-title (baris kedua di card), bila ada. */
   terminal?: string
   code?: string
+  /** Zona waktu IANA (Phase 4.61.6), dipakai untuk render label "WIB", "SGT", dst. */
+  timezone?: string
+  /** Google Maps embed src URL (Phase 4.61.6). */
+  mapEmbedUrl?: string
+  /** Google/Apple Maps click-through URL (Phase 4.61.6). Fallback → mapEmbedUrl. */
+  mapLink?: string
 }
+
+/** Singkatan zona waktu untuk badge/label frontend. */
+export const TIMEZONE_ABBR: Record<string, string> = {
+  'Asia/Jakarta': 'WIB',
+  'Asia/Makassar': 'WITA',
+  'Asia/Jayapura': 'WIT',
+  'Asia/Singapore': 'SGT',
+  'Asia/Kuala_Lumpur': 'MYT',
+}
+
+export const tzLabel = (tz?: string): string | undefined => (tz ? TIMEZONE_ABBR[tz] : undefined)
 
 /**
  * @param rel    Nilai field relationship (Location object bila depth≥1, atau id/null).
@@ -31,9 +48,23 @@ export interface ResolvedLocation {
  */
 export function resolveLocation(rel: unknown, legacy?: string | null): ResolvedLocation | undefined {
   if (rel && typeof rel === 'object') {
-    const l = rel as { name?: string; terminalName?: string; code?: string }
+    const l = rel as {
+      name?: string
+      terminalName?: string
+      code?: string
+      timezone?: string
+      mapEmbedUrl?: string
+      mapLink?: string
+    }
     if (l.name) {
-      return { name: l.name, terminal: l.terminalName || undefined, code: l.code || undefined }
+      return {
+        name: l.name,
+        terminal: l.terminalName || undefined,
+        code: l.code || undefined,
+        timezone: l.timezone || undefined,
+        mapEmbedUrl: l.mapEmbedUrl || undefined,
+        mapLink: l.mapLink || undefined,
+      }
     }
   }
   if (legacy) {

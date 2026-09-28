@@ -2,7 +2,7 @@
 import type { FerryTicket } from '@shared/types/payload-types'
 import { formatPrice } from '@shared/utils/format-price'
 import { lexicalToPlainText } from '@lib/lexical'
-import { routeLabelFrom, resolveLocation } from '@lib/location'
+import { routeLabelFrom, resolveLocation, tzLabel } from '@lib/location'
 import DetailedCard from './DetailedCard.astro'
 import TicketRouteCard from './TicketRouteCard.astro'
 import CardBgLayer from './CardBgLayer.astro'
@@ -50,7 +50,15 @@ const detailHref = `${hrefBase}/${ferryTicket.slug}`
 const checkoutHref = `/checkout/ferry-tickets/${ferryTicket.slug}`
 const fromLoc = resolveLocation((ferryTicket as any).originLocation, (ferryTicket as any).origin)
 const toLoc = resolveLocation((ferryTicket as any).arrivalLocation, (ferryTicket as any).arrival)
+// Phase 4.61.6 — jadwal ferry pindah ke single (top-level departureTime/arrivalTime).
+// Fallback ke scheduleTime[0] lama untuk kompatibilitas data existing.
 const schedule0 = Array.isArray((ferryTicket as any).scheduleTime) ? (ferryTicket as any).scheduleTime[0] : null
+const topDeparture = (ferryTicket as any).departureTime as string | undefined
+const topArrival = (ferryTicket as any).arrivalTime as string | undefined
+const depTime = topDeparture || schedule0?.departureTime
+const arrTime = topArrival || schedule0?.arrivalTime
+const depTz = tzLabel(fromLoc?.timezone)
+const arrTz = tzLabel(toLoc?.timezone)
 const opLogo = typeof (ferryTicket as any).operatorLogo === 'object' ? (ferryTicket as any).operatorLogo : null
 const opLogoUrl = opLogo?.sizes?.thumbnail?.url ?? opLogo?.url ?? undefined
 const badges = (((ferryTicket as any).badges ?? []) as Array<{ text?: string; style?: 'ocean' | 'leaf' | 'coral' }>)
@@ -90,8 +98,8 @@ const detailedAmenities = [
     operator={{ name: operator, logo: opLogoUrl }}
     badges={badges}
     image={imgUrl ? { url: imgUrl, alt: imgAlt } : undefined}
-    from={{ name: fromLoc?.name ?? '—', terminal: fromLoc?.terminal, time: schedule0?.departureTime }}
-    to={{ name: toLoc?.name ?? '—', terminal: toLoc?.terminal, time: schedule0?.arrivalTime }}
+    from={{ name: fromLoc?.name ?? '—', terminal: fromLoc?.terminal, time: depTime ? (depTz ? `${depTime} ${depTz}` : depTime) : undefined }}
+    to={{ name: toLoc?.name ?? '—', terminal: toLoc?.terminal, time: arrTime ? (arrTz ? `${arrTime} ${arrTz}` : arrTime) : undefined }}
     middle={{
       label: 'Ferry',
       icon: 'ship',

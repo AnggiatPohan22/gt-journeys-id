@@ -11,7 +11,7 @@ import { getServiceWhatsApp, getServiceTypeByKey } from '@lib/serviceTypes'
 import { formatPrice } from '@shared/utils/format-price'
 import { siteConfig } from '@config/site'
 import { lexicalToPlainText } from '@lib/lexical'
-import { resolveLocation, routeLabelFrom } from '@lib/location'
+import { resolveLocation, routeLabelFrom, tzLabel } from '@lib/location'
 import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import StructuredData from '@components/common/StructuredData.astro'
 import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
@@ -99,6 +99,7 @@ const topTags = highlights.slice(0, 4).map((h) => h.text)
 // (Phase 4.61); fallback ke enum lama selama masa transisi.
 const operator = (item as any).operator as string | undefined
 const departureTime = (item as any).departureTime as string | undefined
+const arrivalTime = (item as any).arrivalTime as string | undefined
 const routeLabel = routeLabelFrom(
   (item as any).originLocation,
   (item as any).arrivalLocation,
@@ -106,16 +107,28 @@ const routeLabel = routeLabelFrom(
   (item as any).arrival,
 )
 
+// Phase 4.61.6 — resolved origin/arrival dgn timezone & map data.
+const originLoc = resolveLocation((item as any).originLocation, (item as any).origin)
+const arrivalLoc = resolveLocation((item as any).arrivalLocation, (item as any).arrival)
+const originTz = tzLabel(originLoc?.timezone)
+const arrivalTz = tzLabel(arrivalLoc?.timezone)
+
 // Quick specs — CMS override or derive
 type QuickSpec = { iconName: string; label: string; subtitle?: string }
 const cmsQuickSpecs = ((item as any).quickSpecs ?? []) as QuickSpec[]
+// Phase 4.61.6 — prioritas: Departure, Arrival, Duration, Operator (4 slots).
+// Route sudah tampil sebagai badge di hero, jadi tidak diduplikasi.
 const derivedQuickSpecs: QuickSpec[] = [
-  { iconName: 'schedule', label: item.duration ?? '—',                    subtitle: 'Duration' },
-  { iconName: 'ship',     label: operator ?? '—',                          subtitle: 'Operator' },
-  { iconName: 'location_on', label: routeLabel ?? '—',                     subtitle: 'Route' },
-  { iconName: 'access_time', label: departureTime ?? '—',                  subtitle: 'Departure' },
+  { iconName: 'access_time', label: departureTime ? (originTz ? `${departureTime} ${originTz}` : departureTime) : '—', subtitle: 'Departure' },
+  { iconName: 'flight_land', label: arrivalTime ? (arrivalTz ? `${arrivalTime} ${arrivalTz}` : arrivalTime) : '—',      subtitle: 'Arrival' },
+  { iconName: 'schedule',    label: item.duration ?? '—',                                                                subtitle: 'Duration' },
+  { iconName: 'ship',        label: operator ?? '—',                                                                     subtitle: 'Operator' },
 ]
 const quickSpecs = cmsQuickSpecs.length > 0 ? cmsQuickSpecs.slice(0, 4) : derivedQuickSpecs
+
+// Origin port map (Phase 4.61.6 — Tab 3 "Location Port")
+const originMapEmbed = originLoc?.mapEmbedUrl
+const originMapLink = originLoc?.mapLink || originLoc?.mapEmbedUrl
 
 // Custom super-admin blocks
 const additionalBlocks = ((item as any).additionalBlocks ?? []) as any[]
@@ -248,39 +261,67 @@ const itemSchema = serviceItemSchema({
         </div>
       )}
 
-      {/* ─── Schedule Time (ferry timetable) ─── */}
-      {scheduleTime.length > 0 && (
+      {/* ─── Departure & Arrival (Phase 4.61.6 — single schedule) ─── */}
+      {(departureTime || arrivalTime) && (
         <div class="mb-12 pb-12 border-b border-sand-dark/30" id="schedule">
-          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Schedule Time</h2>
-          <div class="space-y-4">
-            {scheduleTime.map((s) => {
-              const dep = resolveLocation(s.departureLocation, s.departurePort)
-              const arr = resolveLocation(s.arrivalLocation, s.arrivalPort)
-              return (
-              <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6">
-                <div class="flex flex-wrap items-center gap-3 md:gap-6">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Departure</p>
-                    <p class="font-display text-lg text-ocean">{dep?.name ?? '—'}</p>
-                    {dep?.terminal && <p class="text-xs text-stone-light">{dep.terminal}</p>}
-                    <p class="text-2xl font-bold text-coral mt-1">{s.departureTime}</p>
-                  </div>
-                  <div class="flex flex-col items-center text-stone-light">
-                    <Icon name="arrow_forward" class="w-6 h-6" />
-                    {s.duration && <p class="text-xs mt-1">{s.duration}</p>}
-                  </div>
-                  <div class="flex-1 min-w-0 text-right">
-                    <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Arrival</p>
-                    <p class="font-display text-lg text-ocean">{arr?.name ?? '—'}</p>
-                    {arr?.terminal && <p class="text-xs text-stone-light">{arr.terminal}</p>}
-                    <p class="text-2xl font-bold text-coral mt-1">{s.arrivalTime}</p>
-                  </div>
-                </div>
-                {s.notes && <p class="mt-4 pt-4 border-t border-sand-dark/10 text-sm text-stone italic">{s.notes}</p>}
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Departure & Arrival</h2>
+          <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6">
+            <div class="flex flex-wrap items-center gap-3 md:gap-6">
+              <div class="flex-1 min-w-0">
+                <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Departure</p>
+                <p class="font-display text-lg text-ocean">{originLoc?.name ?? '—'}</p>
+                {originLoc?.terminal && <p class="text-xs text-stone-light">{originLoc.terminal}</p>}
+                <p class="text-2xl font-bold text-coral mt-1">
+                  {departureTime ?? '—'} {originTz && <span class="text-sm font-semibold text-stone-light">{originTz}</span>}
+                </p>
               </div>
-              )
-            })}
+              <div class="flex flex-col items-center text-stone-light">
+                <Icon name="arrow_forward" class="w-6 h-6" />
+                {item.duration && <p class="text-xs mt-1">{item.duration}</p>}
+              </div>
+              <div class="flex-1 min-w-0 text-right">
+                <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-1">Arrival</p>
+                <p class="font-display text-lg text-ocean">{arrivalLoc?.name ?? '—'}</p>
+                {arrivalLoc?.terminal && <p class="text-xs text-stone-light">{arrivalLoc.terminal}</p>}
+                <p class="text-2xl font-bold text-coral mt-1">
+                  {arrivalTime ?? '—'} {arrivalTz && <span class="text-sm font-semibold text-stone-light">{arrivalTz}</span>}
+                </p>
+              </div>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* ─── Location Port (Phase 4.61.6 — Origin port map) ─── */}
+      {originMapEmbed && (
+        <div class="mb-12 pb-12 border-b border-sand-dark/30" id="location-port">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-2">Location Port</h2>
+          <p class="text-sm text-stone-light mb-4">
+            Pelabuhan keberangkatan: <span class="font-semibold text-stone">{originLoc?.name}</span>
+            {originLoc?.terminal && <> — {originLoc.terminal}</>}
+          </p>
+          <div class="relative rounded-xl overflow-hidden border border-sand-dark/20 aspect-[16/9] bg-sand">
+            <iframe
+              src={originMapEmbed}
+              class="absolute inset-0 w-full h-full"
+              style="border:0"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              allowfullscreen
+              title={`Map: ${originLoc?.name ?? 'Port'}`}
+            />
+          </div>
+          {originMapLink && (
+            <a
+              href={originMapLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 mt-4 px-4 py-2.5 bg-ocean hover:bg-ocean-dark text-white rounded-lg font-semibold text-sm no-underline transition-colors"
+            >
+              <Icon name="map" class="w-4 h-4" />
+              Open in Google / Apple Maps
+            </a>
+          )}
         </div>
       )}
 
@@ -423,18 +464,28 @@ const itemSchema = serviceItemSchema({
           <button type="submit" class="block w-full bg-coral hover:bg-coral-dark text-white text-center py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md hover:shadow-lg">Reserve Now</button>
         </form>
 
-        {(item.duration || departureTime) && (
-          <div class="mt-6 pt-6 border-t border-sand-dark/30 grid grid-cols-2 gap-3 text-center">
+        {(item.duration || departureTime || arrivalTime) && (
+          <div class="mt-6 pt-6 border-t border-sand-dark/30 grid grid-cols-3 gap-3 text-center">
+            {departureTime && (
+              <div>
+                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Departure</p>
+                <p class="text-sm font-semibold text-ocean mt-1">
+                  {departureTime}{originTz && <span class="text-xs text-stone-light font-normal"> {originTz}</span>}
+                </p>
+              </div>
+            )}
+            {arrivalTime && (
+              <div>
+                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Arrival</p>
+                <p class="text-sm font-semibold text-ocean mt-1">
+                  {arrivalTime}{arrivalTz && <span class="text-xs text-stone-light font-normal"> {arrivalTz}</span>}
+                </p>
+              </div>
+            )}
             {item.duration && (
               <div>
                 <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Duration</p>
                 <p class="text-sm font-semibold text-ocean mt-1">{item.duration}</p>
-              </div>
-            )}
-            {departureTime && (
-              <div>
-                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Departure</p>
-                <p class="text-sm font-semibold text-ocean mt-1">{departureTime}</p>
               </div>
             )}
           </div>

@@ -675,3 +675,52 @@ html[data-theme='dark'] .dnj-brand-icon__img--dark { display: block; }
 .dashboard-breadcrumb-select .rs__value-container {
   padding: 0 !important;
 }
+
+/* ─── WheelTimePicker (Phase 4.61.6) ─────────────────────────────
+   Hide scrollbar di kolom wheel (jam/menit). scrollbarWidth:'none' di JSX
+   sudah handle Firefox; ini untuk Chrome/Edge/Safari. */
+.field-type.text [role="listbox"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── DescriptionsToTooltips (Phase 4.61.6 refinement) ────────────
+   Icon "?" kecil di sebelah label field. Hover / focus → tooltip
+   berisi teks description asli (di-hide, disimpan di data-tt). */
+.dnj-tt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--theme-elevation-300);
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-500);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  vertical-align: middle;
+  user-select: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.dnj-tt-icon:hover,
+.dnj-tt-icon:focus {
+  background: var(--theme-elevation-800, #333);
+  color: var(--theme-elevation-0, #fff);
+  border-color: transparent;
+  outline: none;
+}
+/* Collapsible section header hosts an invisible `.collapsible__toggle`
+   button that overlays the whole header row. Raise the ? icon above it
+   so hover works AND clicking the icon doesn't trigger a collapse. */
+.dnj-tt-icon--in-header {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+  margin-left: 8px;
+}
+/* Tooltip element (#dnj-tt-tip) di-append ke <body> by DescriptionsToTooltips.tsx
+   supaya lolos dari overflow:hidden ancestor (collapsible section / row).
+   Positioning + show/hide dilakukan via JS (fixed positioning + flip). */

@@ -3,6 +3,7 @@ import { superAdminFieldAccess } from '../access/roles'
 import { moduleAccess } from '../access/moduleAccess'
 import { generateSlug } from '../hooks/generateSlug'
 import { assignMediaFolder } from '../hooks/assignMediaFolder'
+import { computeFerryDuration } from '../hooks/computeFerryDuration'
 import { seoFields } from '../fields/seo'
 import { whatsappField } from '../fields/whatsapp'
 import { statusField, sortOrderField, isFeaturedField } from '../fields/status'
@@ -18,7 +19,10 @@ const s = cfg
 
 export const FerryTickets: CollectionConfig = {
   slug: 'ferry-tickets',
-  hooks: { afterChange: [assignMediaFolder('ferry-tickets')] },
+  hooks: {
+    beforeChange: [computeFerryDuration],
+    afterChange: [assignMediaFolder('ferry-tickets')],
+  },
   admin: {
     useAsTitle: 'title',
     group: 'Services',
@@ -27,8 +31,19 @@ export const FerryTickets: CollectionConfig = {
   },
   access: moduleAccess('ferryTickets'),
   fields: [
+    // Phase 4.61.6 refinement — convert admin.description into hover tooltips.
+    {
+      name: 'descriptionsToTooltips',
+      type: 'ui',
+      label: false as unknown as string,
+      admin: {
+        components: {
+          Field: '/admin/DescriptionsToTooltips#default',
+        },
+      },
+    },
     sidebarTabsField,
-    withSidebarTab({ name: 'slug', type: 'text', required: true, unique: true, hooks: { beforeValidate: [generateSlug] }, admin: { position: 'sidebar' } }, 'general'),
+    withSidebarTab({ name: 'slug', type: 'text', required: true, unique: true, hooks: { beforeValidate: [generateSlug] }, admin: { position: 'sidebar', placeholder: 'auto dari title' } }, 'general'),
     withSidebarTab(withStatusCell(statusField), 'status'),
     withSidebarTab(sortOrderField,  'status'),
     withSidebarTab(isFeaturedField, 'status'),
@@ -47,8 +62,8 @@ export const FerryTickets: CollectionConfig = {
               label: s.overview.sections.description.label,
               admin: { initCollapsed: s.overview.sections.description.initCollapsed, className: sectionClass(s.overview.color, s.overview.sections.description.icon) },
               fields: [
-                { name: 'title', type: 'text', required: true },
-                { name: 'subtitle', type: 'text', admin: { description: 'Short tagline (opsional)' } },
+                { name: 'title', type: 'text', required: true, admin: { placeholder: 'Ferry Batam → Singapore (Batam Fast)' } },
+                { name: 'subtitle', type: 'text', admin: { placeholder: 'Fast ferry service, 60 min crossing', description: 'Short tagline (optional).' } },
                 {
                   type: 'row',
                   fields: [
@@ -63,13 +78,13 @@ export const FerryTickets: CollectionConfig = {
                       name: 'originLocation',
                       type: 'relationship',
                       relationTo: 'locations',
-                      admin: { width: '50%', description: 'Lokasi/pelabuhan asal keberangkatan. Tambah lokasi baru di Content → Locations.' },
+                      admin: { width: '50%', description: 'Departure port / location. Add new locations under Content → Locations.' },
                     },
                     {
                       name: 'arrivalLocation',
                       type: 'relationship',
                       relationTo: 'locations',
-                      admin: { width: '50%', description: 'Lokasi/pelabuhan tujuan.' },
+                      admin: { width: '50%', description: 'Arrival port / location.' },
                     },
                   ],
                 },
@@ -80,7 +95,7 @@ export const FerryTickets: CollectionConfig = {
                     {
                       name: 'origin',
                       type: 'select',
-                      admin: { width: '50%', description: 'DEPRECATED — dipindah ke Origin Location (relationship).' },
+                      admin: { width: '50%', description: 'DEPRECATED — moved to Origin Location (relationship).' },
                       options: [
                         { label: 'Batam', value: 'batam' },
                         { label: 'Tanjung Pinang', value: 'tanjungpinang' },
@@ -91,7 +106,7 @@ export const FerryTickets: CollectionConfig = {
                     {
                       name: 'arrival',
                       type: 'select',
-                      admin: { width: '50%', description: 'DEPRECATED — dipindah ke Arrival Location (relationship).' },
+                      admin: { width: '50%', description: 'DEPRECATED — moved to Arrival Location (relationship).' },
                       options: [
                         { label: 'Batam', value: 'batam' },
                         { label: 'Tanjung Pinang', value: 'tanjungpinang' },
@@ -102,20 +117,84 @@ export const FerryTickets: CollectionConfig = {
                   ],
                 },
                 {
+                  // Phase 4.61.6 — 5-column row: Operator | Departure | Arrival | Duration | Override.
                   type: 'row',
                   fields: [
-                    { name: 'duration', type: 'text', admin: { width: '34%', description: 'Mis: "1h 15m", "2 Hours"' } },
-                    { name: 'operator', type: 'text', admin: { width: '33%', description: 'Nama operator ferry (mis: "Batam Fast", "Majestic Ferry")' } },
-                    { name: 'departureTime', type: 'text', admin: { width: '33%', description: 'Jam keberangkatan (mis: "08:00, 12:00, 17:00")' } },
+                    { name: 'operator', type: 'text', admin: { width: '25%', placeholder: 'Batam Fast', description: 'Ferry operator name (e.g. "Batam Fast", "Majestic Ferry").' } },
+                    {
+                      name: 'departureTime',
+                      type: 'text',
+                      admin: {
+                        width: '20%',
+                        placeholder: '08:00',
+                        description: 'Departure time in HH:mm (24-hour). Click to open the wheel picker (scroll hours & minutes). One ticket = one departure.',
+                        components: {
+                          Field: '/admin/WheelTimePicker#default',
+                        },
+                      },
+                      validate: (val: unknown) => {
+                        if (val === null || val === undefined || val === '') return true
+                        if (typeof val === 'string' && /^([01]\d|2[0-3]):([0-5]\d)$/.test(val)) return true
+                        return 'Must be HH:mm (e.g. 08:00, 17:30).'
+                      },
+                    },
+                    {
+                      name: 'arrivalTime',
+                      type: 'text',
+                      admin: {
+                        width: '20%',
+                        placeholder: '09:15',
+                        description: 'Arrival time at the destination port (local time). Click to open the wheel picker. Used to auto-compute the duration.',
+                        components: {
+                          Field: '/admin/WheelTimePicker#default',
+                        },
+                      },
+                      validate: (val: unknown) => {
+                        if (val === null || val === undefined || val === '') return true
+                        if (typeof val === 'string' && /^([01]\d|2[0-3]):([0-5]\d)$/.test(val)) return true
+                        return 'Must be HH:mm (e.g. 09:15).'
+                      },
+                    },
+                    {
+                      name: 'duration',
+                      type: 'text',
+                      admin: {
+                        width: '20%',
+                        placeholder: '1h 15m',
+                        description: 'Auto-computed on save from departure/arrival times and location timezones. Enable "Override" to keep a manual value (e.g. "1h 15m", "2 Hours").',
+                      },
+                    },
+                    {
+                      name: 'durationOverride',
+                      type: 'checkbox',
+                      label: 'Override',
+                      admin: {
+                        width: '15%',
+                        description: 'Check to disable auto-compute (e.g. overnight ferry or special cases).',
+                      },
+                    },
                   ],
+                },
+                // Phase 4.61.6 — hidden ui field: watches durationOverride
+                // and disables the <input name="duration"> when unchecked.
+                {
+                  name: 'durationLock',
+                  type: 'ui',
+                  admin: {
+                    components: {
+                      Field: '/admin/DurationLock#default',
+                    },
+                  },
                 },
                 { name: 'description', type: 'richText', required: true },
               ],
             },
             {
+              // Phase 4.61.6 — di-hide dari UI (khusus Ferry Tickets). Data
+              // existing dipertahankan. Un-hide dengan hapus `hidden: true`.
               type: 'collapsible',
               label: s.overview.sections.quickSpecs.label,
-              admin: { initCollapsed: s.overview.sections.quickSpecs.initCollapsed, className: sectionClass(s.overview.color, s.overview.sections.quickSpecs.icon) },
+              admin: { hidden: true, initCollapsed: s.overview.sections.quickSpecs.initCollapsed, className: sectionClass(s.overview.color, s.overview.sections.quickSpecs.icon) },
               fields: [
                 {
                   name: 'quickSpecs',
@@ -127,7 +206,7 @@ export const FerryTickets: CollectionConfig = {
                       type: 'row',
                       fields: [
                         iconField({ name: 'iconName', required: true, admin: { width: '40%' } }),
-                        { name: 'label', type: 'text', required: true, admin: { width: '30%', description: 'Mis: "6 Hours"' } },
+                        { name: 'label', type: 'text', required: true, admin: { width: '30%', description: 'E.g. "6 Hours".' } },
                         { name: 'subtitle', type: 'text', admin: { width: '30%' } },
                       ],
                     },
@@ -136,9 +215,10 @@ export const FerryTickets: CollectionConfig = {
               ],
             },
             {
+              // Phase 4.61.6 — di-hide (data dipertahankan).
               type: 'collapsible',
               label: s.overview.sections.highlights.label,
-              admin: { initCollapsed: s.overview.sections.highlights.initCollapsed, className: sectionClass(s.overview.color, s.overview.sections.highlights.icon) },
+              admin: { hidden: true, initCollapsed: s.overview.sections.highlights.initCollapsed, className: sectionClass(s.overview.color, s.overview.sections.highlights.icon) },
               fields: [
                 {
                   name: 'highlights',
@@ -162,12 +242,12 @@ export const FerryTickets: CollectionConfig = {
                   name: 'operatorLogo',
                   type: 'upload',
                   relationTo: 'media',
-                  admin: { description: 'Logo operator (opsional), tampil di kartu Ticket. Mis. logo "Batam Fast".' },
+                  admin: { description: 'Operator logo (optional). Shown on the Ticket card. E.g. "Batam Fast" logo.' },
                 },
                 {
                   type: 'row',
                   fields: [
-                    { name: 'bookedCount', type: 'number', min: 0, admin: { width: '50%', description: 'Jumlah booking (opsional), mis. 1707 → tampil "1,707 booked".' } },
+                    { name: 'bookedCount', type: 'number', min: 0, admin: { width: '50%', placeholder: '1707', description: 'Booking count (optional). E.g. 1707 renders as "1,707 booked".' } },
                   ],
                 },
                 {
@@ -175,12 +255,12 @@ export const FerryTickets: CollectionConfig = {
                   type: 'array',
                   maxRows: 3,
                   label: 'Badges',
-                  admin: { description: 'Badge kecil di atas kartu (opsional, max 3). Mis. "Recommended", "Instant confirmation".' },
+                  admin: { description: 'Small badges above the card (optional, max 3). E.g. "Recommended", "Instant confirmation".' },
                   fields: [
                     {
                       type: 'row',
                       fields: [
-                        { name: 'text', type: 'text', required: true, admin: { width: '60%' } },
+                        { name: 'text', type: 'text', required: true, admin: { width: '60%', placeholder: 'Instant confirmation' } },
                         {
                           name: 'style',
                           type: 'select',
@@ -232,7 +312,7 @@ export const FerryTickets: CollectionConfig = {
                   type: 'array',
                   maxRows: 10,
                   admin: {
-                    description: 'Additional photos (max 10). Grid: ← → reorder, ✎ edit/ganti (drawer Payload), 🗑 hapus.',
+                    description: 'Additional photos (max 10). Grid: ← → reorder, ✎ edit/replace (Payload drawer), 🗑 delete.',
                     className: 'dnj-gallery-grid',
                     components: {
                       afterInput: ['/admin/GalleryGrid#default'],
@@ -240,7 +320,7 @@ export const FerryTickets: CollectionConfig = {
                   },
                   fields: [
                     { name: 'image', type: 'upload', relationTo: 'media', required: true },
-                    { name: 'caption', type: 'text' },
+                    { name: 'caption', type: 'text', admin: { placeholder: 'Batam Fast ferry di dermaga' } },
                   ],
                 },
               ],
@@ -250,26 +330,30 @@ export const FerryTickets: CollectionConfig = {
               label: s.media.sections.video.label,
               admin: { initCollapsed: s.media.sections.video.initCollapsed, className: sectionClass(s.media.color, s.media.sections.video.icon) },
               fields: [
-                { name: 'videoUrl', type: 'text', label: 'Video URL', admin: { description: 'YouTube atau Vimeo URL' } },
+                { name: 'videoUrl', type: 'text', label: 'Video URL', admin: { placeholder: 'https://youtu.be/xxxxxx atau https://vimeo.com/xxxxxx', description: 'YouTube or Vimeo URL.' } },
               ],
             },
           ],
         },
 
         // ── 3. Schedule & Pricing (Coral) ──────────
+        // Phase 4.61.6 — urutan: Pricing → Location Port → Additional Remark
+        // → Booking. Schedule Time di-hide (jadwal single via Overview).
         {
           label: s.tab3.label,
           fields: [
             {
+              // Phase 4.61.6 — di-hide. Ferry Tickets pindah ke single-schedule
+              // (departureTime & arrivalTime di Overview). Data existing dipertahankan.
               type: 'collapsible',
               label: 'Schedule Time',
-              admin: { initCollapsed: s.tab3.sections.itinerary.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.itinerary.icon) },
+              admin: { hidden: true, initCollapsed: s.tab3.sections.itinerary.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.itinerary.icon) },
               fields: [
                 {
                   name: 'scheduleTime',
                   type: 'array',
                   label: 'Ferry Schedule',
-                  admin: { description: 'Jadwal keberangkatan & kedatangan ferry. Bisa multi-schedule (mis. pagi, siang, sore).' },
+                  admin: { description: 'Ferry departure & arrival schedule. Supports multiple entries.' },
                   fields: [
                     {
                       type: 'row',
@@ -278,13 +362,13 @@ export const FerryTickets: CollectionConfig = {
                           name: 'departureLocation',
                           type: 'relationship',
                           relationTo: 'locations',
-                          admin: { width: '50%', description: 'Pelabuhan asal. Tambah lokasi baru di Content → Locations.' },
+                          admin: { width: '50%', description: 'Departure port. Add new locations under Content → Locations.' },
                         },
                         {
                           name: 'arrivalLocation',
                           type: 'relationship',
                           relationTo: 'locations',
-                          admin: { width: '50%', description: 'Pelabuhan tujuan.' },
+                          admin: { width: '50%', description: 'Arrival port.' },
                         },
                       ],
                     },
@@ -295,7 +379,7 @@ export const FerryTickets: CollectionConfig = {
                         {
                           name: 'departurePort',
                           type: 'select',
-                          admin: { width: '50%', description: 'DEPRECATED — dipindah ke Departure Location.' },
+                          admin: { width: '50%', description: 'DEPRECATED — moved to Departure Location.' },
                           options: [
                             { label: 'Batam (Batam Center / Harbour Bay / Sekupang)', value: 'batam' },
                             { label: 'Tanjung Pinang (Sri Bintan Pura)', value: 'tanjungpinang' },
@@ -306,7 +390,7 @@ export const FerryTickets: CollectionConfig = {
                         {
                           name: 'arrivalPort',
                           type: 'select',
-                          admin: { width: '50%', description: 'DEPRECATED — dipindah ke Arrival Location.' },
+                          admin: { width: '50%', description: 'DEPRECATED — moved to Arrival Location.' },
                           options: [
                             { label: 'Batam (Batam Center / Harbour Bay / Sekupang)', value: 'batam' },
                             { label: 'Tanjung Pinang (Sri Bintan Pura)', value: 'tanjungpinang' },
@@ -319,28 +403,17 @@ export const FerryTickets: CollectionConfig = {
                     {
                       type: 'row',
                       fields: [
-                        { name: 'departureTime', type: 'text', required: true, admin: { width: '33%', description: 'Mis: "08:00"' } },
-                        { name: 'arrivalTime', type: 'text', required: true, admin: { width: '33%', description: 'Mis: "09:15"' } },
-                        { name: 'duration', type: 'text', admin: { width: '34%', description: 'Mis: "1h 15m"' } },
+                        { name: 'departureTime', type: 'text', required: true, admin: { width: '33%', description: 'E.g. "08:00".' } },
+                        { name: 'arrivalTime', type: 'text', required: true, admin: { width: '33%', description: 'E.g. "09:15".' } },
+                        { name: 'duration', type: 'text', admin: { width: '34%', description: 'E.g. "1h 15m".' } },
                       ],
                     },
-                    { name: 'notes', type: 'textarea', admin: { description: 'Catatan tambahan (opsional). Mis: "Weekday only", "Return trip available".' } },
+                    { name: 'notes', type: 'textarea', admin: { description: 'Extra notes (optional). E.g. "Weekday only", "Return trip available".' } },
                   ],
                 },
               ],
             },
-            {
-              type: 'collapsible',
-              label: 'Additional Remark',
-              admin: { initCollapsed: s.tab3.sections.meeting.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.meeting.icon) },
-              fields: [
-                {
-                  name: 'additionalRemark',
-                  type: 'richText',
-                  admin: { description: 'Informasi tambahan / catatan penting mengenai keberangkatan (opsional). Mis: instruksi khusus, kontak pelabuhan, dsb.' },
-                },
-              ],
-            },
+            // ── Pricing (Phase 4.61.6 — pindah ke posisi 1) ──
             {
               type: 'collapsible',
               label: s.tab3.sections.pricing.label,
@@ -350,10 +423,10 @@ export const FerryTickets: CollectionConfig = {
                   name: 'ferryClasses',
                   type: 'array',
                   label: 'Ferry Classes',
-                  admin: { description: 'Kelas / cabin options (mis: Ekonomi, Emerald). Setiap kelas punya harga adult & child.' },
+                  admin: { description: 'Class / cabin options (e.g. Economy, Emerald). Each class has adult & child pricing.' },
                   fields: [
-                    { name: 'name', type: 'text', required: true, admin: { description: 'Nama ferry / kelas (mis: "Batam Fast — Emerald").' } },
-                    { name: 'description', type: 'textarea' },
+                    { name: 'name', type: 'text', required: true, admin: { placeholder: 'Batam Fast — Emerald', description: 'Ferry / class name (e.g. "Batam Fast — Emerald").' } },
+                    { name: 'description', type: 'textarea', admin: { placeholder: 'Kelas premium dengan seat lebih luas, snack & minuman gratis.' } },
                     {
                       type: 'row',
                       fields: [
@@ -361,7 +434,7 @@ export const FerryTickets: CollectionConfig = {
                           name: 'classType',
                           type: 'select',
                           required: true,
-                          admin: { width: '50%', description: 'Tipe kelas.' },
+                          admin: { width: '50%', description: 'Class type.' },
                           options: [
                             { label: 'Ekonomi', value: 'ekonomi' },
                             { label: 'Emerald', value: 'emerald' },
@@ -384,13 +457,49 @@ export const FerryTickets: CollectionConfig = {
                     {
                       type: 'row',
                       fields: [
-                        { name: 'adultPrice', type: 'number', min: 0, required: true, admin: { width: '34%', description: 'Harga per adult.' } },
-                        { name: 'childPrice', type: 'number', min: 0, admin: { width: '33%', description: 'Harga per child (opsional).' } },
-                        { name: 'originalPrice', type: 'number', min: 0, admin: { width: '33%', description: 'Harga asli sebelum diskon (opsional). Jika > adultPrice → tampil harga coret + "Save X%" di kartu.' } },
+                        { name: 'adultPrice', type: 'number', min: 0, required: true, admin: { width: '34%', placeholder: '350000', description: 'Adult price.' } },
+                        { name: 'childPrice', type: 'number', min: 0, admin: { width: '33%', placeholder: '175000', description: 'Child price (optional).' } },
+                        { name: 'originalPrice', type: 'number', min: 0, admin: { width: '33%', placeholder: '400000', description: 'Original price before discount (optional). If greater than adultPrice → renders a strikethrough price + "Save X%" on the card.' } },
                       ],
                     },
                     { name: 'images', type: 'array', fields: [{ name: 'image', type: 'upload', relationTo: 'media' }] },
                   ],
+                },
+              ],
+            },
+            // ── Location Port (Phase 4.61.6) ──
+            // Info-only section: peta di-render otomatis dari
+            // originLocation.mapEmbedUrl. Edit datanya di Content → Locations.
+            {
+              type: 'collapsible',
+              label: 'Location Port',
+              admin: {
+                initCollapsed: true,
+                className: sectionClass(s.tab3.color, 'location_on'),
+                description: 'Origin port map to help customers find the departure location. Automatically read from the selected Origin Location. To edit / add a map: go to Content → Locations → open the location → fill in "Map Embed URL" & "Map Directions URL".',
+              },
+              fields: [
+                {
+                  name: 'locationPortInfo',
+                  type: 'ui',
+                  admin: {
+                    components: {
+                      Field: '/admin/LocationPortInfo#default',
+                    },
+                  },
+                },
+              ],
+            },
+            // ── Additional Remark (Phase 4.61.6 — sekarang di posisi 3) ──
+            {
+              type: 'collapsible',
+              label: 'Additional Remark',
+              admin: { initCollapsed: s.tab3.sections.meeting.initCollapsed, className: sectionClass(s.tab3.color, s.tab3.sections.meeting.icon) },
+              fields: [
+                {
+                  name: 'additionalRemark',
+                  type: 'richText',
+                  admin: { description: 'Additional info / important notes about the departure (optional). E.g. special instructions, port contact, etc.' },
                 },
               ],
             },
@@ -415,7 +524,7 @@ export const FerryTickets: CollectionConfig = {
                 {
                   name: 'howToCheckIn',
                   type: 'richText',
-                  admin: { description: 'Instruksi check-in di pelabuhan (mis. datang 60 menit sebelum keberangkatan, bawa passport, dsb).' },
+                  admin: { description: 'Port check-in instructions (e.g. arrive 60 minutes before departure, bring passport, etc.).' },
                 },
               ],
             },
@@ -427,7 +536,7 @@ export const FerryTickets: CollectionConfig = {
                 {
                   name: 'purchaseNotice',
                   type: 'richText',
-                  admin: { description: 'Ketentuan pembelian & refund (mis. tiket tidak dapat direfund, wajib passport valid > 6 bulan, dsb).' },
+                  admin: { description: 'Purchase & refund terms (e.g. non-refundable ticket, passport must be valid > 6 months, etc.).' },
                 },
               ],
             },
@@ -443,7 +552,7 @@ export const FerryTickets: CollectionConfig = {
               label: s.policies.sections.additional.label,
               admin: { initCollapsed: s.policies.sections.additional.initCollapsed, className: sectionClass(s.policies.color, s.policies.sections.additional.icon) },
               fields: [
-                { name: 'additionalInfo', type: 'richText', admin: { description: 'Additional info: dress code, restrictions, cancellation policy, dsb.' } },
+                { name: 'additionalInfo', type: 'richText', admin: { description: 'Additional info: dress code, restrictions, cancellation policy, etc.' } },
               ],
             },
           ],
@@ -470,7 +579,7 @@ export const FerryTickets: CollectionConfig = {
                   name: 'additionalBlocks',
                   type: 'blocks',
                   label: 'Additional Blocks',
-                  admin: { description: 'Block dirender berurutan setelah main sections.' },
+                  admin: { description: 'Blocks rendered in order after the main sections.' },
                   access: { update: superAdminFieldAccess },
                   blocks: blocks.filter((b) => !['valuePropsBanner', 'testimonialsCarousel', 'serviceListing', 'trustBadges'].includes(b.slug)),
                 },

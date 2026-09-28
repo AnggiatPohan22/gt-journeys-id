@@ -23,7 +23,7 @@ export const Locations: CollectionConfig = {
     group: 'Content',
     defaultColumns: ['name', 'terminalName', 'country', 'code', 'sortOrder'],
     defaultSort: 'sortOrder',
-    description: 'Lokasi / pelabuhan reusable (mis. Batam, Singapore). Dipakai sebagai Origin/Arrival di Ferry Tickets. Tambah lokasi baru di sini — otomatis muncul sebagai pilihan.',
+    description: 'Reusable locations / ports (e.g. Batam, Singapore). Used as Origin/Arrival on Ferry Tickets. Add new locations here — they show up automatically as options.',
   },
   access: {
     read: () => true, // PUBLIC — frontend butuh resolve nama lokasi
@@ -39,13 +39,13 @@ export const Locations: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-      admin: { description: 'Nama tampilan lokasi, mis: "Batam", "Singapore", "Tanjung Pinang".' },
+      admin: { placeholder: 'Batam', description: 'Display name, e.g. "Batam", "Singapore", "Tanjung Pinang".' },
     },
     {
       name: 'terminalName',
       type: 'text',
       label: 'Terminal / Sub-title',
-      admin: { description: 'Nama terminal/pelabuhan (opsional), mis: "Singapore Cruise Center", "Batam Centre Terminal-BTC". Tampil sebagai baris kedua di card.' },
+      admin: { placeholder: 'Batam Centre Terminal-BTC', description: 'Terminal / port name (optional). E.g. "Singapore Cruise Center", "Batam Centre Terminal-BTC". Rendered as the second line on cards.' },
     },
     {
       type: 'row',
@@ -53,12 +53,53 @@ export const Locations: CollectionConfig = {
         {
           name: 'country',
           type: 'text',
-          admin: { width: '50%', description: 'Negara (opsional), mis: "Indonesia", "Singapore".' },
+          admin: { width: '34%', placeholder: 'Indonesia', description: 'Country (optional). E.g. "Indonesia", "Singapore".' },
         },
         {
           name: 'code',
           type: 'text',
-          admin: { width: '50%', description: 'Kode singkat (opsional), mis: "BTM", "SIN".' },
+          admin: { width: '33%', placeholder: 'BTM', description: 'Short code (optional). E.g. "BTM", "SIN".' },
+        },
+        {
+          name: 'timezone',
+          type: 'select',
+          defaultValue: 'Asia/Jakarta',
+          admin: {
+            width: '33%',
+            description: 'IANA timezone. Used to compute cross-timezone ferry duration (e.g. Batam WIB → Singapore SGT). Required for ferry locations.',
+          },
+          options: [
+            { label: 'WIB (Asia/Jakarta)', value: 'Asia/Jakarta' },
+            { label: 'WITA (Asia/Makassar)', value: 'Asia/Makassar' },
+            { label: 'WIT (Asia/Jayapura)', value: 'Asia/Jayapura' },
+            { label: 'SGT (Asia/Singapore)', value: 'Asia/Singapore' },
+            { label: 'MYT (Asia/Kuala_Lumpur)', value: 'Asia/Kuala_Lumpur' },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'collapsible',
+      label: 'Map (optional)',
+      admin: { initCollapsed: true, description: 'Google Maps embed & link for the "Location Port" section on the ferry page. Leave empty for non-ferry locations.' },
+      fields: [
+        {
+          name: 'mapEmbedUrl',
+          type: 'text',
+          label: 'Map Embed URL (iframe src)',
+          admin: {
+            placeholder: 'https://www.google.com/maps/embed?pb=!1m18...',
+            description: 'Google Maps → "Share" → "Embed a map" tab → copy only the src value from the <iframe>. Example: https://www.google.com/maps/embed?pb=!1m18...',
+          },
+        },
+        {
+          name: 'mapLink',
+          type: 'text',
+          label: 'Map Directions URL (click-through)',
+          admin: {
+            placeholder: 'https://maps.google.com/?q=1.234,103.456',
+            description: 'Plain Google Maps URL for the "Open in Maps" button (opens native Google/Apple Maps on mobile). Example: https://maps.google.com/?q=1.234,103.456 or a share link. Leave empty to fall back to the embed URL.',
+          },
         },
       ],
     },
@@ -68,14 +109,14 @@ export const Locations: CollectionConfig = {
       required: true,
       unique: true,
       hooks: { beforeValidate: [generateSlug] },
-      admin: { position: 'sidebar', description: 'Auto dari name.' },
+      admin: { position: 'sidebar', description: 'Auto-generated from name.' },
     },
     {
       name: 'isActive',
       type: 'checkbox',
       label: 'Active',
       defaultValue: true,
-      admin: { position: 'sidebar', description: 'Nonaktifkan untuk menyembunyikan lokasi dari pilihan (data tetap ada).' },
+      admin: { position: 'sidebar', description: 'Uncheck to hide this location from selection (data preserved).' },
     },
     {
       name: 'sortOrder',
@@ -83,7 +124,7 @@ export const Locations: CollectionConfig = {
       label: 'Sort Order',
       admin: {
         position: 'sidebar',
-        description: 'Kosongkan saat create → otomatis max+1. Kecil di atas.',
+        description: 'Leave empty on create → auto max+1. Lower values appear first.',
       },
     },
   ],
