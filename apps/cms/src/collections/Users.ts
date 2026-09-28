@@ -24,7 +24,11 @@ import { updateLastLogin } from '../hooks/updateLastLogin'
  */
 export const Users: CollectionConfig = {
   slug: 'users',
-  auth: true,
+  // Phase 4.62.1 — enable API keys agar server-side endpoint (newsletter,
+  // bookings) bisa authenticate ke Payload REST via
+  // `Authorization: users API-Key <key>`. Tanpa flag ini, DB tidak punya
+  // kolom `api_key` / `enable_api_key` dan admin UI tak menampilkan toggle.
+  auth: { useAPIKey: true },
   admin: {
     useAsTitle: 'name',
     group: 'Administration',
