@@ -114,12 +114,36 @@ const nationalityOptions = (() => {
   }).map((r) => ({ value: r.name, label: `${r.flag} ${r.name}` }))
 })()
 
-// Compact date formatter for the trip strip.
+// Compact date formatter for the trip strip (with weekday — Phase 4.63.2).
 const depDateFmt = (() => {
   try {
-    return new Date(qDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    return new Date(qDate).toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    })
   } catch { return qDate }
 })()
+
+// Phase 4.63.2 — Price breakdown for the sidebar summary. Child price
+// takes preselected.childPrice from CMS if defined; otherwise falls back
+// to 50% of the adult price (parity with the endpoint's totalEstimate
+// calculation).
+const childUnitPrice =
+  preselected?.childPrice != null && preselected.childPrice > 0
+    ? preselected.childPrice
+    : (unitPrice != null ? Math.round(unitPrice / 2) : 0)
+const adultLineTotal = (unitPrice ?? 0) * qAdults
+const childLineTotal = childUnitPrice * qChildren
+const ticketFare = adultLineTotal + childLineTotal
+
+// Service fee & Discount rows are HIDDEN until configured (owner decision
+// Phase 4.63.2). When enabled later (CMS field or promo code), set these
+// non-zero and the corresponding rows will render.
+const serviceFee = 0
+const discount = 0
+const subtotalDeparture = ticketFare + serviceFee - discount
+const totalPrice = subtotalDeparture // one-way; sum of all departures kalau nanti round-trip
+
+const priceFmt = (n: number) => formatPrice(n, currency)
 ---
 
 <PageLayout title={`Checkout — ${item.title}`} description={`Isi data penumpang untuk booking ${item.title}.`}>
@@ -350,10 +374,11 @@ const depDateFmt = (() => {
             {routeLabel && <p class="text-xs text-stone-light mt-1 flex items-center gap-1"><Icon name="location_on" class="w-3 h-3 text-coral" />{routeLabel}</p>}
           </div>
         </div>
-        <dl class="space-y-2 text-sm">
+        {/* Trip meta */}
+        <dl class="space-y-2 text-sm mb-4">
           <div class="flex justify-between">
             <dt class="text-stone-light">Departure</dt>
-            <dd class="text-ocean font-semibold">{depDateFmt}</dd>
+            <dd class="text-ocean font-semibold text-right">{depDateFmt}</dd>
           </div>
           {preselected && (
             <div class="flex justify-between">
@@ -361,19 +386,70 @@ const depDateFmt = (() => {
               <dd class="text-ocean font-semibold">{preselected.name}</dd>
             </div>
           )}
-          {priceFormatted && (
-            <div class="flex justify-between">
-              <dt class="text-stone-light">Price / adult</dt>
-              <dd class="text-coral font-semibold">{priceFormatted}</dd>
-            </div>
-          )}
-          <div class="flex justify-between">
-            <dt class="text-stone-light">Passengers</dt>
-            <dd class="text-ocean font-semibold">{qAdults + qChildren}</dd>
-          </div>
         </dl>
-        <p class="mt-6 text-xs text-stone-light leading-relaxed">
-          Data lengkap penumpang & passport digunakan untuk manifest & pengiriman tiket setelah pembayaran dikonfirmasi.
+
+        {/* Price breakdown (Phase 4.63.2) */}
+        <div class="pt-4 border-t border-sand-dark/10">
+          <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-3">Price Breakdown</p>
+
+          <dl class="space-y-1.5 text-sm">
+            {unitPrice != null && (
+              <div class="flex justify-between">
+                <dt class="text-stone">
+                  Adult
+                  <span class="text-stone-light text-xs"> ({qAdults} × {priceFmt(unitPrice)})</span>
+                </dt>
+                <dd class="text-ocean font-semibold tabular-nums">{priceFmt(adultLineTotal)}</dd>
+              </div>
+            )}
+            {qChildren > 0 && (
+              <div class="flex justify-between">
+                <dt class="text-stone">
+                  Child
+                  <span class="text-stone-light text-xs"> ({qChildren} × {priceFmt(childUnitPrice)})</span>
+                </dt>
+                <dd class="text-ocean font-semibold tabular-nums">{priceFmt(childLineTotal)}</dd>
+              </div>
+            )}
+          </dl>
+
+          <div class="mt-3 pt-3 border-t border-sand-dark/10 space-y-1.5 text-sm">
+            <div class="flex justify-between">
+              <dt class="text-stone-light">Ticket fare</dt>
+              <dd class="text-ocean font-semibold tabular-nums">{priceFmt(ticketFare)}</dd>
+            </div>
+            {/*
+              Service Fee & Discount rows disembunyikan sampai fee configurable
+              & promo code aktif (Phase 4.65+). Struktur di bawah sudah siap
+              — cukup ubah `serviceFee`/`discount` != 0 di atas.
+            */}
+            {serviceFee > 0 && (
+              <div class="flex justify-between">
+                <dt class="text-stone-light">Service fee</dt>
+                <dd class="text-ocean tabular-nums">{priceFmt(serviceFee)}</dd>
+              </div>
+            )}
+            {discount > 0 && (
+              <div class="flex justify-between">
+                <dt class="text-stone-light">Discount</dt>
+                <dd class="text-leaf tabular-nums">− {priceFmt(discount)}</dd>
+              </div>
+            )}
+          </div>
+
+          <div class="mt-3 pt-3 border-t border-sand-dark/10 flex justify-between text-sm">
+            <dt class="text-stone-light">Subtotal <span class="text-stone-light/70">(Departure)</span></dt>
+            <dd class="text-ocean font-semibold tabular-nums">{priceFmt(subtotalDeparture)}</dd>
+          </div>
+
+          <div class="mt-3 pt-3 border-t-2 border-ocean/20 flex justify-between items-baseline">
+            <dt class="font-display text-ocean text-base">Total Price</dt>
+            <dd class="font-display text-coral text-xl md:text-2xl tabular-nums">{priceFmt(totalPrice)}</dd>
+          </div>
+        </div>
+
+        <p class="mt-4 text-xs text-stone-light leading-relaxed">
+          Anda tidak dikenai biaya sekarang. Rincian di atas adalah estimasi harga tiket; instruksi pembayaran final dikirim via WhatsApp setelah admin mengkonfirmasi ketersediaan.
         </p>
       </div>
     </aside>
