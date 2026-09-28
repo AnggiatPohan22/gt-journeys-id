@@ -1,13 +1,15 @@
 ---
 /**
- * Checkout / Customer Information — Ferry Ticket (Phase 4.62 → 4.63).
+ * Checkout / Customer Information — Ferry Ticket (Phase 4.62 → 4.63 → 4.63.1).
  *
- * SSR (prerender=false). Alur: detail ticket → halaman ini (contact +
- * passengers) → POST /api/bookings/create → confirmation.
+ * SSR (prerender=false). Alur: detail ticket (isi date/adults/children/class
+ * di sidebar) → halaman ini (contact + passengers) → POST /api/bookings/create
+ * → confirmation.
  *
- * Passenger blocks di-render dinamis via vanilla JS: server render N
- * blok awal (N = adults+children dari query params), lalu client-side
- * re-render saat user ubah adults/children.
+ * Phase 4.63.1: Trip Details section dihapus dari UI — semua trip data
+ * (departureDate, adults, children, ferryClass*) jadi hidden input, diambil
+ * dari query string. Kalau user mau ubah trip → klik "Change trip" di strip
+ * atas → balik ke detail page. Kalau date kosong → server redirect balik.
  */
 import PageLayout from '@layouts/PageLayout.astro'
 import Icon from '@components/common/Icon.astro'
@@ -40,6 +42,11 @@ const qChildren = Math.max(0, Math.min(6, Number(url.searchParams.get('children'
 const qClass = url.searchParams.get('class') ?? ''
 const errCode = url.searchParams.get('err') ?? ''
 
+// Guard: without a date the booking can't be created. Send user back to
+// the detail page to fill the sidebar form.
+const detailUrl = `/ferry-tickets/${slug}`
+if (!qDate) return Astro.redirect(`${detailUrl}?err=needs_date`)
+
 type FerryClass = {
   name: string
   classType: 'ekonomi' | 'emerald'
@@ -66,10 +73,6 @@ const priceFormatted = unitPrice ? formatPrice(unitPrice, currency) : null
 
 const formStamp = await issueFormStamp()
 
-const today = new Date()
-const minDeparture = new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-
-const detailUrl = `/ferry-tickets/${slug}`
 const crumbs = [
   { name: 'Home', url: '/' },
   { name: 'Ferry Tickets', url: '/ferry-tickets' },
@@ -79,7 +82,7 @@ const crumbs = [
 
 const errorMessages: Record<string, string> = {
   invalid_body: 'Terjadi kesalahan mengirim form. Coba lagi.',
-  invalid_fields: 'Isi semua field wajib (nama, telepon, tanggal, dan minimal 1 penumpang).',
+  invalid_fields: 'Isi semua field wajib (nama, telepon, email).',
   invalid_passengers: 'Data penumpang belum lengkap — periksa nama depan & belakang untuk tiap penumpang.',
   invalid_passport_expiry: 'Passport minimal 1 penumpang habis dalam <6 bulan setelah tanggal keberangkatan.',
   stamp_malformed: 'Session form kadaluarsa. Silakan reload halaman.',
@@ -99,6 +102,24 @@ const titleOptions = [
   { value: 'master', label: 'Master' },
   { value: 'miss',   label: 'Miss' },
 ]
+
+// Nationality options — reuse PHONE_REGIONS data (dedupe by iso), sorted
+// dgn negara populer di atas (order dari phoneRegions.ts sudah SE-Asia dulu).
+const nationalityOptions = (() => {
+  const seen = new Set<string>()
+  return PHONE_REGIONS.filter((r) => {
+    if (seen.has(r.iso)) return false
+    seen.add(r.iso)
+    return true
+  }).map((r) => ({ value: r.name, label: `${r.flag} ${r.name}` }))
+})()
+
+// Compact date formatter for the trip strip.
+const depDateFmt = (() => {
+  try {
+    return new Date(qDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  } catch { return qDate }
+})()
 ---
 
 <PageLayout title={`Checkout — ${item.title}`} description={`Isi data penumpang untuk booking ${item.title}.`}>
@@ -108,7 +129,19 @@ const titleOptions = [
     <div class="lg:col-span-8">
       <p class="text-xs uppercase tracking-widest text-coral mb-2 font-semibold">Checkout · Step 1 of 2</p>
       <h1 class="font-display text-3xl md:text-4xl text-ocean mb-3">Contact & Passenger Information</h1>
-      <p class="text-stone mb-8">Isi data kontak & seluruh penumpang. Data ini digunakan untuk konfirmasi booking dan penyusunan tiket final.</p>
+      <p class="text-stone mb-6">Isi data kontak & seluruh penumpang. Data ini digunakan untuk konfirmasi booking dan penyusunan tiket final.</p>
+
+      {/* ── Trip strip (read-only) ── */}
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 bg-ocean/5 border border-ocean/15 rounded-xl px-5 py-3">
+        <div class="flex items-center gap-4 flex-wrap text-sm text-ocean min-w-0">
+          <span class="inline-flex items-center gap-1.5"><Icon name="ship" class="w-4 h-4 text-coral" /><span class="font-semibold truncate max-w-[16rem]">{item.title}</span></span>
+          {routeLabel && <span class="inline-flex items-center gap-1.5"><Icon name="location_on" class="w-4 h-4 text-coral" />{routeLabel}</span>}
+          <span class="inline-flex items-center gap-1.5"><Icon name="calendar_today" class="w-4 h-4 text-coral" />{depDateFmt}</span>
+          <span class="inline-flex items-center gap-1.5"><Icon name="group" class="w-4 h-4 text-coral" />{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
+          {preselected && <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-ocean/10 rounded-full text-xs font-semibold">{preselected.name}</span>}
+        </div>
+        <a href={detailUrl} class="text-xs font-semibold text-coral hover:text-coral-dark underline underline-offset-4 whitespace-nowrap">Change trip →</a>
+      </div>
 
       {errorMsg && (
         <div class="mb-6 p-4 bg-coral/10 border border-coral/30 rounded-lg text-sm text-stone">
@@ -122,11 +155,23 @@ const titleOptions = [
         class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 space-y-8"
         id="checkout-form"
       >
+        {/* Hidden: identity + trip data */}
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="ferryTicketId" value={String(item.id)} />
         <input type="hidden" name="originLocation" value={originLoc} />
         <input type="hidden" name="destinationLocation" value={destinationLoc} />
         <input type="hidden" name="formStamp" value={formStamp} />
+        <input type="hidden" name="departureDate" value={qDate} />
+        <input type="hidden" name="adults" value={String(qAdults)} />
+        <input type="hidden" name="children" value={String(qChildren)} />
+        {preselected && (
+          <>
+            <input type="hidden" name="ferryClassType" value={preselected.classType} />
+            <input type="hidden" name="ferryClassName" value={preselected.name} />
+            <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
+            <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
+          </>
+        )}
         <div class="hidden" aria-hidden="true">
           <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
         </div>
@@ -137,13 +182,13 @@ const titleOptions = [
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label class="block">
               <span class="block text-xs font-semibold text-stone mb-1">Full Name <span class="text-coral">*</span></span>
-              <input type="text" name="customerName" required minlength="2" maxlength="200"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+              <input type="text" name="customerName" required minlength="2" maxlength="200" placeholder="e.g. Anggi Pohan"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
             </label>
             <label class="block">
               <span class="block text-xs font-semibold text-stone mb-1">Email <span class="text-coral">*</span></span>
-              <input type="email" name="customerEmail" required maxlength="200"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+              <input type="email" name="customerEmail" required maxlength="200" placeholder="you@example.com"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
             </label>
           </div>
 
@@ -157,100 +202,40 @@ const titleOptions = [
                 ))}
               </select>
               <input type="tel" name="contactPhone" required minlength="4" maxlength="20" placeholder="8123456789"
-                class="flex-1 min-w-0 bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                class="flex-1 min-w-0 bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
               <label class="inline-flex items-center gap-2 px-3 bg-sand/50 border border-sand-dark/30 rounded-lg cursor-pointer">
                 <input type="checkbox" name="contactPhoneIsWhatsapp" value="1" checked class="accent-ocean" />
                 <span class="text-xs font-semibold text-stone whitespace-nowrap">Also WhatsApp</span>
               </label>
             </div>
-            <p class="mt-1 text-xs text-stone-light">Kalau nomor WA berbeda, uncheck lalu tambahkan di catatan tambahan di bawah.</p>
+            <p class="mt-1 text-xs text-stone-light">Kalau nomor WA berbeda, uncheck lalu tambahkan di catatan di bawah.</p>
           </div>
 
           <div class="mt-4">
             <label class="block">
               <span class="block text-xs font-semibold text-stone mb-1">Country (opsional)</span>
-              <input type="text" name="customerCountry" maxlength="100"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+              <input type="text" name="customerCountry" maxlength="100" placeholder="e.g. Indonesia"
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
             </label>
           </div>
         </section>
 
-        {/* ── Trip ── */}
-        <section class="pt-6 border-t border-sand-dark/10">
-          <h2 class="font-display text-xl text-ocean mb-4">Trip Details</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Departure Date <span class="text-coral">*</span></span>
-              <input type="date" name="departureDate" required min={minDeparture} value={qDate}
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean"
-                data-role="departure-date" />
-            </label>
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Adults <span class="text-coral">*</span></span>
-              <select name="adults" required data-role="adults-select"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <option value={n} selected={n === qAdults}>{n}</option>
-                ))}
-              </select>
-            </label>
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Children</span>
-              <select name="children" data-role="children-select"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                {Array.from({ length: 7 }, (_, i) => i).map((n) => (
-                  <option value={n} selected={n === qChildren}>{n}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {sortedClasses.length > 0 && (
-            <div class="mt-4">
-              <span class="block text-xs font-semibold text-stone mb-2">Ferry Class</span>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {sortedClasses.map((c) => (
-                  <label class="flex items-start gap-3 p-4 bg-sand rounded-lg border border-sand-dark/30 hover:border-ocean cursor-pointer has-[:checked]:border-ocean has-[:checked]:ring-1 has-[:checked]:ring-ocean transition-colors">
-                    <input type="radio" name="ferryClassType" value={c.classType}
-                      class="mt-1 accent-ocean"
-                      checked={preselected?.classType === c.classType}
-                      data-class-name={c.name}
-                      data-class-price={c.adultPrice}
-                      data-class-currency={c.currency ?? 'IDR'} />
-                    <span class="flex-1">
-                      <span class="block font-semibold text-ocean text-sm">{c.name}</span>
-                      <span class="block text-xs text-stone-light mt-0.5">{formatPrice(c.adultPrice, c.currency ?? 'IDR')} / dewasa</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-          {preselected && (
-            <>
-              <input type="hidden" name="ferryClassName" value={preselected.name} data-role="class-name" />
-              <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} data-role="unit-price" />
-              <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} data-role="currency" />
-            </>
-          )}
-        </section>
-
-        {/* ── Passengers (dynamic) ── */}
+        {/* ── Passengers ── */}
         <section class="pt-6 border-t border-sand-dark/10">
           <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
             <div>
               <h2 class="font-display text-xl text-ocean">Passenger Details</h2>
               <p class="text-xs text-stone-light mt-1">Data tiap penumpang untuk manifest & tiket. Passport minimal berlaku 6 bulan setelah tanggal keberangkatan.</p>
             </div>
-            <p class="text-xs text-stone-light" data-role="pax-counter">{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</p>
+            <p class="text-xs text-stone-light">{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</p>
           </div>
 
-          <div id="passengers-container" class="space-y-4">
+          <div class="space-y-4">
             {Array.from({ length: qAdults + qChildren }, (_, i) => {
               const type: 'adult' | 'child' = i < qAdults ? 'adult' : 'child'
               const paxNum = type === 'adult' ? i + 1 : i - qAdults + 1
               return (
-                <div class="passenger-block bg-sand/40 border border-sand-dark/20 rounded-xl p-5" data-pax-idx={String(i)} data-pax-type={type}>
+                <div class="bg-sand/40 border border-sand-dark/20 rounded-xl p-5">
                   <div class="flex items-center justify-between mb-4">
                     <h3 class="font-display text-base text-ocean">
                       Passenger {i + 1} — <span class="uppercase tracking-wider text-xs text-coral font-semibold">{type} {paxNum}</span>
@@ -267,35 +252,37 @@ const titleOptions = [
                     <label class="block">
                       <span class="block text-xs font-semibold text-stone mb-1">Title</span>
                       <select name={`passengers[${i}][title]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                        <option value="">—</option>
+                        <option value="">Select…</option>
                         {titleOptions.map((t) => <option value={t.value}>{t.label}</option>)}
                       </select>
                     </label>
                     <label class="block">
                       <span class="block text-xs font-semibold text-stone mb-1">Gender</span>
                       <select name={`passengers[${i}][gender]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                        <option value="">—</option>
+                        <option value="">Select…</option>
                         <option value="male">Male</option>
                         <option value="female">Female</option>
                       </select>
                     </label>
                     <label class="block col-span-2 md:col-span-2">
                       <span class="block text-xs font-semibold text-stone mb-1">Nationality</span>
-                      <input type="text" name={`passengers[${i}][nationality]`} maxlength="60"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                      <select name={`passengers[${i}][nationality]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
+                        <option value="">Select nationality…</option>
+                        {nationalityOptions.map((n) => <option value={n.value}>{n.label}</option>)}
+                      </select>
                     </label>
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                     <label class="block">
                       <span class="block text-xs font-semibold text-stone mb-1">First Name <span class="text-coral">*</span></span>
-                      <input type="text" name={`passengers[${i}][firstName]`} required minlength="1" maxlength="80"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                      <input type="text" name={`passengers[${i}][firstName]`} required minlength="1" maxlength="80" placeholder="e.g. John"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
                     </label>
                     <label class="block">
                       <span class="block text-xs font-semibold text-stone mb-1">Last Name <span class="text-coral">*</span></span>
-                      <input type="text" name={`passengers[${i}][lastName]`} required minlength="1" maxlength="80"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                      <input type="text" name={`passengers[${i}][lastName]`} required minlength="1" maxlength="80" placeholder="e.g. Doe"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
                     </label>
                   </div>
 
@@ -307,8 +294,8 @@ const titleOptions = [
                     </label>
                     <label class="block">
                       <span class="block text-xs font-semibold text-stone mb-1">Passport Number</span>
-                      <input type="text" name={`passengers[${i}][passportNumber]`} maxlength="30" autocomplete="off"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                      <input type="text" name={`passengers[${i}][passportNumber]`} maxlength="30" autocomplete="off" placeholder="e.g. A12345678"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
                     </label>
                     <label class="block">
                       <span class="block text-xs font-semibold text-stone mb-1">Issue Date</span>
@@ -332,8 +319,8 @@ const titleOptions = [
           <label class="block">
             <span class="block text-xs font-semibold text-stone mb-1">Additional Notes (opsional)</span>
             <textarea name="customerNotes" rows="3" maxlength="1000"
-              placeholder="Contoh: nomor WA berbeda dari phone, kursi dekat jendela, jemput hotel, dsb."
-              class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean"></textarea>
+              placeholder="Contoh: nomor WA berbeda dari phone, request kursi dekat jendela, jemput hotel, dsb."
+              class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70"></textarea>
           </label>
         </section>
 
@@ -348,6 +335,7 @@ const titleOptions = [
       </form>
     </div>
 
+    {/* ─── Summary sidebar ─── */}
     <aside class="lg:col-span-4">
       <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-lg border border-sand-dark/10 p-6">
         <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-3">Booking Summary</p>
@@ -363,21 +351,25 @@ const titleOptions = [
           </div>
         </div>
         <dl class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <dt class="text-stone-light">Departure</dt>
+            <dd class="text-ocean font-semibold">{depDateFmt}</dd>
+          </div>
           {preselected && (
             <div class="flex justify-between">
               <dt class="text-stone-light">Class</dt>
-              <dd class="text-ocean font-semibold" data-role="summary-class">{preselected.name}</dd>
+              <dd class="text-ocean font-semibold">{preselected.name}</dd>
             </div>
           )}
           {priceFormatted && (
             <div class="flex justify-between">
               <dt class="text-stone-light">Price / adult</dt>
-              <dd class="text-coral font-semibold" data-role="summary-unit">{priceFormatted}</dd>
+              <dd class="text-coral font-semibold">{priceFormatted}</dd>
             </div>
           )}
           <div class="flex justify-between">
             <dt class="text-stone-light">Passengers</dt>
-            <dd class="text-ocean font-semibold" data-role="summary-pax">{qAdults + qChildren}</dd>
+            <dd class="text-ocean font-semibold">{qAdults + qChildren}</dd>
           </div>
         </dl>
         <p class="mt-6 text-xs text-stone-light leading-relaxed">
@@ -386,151 +378,4 @@ const titleOptions = [
       </div>
     </aside>
   </section>
-
-<script is:inline>
-  (function () {
-    const form = document.getElementById('checkout-form')
-    if (!form) return
-    const adultsSel = form.querySelector('[data-role="adults-select"]')
-    const childrenSel = form.querySelector('[data-role="children-select"]')
-    const container = document.getElementById('passengers-container')
-    const paxCounter = form.querySelector('[data-role="pax-counter"]')
-    const summaryPax = document.querySelector('[data-role="summary-pax"]')
-    if (!adultsSel || !childrenSel || !container) return
-
-    const titles = ['mr','mrs','ms','master','miss']
-
-    function readCurrentValues() {
-      const snapshot = []
-      container.querySelectorAll('.passenger-block').forEach((el) => {
-        const idx = Number(el.getAttribute('data-pax-idx'))
-        const values = {}
-        el.querySelectorAll('input, select, textarea').forEach((f) => {
-          const m = f.name.match(/passengers\[\d+\]\[(\w+)\]/)
-          if (!m) return
-          values[m[1]] = f.type === 'checkbox' ? f.checked : f.value
-        })
-        snapshot[idx] = values
-      })
-      return snapshot
-    }
-
-    function renderBlock(idx, type, values) {
-      values = values || {}
-      const paxNum = 1 + (type === 'adult'
-        ? idx
-        : idx - Number(adultsSel.value))
-      const titleOptions = titles.map((v) => {
-        const label = v.charAt(0).toUpperCase() + v.slice(1)
-        const sel = values.title === v ? ' selected' : ''
-        return `<option value="${v}"${sel}>${label}</option>`
-      }).join('')
-      const genderOpts = ['male','female'].map((g) => {
-        const label = g.charAt(0).toUpperCase() + g.slice(1)
-        const sel = values.gender === g ? ' selected' : ''
-        return `<option value="${g}"${sel}>${label}</option>`
-      }).join('')
-      const v = (k) => (values[k] != null ? String(values[k]).replace(/"/g, '&quot;') : '')
-
-      const div = document.createElement('div')
-      div.className = 'passenger-block bg-sand/40 border border-sand-dark/20 rounded-xl p-5'
-      div.setAttribute('data-pax-idx', String(idx))
-      div.setAttribute('data-pax-type', type)
-      div.innerHTML =
-        '<div class="flex items-center justify-between mb-4">' +
-          '<h3 class="font-display text-base text-ocean">' +
-            'Passenger ' + (idx + 1) + ' — ' +
-            '<span class="uppercase tracking-wider text-xs text-coral font-semibold">' + type + ' ' + paxNum + '</span>' +
-          '</h3>' +
-          '<label class="inline-flex items-center gap-2 text-xs text-stone-light opacity-50 cursor-not-allowed" title="Fitur ini akan diaktifkan di Phase 4.64 dengan proteksi data passport.">' +
-            '<input type="checkbox" name="passengers[' + idx + '][remember]" value="1" disabled class="accent-ocean" />' +
-            '<span>Remember (soon)</span>' +
-          '</label>' +
-        '</div>' +
-        '<input type="hidden" name="passengers[' + idx + '][passengerType]" value="' + type + '" />' +
-        '<div class="grid grid-cols-2 md:grid-cols-4 gap-3">' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Title</span>' +
-            '<select name="passengers[' + idx + '][title]" class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">' +
-              '<option value="">—</option>' + titleOptions +
-            '</select></label>' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Gender</span>' +
-            '<select name="passengers[' + idx + '][gender]" class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">' +
-              '<option value="">—</option>' + genderOpts +
-            '</select></label>' +
-          '<label class="block col-span-2 md:col-span-2"><span class="block text-xs font-semibold text-stone mb-1">Nationality</span>' +
-            '<input type="text" name="passengers[' + idx + '][nationality]" maxlength="60" value="' + v('nationality') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />' +
-          '</label>' +
-        '</div>' +
-        '<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">First Name <span class="text-coral">*</span></span>' +
-            '<input type="text" name="passengers[' + idx + '][firstName]" required minlength="1" maxlength="80" value="' + v('firstName') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Last Name <span class="text-coral">*</span></span>' +
-            '<input type="text" name="passengers[' + idx + '][lastName]" required minlength="1" maxlength="80" value="' + v('lastName') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
-        '</div>' +
-        '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Date of Birth</span>' +
-            '<input type="date" name="passengers[' + idx + '][dateOfBirth]" value="' + v('dateOfBirth') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Passport Number</span>' +
-            '<input type="text" name="passengers[' + idx + '][passportNumber]" maxlength="30" autocomplete="off" value="' + v('passportNumber') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Issue Date</span>' +
-            '<input type="date" name="passengers[' + idx + '][passportIssueDate]" value="' + v('passportIssueDate') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
-          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Expiry Date</span>' +
-            '<input type="date" name="passengers[' + idx + '][passportExpiryDate]" value="' + v('passportExpiryDate') + '" ' +
-            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
-        '</div>'
-      return div
-    }
-
-    function rebuildPassengers() {
-      const adults = Number(adultsSel.value) || 1
-      const kids = Number(childrenSel.value) || 0
-      const total = adults + kids
-      const snap = readCurrentValues()
-      container.innerHTML = ''
-      for (let i = 0; i < total; i++) {
-        const type = i < adults ? 'adult' : 'child'
-        container.appendChild(renderBlock(i, type, snap[i]))
-      }
-      if (paxCounter) {
-        paxCounter.textContent = adults + ' adult' + (adults > 1 ? 's' : '') +
-          (kids > 0 ? ' · ' + kids + ' child' + (kids > 1 ? 'ren' : '') : '')
-      }
-      if (summaryPax) summaryPax.textContent = String(total)
-    }
-
-    adultsSel.addEventListener('change', rebuildPassengers)
-    childrenSel.addEventListener('change', rebuildPassengers)
-
-    const classNameInput = form.querySelector('[data-role="class-name"]')
-    const unitPriceInput = form.querySelector('[data-role="unit-price"]')
-    const currencyInput  = form.querySelector('[data-role="currency"]')
-    const summaryClass   = document.querySelector('[data-role="summary-class"]')
-    const summaryUnit    = document.querySelector('[data-role="summary-unit"]')
-    form.querySelectorAll('input[name="ferryClassType"]').forEach((r) => {
-      r.addEventListener('change', () => {
-        if (!r.checked) return
-        const name = r.getAttribute('data-class-name') || ''
-        const price = r.getAttribute('data-class-price') || ''
-        const curr = r.getAttribute('data-class-currency') || 'IDR'
-        if (classNameInput) classNameInput.value = name
-        if (unitPriceInput) unitPriceInput.value = price
-        if (currencyInput) currencyInput.value = curr
-        if (summaryClass) summaryClass.textContent = name
-        if (summaryUnit && price) {
-          try {
-            summaryUnit.textContent = new Intl.NumberFormat(curr === 'IDR' ? 'id-ID' : 'en-US', {
-              style: 'currency', currency: curr, minimumFractionDigits: 0,
-            }).format(Number(price))
-          } catch (_) { /* fall back */ }
-        }
-      })
-    })
-  })()
-</script>
 </PageLayout>
