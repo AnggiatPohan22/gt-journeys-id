@@ -1,16 +1,18 @@
 /**
- * POST /api/bookings/create — Phase 4.62.
+ * POST /api/bookings/create — Phase 4.62 → 4.62.2.
  *
  * Receives the Ferry Ticket checkout form, validates, creates a Booking
  * record via the Payload API (with `manual_wa` as default channel), and
  * redirects the customer to the confirmation page. Anti-spam:
  *   - honeypot field `website` must be empty
  *   - signed `formStamp` must verify AND be older than 3s / younger than 30m
+ *   - Phase 4.62.2: IP rate-limit (5 / 15 min)
  */
 
 import type { APIRoute } from 'astro'
 import { createBooking, generateBookingRef } from '@lib/checkout/store'
 import { verifyFormStamp } from '@lib/checkout/signedToken'
+import { checkBookingRateLimit, getClientIp } from '@lib/checkout/rateLimit'
 
 export const prerender = false
 
@@ -79,6 +81,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   const honeypot = String(form.get('website') ?? '').trim()
   if (honeypot) return redirect('/', 302)
+
+  // Rate-limit per IP (5 / 15 min). Check BEFORE stamp/field validation
+  // so abusive replay traffic can't burn CPU on HMAC verification.
+  const ip = getClientIp(request)
+  if (!checkBookingRateLimit(ip)) {
+    const back = String(form.get('slug') ?? '')
+      ? `/checkout/ferry-tickets/${String(form.get('slug'))}`
+      : '/'
+    return errorRedirect(back, 'rate_limited')
+  }
 
   const stamp = String(form.get('formStamp') ?? '')
   const stampCheck = await verifyFormStamp(stamp)

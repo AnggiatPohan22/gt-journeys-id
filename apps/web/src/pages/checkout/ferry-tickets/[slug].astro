@@ -86,6 +86,7 @@ const errorMessages: Record<string, string> = {
   stamp_expired: 'Form kadaluarsa. Silakan reload dan isi ulang.',
   store_misconfigured: 'Layanan booking sedang tidak tersedia. Silakan hubungi admin via WhatsApp.',
   store_server_error: 'Gagal menyimpan booking. Silakan coba lagi atau hubungi admin.',
+  rate_limited: 'Terlalu banyak percobaan booking dari perangkat ini. Coba lagi dalam 15 menit atau hubungi admin via WhatsApp.',
 }
 const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba lagi.' : ''
 ---
