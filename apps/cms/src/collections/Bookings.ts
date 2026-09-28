@@ -53,10 +53,13 @@ export const Bookings: CollectionConfig = {
       defaultValue: 'ferry-ticket',
       options: [
         { label: 'Ferry Ticket', value: 'ferry-ticket' },
+        // Extensible — bisa nambah 'tour', 'accommodation', 'rental', dst tanpa migration
+        // baru (Payload select enum). Nilai baru → migrate.
       ],
       admin: { description: 'Jenis layanan yang di-booking.' },
     },
 
+    // ── Relationship + snapshot (Ferry Ticket) ───────────────
     {
       name: 'ferryTicket',
       type: 'relationship',
@@ -67,6 +70,7 @@ export const Bookings: CollectionConfig = {
       },
     },
 
+    // ── Customer ─────────────────────────────────────────────
     {
       type: 'row',
       fields: [
@@ -74,10 +78,22 @@ export const Bookings: CollectionConfig = {
         { name: 'customerEmail', type: 'email',                  admin: { width: '50%' } },
       ],
     },
+    // ── Contact phone (Phase 4.63) — region + number + WA flag ─────────
+    // customerWhatsapp tetap dipertahankan sebagai kolom SNAPSHOT FINAL
+    // (auto-compose {region}{phone} di endpoint) supaya konsumen (WA
+    // channel, payment gateway nanti) punya 1 field siap-pakai.
     {
       type: 'row',
       fields: [
-        { name: 'customerWhatsapp', type: 'text', required: true, admin: { width: '50%', description: 'Nomor WA (format bebas, akan dinormalisasi saat generate link).' } },
+        { name: 'contactPhoneRegion', type: 'text', admin: { width: '20%', description: 'Kode negara telepon (mis. +62, +65).' } },
+        { name: 'contactPhone',       type: 'text', admin: { width: '50%', description: 'Nomor telepon tanpa kode negara.' } },
+        { name: 'contactPhoneIsWhatsapp', type: 'checkbox', defaultValue: true, admin: { width: '30%', description: 'Nomor ini juga WhatsApp.' } },
+      ],
+    },
+    {
+      type: 'row',
+      fields: [
+        { name: 'customerWhatsapp', type: 'text', required: true, admin: { width: '50%', description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.' } },
         { name: 'customerCountry',  type: 'text',                  admin: { width: '50%', description: 'Negara asal (opsional).' } },
       ],
     },
@@ -87,6 +103,82 @@ export const Bookings: CollectionConfig = {
       admin: { description: 'Catatan tambahan dari customer (opsional).' },
     },
 
+    // ── Passengers array (Phase 4.63) ──────────────────────────────────
+    // Ukuran = adults + children. Endpoint memastikan jumlah cocok saat
+    // submit. Passport disimpan mentah di sini untuk keperluan admin &
+    // gateway; frontend confirmation/WA message me-mask (last 4 digits).
+    {
+      name: 'passengers',
+      type: 'array',
+      label: 'Passengers',
+      admin: {
+        description: 'Data lengkap tiap penumpang untuk keperluan ticketing / manifest / payment gateway.',
+        initCollapsed: false,
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'passengerType',
+              type: 'select',
+              required: true,
+              defaultValue: 'adult',
+              options: [
+                { label: 'Adult', value: 'adult' },
+                { label: 'Child', value: 'child' },
+              ],
+              admin: { width: '25%' },
+            },
+            {
+              name: 'title',
+              type: 'select',
+              options: [
+                { label: 'Mr',     value: 'mr' },
+                { label: 'Mrs',    value: 'mrs' },
+                { label: 'Ms',     value: 'ms' },
+                { label: 'Master', value: 'master' },
+                { label: 'Miss',   value: 'miss' },
+              ],
+              admin: { width: '25%' },
+            },
+            {
+              name: 'gender',
+              type: 'select',
+              options: [
+                { label: 'Male',   value: 'male' },
+                { label: 'Female', value: 'female' },
+              ],
+              admin: { width: '25%' },
+            },
+            { name: 'nationality', type: 'text', admin: { width: '25%' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'firstName', type: 'text', required: true, admin: { width: '50%' } },
+            { name: 'lastName',  type: 'text', required: true, admin: { width: '50%' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'dateOfBirth',        type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' } } },
+            { name: 'passportNumber',     type: 'text', admin: { width: '33%', description: 'Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat.' } },
+            { name: 'passportIssueDate',  type: 'date', admin: { width: '17%', date: { pickerAppearance: 'dayOnly' } } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'passportExpiryDate', type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Minimal 6 bulan setelah departureDate.' } },
+          ],
+        },
+      ],
+    },
+
+    // ── Booking details (snapshot) ───────────────────────────
     {
       type: 'row',
       fields: [
@@ -121,6 +213,7 @@ export const Bookings: CollectionConfig = {
       admin: { description: 'Snapshot classType (ekonomi/emerald).' },
     },
 
+    // ── Pricing (snapshot) ───────────────────────────────────
     {
       type: 'row',
       fields: [
@@ -130,6 +223,7 @@ export const Bookings: CollectionConfig = {
       ],
     },
 
+    // ── Status + channel ─────────────────────────────────────
     {
       name: 'status',
       type: 'select',
@@ -151,6 +245,10 @@ export const Bookings: CollectionConfig = {
       defaultValue: 'manual_wa',
       options: [
         { label: 'Manual WhatsApp', value: 'manual_wa' },
+        // Placeholder utk nanti — cukup tambah nilai baru di sini + implement di
+        // apps/web/src/lib/checkout/channels/. Tidak butuh migration schema.
+        // { label: 'Xendit',   value: 'xendit' },
+        // { label: 'Midtrans', value: 'midtrans' },
       ],
       admin: { position: 'sidebar', description: 'Channel checkout yang dipakai. Manual WA = konfirmasi lewat WhatsApp (fallback).' },
     },

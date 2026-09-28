@@ -10,6 +10,7 @@
 import type { Booking } from '@shared/types/payload-types'
 import { generateWhatsAppLink } from '@lib/whatsapp'
 import { formatPrice } from '@shared/utils/format-price'
+import { maskPassport } from '../mask'
 import type { CheckoutChannel, CheckoutHandoff } from '../types'
 
 export class ManualWhatsAppChannel implements CheckoutChannel {
@@ -38,6 +39,18 @@ function buildMessage(b: Booking): string {
       ? (b.ferryTicket as { title?: string }).title
       : null
 
+  const passengerLines = Array.isArray(b.passengers) && b.passengers.length > 0
+    ? b.passengers.map((p, i) => {
+        const titleStr = p.title ? p.title.charAt(0).toUpperCase() + p.title.slice(1) + '.' : ''
+        const nameParts = [titleStr, p.firstName, p.lastName].filter(Boolean).join(' ')
+        const typeTag = p.passengerType === 'child' ? 'Child' : 'Adult'
+        const nat = p.nationality ? ` · ${p.nationality}` : ''
+        const dob = p.dateOfBirth ? ` · DOB ${String(p.dateOfBirth).slice(0, 10)}` : ''
+        const pp = p.passportNumber ? ` · Passport ${maskPassport(p.passportNumber)}` : ''
+        return `${i + 1}. [${typeTag}] ${nameParts}${nat}${dob}${pp}`
+      })
+    : []
+
   const lines = [
     'Halo DnJourneysBali! 👋',
     '',
@@ -47,18 +60,21 @@ function buildMessage(b: Booking): string {
     `📍 *Rute:* ${route}`,
     b.scheduleTimeLabel ? `🕒 *Jadwal:* ${b.scheduleTimeLabel}` : null,
     `📅 *Tanggal:* ${date}`,
-    `👥 *Penumpang:* ${b.adults ?? 1} dewasa${b.children ? ` + ${b.children} anak` : ''}`,
+    `👥 *Jumlah:* ${b.adults ?? 1} dewasa${b.children ? ` + ${b.children} anak` : ''}`,
     b.ferryClassName ? `🎫 *Kelas:* ${b.ferryClassName}` : null,
     unit ? `💰 *Harga:* ${unit} / dewasa${total ? ` (est. total ${total})` : ''}` : null,
     '',
-    `*Nama:* ${b.customerName}`,
+    `*Nama pemesan:* ${b.customerName}`,
     `*WhatsApp:* ${b.customerWhatsapp}`,
     b.customerEmail ? `*Email:* ${b.customerEmail}` : null,
     b.customerCountry ? `*Negara:* ${b.customerCountry}` : null,
     b.customerNotes ? `*Catatan:* ${b.customerNotes}` : null,
+    passengerLines.length > 0 ? '' : null,
+    passengerLines.length > 0 ? '*Data Penumpang:*' : null,
+    ...(passengerLines.length > 0 ? passengerLines : []),
     '',
     'Mohon konfirmasi ketersediaan & langkah berikutnya. Terima kasih!',
-  ].filter(Boolean)
+  ].filter((x) => x !== null && x !== undefined) as string[]
 
   return lines.join('\n')
 }

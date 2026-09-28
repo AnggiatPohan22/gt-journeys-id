@@ -14,6 +14,7 @@ import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import { getBookingByRef } from '@lib/checkout/store'
 import { resolveChannel, getManualWaHandoff } from '@lib/checkout/channels'
 import { formatPrice } from '@shared/utils/format-price'
+import { maskPassport } from '@lib/checkout/mask'
 
 export const prerender = false
 
@@ -27,9 +28,19 @@ const currency = (booking.currency as 'IDR' | 'USD' | undefined) ?? 'IDR'
 const unit = booking.unitPrice != null ? formatPrice(booking.unitPrice, currency) : null
 const total = booking.totalEstimate != null ? formatPrice(booking.totalEstimate, currency) : null
 
+// Resolve active channel (currently always `manual_wa`) — the primary
+// button uses this. When a gateway is added later (Xendit/Midtrans),
+// `resolveChannel` will return that, and this same page will render its
+// handoff button unchanged. The manual-WA fallback button below still
+// stays visible so admins/customers always have a human route.
 const channel = await resolveChannel('ferry-ticket')
 const handoff = await channel.handle(booking)
 
+// Manual-WA fallback — always computed so the button is ready even when
+// a gateway channel is active. When the active channel already IS
+// manual_wa this collapses to the same handoff (fallback button hidden).
+// Instantiating ManualWhatsAppChannel here (not via resolveChannel) keeps
+// the fallback path independent of the active-channel env setting.
 const manualHandoff =
   channel.slug === 'manual_wa' ? handoff : await getManualWaHandoff(booking)
 
@@ -55,6 +66,7 @@ const crumbs = [
 
   <section class="container-content py-10 lg:py-16">
     <div class="max-w-3xl mx-auto">
+      {/* ─── Header ─── */}
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-leaf/15 text-leaf mb-4">
           <Icon name="check_circle" class="w-10 h-10" />
@@ -64,6 +76,7 @@ const crumbs = [
         <p class="text-stone">Ref booking Anda: <span class="font-mono font-bold text-ocean">{booking.bookingRef}</span></p>
       </div>
 
+      {/* ─── Summary card ─── */}
       <div class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 mb-6">
         <h2 class="font-display text-xl text-ocean mb-5">Ringkasan Booking</h2>
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8 text-sm">
@@ -121,6 +134,38 @@ const crumbs = [
         </div>
       </div>
 
+      {/* ─── Passenger list (Phase 4.63) — passport masked ── */}
+      {Array.isArray(booking.passengers) && booking.passengers.length > 0 && (
+        <div class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 mb-6">
+          <h2 class="font-display text-xl text-ocean mb-4">Data Penumpang</h2>
+          <p class="text-xs text-stone-light mb-4">Nomor passport ditampilkan sebagian untuk keamanan. Data lengkap tersimpan di sistem kami dan hanya diakses admin.</p>
+          <div class="space-y-3">
+            {booking.passengers.map((p, i) => {
+              const titleCap = p.title ? p.title.charAt(0).toUpperCase() + p.title.slice(1) + '.' : ''
+              const fullName = [titleCap, p.firstName, p.lastName].filter(Boolean).join(' ')
+              return (
+                <div class="bg-sand/40 rounded-lg p-4 border border-sand-dark/10">
+                  <div class="flex items-center justify-between flex-wrap gap-2 mb-2">
+                    <p class="font-semibold text-ocean">{i + 1}. {fullName || '—'}</p>
+                    <span class={`px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold rounded-full ${p.passengerType === 'child' ? 'bg-leaf/15 text-leaf' : 'bg-ocean/10 text-ocean'}`}>
+                      {p.passengerType === 'child' ? 'Child' : 'Adult'}
+                    </span>
+                  </div>
+                  <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs">
+                    {p.nationality && (<><dt class="text-stone-light">Nationality</dt><dd class="text-stone col-span-1 md:col-span-1">{p.nationality}</dd></>)}
+                    {p.gender && (<><dt class="text-stone-light">Gender</dt><dd class="text-stone capitalize">{p.gender}</dd></>)}
+                    {p.dateOfBirth && (<><dt class="text-stone-light">Date of Birth</dt><dd class="text-stone">{String(p.dateOfBirth).slice(0, 10)}</dd></>)}
+                    {p.passportNumber && (<><dt class="text-stone-light">Passport</dt><dd class="text-stone font-mono">{maskPassport(p.passportNumber)}</dd></>)}
+                    {p.passportExpiryDate && (<><dt class="text-stone-light">Passport Expiry</dt><dd class="text-stone">{String(p.passportExpiryDate).slice(0, 10)}</dd></>)}
+                  </dl>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Handoff ─── */}
       <div class="bg-gradient-to-br from-ocean to-midnight text-white rounded-2xl p-6 md:p-8 mb-6">
         <p class="text-xs uppercase tracking-widest text-white/70 font-semibold mb-2">Langkah selanjutnya</p>
         <h2 class="font-display text-2xl md:text-3xl mb-3">Konfirmasi via {handoff.channelLabel}</h2>

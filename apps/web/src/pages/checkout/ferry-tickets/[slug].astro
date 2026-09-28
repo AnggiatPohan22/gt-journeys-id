@@ -1,13 +1,13 @@
 ---
 /**
- * Checkout / Customer Information — Ferry Ticket (Phase 4.62).
+ * Checkout / Customer Information — Ferry Ticket (Phase 4.62 → 4.63).
  *
- * SSR (prerender=false) supaya bisa terima query params dari halaman detail
- * dan generate `formStamp` yang di-sign server-side per-request.
+ * SSR (prerender=false). Alur: detail ticket → halaman ini (contact +
+ * passengers) → POST /api/bookings/create → confirmation.
  *
- * Alur: detail ticket → halaman ini (form) → POST /api/bookings/create →
- *   confirmation. Payment gateway TIDAK diketahui halaman ini — abstraksi
- *   channel di-resolve saat konfirmasi.
+ * Passenger blocks di-render dinamis via vanilla JS: server render N
+ * blok awal (N = adults+children dari query params), lalu client-side
+ * re-render saat user ubah adults/children.
  */
 import PageLayout from '@layouts/PageLayout.astro'
 import Icon from '@components/common/Icon.astro'
@@ -17,13 +17,13 @@ import { isModuleEnabled } from '@lib/features'
 import { formatPrice } from '@shared/utils/format-price'
 import { resolveLocation, routeLabelFrom } from '@lib/location'
 import { issueFormStamp } from '@lib/checkout/signedToken'
+import { PHONE_REGIONS, DEFAULT_PHONE_REGION } from '@config/phoneRegions'
 import type { Media } from '@shared/types/payload-types'
 
 export const prerender = false
 
 const { slug } = Astro.params
 if (!slug) return Astro.redirect('/ferry-tickets')
-
 if (!(await isModuleEnabled('ferryTickets'))) return Astro.redirect('/')
 
 const item = await getFerryTicketsBySlug(slug)
@@ -35,8 +35,8 @@ const heroUrl = heroImg?.sizes?.card?.url ?? heroImg?.url ?? ''
 
 const url = new URL(Astro.request.url)
 const qDate = url.searchParams.get('date') ?? ''
-const qAdults = Math.max(1, Math.min(50, Number(url.searchParams.get('adults')) || 1))
-const qChildren = Math.max(0, Math.min(50, Number(url.searchParams.get('children')) || 0))
+const qAdults = Math.max(1, Math.min(10, Number(url.searchParams.get('adults')) || 1))
+const qChildren = Math.max(0, Math.min(6, Number(url.searchParams.get('children')) || 0))
 const qClass = url.searchParams.get('class') ?? ''
 const errCode = url.searchParams.get('err') ?? ''
 
@@ -49,8 +49,7 @@ type FerryClass = {
 }
 const ferryClasses = ((item as any).ferryClasses ?? []) as FerryClass[]
 const sortedClasses = ferryClasses.slice().sort((a, b) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
-const preselected =
-  sortedClasses.find((c) => c.classType === qClass) ?? sortedClasses[0] ?? null
+const preselected = sortedClasses.find((c) => c.classType === qClass) ?? sortedClasses[0] ?? null
 
 const routeLabel = routeLabelFrom(
   (item as any).originLocation,
@@ -58,16 +57,17 @@ const routeLabel = routeLabelFrom(
   (item as any).origin,
   (item as any).arrival,
 )
-const originLoc =
-  resolveLocation((item as any).originLocation, (item as any).origin)?.name ?? ''
-const destinationLoc =
-  resolveLocation((item as any).arrivalLocation, (item as any).arrival)?.name ?? ''
+const originLoc = resolveLocation((item as any).originLocation, (item as any).origin)?.name ?? ''
+const destinationLoc = resolveLocation((item as any).arrivalLocation, (item as any).arrival)?.name ?? ''
 
 const currency = preselected?.currency ?? 'IDR'
 const unitPrice = preselected?.adultPrice ?? null
 const priceFormatted = unitPrice ? formatPrice(unitPrice, currency) : null
 
 const formStamp = await issueFormStamp()
+
+const today = new Date()
+const minDeparture = new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
 const detailUrl = `/ferry-tickets/${slug}`
 const crumbs = [
@@ -79,7 +79,9 @@ const crumbs = [
 
 const errorMessages: Record<string, string> = {
   invalid_body: 'Terjadi kesalahan mengirim form. Coba lagi.',
-  invalid_fields: 'Isi semua field wajib (nama, WhatsApp, tanggal keberangkatan).',
+  invalid_fields: 'Isi semua field wajib (nama, telepon, tanggal, dan minimal 1 penumpang).',
+  invalid_passengers: 'Data penumpang belum lengkap — periksa nama depan & belakang untuk tiap penumpang.',
+  invalid_passport_expiry: 'Passport minimal 1 penumpang habis dalam <6 bulan setelah tanggal keberangkatan.',
   stamp_malformed: 'Session form kadaluarsa. Silakan reload halaman.',
   stamp_bad_signature: 'Session form invalid. Silakan reload halaman.',
   stamp_too_fast: 'Mohon isi form dengan seksama sebelum submit (min. 3 detik).',
@@ -89,6 +91,14 @@ const errorMessages: Record<string, string> = {
   rate_limited: 'Terlalu banyak percobaan booking dari perangkat ini. Coba lagi dalam 15 menit atau hubungi admin via WhatsApp.',
 }
 const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba lagi.' : ''
+
+const titleOptions = [
+  { value: 'mr',     label: 'Mr' },
+  { value: 'mrs',    label: 'Mrs' },
+  { value: 'ms',     label: 'Ms' },
+  { value: 'master', label: 'Master' },
+  { value: 'miss',   label: 'Miss' },
+]
 ---
 
 <PageLayout title={`Checkout — ${item.title}`} description={`Isi data penumpang untuk booking ${item.title}.`}>
@@ -97,8 +107,8 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
   <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 py-10 lg:py-16">
     <div class="lg:col-span-8">
       <p class="text-xs uppercase tracking-widest text-coral mb-2 font-semibold">Checkout · Step 1 of 2</p>
-      <h1 class="font-display text-3xl md:text-4xl text-ocean mb-3">Customer Information</h1>
-      <p class="text-stone mb-8">Isi data di bawah untuk melanjutkan booking. Konfirmasi & pembayaran akan diproses via WhatsApp (fallback manual) untuk sekarang.</p>
+      <h1 class="font-display text-3xl md:text-4xl text-ocean mb-3">Contact & Passenger Information</h1>
+      <p class="text-stone mb-8">Isi data kontak & seluruh penumpang. Data ini digunakan untuk konfirmasi booking dan penyusunan tiket final.</p>
 
       {errorMsg && (
         <div class="mb-6 p-4 bg-coral/10 border border-coral/30 rounded-lg text-sm text-stone">
@@ -109,7 +119,8 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
       <form
         method="POST"
         action="/api/bookings/create"
-        class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 space-y-6"
+        class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 space-y-8"
+        id="checkout-form"
       >
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="ferryTicketId" value={String(item.id)} />
@@ -120,43 +131,63 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
           <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
         </div>
 
-        <div>
-          <h2 class="font-display text-xl text-ocean mb-4">Data Kontak</h2>
+        {/* ── Contact ── */}
+        <section>
+          <h2 class="font-display text-xl text-ocean mb-4">Contact Information</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Nama Lengkap <span class="text-coral">*</span></span>
+              <span class="block text-xs font-semibold text-stone mb-1">Full Name <span class="text-coral">*</span></span>
               <input type="text" name="customerName" required minlength="2" maxlength="200"
                 class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
             </label>
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">WhatsApp <span class="text-coral">*</span></span>
-              <input type="tel" name="customerWhatsapp" required minlength="6" maxlength="40" placeholder="+62 812xxxx"
+              <span class="block text-xs font-semibold text-stone mb-1">Email <span class="text-coral">*</span></span>
+              <input type="email" name="customerEmail" required maxlength="200"
                 class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
             </label>
+          </div>
+
+          <div class="mt-4">
+            <span class="block text-xs font-semibold text-stone mb-1">Phone Number <span class="text-coral">*</span></span>
+            <div class="flex flex-wrap gap-2 items-stretch">
+              <select name="contactPhoneRegion" required
+                class="bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean min-w-[8rem]">
+                {PHONE_REGIONS.map((r) => (
+                  <option value={r.code} selected={r.code === DEFAULT_PHONE_REGION}>{r.flag} {r.code} {r.name}</option>
+                ))}
+              </select>
+              <input type="tel" name="contactPhone" required minlength="4" maxlength="20" placeholder="8123456789"
+                class="flex-1 min-w-0 bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+              <label class="inline-flex items-center gap-2 px-3 bg-sand/50 border border-sand-dark/30 rounded-lg cursor-pointer">
+                <input type="checkbox" name="contactPhoneIsWhatsapp" value="1" checked class="accent-ocean" />
+                <span class="text-xs font-semibold text-stone whitespace-nowrap">Also WhatsApp</span>
+              </label>
+            </div>
+            <p class="mt-1 text-xs text-stone-light">Kalau nomor WA berbeda, uncheck lalu tambahkan di catatan tambahan di bawah.</p>
+          </div>
+
+          <div class="mt-4">
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Email (opsional)</span>
-              <input type="email" name="customerEmail" maxlength="200"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
-            </label>
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Negara Asal (opsional)</span>
+              <span class="block text-xs font-semibold text-stone mb-1">Country (opsional)</span>
               <input type="text" name="customerCountry" maxlength="100"
                 class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
             </label>
           </div>
-        </div>
+        </section>
 
-        <div class="pt-6 border-t border-sand-dark/10">
-          <h2 class="font-display text-xl text-ocean mb-4">Detail Perjalanan</h2>
+        {/* ── Trip ── */}
+        <section class="pt-6 border-t border-sand-dark/10">
+          <h2 class="font-display text-xl text-ocean mb-4">Trip Details</h2>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Tanggal Keberangkatan <span class="text-coral">*</span></span>
-              <input type="date" name="departureDate" required value={qDate}
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+              <span class="block text-xs font-semibold text-stone mb-1">Departure Date <span class="text-coral">*</span></span>
+              <input type="date" name="departureDate" required min={minDeparture} value={qDate}
+                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean"
+                data-role="departure-date" />
             </label>
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Jumlah Dewasa <span class="text-coral">*</span></span>
-              <select name="adults" required
+              <span class="block text-xs font-semibold text-stone mb-1">Adults <span class="text-coral">*</span></span>
+              <select name="adults" required data-role="adults-select"
                 class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
                 {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                   <option value={n} selected={n === qAdults}>{n}</option>
@@ -164,8 +195,8 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
               </select>
             </label>
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Jumlah Anak</span>
-              <select name="children"
+              <span class="block text-xs font-semibold text-stone mb-1">Children</span>
+              <select name="children" data-role="children-select"
                 class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
                 {Array.from({ length: 7 }, (_, i) => i).map((n) => (
                   <option value={n} selected={n === qChildren}>{n}</option>
@@ -176,17 +207,16 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
 
           {sortedClasses.length > 0 && (
             <div class="mt-4">
-              <span class="block text-xs font-semibold text-stone mb-2">Kelas Ferry</span>
+              <span class="block text-xs font-semibold text-stone mb-2">Ferry Class</span>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {sortedClasses.map((c) => (
                   <label class="flex items-start gap-3 p-4 bg-sand rounded-lg border border-sand-dark/30 hover:border-ocean cursor-pointer has-[:checked]:border-ocean has-[:checked]:ring-1 has-[:checked]:ring-ocean transition-colors">
-                    <input
-                      type="radio"
-                      name="ferryClassType"
-                      value={c.classType}
+                    <input type="radio" name="ferryClassType" value={c.classType}
                       class="mt-1 accent-ocean"
                       checked={preselected?.classType === c.classType}
-                    />
+                      data-class-name={c.name}
+                      data-class-price={c.adultPrice}
+                      data-class-currency={c.currency ?? 'IDR'} />
                     <span class="flex-1">
                       <span class="block font-semibold text-ocean text-sm">{c.name}</span>
                       <span class="block text-xs text-stone-light mt-0.5">{formatPrice(c.adultPrice, c.currency ?? 'IDR')} / dewasa</span>
@@ -196,39 +226,131 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
               </div>
             </div>
           )}
-
           {preselected && (
             <>
-              <input type="hidden" name="ferryClassName" value={preselected.name} />
-              <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
-              <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
+              <input type="hidden" name="ferryClassName" value={preselected.name} data-role="class-name" />
+              <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} data-role="unit-price" />
+              <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} data-role="currency" />
             </>
           )}
-        </div>
+        </section>
 
-        <div class="pt-6 border-t border-sand-dark/10">
+        {/* ── Passengers (dynamic) ── */}
+        <section class="pt-6 border-t border-sand-dark/10">
+          <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
+            <div>
+              <h2 class="font-display text-xl text-ocean">Passenger Details</h2>
+              <p class="text-xs text-stone-light mt-1">Data tiap penumpang untuk manifest & tiket. Passport minimal berlaku 6 bulan setelah tanggal keberangkatan.</p>
+            </div>
+            <p class="text-xs text-stone-light" data-role="pax-counter">{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</p>
+          </div>
+
+          <div id="passengers-container" class="space-y-4">
+            {Array.from({ length: qAdults + qChildren }, (_, i) => {
+              const type: 'adult' | 'child' = i < qAdults ? 'adult' : 'child'
+              const paxNum = type === 'adult' ? i + 1 : i - qAdults + 1
+              return (
+                <div class="passenger-block bg-sand/40 border border-sand-dark/20 rounded-xl p-5" data-pax-idx={String(i)} data-pax-type={type}>
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-display text-base text-ocean">
+                      Passenger {i + 1} — <span class="uppercase tracking-wider text-xs text-coral font-semibold">{type} {paxNum}</span>
+                    </h3>
+                    <label class="inline-flex items-center gap-2 text-xs text-stone-light opacity-50 cursor-not-allowed" title="Fitur ini akan diaktifkan di Phase 4.64 dengan proteksi data passport.">
+                      <input type="checkbox" name={`passengers[${i}][remember]`} value="1" disabled class="accent-ocean" />
+                      <span>Remember (soon)</span>
+                    </label>
+                  </div>
+
+                  <input type="hidden" name={`passengers[${i}][passengerType]`} value={type} />
+
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Title</span>
+                      <select name={`passengers[${i}][title]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
+                        <option value="">—</option>
+                        {titleOptions.map((t) => <option value={t.value}>{t.label}</option>)}
+                      </select>
+                    </label>
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Gender</span>
+                      <select name={`passengers[${i}][gender]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
+                        <option value="">—</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                      </select>
+                    </label>
+                    <label class="block col-span-2 md:col-span-2">
+                      <span class="block text-xs font-semibold text-stone mb-1">Nationality</span>
+                      <input type="text" name={`passengers[${i}][nationality]`} maxlength="60"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">First Name <span class="text-coral">*</span></span>
+                      <input type="text" name={`passengers[${i}][firstName]`} required minlength="1" maxlength="80"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Last Name <span class="text-coral">*</span></span>
+                      <input type="text" name={`passengers[${i}][lastName]`} required minlength="1" maxlength="80"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                  </div>
+
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Date of Birth</span>
+                      <input type="date" name={`passengers[${i}][dateOfBirth]`}
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Passport Number</span>
+                      <input type="text" name={`passengers[${i}][passportNumber]`} maxlength="30" autocomplete="off"
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Issue Date</span>
+                      <input type="date" name={`passengers[${i}][passportIssueDate]`}
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                    <label class="block">
+                      <span class="block text-xs font-semibold text-stone mb-1">Expiry Date</span>
+                      <input type="date" name={`passengers[${i}][passportExpiryDate]`}
+                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
+                    </label>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {/* ── Notes ── */}
+        <section class="pt-6 border-t border-sand-dark/10">
           <label class="block">
-            <span class="block text-xs font-semibold text-stone mb-1">Catatan Tambahan (opsional)</span>
+            <span class="block text-xs font-semibold text-stone mb-1">Additional Notes (opsional)</span>
             <textarea name="customerNotes" rows="3" maxlength="1000"
-              placeholder="Contoh: perlu jemput ke hotel, request kursi dekat jendela, dll."
+              placeholder="Contoh: nomor WA berbeda dari phone, kursi dekat jendela, jemput hotel, dsb."
               class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean"></textarea>
           </label>
-        </div>
+        </section>
 
+        {/* ── Submit ── */}
         <div class="pt-6 border-t border-sand-dark/10 flex flex-col md:flex-row-reverse items-center gap-3">
           <button type="submit"
             class="w-full md:w-auto bg-coral hover:bg-coral-dark text-white px-8 py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md">
             Lanjut ke Konfirmasi
           </button>
-          <a href={detailUrl}
-            class="text-sm text-stone hover:text-ocean underline underline-offset-4">← Kembali ke detail ticket</a>
+          <a href={detailUrl} class="text-sm text-stone hover:text-ocean underline underline-offset-4">← Kembali ke detail ticket</a>
         </div>
       </form>
     </div>
 
     <aside class="lg:col-span-4">
       <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-lg border border-sand-dark/10 p-6">
-        <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-3">Ringkasan Booking</p>
+        <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-3">Booking Summary</p>
         <div class="flex gap-3 mb-4 pb-4 border-b border-sand-dark/10">
           {heroUrl && (
             <div class="w-20 h-20 rounded-lg overflow-hidden bg-sand shrink-0">
@@ -243,21 +365,172 @@ const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba la
         <dl class="space-y-2 text-sm">
           {preselected && (
             <div class="flex justify-between">
-              <dt class="text-stone-light">Kelas</dt>
-              <dd class="text-ocean font-semibold">{preselected.name}</dd>
+              <dt class="text-stone-light">Class</dt>
+              <dd class="text-ocean font-semibold" data-role="summary-class">{preselected.name}</dd>
             </div>
           )}
           {priceFormatted && (
             <div class="flex justify-between">
-              <dt class="text-stone-light">Harga / dewasa</dt>
-              <dd class="text-coral font-semibold">{priceFormatted}</dd>
+              <dt class="text-stone-light">Price / adult</dt>
+              <dd class="text-coral font-semibold" data-role="summary-unit">{priceFormatted}</dd>
             </div>
           )}
+          <div class="flex justify-between">
+            <dt class="text-stone-light">Passengers</dt>
+            <dd class="text-ocean font-semibold" data-role="summary-pax">{qAdults + qChildren}</dd>
+          </div>
         </dl>
         <p class="mt-6 text-xs text-stone-light leading-relaxed">
-          Anda tidak dikenai biaya sekarang. Setelah submit, tim kami mengkonfirmasi ketersediaan & instruksi pembayaran via WhatsApp.
+          Data lengkap penumpang & passport digunakan untuk manifest & pengiriman tiket setelah pembayaran dikonfirmasi.
         </p>
       </div>
     </aside>
   </section>
+
+<script is:inline>
+  (function () {
+    const form = document.getElementById('checkout-form')
+    if (!form) return
+    const adultsSel = form.querySelector('[data-role="adults-select"]')
+    const childrenSel = form.querySelector('[data-role="children-select"]')
+    const container = document.getElementById('passengers-container')
+    const paxCounter = form.querySelector('[data-role="pax-counter"]')
+    const summaryPax = document.querySelector('[data-role="summary-pax"]')
+    if (!adultsSel || !childrenSel || !container) return
+
+    const titles = ['mr','mrs','ms','master','miss']
+
+    function readCurrentValues() {
+      const snapshot = []
+      container.querySelectorAll('.passenger-block').forEach((el) => {
+        const idx = Number(el.getAttribute('data-pax-idx'))
+        const values = {}
+        el.querySelectorAll('input, select, textarea').forEach((f) => {
+          const m = f.name.match(/passengers\[\d+\]\[(\w+)\]/)
+          if (!m) return
+          values[m[1]] = f.type === 'checkbox' ? f.checked : f.value
+        })
+        snapshot[idx] = values
+      })
+      return snapshot
+    }
+
+    function renderBlock(idx, type, values) {
+      values = values || {}
+      const paxNum = 1 + (type === 'adult'
+        ? idx
+        : idx - Number(adultsSel.value))
+      const titleOptions = titles.map((v) => {
+        const label = v.charAt(0).toUpperCase() + v.slice(1)
+        const sel = values.title === v ? ' selected' : ''
+        return `<option value="${v}"${sel}>${label}</option>`
+      }).join('')
+      const genderOpts = ['male','female'].map((g) => {
+        const label = g.charAt(0).toUpperCase() + g.slice(1)
+        const sel = values.gender === g ? ' selected' : ''
+        return `<option value="${g}"${sel}>${label}</option>`
+      }).join('')
+      const v = (k) => (values[k] != null ? String(values[k]).replace(/"/g, '&quot;') : '')
+
+      const div = document.createElement('div')
+      div.className = 'passenger-block bg-sand/40 border border-sand-dark/20 rounded-xl p-5'
+      div.setAttribute('data-pax-idx', String(idx))
+      div.setAttribute('data-pax-type', type)
+      div.innerHTML =
+        '<div class="flex items-center justify-between mb-4">' +
+          '<h3 class="font-display text-base text-ocean">' +
+            'Passenger ' + (idx + 1) + ' — ' +
+            '<span class="uppercase tracking-wider text-xs text-coral font-semibold">' + type + ' ' + paxNum + '</span>' +
+          '</h3>' +
+          '<label class="inline-flex items-center gap-2 text-xs text-stone-light opacity-50 cursor-not-allowed" title="Fitur ini akan diaktifkan di Phase 4.64 dengan proteksi data passport.">' +
+            '<input type="checkbox" name="passengers[' + idx + '][remember]" value="1" disabled class="accent-ocean" />' +
+            '<span>Remember (soon)</span>' +
+          '</label>' +
+        '</div>' +
+        '<input type="hidden" name="passengers[' + idx + '][passengerType]" value="' + type + '" />' +
+        '<div class="grid grid-cols-2 md:grid-cols-4 gap-3">' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Title</span>' +
+            '<select name="passengers[' + idx + '][title]" class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">' +
+              '<option value="">—</option>' + titleOptions +
+            '</select></label>' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Gender</span>' +
+            '<select name="passengers[' + idx + '][gender]" class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">' +
+              '<option value="">—</option>' + genderOpts +
+            '</select></label>' +
+          '<label class="block col-span-2 md:col-span-2"><span class="block text-xs font-semibold text-stone mb-1">Nationality</span>' +
+            '<input type="text" name="passengers[' + idx + '][nationality]" maxlength="60" value="' + v('nationality') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />' +
+          '</label>' +
+        '</div>' +
+        '<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">First Name <span class="text-coral">*</span></span>' +
+            '<input type="text" name="passengers[' + idx + '][firstName]" required minlength="1" maxlength="80" value="' + v('firstName') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Last Name <span class="text-coral">*</span></span>' +
+            '<input type="text" name="passengers[' + idx + '][lastName]" required minlength="1" maxlength="80" value="' + v('lastName') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
+        '</div>' +
+        '<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Date of Birth</span>' +
+            '<input type="date" name="passengers[' + idx + '][dateOfBirth]" value="' + v('dateOfBirth') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Passport Number</span>' +
+            '<input type="text" name="passengers[' + idx + '][passportNumber]" maxlength="30" autocomplete="off" value="' + v('passportNumber') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Issue Date</span>' +
+            '<input type="date" name="passengers[' + idx + '][passportIssueDate]" value="' + v('passportIssueDate') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
+          '<label class="block"><span class="block text-xs font-semibold text-stone mb-1">Expiry Date</span>' +
+            '<input type="date" name="passengers[' + idx + '][passportExpiryDate]" value="' + v('passportExpiryDate') + '" ' +
+            'class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" /></label>' +
+        '</div>'
+      return div
+    }
+
+    function rebuildPassengers() {
+      const adults = Number(adultsSel.value) || 1
+      const kids = Number(childrenSel.value) || 0
+      const total = adults + kids
+      const snap = readCurrentValues()
+      container.innerHTML = ''
+      for (let i = 0; i < total; i++) {
+        const type = i < adults ? 'adult' : 'child'
+        container.appendChild(renderBlock(i, type, snap[i]))
+      }
+      if (paxCounter) {
+        paxCounter.textContent = adults + ' adult' + (adults > 1 ? 's' : '') +
+          (kids > 0 ? ' · ' + kids + ' child' + (kids > 1 ? 'ren' : '') : '')
+      }
+      if (summaryPax) summaryPax.textContent = String(total)
+    }
+
+    adultsSel.addEventListener('change', rebuildPassengers)
+    childrenSel.addEventListener('change', rebuildPassengers)
+
+    const classNameInput = form.querySelector('[data-role="class-name"]')
+    const unitPriceInput = form.querySelector('[data-role="unit-price"]')
+    const currencyInput  = form.querySelector('[data-role="currency"]')
+    const summaryClass   = document.querySelector('[data-role="summary-class"]')
+    const summaryUnit    = document.querySelector('[data-role="summary-unit"]')
+    form.querySelectorAll('input[name="ferryClassType"]').forEach((r) => {
+      r.addEventListener('change', () => {
+        if (!r.checked) return
+        const name = r.getAttribute('data-class-name') || ''
+        const price = r.getAttribute('data-class-price') || ''
+        const curr = r.getAttribute('data-class-currency') || 'IDR'
+        if (classNameInput) classNameInput.value = name
+        if (unitPriceInput) unitPriceInput.value = price
+        if (currencyInput) currencyInput.value = curr
+        if (summaryClass) summaryClass.textContent = name
+        if (summaryUnit && price) {
+          try {
+            summaryUnit.textContent = new Intl.NumberFormat(curr === 'IDR' ? 'id-ID' : 'en-US', {
+              style: 'currency', currency: curr, minimumFractionDigits: 0,
+            }).format(Number(price))
+          } catch (_) { /* fall back */ }
+        }
+      })
+    })
+  })()
+</script>
 </PageLayout>

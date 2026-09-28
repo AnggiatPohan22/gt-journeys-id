@@ -94,6 +94,7 @@ export interface Config {
     'chat-visitors': ChatVisitor;
     'chat-messages': ChatMessage;
     'chat-blocked-events': ChatBlockedEvent;
+    bookings: Booking;
     'payload-kv': PayloadKv;
     'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
@@ -133,6 +134,7 @@ export interface Config {
     'chat-visitors': ChatVisitorsSelect<false> | ChatVisitorsSelect<true>;
     'chat-messages': ChatMessagesSelect<false> | ChatMessagesSelect<true>;
     'chat-blocked-events': ChatBlockedEventsSelect<false> | ChatBlockedEventsSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -29213,6 +29215,9 @@ export interface User {
   lastLoginAt?: string | null;
   updatedAt: string;
   createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -29406,6 +29411,132 @@ export interface ChatBlockedEvent {
   createdAt: string;
 }
 /**
+ * Data booking dari frontend. Ferry Ticket sekarang; siap untuk gateway (Xendit/Midtrans) nanti.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  /**
+   * Auto-generated reference, mis. "FT-20260927-A1B2C3". Jangan diubah manual.
+   */
+  bookingRef: string;
+  /**
+   * Jenis layanan yang di-booking.
+   */
+  serviceType: 'ferry-ticket';
+  /**
+   * Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.
+   */
+  ferryTicket?: (number | null) | FerryTicket;
+  customerName: string;
+  customerEmail?: string | null;
+  /**
+   * Kode negara telepon (mis. +62, +65).
+   */
+  contactPhoneRegion?: string | null;
+  /**
+   * Nomor telepon tanpa kode negara.
+   */
+  contactPhone?: string | null;
+  /**
+   * Nomor ini juga WhatsApp.
+   */
+  contactPhoneIsWhatsapp?: boolean | null;
+  /**
+   * Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.
+   */
+  customerWhatsapp: string;
+  /**
+   * Negara asal (opsional).
+   */
+  customerCountry?: string | null;
+  /**
+   * Catatan tambahan dari customer (opsional).
+   */
+  customerNotes?: string | null;
+  /**
+   * Data lengkap tiap penumpang untuk keperluan ticketing / manifest / payment gateway.
+   */
+  passengers?:
+    | {
+        passengerType: 'adult' | 'child';
+        title?: ('mr' | 'mrs' | 'ms' | 'master' | 'miss') | null;
+        gender?: ('male' | 'female') | null;
+        nationality?: string | null;
+        firstName: string;
+        lastName: string;
+        dateOfBirth?: string | null;
+        /**
+         * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat.
+         */
+        passportNumber?: string | null;
+        passportIssueDate?: string | null;
+        /**
+         * Minimal 6 bulan setelah departureDate.
+         */
+        passportExpiryDate?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  departureDate: string;
+  adults: number;
+  children?: number | null;
+  /**
+   * Snapshot nama lokasi asal saat booking dibuat.
+   */
+  originLocation?: string | null;
+  /**
+   * Snapshot nama lokasi tujuan saat booking dibuat.
+   */
+  destinationLocation?: string | null;
+  /**
+   * Snapshot jadwal (mis. "08:20 → 09:10"). Opsional.
+   */
+  scheduleTimeLabel?: string | null;
+  /**
+   * Snapshot nama kelas (mis. "Ekonomi", "Emerald").
+   */
+  ferryClassName?: string | null;
+  /**
+   * Snapshot classType (ekonomi/emerald).
+   */
+  ferryClassType?: string | null;
+  /**
+   * Harga per adult saat booking dibuat.
+   */
+  unitPrice?: number | null;
+  currency?: string | null;
+  /**
+   * Estimasi total = adults*unitPrice + children*childPrice.
+   */
+  totalEstimate?: number | null;
+  status: 'pending' | 'awaiting_payment' | 'confirmed' | 'cancelled' | 'expired';
+  /**
+   * Channel checkout yang dipakai. Manual WA = konfirmasi lewat WhatsApp (fallback).
+   */
+  channel: 'manual_wa';
+  /**
+   * Payload data dari channel (mis. gateway invoice id/URL). Kosong untuk manual_wa.
+   */
+  channelData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Auto-expire booking pending setelah waktu ini. Nullable.
+   */
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -29536,6 +29667,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'chat-blocked-events';
         value: number | ChatBlockedEvent;
+      } | null)
+    | ({
+        relationTo: 'bookings';
+        value: number | Booking;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -43618,6 +43753,9 @@ export interface UsersSelect<T extends boolean = true> {
   lastLoginAt?: T;
   updatedAt?: T;
   createdAt?: T;
+  enableAPIKey?: T;
+  apiKey?: T;
+  apiKeyIndex?: T;
   email?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;
@@ -43703,6 +43841,55 @@ export interface ChatBlockedEventsSelect<T extends boolean = true> {
   country?: T;
   userAgent?: T;
   context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  bookingRef?: T;
+  serviceType?: T;
+  ferryTicket?: T;
+  customerName?: T;
+  customerEmail?: T;
+  contactPhoneRegion?: T;
+  contactPhone?: T;
+  contactPhoneIsWhatsapp?: T;
+  customerWhatsapp?: T;
+  customerCountry?: T;
+  customerNotes?: T;
+  passengers?:
+    | T
+    | {
+        passengerType?: T;
+        title?: T;
+        gender?: T;
+        nationality?: T;
+        firstName?: T;
+        lastName?: T;
+        dateOfBirth?: T;
+        passportNumber?: T;
+        passportIssueDate?: T;
+        passportExpiryDate?: T;
+        id?: T;
+      };
+  departureDate?: T;
+  adults?: T;
+  children?: T;
+  originLocation?: T;
+  destinationLocation?: T;
+  scheduleTimeLabel?: T;
+  ferryClassName?: T;
+  ferryClassType?: T;
+  unitPrice?: T;
+  currency?: T;
+  totalEstimate?: T;
+  status?: T;
+  channel?: T;
+  channelData?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
