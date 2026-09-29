@@ -452,7 +452,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
 
       {/* Date card */}
       <div class="space-y-2 mb-4">
-        <div class="relative rounded-2xl border border-sand-dark/30 p-3.5 bg-white focus-within:border-coral transition-all">
+        <div class="relative rounded-2xl border border-sand-dark/30 p-3.5 bg-white focus-within:border-coral transition-all cursor-pointer">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0 flex-1">
               <div class="p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
@@ -466,8 +466,9 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-sand text-stone shrink-0"
                   x-show="dateBadge()" x-text="dateBadge()"></span>
           </div>
-          <input type="date" x-model="date" min={today}
-                 class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+          <input type="date" x-model="date" min={today} x-ref="dateInputM"
+                 @click="try{$el.showPicker && $el.showPicker()}catch(e){}"
+                 class="tsh-date-native" />
         </div>
         {/* Quick date chips */}
         <div class="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
@@ -687,9 +688,13 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             </ul>
           </div>
 
-          {/* Date cell — labeled, native date input di atas */}
-          <div class="relative flex-1 min-w-0">
-            <div class="relative rounded-xl bg-white border border-transparent hover:border-sand-dark/30 focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all px-4 py-3 lg:py-3.5 h-full">
+          {/* Date cell — labeled, native date input di atas.
+              Phase 4.61.8b: pakai showPicker() via ref supaya reliabel di
+              semua browser (opacity-0 native input kadang tidak trigger
+              picker di Firefox/Edge tertentu). Container ditandai pointer
+              cursor + z-index rendah agar tidak diblok oleh cell tetangga. */}
+          <div class="relative flex-1 min-w-0 tsh-date-cell">
+            <div class="relative rounded-xl bg-white border border-transparent hover:border-sand-dark/30 focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all px-4 py-3 lg:py-3.5 h-full cursor-pointer">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-start gap-3 min-w-0 flex-1">
                   <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
@@ -703,9 +708,10 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                 <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sand text-stone shrink-0"
                       x-show="dateBadge()" x-text="dateBadge()"></span>
               </div>
-              <input type="date" x-model="date" min={today}
+              <input type="date" x-model="date" min={today} x-ref="dateInputD"
                      aria-label="Departure Date"
-                     class="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                     @click="try{$el.showPicker && $el.showPicker()}catch(e){}"
+                     class="tsh-date-native" />
             </div>
           </div>
 
@@ -760,25 +766,28 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
           </div>
         </div>
 
-        {/* Footer row: quick-date chips (kiri) + Submit (kanan) */}
-        <div class="flex flex-row items-center justify-between gap-3 mt-4 lg:mt-5">
-          <div class="flex items-center gap-1.5 min-w-0 overflow-x-auto no-scrollbar">
-            <span class="text-[10px] font-bold tracking-wider text-stone-light uppercase mr-1 shrink-0">Quick:</span>
-            {quickDates.map((qd) => {
-              const clickAttr = "date = '" + qd.iso + "'"
-              const classAttr = "date === '" + qd.iso + "' ? 'bg-coral/10 text-coral border-coral/30' : 'bg-white text-stone hover:bg-sand border-sand-dark/30'"
-              return (
-                <button type="button"
-                        x-on:click.prevent={clickAttr}
-                        x-bind:class={classAttr}
-                        class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap active:scale-95 transition-all border">
-                  {qd.label}
-                </button>
-              )
-            })}
-          </div>
+        {/* Quick-date row — Phase 4.61.8b: dipindah ke bawah row Departure
+            Date (bukan lagi di footer bareng submit). */}
+        <div class="flex items-center gap-1.5 mt-3 lg:mt-4 min-w-0 overflow-x-auto no-scrollbar">
+          <span class="text-[10px] font-bold tracking-wider text-stone-light uppercase mr-1 shrink-0">Quick:</span>
+          {quickDates.map((qd) => {
+            const clickAttr = "date = '" + qd.iso + "'"
+            const classAttr = "date === '" + qd.iso + "' ? 'bg-coral/10 text-coral border-coral/30' : 'bg-white text-stone hover:bg-sand border-sand-dark/30'"
+            return (
+              <button type="button"
+                      x-on:click.prevent={clickAttr}
+                      x-bind:class={classAttr}
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap active:scale-95 transition-all border">
+                {qd.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Footer row: submit button (diperlebar Phase 4.61.8b) */}
+        <div class="flex flex-row items-center justify-end gap-3 mt-4 lg:mt-5">
           <button type="submit"
-                  class="shrink-0 inline-flex items-center justify-center gap-2 px-6 lg:px-8 py-3 lg:py-3.5 bg-coral hover:bg-coral-dark text-white text-sm font-bold rounded-xl transition-colors shadow-md hover:shadow-lg whitespace-nowrap uppercase tracking-wide">
+                  class="shrink-0 inline-flex items-center justify-center gap-2 px-10 lg:px-14 py-3 lg:py-3.5 bg-coral hover:bg-coral-dark text-white text-sm font-bold rounded-xl transition-colors shadow-md hover:shadow-lg whitespace-nowrap uppercase tracking-wide">
             <Icon name="search" class="w-4 h-4" />
             <span>{submitText}</span>
           </button>
@@ -881,6 +890,35 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
   .tsh-form { width: 100%; max-width: 32rem; }
   @media (min-width: 768px)  { .tsh-form { max-width: 72rem; } }
   @media (min-width: 1024px) { .tsh-form { max-width: 1360px; } }
+
+  /* Phase 4.61.8b — native date input overlay.
+     Alasan: opacity:0 dengan absolute inset kadang tidak trigger native
+     picker di semua browser. Kita pakai kombinasi: input transparan +
+     showPicker() di click handler parent, plus fallback focus(). Input
+     sendiri tetap absolute agar keyboard nav & form value tetap bekerja. */
+  .tsh-date-native {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+    /* Hilangkan icon calendar bawaan Chrome/WebKit sehingga area click
+       merata (bukan hanya ujung kanan). */
+    color: transparent;
+    background: transparent;
+    border: 0;
+    padding: 0;
+  }
+  .tsh-date-native::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
 
   /* Round 6 — slider transitions (mirror .slh-slider from HeroImmersive) */
   .tsh-slider .tsh-slide {
