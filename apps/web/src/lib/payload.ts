@@ -234,6 +234,8 @@ export const getAnnouncementBar = () => fetchGlobal<any>('announcement-bar')
 export const getPromoBanner = () => fetchGlobal<any>('promo-banner')
 export const getBlogSettings = () => fetchGlobal<any>('blog-settings')
 export const getChatWidget = () => fetchGlobal<any>('chat-widget')
+// Phase 4.59.1 — Popup Settings global (Settings → Popup).
+export const getPopupSettings = () => fetchGlobal<any>('popup-settings')
 export const getTestimonials = (opts?: Partial<FetchOptions>) =>
   fetchCollection<any>({ collection: 'testimonials', sort: 'sortOrder', ...opts })
 

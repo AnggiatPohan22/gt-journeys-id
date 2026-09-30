@@ -58,6 +58,7 @@ import { AnnouncementBar } from './globals/AnnouncementBar'
 import { PromoBanner } from './globals/PromoBanner'
 import { BlogSettings } from './globals/BlogSettings'
 import { ChatWidgetSettings } from './globals/ChatWidgetSettings'
+import { PopupSettings } from './globals/PopupSettings'
 
 
 export default buildConfig({
@@ -190,7 +191,7 @@ export default buildConfig({
   ],
 
   // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings, ChatWidgetSettings],
+  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings, ChatWidgetSettings, PopupSettings],
 
   // ── Admin ───────────────────────────────────
   admin: {

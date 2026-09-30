@@ -7,6 +7,8 @@ import Footer from '@components/navigation/FooterRenderer.astro'
 import AnnouncementBar from '@components/common/AnnouncementBar.astro'
 // Phase 4.33 — timed promo modal (self-gates on homepage-only vs site-wide via CMS).
 import PromoBannerModal from '@components/common/PromoBannerModal.astro'
+// Phase 4.59.1 — global reusable popup (window.dnjPopup.confirm/alert).
+import Popup from '@components/common/Popup.astro'
 
 interface Props {
   title?: string
@@ -34,4 +36,5 @@ const { title, description, ogImage, transparentHeader = false, canonical, ogTyp
   <Footer />
 
   <PromoBannerModal />
+  <Popup />
 </BaseLayout>

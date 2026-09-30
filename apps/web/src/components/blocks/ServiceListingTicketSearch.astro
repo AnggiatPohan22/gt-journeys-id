@@ -335,7 +335,11 @@ const xDataState = {
   fromSub: initFromSub, toSub: initToSub,
   fromSlug: qFrom, toSlug: qTo,
   fromOpen: false, toOpen: false,
-  date: qDate,
+  // Phase 4.59.1 — default date ke hari ini bila query kosong, sehingga
+  // quick chip "Today" langsung aktif & card menampilkan tanggal hari ini
+  // saat listing pertama dibuka (sync dengan `selectedDate={qDate || today}`
+  // yang di-pass ke FerryTicketsCard).
+  date: qDate || today,
   // Phase 4.64 — Round Trip return date. Kosong = user belum pilih.
   // Auto-set ke departure+3 saat pickTrip('round-trip') & return kosong.
   returnDate: qReturnDate,
@@ -382,6 +386,13 @@ const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
   "sortLabel(){const m=" + JSON.stringify(Object.fromEntries(effectiveSortOptions.map((o) => [o.value, o.label]))) + ";return m[this.sortKey]||''}," +
   "sortIcon(){const m=" + JSON.stringify(Object.fromEntries(effectiveSortOptions.map((o) => [o.value, o.icon]))) + ";return m[this.sortKey]||'swap_vert'}," +
   "pickSort(v){if(this.sortKey===v){this.sortOpen=false;return}this.sortKey=v;this.sortOpen=false;this.sortRefreshing=true;const p=new URLSearchParams(location.search);p.set('sort',v);history.replaceState(null,'',location.pathname+'?'+p.toString());setTimeout(()=>{this.sortRefreshing=false},380)}," +
+  // Phase 4.59.1 — Book Now di list card langsung ke checkout dengan bawa
+  // state Alpine (date/adults/children/infants/trip/return). Kalau visitor
+  // belum memilih location (from+to belum ada) atau belum sentuh tanggal
+  // sama sekali → tampilkan confirm popup dgn ringkasan tanggal & pax; klik
+  // OK → lanjut ke checkout, Cancel → batal. Kalau data sudah lengkap →
+  // langsung navigate tanpa popup.
+  "async onBookClick(e,slug){e.preventDefault();e.stopPropagation();const missingLoc=!this.fromSlug||!this.toSlug;const missingDate=!this.date;const needsConfirm=missingLoc||missingDate;const iso=this.date||this.todayISO;const buildAndGo=()=>{const p=new URLSearchParams();p.set('date',iso);p.set('adults',String(this.adults));if(this.children)p.set('children',String(this.children));if(this.enableInfant&&this.infants)p.set('infants',String(this.infants));if(this.trip==='round-trip'){p.set('trip','round-trip');if(this.returnDate)p.set('return',this.returnDate)}window.location.href='/checkout/ferry-tickets/'+slug+'?'+p.toString()};if(!needsConfirm){buildAndGo();return}const d=new Date(iso+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});const msg='Departure date: '+d+'\\nPassengers: '+this.passengerSummary()+'\\n\\nContinue to checkout?';const api=(window.dnjPopup&&typeof window.dnjPopup.confirm==='function')?window.dnjPopup:null;const ok=api?await api.confirm({title:'Confirm Ticket Booking',message:msg,icon:'confirmation_number',confirmLabel:'Continue',cancelLabel:'Cancel'}):window.confirm(msg);if(ok)buildAndGo()},"+
   "applyFilter(){this.syncReturn();const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);if(this.trip==='round-trip'&&this.returnDate)p.set('return',this.returnDate);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}"
 // Emit: `{ locations: [...], fromQ: "..", ..., inc(){...} }`
 const stateEntries = Object.entries(xDataState).map(([k, v]) => k + ':' + JSON.stringify(v)).join(',')
@@ -1136,8 +1147,14 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             const dur = durationMinutesOf(item)
             const showAttr = "matchesFilter('" + originSlug + "','" + arrivalSlug + "')"
             const orderStyle = "'order:'+rankOf(" + dep + "," + price + "," + dur + ")"
+            // Phase 4.59.1 — intercept klik "Book Now" di dalam card supaya
+            // langsung navigate ke /checkout/ferry-tickets/{slug} membawa
+            // state Alpine (date, adults, children, infants, trip, return).
+            // Kalau location / date belum di-set, `onBookClick` menampilkan
+            // confirm popup dulu.
+            const bookClickAttr = "if($event.target.closest('.tkc__btn--book')){onBookClick($event," + JSON.stringify(item.slug) + ")}"
             return (
-              <div x-show={showAttr} x-bind:style={orderStyle} class="tsh-card-wrap">
+              <div x-show={showAttr} x-bind:style={orderStyle} class="tsh-card-wrap" x-on:click.capture={bookClickAttr}>
                 <FerryTicketsCard ferryTicket={item} hrefBase={detailBase + dateAttr} variant={cardVariant} background={cardBg} selectedDate={qDate || today} />
               </div>
             )

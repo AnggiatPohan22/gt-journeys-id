@@ -38,6 +38,8 @@ import * as migration_20260928_085851_phase_4_61_6_ferry_time_and_maps from './2
 import * as migration_20260928_152436_phase_4_61_7_ticket_search from './20260928_152436_phase_4_61_7_ticket_search';
 import * as migration_20260930_044533_phase_4_61_10_ticket_cms_fields from './20260930_044533_phase_4_61_10_ticket_cms_fields';
 import * as migration_20260930_070209_phase_4_61_11_ticket_sort_options from './20260930_070209_phase_4_61_11_ticket_sort_options';
+import * as migration_20260930_081508 from './20260930_081508';
+import * as migration_20260930_120000_popup_settings_en_defaults from './20260930_120000_popup_settings_en_defaults';
 
 export const migrations = [
   {
@@ -238,6 +240,16 @@ export const migrations = [
   {
     up: migration_20260930_070209_phase_4_61_11_ticket_sort_options.up,
     down: migration_20260930_070209_phase_4_61_11_ticket_sort_options.down,
-    name: '20260930_070209_phase_4_61_11_ticket_sort_options'
+    name: '20260930_070209_phase_4_61_11_ticket_sort_options',
+  },
+  {
+    up: migration_20260930_081508.up,
+    down: migration_20260930_081508.down,
+    name: '20260930_081508'
+  },
+  {
+    up: migration_20260930_120000_popup_settings_en_defaults.up,
+    down: migration_20260930_120000_popup_settings_en_defaults.down,
+    name: '20260930_120000_popup_settings_en_defaults',
   },
 ];

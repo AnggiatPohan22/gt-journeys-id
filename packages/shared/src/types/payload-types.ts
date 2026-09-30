@@ -155,6 +155,7 @@ export interface Config {
     'promo-banner': PromoBanner;
     'blog-settings': BlogSetting;
     'chat-widget': ChatWidget;
+    'popup-settings': PopupSetting;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
@@ -166,6 +167,7 @@ export interface Config {
     'promo-banner': PromoBannerSelect<false> | PromoBannerSelect<true>;
     'blog-settings': BlogSettingsSelect<false> | BlogSettingsSelect<true>;
     'chat-widget': ChatWidgetSelect<false> | ChatWidgetSelect<true>;
+    'popup-settings': PopupSettingsSelect<false> | PopupSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -46110,6 +46112,90 @@ export interface ChatWidget {
   createdAt?: string | null;
 }
 /**
+ * Default popup frame (title, icon, buttons, colors) used by every popup trigger on the frontend. Body copy is passed per-context by the trigger.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "popup-settings".
+ */
+export interface PopupSetting {
+  id: number;
+  /**
+   * Master switch. When OFF, triggers fall back to the browser's native window.confirm().
+   */
+  enabled?: boolean | null;
+  /**
+   * Default title used when a trigger does not send its own title.
+   */
+  defaultTitle?: string | null;
+  /**
+   * Primary button label (positive action).
+   */
+  confirmLabel?: string | null;
+  /**
+   * Secondary button label (cancel action).
+   */
+  cancelLabel?: string | null;
+  /**
+   * Show the × close button in the top-right corner of the popup card.
+   */
+  showCloseButton?: boolean | null;
+  /**
+   * Show the header icon at the top of the popup card.
+   */
+  showIcon?: boolean | null;
+  /**
+   * Header icon. Matches the frontend icon system so it stays consistent with the rest of the site.
+   */
+  iconName?:
+    ('help' | 'info' | 'warning' | 'check_circle' | 'confirmation_number' | 'shopping_cart' | 'event' | 'group') | null;
+  /**
+   * Maximum width of the popup card.
+   */
+  size?: ('sm' | 'md' | 'lg') | null;
+  /**
+   * Corner radius of the popup card.
+   */
+  radius?: ('lg' | 'xl' | '2xl' | '3xl') | null;
+  /**
+   * How the dimmed area behind the popup is rendered.
+   */
+  backdrop?: ('solid' | 'blur' | 'transparent') | null;
+  /**
+   * Popup card background color.
+   */
+  bgColor?: string | null;
+  /**
+   * Popup title color.
+   */
+  titleColor?: string | null;
+  /**
+   * Body message color.
+   */
+  textColor?: string | null;
+  /**
+   * Header icon color (icon background auto-tints from this).
+   */
+  iconColor?: string | null;
+  /**
+   * Primary button background.
+   */
+  confirmBg?: string | null;
+  /**
+   * Primary button text color.
+   */
+  confirmText?: string | null;
+  /**
+   * Cancel button background.
+   */
+  cancelBg?: string | null;
+  /**
+   * Cancel button text color.
+   */
+  cancelText?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -46798,6 +46884,33 @@ export interface ChatWidgetSelect<T extends boolean = true> {
   visitorCookieTtlDays?: T;
   ipHashSaltRef?: T;
   auditRetentionDays?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "popup-settings_select".
+ */
+export interface PopupSettingsSelect<T extends boolean = true> {
+  enabled?: T;
+  defaultTitle?: T;
+  confirmLabel?: T;
+  cancelLabel?: T;
+  showCloseButton?: T;
+  showIcon?: T;
+  iconName?: T;
+  size?: T;
+  radius?: T;
+  backdrop?: T;
+  bgColor?: T;
+  titleColor?: T;
+  textColor?: T;
+  iconColor?: T;
+  confirmBg?: T;
+  confirmText?: T;
+  cancelBg?: T;
+  cancelText?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

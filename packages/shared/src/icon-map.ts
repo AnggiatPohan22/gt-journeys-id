@@ -33,6 +33,15 @@ export const LEGACY_ICON_MAP: Record<string, string> = {
   chevron_right: 'lucide:chevron-right',
   chevron_left: 'lucide:chevron-left',
 
+  // ── Popup / dialog icons (Phase 4.59.1) ──
+  help: 'mdi:help-circle',
+  info: 'lucide:info',
+  warning: 'mdi:alert',
+  check_circle: 'mdi:check-circle',
+  confirmation_number: 'mdi:ticket-confirmation',
+  shopping_cart: 'lucide:shopping-cart',
+  event: 'lucide:calendar-check',
+
   // ── Fill-style icons ──
   star: 'mdi:star',
   chat_fill: 'mdi:chat',
