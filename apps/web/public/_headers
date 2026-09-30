@@ -1,0 +1,63 @@
+# Phase 4.66.3 — Security headers baseline (Cloudflare Pages).
+#
+# Cloudflare Pages membaca file ini di root output (dist/) dan menerapkan
+# header ke setiap response. Sintaks: block dengan header path (paling
+# spesifik menang), diikuti list `Nama: Value` yang di-indent.
+#
+# Update kalau menambah domain eksternal baru (CDN, video embed, dsb.):
+# tambahkan ke direktif CSP yang relevan.
+
+/*
+  # Clickjacking — halaman ini tidak boleh di-iframe oleh siapapun kecuali
+  # dirinya sendiri. `frame-ancestors` di CSP adalah versi modernnya, tapi
+  # `X-Frame-Options: SAMEORIGIN` masih dipakai browser lama.
+  X-Frame-Options: SAMEORIGIN
+
+  # Blokir MIME sniffing → hindari kasus file JSON dieksekusi sebagai JS.
+  X-Content-Type-Options: nosniff
+
+  # Kirim origin (tanpa path) saat cross-origin, kirim URL penuh saat
+  # same-origin. Mengurangi bocornya URL panjang (mis. bookingRef) ke
+  # third-party seperti wa.me / youtube / vimeo.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Matikan API browser yang tidak dipakai website ini. Kalau nanti butuh
+  # (mis. geolocation untuk map), izinkan hanya self di direktif tsb.
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), midi=(), magnetometer=(), gyroscope=(), accelerometer=(), fullscreen=(self)
+
+  # HSTS — Cloudflare edge sudah force HTTPS; header ini memastikan browser
+  # ingat 1 tahun ke depan + preload list. Set setelah domain benar-benar
+  # HTTPS-only (kalau masih ada subdomain HTTP, kurangi max-age).
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+  # Cegah membocorkan window.opener untuk semua top-level nav (defense-in-
+  # depth di atas `rel="noopener"` yang sudah dipasang manual).
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+
+  # CSP — baseline realistik untuk site sekarang.
+  #  - default-src 'self'        : semua resource dari origin sendiri.
+  #  - script-src 'self' 'unsafe-inline'
+  #      Astro banyak menaruh inline <script> di halaman (checkout, chat
+  #      widget). Setelah audit inline script, upgrade ke nonce/hash.
+  #  - style-src 'self' 'unsafe-inline'
+  #      Tailwind + inline style beberapa Astro component.
+  #  - img-src 'self' data: blob: https://*.r2.cloudflarestorage.com
+  #      Media dari Cloudflare R2 (public bucket) + data URI kecil + blob.
+  #  - font-src 'self'           : font self-hosted di /public/fonts.
+  #  - frame-src YouTube + Vimeo : HeroBlock/EmbedBlock embed video.
+  #  - connect-src 'self' https://*.r2.cloudflarestorage.com
+  #      fetch ke API sendiri + gambar R2. CMS_URL server-side, tidak butuh
+  #      di CSP browser.
+  #  - form-action 'self' https://wa.me https://api.whatsapp.com
+  #      wa.me handoff (link, bukan form submit — tetap izinkan untuk defense).
+  #  - frame-ancestors 'none'    : versi modern X-Frame-Options.
+  #  - base-uri 'self'           : cegah <base href="..."> injection.
+  #  - object-src 'none'         : blok <object>/<embed>/<applet>.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.r2.cloudflarestorage.com; font-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self' https://*.r2.cloudflarestorage.com; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests
+
+# Confirmation page — jangan pernah di-cache CDN atau di-index search engine.
+# `Cache-Control: private, no-store` disempurnakan di Phase 4.66.6 dari
+# response side juga.
+/checkout/ferry-tickets/confirmation/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: private, no-store, max-age=0, must-revalidate
