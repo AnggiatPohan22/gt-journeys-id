@@ -941,7 +941,7 @@ const ServiceListing: Block = {
                 {
                   type: 'row',
                   fields: [
-                    { name: 'ticketEnableRoundTrip', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).' } },
+                    { name: 'ticketEnableRoundTrip', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.' } },
                     { name: 'ticketEnableInfant', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Infant counter in the passenger dropdown.' } },
                   ],
                 },

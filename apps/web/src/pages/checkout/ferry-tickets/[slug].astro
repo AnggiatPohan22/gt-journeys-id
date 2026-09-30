@@ -83,6 +83,9 @@ const crumbs = [
 const errorMessages: Record<string, string> = {
   invalid_body: 'Terjadi kesalahan mengirim form. Coba lagi.',
   invalid_fields: 'Isi semua field wajib (nama, telepon, email).',
+  past_departure_date: 'Tanggal keberangkatan sudah lewat. Silakan pilih tanggal yang belum lewat.',
+  return_before_departure: 'Tanggal kembali tidak boleh lebih awal dari tanggal keberangkatan.',
+  missing_return_date: 'Silakan pilih tanggal kembali untuk trip Round Trip.',
   invalid_passengers: 'Data penumpang belum lengkap — periksa nama depan & belakang untuk tiap penumpang.',
   invalid_passport_expiry: 'Passport minimal 1 penumpang habis dalam <6 bulan setelah tanggal keberangkatan.',
   stamp_malformed: 'Session form kadaluarsa. Silakan reload halaman.',

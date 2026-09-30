@@ -124,6 +124,29 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   if (!slug || !name || name.length < 2 || !region || !phone || !departureDate || !email || !isEmail(email)) {
     return errorRedirect(back, 'invalid_fields')
   }
+  // Phase 4.61.7 — defense-in-depth: reject past departure date. Client
+  // date input already has `min={today}`, but a bypass would land here.
+  {
+    const today = new Date().toISOString().slice(0, 10)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(departureDate) && departureDate < today) {
+      return errorRedirect(back, 'past_departure_date')
+    }
+  }
+  // Phase 4.64 — Round Trip guard: kalau field `return` dikirim (misal
+  // dari widget filter atau bookmark), pastikan >= departureDate. Booking
+  // flow round-trip (2 legs) diaktifkan di Phase 4.65 — di sini kita hanya
+  // validate, tidak persist ke Booking record.
+  {
+    const tripType = String(form.get('trip') ?? '').trim()
+    const returnDate = String(form.get('return') ?? '').trim()
+    if (returnDate && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
+      if (returnDate < departureDate) {
+        return errorRedirect(back, 'return_before_departure')
+      }
+    } else if (tripType === 'round-trip' && !returnDate) {
+      return errorRedirect(back, 'missing_return_date')
+    }
+  }
   const composedWa = normalizePhone(`${region}${phone}`).slice(0, 40)
 
   // Passengers.

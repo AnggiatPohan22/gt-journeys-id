@@ -85,10 +85,14 @@ const q = url.searchParams
 const qFrom = q.get('from') || ''
 const qTo = q.get('to') || ''
 const qDate = q.get('date') || ''
+const qReturnDateRaw = q.get('return') || ''
 const qAdults = Math.max(1, Math.min(maxAdults, Number(q.get('adults')) || 2))
 const qChildren = Math.max(0, Math.min(maxChildren, Number(q.get('children')) || 0))
 const qInfants = Math.max(0, Math.min(maxInfants, Number(q.get('infants')) || 0))
 const qTrip = q.get('trip') === 'round-trip' ? 'round-trip' : 'one-way'
+// Phase 4.64 — hanya honor `return` kalau trip=round-trip supaya link
+// share tidak bocorkan orphan return date ke one-way state.
+const qReturnDate = qTrip === 'round-trip' ? qReturnDateRaw : ''
 const qSort = q.get('sort') || defaultSort
 
 const limit = b.limit ?? 24
@@ -286,6 +290,9 @@ const xDataState = {
   fromSlug: qFrom, toSlug: qTo,
   fromOpen: false, toOpen: false,
   date: qDate,
+  // Phase 4.64 — Round Trip return date. Kosong = user belum pilih.
+  // Auto-set ke departure+3 saat pickTrip('round-trip') & return kosong.
+  returnDate: qReturnDate,
   adults: qAdults, children: qChildren, infants: qInfants,
   trip: qTrip, passengerOpen: false,
   enableInfant, maxAdults, maxChildren, maxInfants,
@@ -303,12 +310,22 @@ const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
   "swap(){const q=this.fromQ,s=this.fromSlug,sub=this.fromSub;this.fromQ=this.toQ;this.fromSlug=this.toSlug;this.fromSub=this.toSub;this.toQ=q;this.toSlug=s;this.toSub=sub}," +
   "dateBadge(){if(!this.date)return '';if(this.date===this.todayISO)return 'Today';const t=new Date(this.todayISO+'T00:00:00');t.setDate(t.getDate()+1);const tomorrow=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(this.date===tomorrow)return 'Tomorrow';return ''}," +
   "humanDate(){if(!this.date)return 'Pick a departure date';const d=new Date(this.date+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}," +
+  // Phase 4.64 — Round Trip helpers.
+  "addDaysISO(iso,n){const d=new Date(iso+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}," +
+  "pickTrip(t){this.trip=t;if(t==='one-way'){this.returnDate=''}else if(t==='round-trip'&&!this.returnDate){this.returnDate=this.addDaysISO(this.date||this.todayISO,3)}}," +
+  "minReturn(){return this.date||this.todayISO}," +
+  "quickReturn(off){this.returnDate=this.addDaysISO(this.date||this.todayISO,off)}," +
+  "humanReturnDate(){if(!this.returnDate)return 'Pick a return date';const d=new Date(this.returnDate+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}," +
+  "returnBadge(){if(!this.returnDate||!this.date)return '';const a=new Date(this.date+'T00:00:00'),b=new Date(this.returnDate+'T00:00:00');const diff=Math.round((b-a)/86400000);if(diff<=0)return '';return '+'+diff+'d'}," +
+  // Auto-clear return kalau jadi lebih awal dari departure setelah user
+  // menggeser departure ke depan.
+  "syncReturn(){if(this.returnDate&&this.date&&this.returnDate<this.date)this.returnDate=''}," +
   // Phase 4.61.9 (batch 2) — client-side filter + no-reload submit.
   "matchesFilter(o,a){if(this.fromSlug&&o!==this.fromSlug)return false;if(this.toSlug&&a!==this.toSlug)return false;return true}," +
   "visibleCount(){return this.allItems.filter(it=>this.matchesFilter(it.o,it.a)).length}," +
   "cardDate(){const iso=this.date||this.todayISO;const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}," +
   "smoothScrollTo(y,dur){const start=window.scrollY,dist=y-start,t0=performance.now(),ease=t=>1-Math.pow(1-t,3),step=()=>{const t=Math.min(1,(performance.now()-t0)/dur);window.scrollTo(0,start+dist*ease(t));if(t<1)requestAnimationFrame(step)};requestAnimationFrame(step)}," +
-  "applyFilter(){const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}"
+  "applyFilter(){this.syncReturn();const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);if(this.trip==='round-trip'&&this.returnDate)p.set('return',this.returnDate);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}"
 // Emit: `{ locations: [...], fromQ: "..", ..., inc(){...} }`
 const stateEntries = Object.entries(xDataState).map(([k, v]) => k + ':' + JSON.stringify(v)).join(',')
 const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMethods + '}'
@@ -401,18 +418,17 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       {/* Trip type segmented pill (rounded-full ala reference) */}
       {enableRoundTrip && (
         <div class="bg-sand p-1 rounded-full flex items-center mb-4 border border-sand-dark/10">
-          <button type="button" @click.prevent="trip = 'one-way'"
+          <button type="button" @click.prevent="pickTrip('one-way')"
             class="flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5"
             x-bind:class="trip === 'one-way' ? 'shadow-sm bg-white text-ocean' : 'text-stone-light hover:text-stone'">
             <span class="w-2 h-2 rounded-full" x-bind:class="trip === 'one-way' ? 'bg-coral' : 'border border-stone-light/40'"></span>
             <span>One Way</span>
           </button>
-          <button type="button" title="Round-trip booking coming soon"
-            class="flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1 opacity-60 cursor-not-allowed text-stone-light"
-            disabled>
-            <span class="w-2 h-2 rounded-full border border-stone-light/40"></span>
+          <button type="button" @click.prevent="pickTrip('round-trip')"
+            class="flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5"
+            x-bind:class="trip === 'round-trip' ? 'shadow-sm bg-white text-ocean' : 'text-stone-light hover:text-stone'">
+            <span class="w-2 h-2 rounded-full" x-bind:class="trip === 'round-trip' ? 'bg-coral' : 'border border-stone-light/40'"></span>
             <span>Round Trip</span>
-            <span class="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 ml-0.5">Soon</span>
           </button>
         </div>
       )}
@@ -544,6 +560,51 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
         </div>
       </div>
 
+      {/* Phase 4.64 — Return Date card (mobile). Only when Round Trip. */}
+      {enableRoundTrip && (
+      <div x-show="trip === 'round-trip'" x-cloak x-transition class="space-y-2 mb-3">
+        <div class="relative rounded-2xl border border-leaf/40 p-3 bg-leaf/[0.04] focus-within:border-leaf transition-all cursor-pointer">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="w-9 h-9 rounded-full bg-leaf/15 text-leaf flex items-center justify-center shrink-0">
+                <Icon name="calendar_today" class="w-4 h-4" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Return Date</span>
+                <span class="text-sm font-bold text-ocean truncate block" x-text="humanReturnDate()"></span>
+              </div>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-leaf/15 text-leaf shrink-0"
+                  x-show="returnBadge()" x-text="returnBadge()"></span>
+          </div>
+          <input type="date" x-model="returnDate" x-bind:min="minReturn()" x-ref="returnDateInputM"
+                 @click="try{$el.showPicker && $el.showPicker()}catch(e){}"
+                 class="tsh-date-native" />
+        </div>
+        {/* Quick return chips — relatif ke departure (Same day / +2 / +3 / +7) */}
+        <div class="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+          <span class="text-[10px] uppercase tracking-wider text-stone-light font-semibold mr-0.5 shrink-0">Return</span>
+          {[
+            { off: 0, label: 'Same day' },
+            { off: 2, label: '+2 days' },
+            { off: 3, label: '+3 days' },
+            { off: 7, label: '+7 days' },
+          ].map((qr) => {
+            const clickAttr = "quickReturn(" + qr.off + ")"
+            const classAttr = "returnDate && returnDate === addDaysISO(date || todayISO, " + qr.off + ") ? 'bg-leaf/15 text-leaf border border-leaf/40 font-bold' : 'bg-sand text-stone-light hover:bg-sand-dark/20 border border-transparent font-semibold'"
+            return (
+              <button type="button"
+                      x-on:click.prevent={clickAttr}
+                      x-bind:class={classAttr}
+                      class="px-2.5 py-1 rounded-full text-[11px] whitespace-nowrap active:scale-95 transition-all">
+                {qr.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      )}
+
       {/* Passenger card — expand in-place on mobile */}
       <div class="rounded-2xl border border-sand-dark/30 bg-white mb-4 transition-all"
            @click.outside="passengerOpen = false">
@@ -630,18 +691,17 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
         <div class="flex flex-wrap items-center justify-between gap-4 pb-5 lg:pb-6 border-b border-sand-dark/15">
           {enableRoundTrip ? (
             <div class="inline-flex items-center bg-sand p-1 rounded-full border border-sand-dark/10">
-              <button type="button" @click.prevent="trip = 'one-way'"
+              <button type="button" @click.prevent="pickTrip('one-way')"
                 class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200"
                 x-bind:class="trip === 'one-way' ? 'bg-white text-ocean shadow-sm' : 'text-stone-light hover:text-stone'">
                 <span class="w-2.5 h-2.5 rounded-full inline-block" x-bind:class="trip === 'one-way' ? 'bg-coral' : 'border border-stone-light/40'"></span>
                 <span>One Way</span>
               </button>
-              <button type="button" title="Round-trip booking coming soon"
-                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 opacity-60 cursor-not-allowed text-stone-light"
-                disabled>
-                <span class="w-2.5 h-2.5 rounded-full border border-stone-light/40 inline-block"></span>
+              <button type="button" @click.prevent="pickTrip('round-trip')"
+                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200"
+                x-bind:class="trip === 'round-trip' ? 'bg-white text-ocean shadow-sm' : 'text-stone-light hover:text-stone'">
+                <span class="w-2.5 h-2.5 rounded-full inline-block" x-bind:class="trip === 'round-trip' ? 'bg-coral' : 'border border-stone-light/40'"></span>
                 <span>Round Trip</span>
-                <span class="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800">Soon</span>
               </button>
             </div>
           ) : <span></span>}
@@ -832,6 +892,51 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
           </div>
         </div>
 
+        {/* Phase 4.64 — Return Date row (desktop). Only when Round Trip. */}
+        {enableRoundTrip && (
+        <div x-show="trip === 'round-trip'" x-cloak x-transition
+             class="mt-3 lg:mt-3.5 grid md:grid-cols-12 gap-3 lg:gap-3.5 items-stretch">
+          <div class="md:col-span-6 md:col-start-7 relative tsh-date-cell">
+            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-stone-light mb-1 ml-3">Return Date</label>
+            <div class="relative flex items-center gap-3 bg-leaf/[0.04] border border-leaf/40 hover:border-leaf focus-within:border-leaf focus-within:ring-2 focus-within:ring-leaf/10 rounded-2xl px-3.5 py-3 transition-all shadow-sm h-16 cursor-pointer">
+              <div class="w-9 h-9 rounded-full bg-leaf/15 flex items-center justify-center text-leaf shrink-0">
+                <Icon name="calendar_today" class="w-5 h-5" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="block text-sm font-bold text-ocean truncate" x-text="humanReturnDate()"></span>
+                <span class="text-[11px] font-medium truncate block"
+                      x-bind:class="returnBadge() ? 'text-leaf font-semibold' : 'text-stone-light'"
+                      x-text="returnBadge() || 'Pick your return day'"></span>
+              </div>
+              {/* Quick return chips inline */}
+              <div class="hidden lg:flex items-center gap-1.5 shrink-0 mr-1">
+                {[
+                  { off: 0, label: 'Same' },
+                  { off: 2, label: '+2d' },
+                  { off: 3, label: '+3d' },
+                  { off: 7, label: '+7d' },
+                ].map((qr) => {
+                  const clickAttr = "quickReturn(" + qr.off + ")"
+                  const classAttr = "returnDate && returnDate === addDaysISO(date || todayISO, " + qr.off + ") ? 'bg-leaf/20 text-leaf border-leaf font-bold' : 'bg-white text-stone-light hover:border-leaf hover:text-leaf border-sand-dark/30 font-semibold'"
+                  return (
+                    <button type="button"
+                            x-on:click.prevent.stop={clickAttr}
+                            x-bind:class={classAttr}
+                            class="text-[10px] px-2 py-1 rounded-full border whitespace-nowrap transition-colors">
+                      {qr.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <input type="date" x-model="returnDate" x-bind:min="minReturn()" x-ref="returnDateInputD"
+                     aria-label="Return Date"
+                     @click="try{$el.showPicker && $el.showPicker()}catch(e){}"
+                     class="tsh-date-native" />
+            </div>
+          </div>
+        </div>
+        )}
+
         {/* BOTTOM ACTION BAR: Quick chips (kiri) + Search CTA (kanan) */}
         <div class="mt-6 pt-5 border-t border-sand-dark/15 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
@@ -875,6 +980,9 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       <input type="hidden" name="from"     x-bind:value="fromSlug" />
       <input type="hidden" name="to"       x-bind:value="toSlug" />
       <input type="hidden" name="date"     x-bind:value="date" />
+      {/* Phase 4.64 — hanya submit `return` kalau trip=round-trip supaya
+          one-way tidak leak orphan return date. */}
+      <input type="hidden" name="return"   x-bind:value="trip === 'round-trip' ? returnDate : ''" />
       <input type="hidden" name="adults"   x-bind:value="adults" />
       <input type="hidden" name="children" x-bind:value="children" />
       <input type="hidden" name="infants"  x-bind:value="infants" />
@@ -894,6 +1002,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       {qFrom && <input type="hidden" name="from" value={qFrom} />}
       {qTo && <input type="hidden" name="to" value={qTo} />}
       {qDate && <input type="hidden" name="date" value={qDate} />}
+      {qReturnDate && <input type="hidden" name="return" value={qReturnDate} />}
       <input type="hidden" name="adults" value={qAdults} />
       <input type="hidden" name="children" value={qChildren} />
       <input type="hidden" name="infants" value={qInfants} />
@@ -917,7 +1026,15 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
         <p x-show="visibleCount() === 0" x-cloak class="text-center text-stone-light py-10">No trips match your search. Try adjusting the filters.</p>
         <div class="grid grid-cols-1 gap-5">
           {items.map((item: any) => {
-            const dateAttr = qDate ? `?date=${qDate}` : ''
+            // Phase 4.64 — passthrough date + return + trip ke detail page.
+            const detailParams = new URLSearchParams()
+            if (qDate) detailParams.set('date', qDate)
+            if (qTrip === 'round-trip') {
+              detailParams.set('trip', 'round-trip')
+              if (qReturnDate) detailParams.set('return', qReturnDate)
+            }
+            const detailQs = detailParams.toString()
+            const dateAttr = detailQs ? `?${detailQs}` : ''
             const originSlug = typeof item.originLocation === 'object' ? (item.originLocation?.slug ?? '') : ''
             const arrivalSlug = typeof item.arrivalLocation === 'object' ? (item.arrivalLocation?.slug ?? '') : ''
             const showAttr = "matchesFilter('" + originSlug + "','" + arrivalSlug + "')"
