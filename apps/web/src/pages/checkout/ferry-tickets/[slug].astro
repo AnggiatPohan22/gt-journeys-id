@@ -86,6 +86,12 @@ const errorMessages: Record<string, string> = {
   store_misconfigured: 'Booking service is temporarily unavailable. Please contact us on WhatsApp.',
   store_server_error: 'Failed to save the booking. Please try again or contact us on WhatsApp.',
   rate_limited: 'Too many booking attempts from this device. Try again in 15 minutes or contact us on WhatsApp.',
+  // Phase 4.66.4 — server-side ferry verification failures.
+  invalid_ferry: 'Selected ferry is invalid. Please reload the page and try again.',
+  ferry_not_found: 'This ferry ticket is no longer available. Please pick another.',
+  ferry_slug_mismatch: 'Ferry data mismatch. Please reload the page and try again.',
+  ferry_no_class: 'This ferry has no class configured. Please contact us on WhatsApp.',
+  ferry_no_price: 'This ferry class has no price configured. Please contact us on WhatsApp.',
 }
 const errorMsg = errCode ? errorMessages[errCode] ?? 'Something went wrong. Please try again.' : ''
 

@@ -1,5 +1,5 @@
 /**
- * POST /api/bookings/create — Phase 4.62 → 4.63.
+ * POST /api/bookings/create — Phase 4.62 → 4.63 → 4.66.4.
  *
  * Receives the Ferry Ticket checkout form (contact + passenger array),
  * validates, and creates a Booking record with default channel `manual_wa`.
@@ -9,12 +9,26 @@
  * Passenger array (Phase 4.63): fields arrive as `passengers[N][key]` in
  * FormData. Server enforces: N === adults + children, firstName/lastName
  * present, passport expiry >= departure + 6 months when passport is filled.
+ *
+ * Phase 4.66.4 — Server recompute price/currency/snapshot dari CMS
+ * (finding S-03 + S-06). `ferryTicketId` sekarang WAJIB dan diverifikasi:
+ *   1. Ada di CMS + status published.
+ *   2. `ferryClassType` dari hidden input harus match salah satu
+ *      `ferryClasses[].classType` di ferry itu — kalau tidak, pakai class
+ *      pertama (yang termurah sesuai sort di detail page).
+ *   3. `unitPrice`, `childPrice`, `currency`, `ferryClassName`,
+ *      `originLocation`, `destinationLocation`, `scheduleTimeLabel`
+ *      SEMUA di-overwrite dari record CMS — hidden input diabaikan.
+ *   4. `totalEstimate` = adults*unitPrice + children*childPrice (childPrice
+ *      fallback ke unitPrice/2 kalau tidak diset di CMS).
+ * Konsekuensi: attacker yang kirim `unitPrice=1` tidak berhasil.
  */
 
 import type { APIRoute } from 'astro'
-import { createBooking, generateBookingRef } from '@lib/checkout/store'
+import { createBooking, generateBookingRef, getFerryForCheckout } from '@lib/checkout/store'
 import { verifyFormStamp } from '@lib/checkout/signedToken'
 import { checkBookingRateLimit, getClientIp } from '@lib/checkout/rateLimit'
+import { resolveLocation } from '@lib/location'
 
 export const prerender = false
 
@@ -158,19 +172,60 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     return errorRedirect(back, 'invalid_passport_expiry')
   }
 
-  const unitPrice = Number(form.get('unitPrice') ?? 0) || undefined
-  const currency = (String(form.get('currency') ?? 'IDR').trim() || 'IDR').slice(0, 8)
-  const totalEstimate = unitPrice
-    ? unitPrice * adults + (unitPrice / 2) * children
-    : undefined
+  // ── Phase 4.66.4 — verifikasi ferry + recompute pricing dari CMS ─────
+  const ferryTicketIdRaw = String(form.get('ferryTicketId') ?? '').trim()
+  const ferryTicketId = Number(ferryTicketIdRaw)
+  if (!ferryTicketIdRaw || !Number.isFinite(ferryTicketId) || ferryTicketId <= 0) {
+    return errorRedirect(back, 'invalid_ferry')
+  }
+  const ferry = await getFerryForCheckout(ferryTicketId)
+  if (!ferry || (ferry as any).status && (ferry as any).status !== 'published') {
+    return errorRedirect(back, 'ferry_not_found')
+  }
+  // Confirm the slug we routed with actually belongs to this ferry — cheap
+  // guard against ID/slug mismatch (attacker swaps id but keeps slug).
+  if (typeof (ferry as any).slug === 'string' && (ferry as any).slug !== slug) {
+    return errorRedirect(back, 'ferry_slug_mismatch')
+  }
+
+  const ferryClassesRaw = Array.isArray((ferry as any).ferryClasses) ? (ferry as any).ferryClasses : []
+  if (ferryClassesRaw.length === 0) {
+    return errorRedirect(back, 'ferry_no_class')
+  }
+  // Sort like the checkout page does (cheapest first) so "fallback to first"
+  // stays deterministic.
+  const sortedClasses = ferryClassesRaw
+    .slice()
+    .sort((a: any, b: any) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
+  const requestedClassType = String(form.get('ferryClassType') ?? '').trim().slice(0, 30)
+  const cls = sortedClasses.find((c: any) => c.classType === requestedClassType) ?? sortedClasses[0]
+  if (!cls || typeof cls.adultPrice !== 'number' || cls.adultPrice < 0) {
+    return errorRedirect(back, 'ferry_no_price')
+  }
+
+  const unitPrice: number = cls.adultPrice
+  const childUnit: number =
+    typeof cls.childPrice === 'number' && cls.childPrice >= 0
+      ? cls.childPrice
+      : Math.round(unitPrice / 2)
+  const currency: string = (typeof cls.currency === 'string' ? cls.currency : 'IDR').slice(0, 8)
+  const totalEstimate = unitPrice * adults + childUnit * children
+
+  const originName =
+    resolveLocation((ferry as any).originLocation, (ferry as any).origin)?.name ?? null
+  const destinationName =
+    resolveLocation((ferry as any).arrivalLocation, (ferry as any).arrival)?.name ?? null
+  const scheduleTimeLabel =
+    typeof (ferry as any).scheduleTimeLabel === 'string' && (ferry as any).scheduleTimeLabel.trim()
+      ? String((ferry as any).scheduleTimeLabel).slice(0, 100)
+      : null
 
   const bookingRef = generateBookingRef('FT')
-  const ferryTicketIdRaw = String(form.get('ferryTicketId') ?? '').trim()
 
   const result = await createBooking({
     bookingRef,
     serviceType: 'ferry-ticket',
-    ferryTicket: ferryTicketIdRaw ? (Number(ferryTicketIdRaw) as unknown as number) : null,
+    ferryTicket: ferryTicketId as unknown as number,
     customerName: name.slice(0, 200),
     customerEmail: email,
     contactPhoneRegion: region.slice(0, 8),
@@ -182,14 +237,14 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     departureDate,
     adults,
     children,
-    originLocation: String(form.get('originLocation') ?? '').trim() || null,
-    destinationLocation: String(form.get('destinationLocation') ?? '').trim() || null,
-    scheduleTimeLabel: String(form.get('scheduleTimeLabel') ?? '').trim() || null,
-    ferryClassName: String(form.get('ferryClassName') ?? '').trim() || null,
-    ferryClassType: String(form.get('ferryClassType') ?? '').trim() || null,
-    unitPrice: unitPrice ?? null,
+    originLocation: originName,
+    destinationLocation: destinationName,
+    scheduleTimeLabel,
+    ferryClassName: typeof cls.name === 'string' ? cls.name.slice(0, 100) : null,
+    ferryClassType: typeof cls.classType === 'string' ? cls.classType : null,
+    unitPrice,
     currency,
-    totalEstimate: totalEstimate ?? null,
+    totalEstimate,
     status: 'pending',
     channel: 'manual_wa',
     channelData: null,

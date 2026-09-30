@@ -6,9 +6,14 @@
  * create is closed at the collection level, this module authenticates
  * with `PAYLOAD_API_KEY` (users.enableAPIKey) to write on the customer's
  * behalf.
+ *
+ * Phase 4.66.4 — tambah `getFerryForCheckout(id)` sebagai server-side
+ * lookup dengan API key. Dipakai `/api/bookings/create` untuk recompute
+ * price/currency/snapshot fields dari CMS truth (tidak dari hidden input
+ * yang dikirim client, yang trusted → bisa tampered).
  */
 
-import type { Booking } from '@shared/types/payload-types'
+import type { Booking, FerryTicket } from '@shared/types/payload-types'
 
 const CMS_URL = import.meta.env.CMS_URL || 'http://localhost:3030'
 const API_KEY = import.meta.env.PAYLOAD_API_KEY || ''
@@ -61,6 +66,26 @@ export async function getBookingByRef(ref: string): Promise<Booking | null> {
   if (!res.ok) return null
   const data = await res.json().catch(() => null)
   return (data?.docs?.[0] as Booking) ?? null
+}
+
+/**
+ * Server-side fetch untuk 1 ferry ticket by numeric id — dipakai
+ * `/api/bookings/create` untuk memverifikasi id dari client + ambil
+ * pricing/currency/location authoritative. Menggunakan API-key user
+ * (yang di-scope ke role admin) supaya konsisten dgn `createBooking`.
+ * `depth=2` supaya origin/arrival location ter-populate ke nama.
+ */
+export async function getFerryForCheckout(id: number): Promise<FerryTicket | null> {
+  if (!CMS_URL || !API_KEY) return null
+  if (!Number.isFinite(id) || id <= 0) return null
+
+  const url = `${CMS_URL.replace(/\/$/, '')}/api/ferry-tickets/${id}?depth=2`
+  const res = await fetch(url, {
+    headers: { Authorization: `users API-Key ${API_KEY}` },
+  })
+  if (!res.ok) return null
+  const doc = await res.json().catch(() => null)
+  return (doc as FerryTicket) ?? null
 }
 
 export function generateBookingRef(prefix = 'FT'): string {
