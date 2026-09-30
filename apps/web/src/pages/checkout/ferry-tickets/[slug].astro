@@ -1,19 +1,19 @@
 ---
 /**
- * Checkout / Customer Information — Ferry Ticket (Phase 4.62 → 4.63 → 4.63.1).
+ * Checkout / Customer Information — Ferry Ticket
+ * (Phase 4.62 → 4.63 → 4.63.1 → 4.63.2 → 4.65 → 4.65.1).
  *
- * SSR (prerender=false). Alur: detail ticket (isi date/adults/children/class
- * di sidebar) → halaman ini (contact + passengers) → POST /api/bookings/create
- * → confirmation.
+ * Phase 4.65   — Pure-UI refresh mengikuti `ai/reference/referensi-1`.
+ * Phase 4.65.1 — Pass 2: kontras teks di dark header dinaikkan (pakai
+ *   emerald-300 cerah, bukan project token leaf-light yg muted), sidebar
+ *   font & padding dikecilin biar hemat vertikal, semua copy diganti ke
+ *   English.
  *
- * Phase 4.63.1: Trip Details section dihapus dari UI — semua trip data
- * (departureDate, adults, children, ferryClass*) jadi hidden input, diambil
- * dari query string. Kalau user mau ubah trip → klik "Change trip" di strip
- * atas → balik ke detail page. Kalau date kosong → server redirect balik.
+ * Semua field name, hidden input, endpoint POST, validasi & business
+ * logic tetap sama — hanya markup + Tailwind classes + copy.
  */
 import PageLayout from '@layouts/PageLayout.astro'
 import Icon from '@components/common/Icon.astro'
-import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import { getFerryTicketsBySlug } from '@lib/payload'
 import { isModuleEnabled } from '@lib/features'
 import { formatPrice } from '@shared/utils/format-price'
@@ -42,8 +42,6 @@ const qChildren = Math.max(0, Math.min(6, Number(url.searchParams.get('children'
 const qClass = url.searchParams.get('class') ?? ''
 const errCode = url.searchParams.get('err') ?? ''
 
-// Guard: without a date the booking can't be created. Send user back to
-// the detail page to fill the sidebar form.
 const detailUrl = `/ferry-tickets/${slug}`
 if (!qDate) return Astro.redirect(`${detailUrl}?err=needs_date`)
 
@@ -69,34 +67,27 @@ const destinationLoc = resolveLocation((item as any).arrivalLocation, (item as a
 
 const currency = preselected?.currency ?? 'IDR'
 const unitPrice = preselected?.adultPrice ?? null
-const priceFormatted = unitPrice ? formatPrice(unitPrice, currency) : null
 
 const formStamp = await issueFormStamp()
 
-const crumbs = [
-  { name: 'Home', url: '/' },
-  { name: 'Ferry Tickets', url: '/ferry-tickets' },
-  { name: item.title, url: detailUrl },
-  { name: 'Checkout', url: `/checkout/ferry-tickets/${slug}` },
-]
-
+// Error copy — English (Phase 4.65.1).
 const errorMessages: Record<string, string> = {
-  invalid_body: 'Terjadi kesalahan mengirim form. Coba lagi.',
-  invalid_fields: 'Isi semua field wajib (nama, telepon, email).',
-  past_departure_date: 'Tanggal keberangkatan sudah lewat. Silakan pilih tanggal yang belum lewat.',
-  return_before_departure: 'Tanggal kembali tidak boleh lebih awal dari tanggal keberangkatan.',
-  missing_return_date: 'Silakan pilih tanggal kembali untuk trip Round Trip.',
-  invalid_passengers: 'Data penumpang belum lengkap — periksa nama depan & belakang untuk tiap penumpang.',
-  invalid_passport_expiry: 'Passport minimal 1 penumpang habis dalam <6 bulan setelah tanggal keberangkatan.',
-  stamp_malformed: 'Session form kadaluarsa. Silakan reload halaman.',
-  stamp_bad_signature: 'Session form invalid. Silakan reload halaman.',
-  stamp_too_fast: 'Mohon isi form dengan seksama sebelum submit (min. 3 detik).',
-  stamp_expired: 'Form kadaluarsa. Silakan reload dan isi ulang.',
-  store_misconfigured: 'Layanan booking sedang tidak tersedia. Silakan hubungi admin via WhatsApp.',
-  store_server_error: 'Gagal menyimpan booking. Silakan coba lagi atau hubungi admin.',
-  rate_limited: 'Terlalu banyak percobaan booking dari perangkat ini. Coba lagi dalam 15 menit atau hubungi admin via WhatsApp.',
+  invalid_body: 'Something went wrong submitting the form. Please try again.',
+  invalid_fields: 'Please fill in all required fields (name, phone, email).',
+  past_departure_date: 'Departure date has already passed. Please pick a future date.',
+  return_before_departure: 'Return date cannot be earlier than the departure date.',
+  missing_return_date: 'Please pick a return date for a round-trip booking.',
+  invalid_passengers: 'Passenger data is incomplete — check first & last name for every passenger.',
+  invalid_passport_expiry: 'At least one passenger\'s passport expires within 6 months after departure.',
+  stamp_malformed: 'Session expired. Please reload the page.',
+  stamp_bad_signature: 'Session invalid. Please reload the page.',
+  stamp_too_fast: 'Please take a moment to fill in the form (min. 3 seconds) before submitting.',
+  stamp_expired: 'Form expired. Please reload and fill in again.',
+  store_misconfigured: 'Booking service is temporarily unavailable. Please contact us on WhatsApp.',
+  store_server_error: 'Failed to save the booking. Please try again or contact us on WhatsApp.',
+  rate_limited: 'Too many booking attempts from this device. Try again in 15 minutes or contact us on WhatsApp.',
 }
-const errorMsg = errCode ? errorMessages[errCode] ?? 'Terjadi kesalahan. Coba lagi.' : ''
+const errorMsg = errCode ? errorMessages[errCode] ?? 'Something went wrong. Please try again.' : ''
 
 const titleOptions = [
   { value: 'mr',     label: 'Mr' },
@@ -106,8 +97,6 @@ const titleOptions = [
   { value: 'miss',   label: 'Miss' },
 ]
 
-// Nationality options — reuse PHONE_REGIONS data (dedupe by iso), sorted
-// dgn negara populer di atas (order dari phoneRegions.ts sudah SE-Asia dulu).
 const nationalityOptions = (() => {
   const seen = new Set<string>()
   return PHONE_REGIONS.filter((r) => {
@@ -117,7 +106,6 @@ const nationalityOptions = (() => {
   }).map((r) => ({ value: r.name, label: `${r.flag} ${r.name}` }))
 })()
 
-// Compact date formatter for the trip strip (with weekday — Phase 4.63.2).
 const depDateFmt = (() => {
   try {
     return new Date(qDate).toLocaleDateString('en-GB', {
@@ -126,10 +114,14 @@ const depDateFmt = (() => {
   } catch { return qDate }
 })()
 
-// Phase 4.63.2 — Price breakdown for the sidebar summary. Child price
-// takes preselected.childPrice from CMS if defined; otherwise falls back
-// to 50% of the adult price (parity with the endpoint's totalEstimate
-// calculation).
+const passportMinExpiryLabel = (() => {
+  try {
+    const d = new Date(qDate)
+    d.setMonth(d.getMonth() + 6)
+    return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+  } catch { return '' }
+})()
+
 const childUnitPrice =
   preselected?.childPrice != null && preselected.childPrice > 0
     ? preselected.childPrice
@@ -138,323 +130,639 @@ const adultLineTotal = (unitPrice ?? 0) * qAdults
 const childLineTotal = childUnitPrice * qChildren
 const ticketFare = adultLineTotal + childLineTotal
 
-// Service fee & Discount rows are HIDDEN until configured (owner decision
-// Phase 4.63.2). When enabled later (CMS field or promo code), set these
-// non-zero and the corresponding rows will render.
 const serviceFee = 0
 const discount = 0
 const subtotalDeparture = ticketFare + serviceFee - discount
-const totalPrice = subtotalDeparture // one-way; sum of all departures kalau nanti round-trip
+const totalPrice = subtotalDeparture
 
 const priceFmt = (n: number) => formatPrice(n, currency)
+const totalPax = qAdults + qChildren
 ---
 
-<PageLayout title={`Checkout — ${item.title}`} description={`Isi data penumpang untuk booking ${item.title}.`}>
-  <Breadcrumbs items={crumbs} />
+<PageLayout title={`Checkout — ${item.title}`} description={`Enter passenger details for ${item.title}.`}>
+  <section class="container-content py-8 lg:py-10">
 
-  <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 py-10 lg:py-16">
-    <div class="lg:col-span-8">
-      <p class="text-xs uppercase tracking-widest text-coral mb-2 font-semibold">Checkout · Step 1 of 2</p>
-      <h1 class="font-display text-3xl md:text-4xl text-ocean mb-3">Contact & Passenger Information</h1>
-      <p class="text-stone mb-6">Isi data kontak & seluruh penumpang. Data ini digunakan untuk konfirmasi booking dan penyusunan tiket final.</p>
+    {/* ─── Stepper + Breadcrumb card ─── */}
+    <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 mb-8 border border-sand-dark/10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs text-stone-light font-medium">
+          <a href="/" class="hover:text-ocean transition">Home</a>
+          <span class="text-sand-dark">/</span>
+          <a href="/ferry-tickets" class="hover:text-ocean transition">Ferry Tickets</a>
+          <span class="text-sand-dark">/</span>
+          <a href={detailUrl} class="hover:text-ocean transition inline-block truncate max-w-[10rem] align-bottom">{item.title}</a>
+          <span class="text-sand-dark">/</span>
+          <span class="text-ocean font-semibold">Checkout</span>
+        </nav>
 
-      {/* ── Trip strip (read-only) ── */}
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 bg-ocean/5 border border-ocean/15 rounded-xl px-5 py-3">
-        <div class="flex items-center gap-4 flex-wrap text-sm text-ocean min-w-0">
-          <span class="inline-flex items-center gap-1.5"><Icon name="ship" class="w-4 h-4 text-coral" /><span class="font-semibold truncate max-w-[16rem]">{item.title}</span></span>
-          {routeLabel && <span class="inline-flex items-center gap-1.5"><Icon name="location_on" class="w-4 h-4 text-coral" />{routeLabel}</span>}
-          <span class="inline-flex items-center gap-1.5"><Icon name="calendar_today" class="w-4 h-4 text-coral" />{depDateFmt}</span>
-          <span class="inline-flex items-center gap-1.5"><Icon name="group" class="w-4 h-4 text-coral" />{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
-          {preselected && <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-ocean/10 rounded-full text-xs font-semibold">{preselected.name}</span>}
-        </div>
-        <a href={detailUrl} class="text-xs font-semibold text-coral hover:text-coral-dark underline underline-offset-4 whitespace-nowrap">Change trip →</a>
+        <ol class="flex items-center gap-2 sm:gap-4 overflow-x-auto py-1">
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <Icon name="check" class="w-3.5 h-3.5" />
+            </span>
+            <span class="text-xs font-semibold text-emerald-800">1. Select Trip</span>
+          </li>
+          <li class="w-6 h-[2px] bg-emerald-200 shrink-0"></li>
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-ocean text-white flex items-center justify-center text-[11px] font-bold shadow-sm ring-4 ring-ocean/10">2</span>
+            <span class="text-xs font-bold text-ocean">2. Passenger Info</span>
+          </li>
+          <li class="w-6 h-[2px] bg-sand-dark/40 shrink-0"></li>
+          <li class="flex items-center gap-2 shrink-0 opacity-60">
+            <span class="w-6 h-6 rounded-full bg-sand text-stone-light flex items-center justify-center text-[11px] font-semibold border border-sand-dark/30">3</span>
+            <span class="text-xs font-medium text-stone-light">3. Confirmation</span>
+          </li>
+        </ol>
       </div>
-
-      {errorMsg && (
-        <div class="mb-6 p-4 bg-coral/10 border border-coral/30 rounded-lg text-sm text-stone">
-          <strong class="text-coral">Perhatian:</strong> {errorMsg}
-        </div>
-      )}
-
-      <form
-        method="POST"
-        action="/api/bookings/create"
-        class="bg-white rounded-2xl border border-sand-dark/10 p-6 md:p-8 space-y-8"
-        id="checkout-form"
-      >
-        {/* Hidden: identity + trip data */}
-        <input type="hidden" name="slug" value={slug} />
-        <input type="hidden" name="ferryTicketId" value={String(item.id)} />
-        <input type="hidden" name="originLocation" value={originLoc} />
-        <input type="hidden" name="destinationLocation" value={destinationLoc} />
-        <input type="hidden" name="formStamp" value={formStamp} />
-        <input type="hidden" name="departureDate" value={qDate} />
-        <input type="hidden" name="adults" value={String(qAdults)} />
-        <input type="hidden" name="children" value={String(qChildren)} />
-        {preselected && (
-          <>
-            <input type="hidden" name="ferryClassType" value={preselected.classType} />
-            <input type="hidden" name="ferryClassName" value={preselected.name} />
-            <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
-            <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
-          </>
-        )}
-        <div class="hidden" aria-hidden="true">
-          <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
-        </div>
-
-        {/* ── Contact ── */}
-        <section>
-          <h2 class="font-display text-xl text-ocean mb-4">Contact Information</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Full Name <span class="text-coral">*</span></span>
-              <input type="text" name="customerName" required minlength="2" maxlength="200" placeholder="e.g. Anggi Pohan"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-            </label>
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Email <span class="text-coral">*</span></span>
-              <input type="email" name="customerEmail" required maxlength="200" placeholder="you@example.com"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-            </label>
-          </div>
-
-          <div class="mt-4">
-            <span class="block text-xs font-semibold text-stone mb-1">Phone Number <span class="text-coral">*</span></span>
-            <div class="flex flex-wrap gap-2 items-stretch">
-              <select name="contactPhoneRegion" required
-                class="bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean min-w-[8rem]">
-                {PHONE_REGIONS.map((r) => (
-                  <option value={r.code} selected={r.code === DEFAULT_PHONE_REGION}>{r.flag} {r.code} {r.name}</option>
-                ))}
-              </select>
-              <input type="tel" name="contactPhone" required minlength="4" maxlength="20" placeholder="8123456789"
-                class="flex-1 min-w-0 bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-              <label class="inline-flex items-center gap-2 px-3 bg-sand/50 border border-sand-dark/30 rounded-lg cursor-pointer">
-                <input type="checkbox" name="contactPhoneIsWhatsapp" value="1" checked class="accent-ocean" />
-                <span class="text-xs font-semibold text-stone whitespace-nowrap">Also WhatsApp</span>
-              </label>
-            </div>
-            <p class="mt-1 text-xs text-stone-light">Kalau nomor WA berbeda, uncheck lalu tambahkan di catatan di bawah.</p>
-          </div>
-
-          <div class="mt-4">
-            <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Country (opsional)</span>
-              <input type="text" name="customerCountry" maxlength="100" placeholder="e.g. Indonesia"
-                class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-            </label>
-          </div>
-        </section>
-
-        {/* ── Passengers ── */}
-        <section class="pt-6 border-t border-sand-dark/10">
-          <div class="flex items-end justify-between mb-4 gap-3 flex-wrap">
-            <div>
-              <h2 class="font-display text-xl text-ocean">Passenger Details</h2>
-              <p class="text-xs text-stone-light mt-1">Data tiap penumpang untuk manifest & tiket. Passport minimal berlaku 6 bulan setelah tanggal keberangkatan.</p>
-            </div>
-            <p class="text-xs text-stone-light">{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</p>
-          </div>
-
-          <div class="space-y-4">
-            {Array.from({ length: qAdults + qChildren }, (_, i) => {
-              const type: 'adult' | 'child' = i < qAdults ? 'adult' : 'child'
-              const paxNum = type === 'adult' ? i + 1 : i - qAdults + 1
-              return (
-                <div class="bg-sand/40 border border-sand-dark/20 rounded-xl p-5">
-                  <div class="flex items-center justify-between mb-4">
-                    <h3 class="font-display text-base text-ocean">
-                      Passenger {i + 1} — <span class="uppercase tracking-wider text-xs text-coral font-semibold">{type} {paxNum}</span>
-                    </h3>
-                    <label class="inline-flex items-center gap-2 text-xs text-stone-light opacity-50 cursor-not-allowed" title="Fitur ini akan diaktifkan di Phase 4.64 dengan proteksi data passport.">
-                      <input type="checkbox" name={`passengers[${i}][remember]`} value="1" disabled class="accent-ocean" />
-                      <span>Remember (soon)</span>
-                    </label>
-                  </div>
-
-                  <input type="hidden" name={`passengers[${i}][passengerType]`} value={type} />
-
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Title</span>
-                      <select name={`passengers[${i}][title]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                        <option value="">Select…</option>
-                        {titleOptions.map((t) => <option value={t.value}>{t.label}</option>)}
-                      </select>
-                    </label>
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Gender</span>
-                      <select name={`passengers[${i}][gender]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                        <option value="">Select…</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                      </select>
-                    </label>
-                    <label class="block col-span-2 md:col-span-2">
-                      <span class="block text-xs font-semibold text-stone mb-1">Nationality</span>
-                      <select name={`passengers[${i}][nationality]`} class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean">
-                        <option value="">Select nationality…</option>
-                        {nationalityOptions.map((n) => <option value={n.value}>{n.label}</option>)}
-                      </select>
-                    </label>
-                  </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">First Name <span class="text-coral">*</span></span>
-                      <input type="text" name={`passengers[${i}][firstName]`} required minlength="1" maxlength="80" placeholder="e.g. John"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-                    </label>
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Last Name <span class="text-coral">*</span></span>
-                      <input type="text" name={`passengers[${i}][lastName]`} required minlength="1" maxlength="80" placeholder="e.g. Doe"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-                    </label>
-                  </div>
-
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Date of Birth</span>
-                      <input type="date" name={`passengers[${i}][dateOfBirth]`}
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
-                    </label>
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Passport Number</span>
-                      <input type="text" name={`passengers[${i}][passportNumber]`} maxlength="30" autocomplete="off" placeholder="e.g. A12345678"
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70" />
-                    </label>
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Issue Date</span>
-                      <input type="date" name={`passengers[${i}][passportIssueDate]`}
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
-                    </label>
-                    <label class="block">
-                      <span class="block text-xs font-semibold text-stone mb-1">Expiry Date</span>
-                      <input type="date" name={`passengers[${i}][passportExpiryDate]`}
-                        class="w-full bg-white border border-sand-dark/30 rounded-lg py-2 px-2.5 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean" />
-                    </label>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-
-        {/* ── Notes ── */}
-        <section class="pt-6 border-t border-sand-dark/10">
-          <label class="block">
-            <span class="block text-xs font-semibold text-stone mb-1">Additional Notes (opsional)</span>
-            <textarea name="customerNotes" rows="3" maxlength="1000"
-              placeholder="Contoh: nomor WA berbeda dari phone, request kursi dekat jendela, jemput hotel, dsb."
-              class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean placeholder:text-stone-light/70"></textarea>
-          </label>
-        </section>
-
-        {/* ── Submit ── */}
-        <div class="pt-6 border-t border-sand-dark/10 flex flex-col md:flex-row-reverse items-center gap-3">
-          <button type="submit"
-            class="w-full md:w-auto bg-coral hover:bg-coral-dark text-white px-8 py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md">
-            Lanjut ke Konfirmasi
-          </button>
-          <a href={detailUrl} class="text-sm text-stone hover:text-ocean underline underline-offset-4">← Kembali ke detail ticket</a>
-        </div>
-      </form>
     </div>
 
-    {/* ─── Summary sidebar ─── */}
-    <aside class="lg:col-span-4">
-      <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-lg border border-sand-dark/10 p-6">
-        <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-3">Booking Summary</p>
-        <div class="flex gap-3 mb-4 pb-4 border-b border-sand-dark/10">
-          {heroUrl && (
-            <div class="w-20 h-20 rounded-lg overflow-hidden bg-sand shrink-0">
-              <img src={heroUrl} alt={item.title} class="w-full h-full object-cover" loading="lazy" />
+    {/* ─── Main grid ─── */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      {/* ─── LEFT column: form ─── */}
+      <div class="lg:col-span-8 space-y-6">
+
+        {/* Page header + passport notice */}
+        <div class="space-y-4">
+          <div>
+            <h1 class="font-display text-2xl sm:text-3xl text-ocean tracking-tight">
+              Passenger & Contact Details
+            </h1>
+            <p class="text-sm text-stone mt-1 leading-relaxed">
+              Make sure the name and passport number match the physical document for ticket & immigration verification.
+            </p>
+          </div>
+
+          {/* Amber passport notice */}
+          <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-sm">
+            <div class="p-2 rounded-xl bg-amber-100 text-amber-800 shrink-0 mt-0.5">
+              <Icon name="info" class="w-5 h-5" />
             </div>
-          )}
-          <div class="min-w-0">
-            <h2 class="font-display text-base text-ocean line-clamp-2">{item.title}</h2>
-            {routeLabel && <p class="text-xs text-stone-light mt-1 flex items-center gap-1"><Icon name="location_on" class="w-3 h-3 text-coral" />{routeLabel}</p>}
+            <div class="text-xs sm:text-sm text-amber-950 leading-relaxed">
+              <span class="font-bold block text-amber-900 mb-0.5">International Passport Notice</span>
+              Passport must be valid for at least <span class="font-semibold underline decoration-amber-400">6 months</span> from the departure date.
+              {passportMinExpiryLabel && (
+                <span> For a departure on <span class="font-semibold">{depDateFmt}</span>, your passport must remain valid at least until <span class="font-semibold">{passportMinExpiryLabel}</span>.</span>
+              )}
+            </div>
           </div>
         </div>
-        {/* Trip meta */}
-        <dl class="space-y-2 text-sm mb-4">
-          <div class="flex justify-between">
-            <dt class="text-stone-light">Departure</dt>
-            <dd class="text-ocean font-semibold text-right">{depDateFmt}</dd>
+
+        {/* Error banner */}
+        {errorMsg && (
+          <div class="p-4 bg-coral/10 border border-coral/30 rounded-xl text-sm text-stone">
+            <strong class="text-coral">Notice:</strong> {errorMsg}
           </div>
+        )}
+
+        {/* Trip strip */}
+        <div class="bg-sand/60 border border-sand-dark/30 rounded-full px-5 py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs md:text-sm text-stone shadow-sm">
+          <div class="flex flex-wrap items-center gap-4 md:gap-5 min-w-0">
+            <span class="flex items-center gap-1.5 font-semibold text-ocean">
+              <Icon name="ship" class="w-4 h-4 text-coral shrink-0" />
+              <span class="truncate max-w-[10rem]">{item.title}</span>
+            </span>
+            {routeLabel && (
+              <span class="flex items-center gap-1.5 text-ocean">
+                <Icon name="location_on" class="w-4 h-4 text-coral shrink-0" />
+                <span>{routeLabel}</span>
+              </span>
+            )}
+            <span class="flex items-center gap-1.5 text-ocean">
+              <Icon name="calendar_today" class="w-4 h-4 text-coral shrink-0" />
+              <span>{depDateFmt}</span>
+            </span>
+            <span class="flex items-center gap-1.5 text-ocean">
+              <Icon name="group" class="w-4 h-4 text-coral shrink-0" />
+              <span>{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
+            </span>
+            {preselected && (
+              <span class="bg-ocean/10 text-ocean px-2.5 py-0.5 rounded-full text-xs font-semibold">{preselected.name}</span>
+            )}
+          </div>
+          <a href={detailUrl} class="text-coral hover:text-coral-dark hover:underline font-semibold text-xs md:text-sm shrink-0 transition">
+            Change trip →
+          </a>
+        </div>
+
+        {/* ─── Form ─── */}
+        <form
+          method="POST"
+          action="/api/bookings/create"
+          class="space-y-6"
+          id="checkout-form"
+        >
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="ferryTicketId" value={String(item.id)} />
+          <input type="hidden" name="originLocation" value={originLoc} />
+          <input type="hidden" name="destinationLocation" value={destinationLoc} />
+          <input type="hidden" name="formStamp" value={formStamp} />
+          <input type="hidden" name="departureDate" value={qDate} />
+          <input type="hidden" name="adults" value={String(qAdults)} />
+          <input type="hidden" name="children" value={String(qChildren)} />
           {preselected && (
-            <div class="flex justify-between">
-              <dt class="text-stone-light">Class</dt>
-              <dd class="text-ocean font-semibold">{preselected.name}</dd>
-            </div>
+            <>
+              <input type="hidden" name="ferryClassType" value={preselected.classType} />
+              <input type="hidden" name="ferryClassName" value={preselected.name} />
+              <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
+              <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
+            </>
           )}
-        </dl>
+          <div class="hidden" aria-hidden="true">
+            <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+          </div>
 
-        {/* Price breakdown (Phase 4.63.2) */}
-        <div class="pt-4 border-t border-sand-dark/10">
-          <p class="text-[10px] uppercase tracking-widest text-stone-light font-semibold mb-3">Price Breakdown</p>
-
-          <dl class="space-y-1.5 text-sm">
-            {unitPrice != null && (
-              <div class="flex justify-between">
-                <dt class="text-stone">
-                  Adult
-                  <span class="text-stone-light text-xs"> ({qAdults} × {priceFmt(unitPrice)})</span>
-                </dt>
-                <dd class="text-ocean font-semibold tabular-nums">{priceFmt(adultLineTotal)}</dd>
+          {/* ─── Section 1: Contact ─── */}
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-sand-dark/10">
+            <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center font-bold text-sm shrink-0 ring-1 ring-white/20">1</span>
+                <div class="min-w-0">
+                  <h2 class="text-base font-bold tracking-wide text-white">Contact Information</h2>
+                  <p class="text-xs text-white/85 mt-0.5">For booking confirmation & final e-ticket delivery</p>
+                </div>
               </div>
-            )}
-            {qChildren > 0 && (
-              <div class="flex justify-between">
-                <dt class="text-stone">
-                  Child
-                  <span class="text-stone-light text-xs"> ({qChildren} × {priceFmt(childUnitPrice)})</span>
-                </dt>
-                <dd class="text-ocean font-semibold tabular-nums">{priceFmt(childLineTotal)}</dd>
-              </div>
-            )}
-          </dl>
-
-          <div class="mt-3 pt-3 border-t border-sand-dark/10 space-y-1.5 text-sm">
-            <div class="flex justify-between">
-              <dt class="text-stone-light">Ticket fare</dt>
-              <dd class="text-ocean font-semibold tabular-nums">{priceFmt(ticketFare)}</dd>
+              <span class="hidden sm:inline-block bg-emerald-400/20 text-emerald-100 text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap ring-1 ring-emerald-300/30">
+                Primary Contact
+              </span>
             </div>
-            {/*
-              Service Fee & Discount rows disembunyikan sampai fee configurable
-              & promo code aktif (Phase 4.65+). Struktur di bawah sudah siap
-              — cukup ubah `serviceFee`/`discount` != 0 di atas.
-            */}
-            {serviceFee > 0 && (
-              <div class="flex justify-between">
-                <dt class="text-stone-light">Service fee</dt>
-                <dd class="text-ocean tabular-nums">{priceFmt(serviceFee)}</dd>
+
+            <div class="p-5 sm:p-7 space-y-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                    Full Name <span class="text-coral">*</span>
+                  </label>
+                  <input type="text" name="customerName" required minlength="2" maxlength="200" placeholder="e.g. Anggi Pohan"
+                    class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                    Email Address <span class="text-coral">*</span>
+                  </label>
+                  <input type="email" name="customerEmail" required maxlength="200" placeholder="you@example.com"
+                    class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                    WhatsApp / Phone Number <span class="text-coral">*</span>
+                  </label>
+                  <div class="flex gap-2">
+                    <select name="contactPhoneRegion" required
+                      class="bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition min-w-[7rem] shrink-0">
+                      {PHONE_REGIONS.map((r) => (
+                        <option value={r.code} selected={r.code === DEFAULT_PHONE_REGION}>{r.flag} {r.code}</option>
+                      ))}
+                    </select>
+                    <input type="tel" name="contactPhone" required minlength="4" maxlength="20" placeholder="812-3456-7890"
+                      class="flex-1 min-w-0 bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                  </div>
+                </div>
               </div>
-            )}
-            {discount > 0 && (
-              <div class="flex justify-between">
-                <dt class="text-stone-light">Discount</dt>
-                <dd class="text-leaf tabular-nums">− {priceFmt(discount)}</dd>
+
+              <label class="flex items-center gap-3 p-3 bg-sand/60 rounded-xl cursor-pointer hover:bg-sand transition select-none">
+                <input type="checkbox" name="contactPhoneIsWhatsapp" value="1" checked
+                  class="w-4 h-4 rounded accent-leaf-dark focus:ring-leaf focus:ring-2" />
+                <span class="text-xs sm:text-sm font-semibold text-ocean">
+                  The number above is also active on WhatsApp for booking updates
+                </span>
+              </label>
+
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                  Country (optional)
+                </label>
+                <input type="text" name="customerCountry" maxlength="100" placeholder="e.g. Indonesia"
+                  class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
               </div>
-            )}
+
+              <div class="flex items-start gap-2 pt-1 text-xs text-stone-light font-medium leading-relaxed">
+                <Icon name="check_circle" class="w-4 h-4 text-leaf shrink-0 mt-0.5" />
+                <span>E-ticket & payment instructions will be sent to the email and WhatsApp number above once availability is confirmed by our admin.</span>
+              </div>
+            </div>
           </div>
 
-          <div class="mt-3 pt-3 border-t border-sand-dark/10 flex justify-between text-sm">
-            <dt class="text-stone-light">Subtotal <span class="text-stone-light/70">(Departure)</span></dt>
-            <dd class="text-ocean font-semibold tabular-nums">{priceFmt(subtotalDeparture)}</dd>
+          {/* ─── Section 2: Passengers (accordion) ─── */}
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-sand-dark/10">
+            <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                  <Icon name="group" class="w-5 h-5" />
+                </span>
+                <div class="min-w-0">
+                  <h2 class="text-base font-bold tracking-wide text-white flex items-center gap-2 flex-wrap">
+                    Passenger Information
+                    <span class="text-[11px] font-semibold text-emerald-100 bg-emerald-400/20 px-2 py-0.5 rounded-full ring-1 ring-emerald-300/30">
+                      {totalPax} pax
+                    </span>
+                  </h2>
+                  <p class="text-xs text-white/85 mt-0.5">Must match the passport for ticket & immigration verification</p>
+                </div>
+              </div>
+              <span class="hidden sm:flex items-center gap-1.5 text-xs text-white/85 whitespace-nowrap">
+                <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
+                {totalPax} required
+              </span>
+            </div>
+
+            <div class="divide-y divide-sand-dark/20">
+              {Array.from({ length: totalPax }, (_, i) => {
+                const type: 'adult' | 'child' = i < qAdults ? 'adult' : 'child'
+                const paxNum = type === 'adult' ? i + 1 : i - qAdults + 1
+                const bodyId = `pax-body-${i}`
+                const iconId = `pax-icon-${i}`
+                const isFirst = i === 0
+                const badgeLabel = type === 'adult' ? `P${paxNum}` : `C${paxNum}`
+                const typeTag = type === 'adult' ? 'Adult (≥12 yrs)' : 'Child'
+                return (
+                  <div class="passenger-item" data-index={i}>
+                    <button
+                      type="button"
+                      class="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-3 bg-sand/40 hover:bg-sand/80 transition text-left cursor-pointer"
+                      aria-expanded={isFirst ? 'true' : 'false'}
+                      aria-controls={bodyId}
+                      data-accordion-target={bodyId}
+                      data-accordion-icon={iconId}
+                    >
+                      <div class="flex items-center gap-3 min-w-0">
+                        <span class={`w-7 h-7 rounded-lg ${type === 'adult' ? 'bg-ocean' : 'bg-leaf-dark'} text-white flex items-center justify-center font-bold text-[11px] shadow-sm shrink-0`}>
+                          {badgeLabel}
+                        </span>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-ocean text-sm sm:text-base">
+                              Passenger {i + 1}
+                              <span class="text-stone-light font-normal"> — {type === 'adult' ? 'Adult' : 'Child'} {paxNum}{isFirst ? ' (Primary)' : ''}</span>
+                            </span>
+                          </div>
+                          <p class="text-xs text-stone-light font-medium mt-0.5 pax-preview" data-pax-preview={String(i)}>
+                            Fill in the details as per passport
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="hidden md:inline-block bg-sand-dark/20 text-stone text-[11px] px-2.5 py-1 rounded-full font-semibold">
+                          {typeTag}
+                        </span>
+                        <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-sand-dark/20 text-stone">
+                          <span
+                            data-accordion-chevron={iconId}
+                            class:list={['inline-flex transform transition-transform duration-200', isFirst && 'rotate-180']}
+                          >
+                            <Icon name="expand_more" class="w-4 h-4" />
+                          </span>
+                        </span>
+                      </div>
+                    </button>
+
+                    <div
+                      id={bodyId}
+                      class:list={['p-5 sm:p-7 space-y-4 bg-white', !isFirst && 'hidden']}
+                    >
+                      <input type="hidden" name={`passengers[${i}][passengerType]`} value={type} />
+
+                      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-1">
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Title</label>
+                          <select name={`passengers[${i}][title]`}
+                            class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
+                            <option value="">Select…</option>
+                            {titleOptions.map((t) => <option value={t.value}>{t.label}</option>)}
+                          </select>
+                        </div>
+                        <div class="md:col-span-3">
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                            Full Name (as per Passport) <span class="text-coral">*</span>
+                          </label>
+                          <div class="grid grid-cols-2 gap-3">
+                            <input type="text" name={`passengers[${i}][firstName]`} required minlength="1" maxlength="80" placeholder="First name" data-pax-first={String(i)}
+                              class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-semibold text-ocean uppercase shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70 placeholder:normal-case placeholder:font-normal" />
+                            <input type="text" name={`passengers[${i}][lastName]`} required minlength="1" maxlength="80" placeholder="Last name" data-pax-last={String(i)}
+                              class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-semibold text-ocean uppercase shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70 placeholder:normal-case placeholder:font-normal" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Date of Birth</label>
+                          <input type="date" name={`passengers[${i}][dateOfBirth]`}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Gender</label>
+                          <select name={`passengers[${i}][gender]`}
+                            class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
+                            <option value="">Select…</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Nationality</label>
+                          <select name={`passengers[${i}][nationality]`}
+                            class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
+                            <option value="">Select…</option>
+                            {nationalityOptions.map((n) => <option value={n.value}>{n.label}</option>)}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Number</label>
+                          <input type="text" name={`passengers[${i}][passportNumber]`} maxlength="30" autocomplete="off" placeholder="A12345678" data-pax-passport={String(i)}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-mono font-bold tracking-wider text-ocean uppercase shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Issue Date</label>
+                          <input type="date" name={`passengers[${i}][passportIssueDate]`}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Expiry Date</label>
+                          <input type="date" name={`passengers[${i}][passportExpiryDate]`}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
-          <div class="mt-3 pt-3 border-t-2 border-ocean/20 flex justify-between items-baseline">
-            <dt class="font-display text-ocean text-base">Total Price</dt>
-            <dd class="font-display text-coral text-xl md:text-2xl tabular-nums">{priceFmt(totalPrice)}</dd>
+          {/* ─── Notes ─── */}
+          <div class="bg-white rounded-2xl shadow-sm border border-sand-dark/10 p-5 sm:p-7">
+            <label class="block">
+              <span class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Additional Notes (optional)</span>
+              <textarea name="customerNotes" rows="3" maxlength="1000"
+                placeholder="e.g. WhatsApp number differs from phone, window seat request, hotel pickup, etc."
+                class="w-full bg-sand rounded-xl px-4 py-3 text-sm text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70"></textarea>
+            </label>
+          </div>
+
+          {/* Included benefits card */}
+          <div class="bg-leaf/10 border border-leaf/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="p-1.5 bg-leaf text-white rounded-lg shrink-0">
+                <Icon name="check" class="w-4 h-4" />
+              </span>
+              <span class="text-xs sm:text-sm font-semibold text-leaf-dark">
+                Official partner tickets · No admin fees · WhatsApp confirmation
+              </span>
+            </div>
+            <span class="hidden sm:inline-block font-bold text-leaf-dark uppercase tracking-wider text-[11px] whitespace-nowrap">Free Included</span>
+          </div>
+
+          {/* ─── CTA row ─── */}
+          <div class="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
+            <a href={detailUrl} class="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-stone hover:text-ocean transition self-center sm:self-auto">
+              <span aria-hidden="true">←</span>
+              <span>Back to Ferry Details</span>
+            </a>
+            <button type="submit"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-8 bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-coral/20 transition group text-sm uppercase tracking-wider">
+              <span>Continue to Confirmation</span>
+              <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ─── RIGHT column: Booking Summary sidebar (compact) ─── */}
+      <aside class="lg:col-span-4">
+        <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-md overflow-hidden border border-sand-dark/10">
+
+          {/* Dark navy header banner */}
+          <div class="bg-ocean px-5 py-3 flex items-center justify-between text-white">
+            <span class="text-xs font-bold tracking-wide flex items-center gap-2 text-white">
+              <span class="w-2 h-2 rounded-full bg-emerald-300 shrink-0"></span>
+              <span>Booking Summary</span>
+            </span>
+            <span class="text-[10px] font-semibold tracking-wider uppercase text-white/85">One Way</span>
+          </div>
+
+          {/* Body — reduced padding & type sizes */}
+          <div class="px-5 pt-4 pb-5 space-y-4">
+
+            {/* Hero + title (compact) */}
+            {heroUrl && (
+              <div class="flex gap-3 pb-4 border-b border-sand-dark/15">
+                <div class="w-12 h-12 rounded-lg overflow-hidden bg-sand shrink-0">
+                  <img src={heroUrl} alt={item.title} class="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <div class="min-w-0">
+                  <h2 class="font-display text-sm text-ocean line-clamp-2 leading-snug">{item.title}</h2>
+                  {preselected && (
+                    <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{preselected.name}</span></p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Departure header + Show Details toggle */}
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-sm font-bold text-ocean leading-snug">
+                  Departure <span class="font-normal text-stone-light mx-0.5">—</span> <span class="text-ocean">{depDateFmt}</span>
+                </h3>
+                <button
+                  id="toggleSummaryDetails"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="collapsibleDetails"
+                  class="inline-flex items-center text-[11px] font-semibold text-coral hover:text-coral-dark transition-colors cursor-pointer select-none shrink-0"
+                >
+                  <span id="toggleDetailsText">Show Details</span>
+                  <svg id="toggleDetailsIcon" class="w-3 h-3 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  </svg>
+                </button>
+              </div>
+
+              {routeLabel && (
+                <p class="text-xs font-medium text-stone mt-1.5 leading-relaxed">
+                  {routeLabel}
+                </p>
+              )}
+            </div>
+
+            {/* Collapsible details */}
+            <div id="collapsibleDetails" class="hidden space-y-4 transition-all duration-200">
+
+              <div class="pt-4 border-t border-sand-dark/15 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                  <span class="text-stone-light">Ferry</span>
+                  <span class="font-semibold text-ocean text-right truncate max-w-[60%]">{item.title}</span>
+                </div>
+                {preselected && (
+                  <div class="flex justify-between items-center">
+                    <span class="text-stone-light">Class</span>
+                    <span class="font-semibold text-ocean">{preselected.name}</span>
+                  </div>
+                )}
+                <div class="flex justify-between items-center">
+                  <span class="text-stone-light">Passengers</span>
+                  <span class="font-semibold text-ocean">
+                    {qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-sand-dark/15 space-y-2">
+                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-light">Price Breakdown</p>
+                {unitPrice != null && (
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-stone">Adult <span class="text-stone-light">({qAdults} × {priceFmt(unitPrice)})</span></span>
+                    <span class="font-semibold text-ocean tabular-nums">{priceFmt(adultLineTotal)}</span>
+                  </div>
+                )}
+                {qChildren > 0 && (
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-stone">Child <span class="text-stone-light">({qChildren} × {priceFmt(childUnitPrice)})</span></span>
+                    <span class="font-semibold text-ocean tabular-nums">{priceFmt(childLineTotal)}</span>
+                  </div>
+                )}
+                <div class="flex justify-between items-center text-xs">
+                  <span class="text-stone">Ticket fare</span>
+                  <span class="font-semibold text-ocean tabular-nums">{priceFmt(ticketFare)}</span>
+                </div>
+                {serviceFee > 0 && (
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-stone">Service fee</span>
+                    <span class="font-medium text-ocean tabular-nums">{priceFmt(serviceFee)}</span>
+                  </div>
+                )}
+                {discount > 0 && (
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-stone">Discount</span>
+                    <span class="font-medium text-leaf tabular-nums">− {priceFmt(discount)}</span>
+                  </div>
+                )}
+                <div class="pt-2 border-t border-sand-dark/15 flex justify-between items-center text-xs">
+                  <span class="text-stone font-semibold">Subtotal <span class="font-normal text-stone-light">(Departure)</span></span>
+                  <span class="font-bold text-ocean tabular-nums">{priceFmt(subtotalDeparture)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* TOTAL (always visible) — reduced font size */}
+            <div class="pt-3 border-t border-sand-dark/25 flex items-baseline justify-between">
+              <span class="text-sm font-bold text-ocean">Total price</span>
+              <span class="font-display text-xl sm:text-2xl font-bold text-coral tabular-nums leading-none">
+                {priceFmt(totalPrice)}
+              </span>
+            </div>
+
+            {/* Disclaimer */}
+            <p class="text-[11px] leading-relaxed text-stone-light">
+              You will not be charged now. The amount above is an estimate; final payment instructions are sent via WhatsApp once availability is confirmed by our admin.
+            </p>
+
+            {/* Helper info box */}
+            <div class="bg-leaf/10 border border-leaf/20 rounded-lg p-3 text-[11px] text-stone-dark">
+              <div class="flex items-start gap-2">
+                <Icon name="check_circle" class="w-3.5 h-3.5 text-leaf-dark shrink-0 mt-0.5" />
+                <span>Fill in contact & passenger details, then click <b>Continue to Booking Confirmation</b> to receive WhatsApp instructions.</span>
+              </div>
+            </div>
+
+            {/* Guarantee badges */}
+            <div class="pt-3 border-t border-sand-dark/15 flex items-center justify-around text-[10px] text-stone-light">
+              <span class="flex items-center gap-1">
+                <Icon name="verified_user" class="w-3 h-3 text-leaf-dark" />
+                <span>Official Tickets</span>
+              </span>
+              <span class="text-sand-dark">|</span>
+              <span class="flex items-center gap-1">
+                <Icon name="badge" class="w-3 h-3 text-ocean-light" />
+                <span>No Admin Fees</span>
+              </span>
+            </div>
           </div>
         </div>
-
-        <p class="mt-4 text-xs text-stone-light leading-relaxed">
-          Anda tidak dikenai biaya sekarang. Rincian di atas adalah estimasi harga tiket; instruksi pembayaran final dikirim via WhatsApp setelah admin mengkonfirmasi ketersediaan.
-        </p>
-      </div>
-    </aside>
+      </aside>
+    </div>
   </section>
 </PageLayout>
+
+<script>
+  // Phase 4.65 — progressive-enhancement:
+  //   (1) accordion per-passenger (open/close body, rotate chevron)
+  //   (2) live-preview name/passport on accordion header
+  //   (3) sidebar "Show Details" toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    // (1) Accordions
+    document.querySelectorAll<HTMLButtonElement>('[data-accordion-target]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const bodyId = btn.dataset.accordionTarget!
+        const iconId = btn.dataset.accordionIcon!
+        const body = document.getElementById(bodyId)
+        const icon = document.querySelector<HTMLElement>(`[data-accordion-chevron="${iconId}"]`)
+        if (!body) return
+        const willOpen = body.classList.contains('hidden')
+        if (willOpen) {
+          body.classList.remove('hidden')
+          icon?.classList.add('rotate-180')
+          btn.setAttribute('aria-expanded', 'true')
+        } else {
+          body.classList.add('hidden')
+          icon?.classList.remove('rotate-180')
+          btn.setAttribute('aria-expanded', 'false')
+        }
+      })
+    })
+
+    // (2) Live preview text
+    const updatePreview = (i: string) => {
+      const first = document.querySelector<HTMLInputElement>(`[data-pax-first="${i}"]`)?.value.trim() ?? ''
+      const last = document.querySelector<HTMLInputElement>(`[data-pax-last="${i}"]`)?.value.trim() ?? ''
+      const passport = document.querySelector<HTMLInputElement>(`[data-pax-passport="${i}"]`)?.value.trim() ?? ''
+      const preview = document.querySelector<HTMLElement>(`[data-pax-preview="${i}"]`)
+      if (!preview) return
+      const name = [first, last].filter(Boolean).join(' ').toUpperCase()
+      if (!name && !passport) {
+        preview.textContent = 'Fill in the details as per passport'
+        preview.classList.remove('text-ocean')
+        preview.classList.add('text-stone-light')
+        return
+      }
+      const parts = [name || '—']
+      if (passport) parts.push(`Passport: ${passport.toUpperCase()}`)
+      preview.textContent = parts.join(' • ')
+      preview.classList.remove('text-stone-light')
+      preview.classList.add('text-ocean')
+    }
+    document.querySelectorAll<HTMLInputElement>('[data-pax-first], [data-pax-last], [data-pax-passport]').forEach((el) => {
+      const i = el.dataset.paxFirst ?? el.dataset.paxLast ?? el.dataset.paxPassport
+      if (!i) return
+      el.addEventListener('input', () => updatePreview(i))
+    })
+
+    // (3) Sidebar details toggle
+    const toggle = document.getElementById('toggleSummaryDetails')
+    const collapsible = document.getElementById('collapsibleDetails')
+    const txt = document.getElementById('toggleDetailsText')
+    const icon = document.getElementById('toggleDetailsIcon')
+    if (toggle && collapsible && txt && icon) {
+      toggle.addEventListener('click', () => {
+        const willShow = collapsible.classList.contains('hidden')
+        if (willShow) {
+          collapsible.classList.remove('hidden')
+          txt.textContent = 'Hide Details'
+          icon.classList.add('rotate-180')
+          toggle.setAttribute('aria-expanded', 'true')
+        } else {
+          collapsible.classList.add('hidden')
+          txt.textContent = 'Show Details'
+          icon.classList.remove('rotate-180')
+          toggle.setAttribute('aria-expanded', 'false')
+        }
+      })
+    }
+  })
+</script>
