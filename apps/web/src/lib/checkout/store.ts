@@ -69,6 +69,43 @@ export async function getBookingByRef(ref: string): Promise<Booking | null> {
 }
 
 /**
+ * Phase 4.66.5 (finding S-02) — lookup booking berdasarkan (ref, token).
+ * Confirmation page publik memakai ini alih-alih `getBookingByRef` sehingga
+ * ref yang guessable saja tidak cukup untuk membuka booking. Compare
+ * constant-time (via SubtleCrypto equal-length XOR loop pada byte).
+ */
+export async function getBookingByRefAndToken(
+  ref: string,
+  token: string,
+): Promise<Booking | null> {
+  if (!ref || !token) return null
+  if (typeof token !== 'string' || !/^[0-9a-f]{32}$/i.test(token)) return null
+
+  const booking = await getBookingByRef(ref)
+  if (!booking) return null
+  const stored = String((booking as { accessToken?: string }).accessToken ?? '')
+  if (!stored || stored.length !== token.length) return null
+  if (!constantTimeEqual(stored, token.toLowerCase())) return null
+  return booking
+}
+
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  return diff === 0
+}
+
+/** 128-bit hex (32 chars). Aman untuk URL, tanpa symbol khusus. */
+export function generateAccessToken(): string {
+  const bytes = new Uint8Array(16)
+  crypto.getRandomValues(bytes)
+  let hex = ''
+  for (let i = 0; i < bytes.length; i++) hex += bytes[i].toString(16).padStart(2, '0')
+  return hex
+}
+
+/**
  * Server-side fetch untuk 1 ferry ticket by numeric id — dipakai
  * `/api/bookings/create` untuk memverifikasi id dari client + ambil
  * pricing/currency/location authoritative. Menggunakan API-key user

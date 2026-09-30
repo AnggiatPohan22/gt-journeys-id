@@ -46,6 +46,25 @@ export const Bookings: CollectionConfig = {
         readOnly: true,
       },
     },
+    // Phase 4.66.5 (finding S-02) — random 128-bit access token untuk
+    // mengunci halaman confirmation. bookingRef pendek (6 hex/day) mudah
+    // ditebak; token ini menyediakan capability yang unguessable. URL
+    // konfirmasi = /checkout/.../confirmation/<bookingRef>?t=<token>.
+    // Server compare constant-time. Token disembunyikan dari list default;
+    // admin dapat melihatnya di edit view untuk regenerate/resend jika
+    // customer kehilangan URL.
+    {
+      name: 'accessToken',
+      type: 'text',
+      required: true,
+      unique: true,
+      index: true,
+      admin: {
+        description: '128-bit random capability token. Never share screenshot yang mengandung ini.',
+        readOnly: true,
+        hidden: false,
+      },
+    },
     {
       name: 'serviceType',
       type: 'select',

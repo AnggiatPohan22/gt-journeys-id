@@ -25,7 +25,7 @@
  */
 
 import type { APIRoute } from 'astro'
-import { createBooking, generateBookingRef, getFerryForCheckout } from '@lib/checkout/store'
+import { createBooking, generateBookingRef, generateAccessToken, getFerryForCheckout } from '@lib/checkout/store'
 import { verifyFormStamp } from '@lib/checkout/signedToken'
 import { checkBookingRateLimit, getClientIp } from '@lib/checkout/rateLimit'
 import { resolveLocation } from '@lib/location'
@@ -221,9 +221,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       : null
 
   const bookingRef = generateBookingRef('FT')
+  const accessToken = generateAccessToken()
 
   const result = await createBooking({
     bookingRef,
+    accessToken,
     serviceType: 'ferry-ticket',
     ferryTicket: ferryTicketId as unknown as number,
     customerName: name.slice(0, 200),
@@ -256,7 +258,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     console.error('[bookings] create failed:', result)
     return errorRedirect(back, `store_${result.reason}`)
   }
-  return redirect(`/checkout/ferry-tickets/confirmation/${bookingRef}`, 302)
+  // Phase 4.66.5 — URL konfirmasi mengandung accessToken (capability).
+  // Tanpa `?t=<token>` yang valid, halaman `/confirmation/<ref>` → 404.
+  return redirect(
+    `/checkout/ferry-tickets/confirmation/${bookingRef}?t=${encodeURIComponent(accessToken)}`,
+    302,
+  )
 }
 
 function errorRedirect(path: string, code: string): Response {

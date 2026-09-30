@@ -17,7 +17,7 @@
  */
 import PageLayout from '@layouts/PageLayout.astro'
 import Icon from '@components/common/Icon.astro'
-import { getBookingByRef } from '@lib/checkout/store'
+import { getBookingByRefAndToken } from '@lib/checkout/store'
 import { resolveChannel, getManualWaHandoff } from '@lib/checkout/channels'
 import { formatPrice } from '@shared/utils/format-price'
 import { maskPassport } from '@lib/checkout/mask'
@@ -28,7 +28,11 @@ export const prerender = false
 const { ref } = Astro.params
 if (!ref) return Astro.redirect('/')
 
-const booking = await getBookingByRef(ref)
+// Phase 4.66.5 — access token wajib. Tanpa token yang valid, kirim 404
+// generik (bukan 403) supaya attacker tidak bisa membedakan ref yang
+// eksis dari yang tidak → mempersulit enumerate.
+const token = new URL(Astro.request.url).searchParams.get('t') ?? ''
+const booking = await getBookingByRefAndToken(ref, token)
 if (!booking) return Astro.redirect('/404')
 
 const currency = (booking.currency as 'IDR' | 'USD' | undefined) ?? 'IDR'
