@@ -1,19 +1,35 @@
 /**
- * Bookings rate-limit — Phase 4.62.1.
+ * Bookings rate-limit — Phase 4.62.1 → 4.66.9.
  *
  * Best-effort in-memory rate limiter per Worker isolate. Mirrors the pattern
- * in `@lib/newsletter/validators.ts` — good enough for casual spam. If abuse
- * escalates, upgrade to Cloudflare KV or a Durable Object shared across
- * isolates.
+ * in `@lib/newsletter/validators.ts` — good enough for casual spam. Untuk
+ * anti-abuse yang serius, upgrade ke Cloudflare KV atau Durable Object
+ * yang di-share antar isolate (menunggu KV/DO binding di project Pages).
+ *
+ * Phase 4.66.9 (finding S-07):
+ *   - Turunkan RATE_MAX 5 → 3 supaya batas per window lebih ketat.
+ *   - Bucket key = salted-hash IP (bukan raw IP) supaya map key tidak
+ *     bocor identitas visitor kalau memory di-inspect / di-dump.
+ *   - Bounded LRU: max 10k entries di map supaya memory tidak grow tak
+ *     terhingga di isolate long-running.
  *
  * Sengaja terpisah dari newsletter's map supaya spam newsletter tidak
  * ikut-ikutan menahan submit booking (dan sebaliknya).
  */
 
 const RATE_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-const RATE_MAX = 5                     // 5 attempts / window / IP
+const RATE_MAX = 3                     // Phase 4.66.9: turunkan dari 5 → 3.
+const MAX_MAP_ENTRIES = 10_000         // Guard memory growth.
 
 const hits = new Map<string, number[]>()
+
+function evictOldestIfNeeded(): void {
+  while (hits.size > MAX_MAP_ENTRIES) {
+    const firstKey = hits.keys().next().value
+    if (firstKey === undefined) break
+    hits.delete(firstKey)
+  }
+}
 
 export function checkBookingRateLimit(ipKey: string, now = Date.now()): boolean {
   const window = hits.get(ipKey)?.filter((t) => now - t < RATE_WINDOW_MS) ?? []
@@ -23,6 +39,7 @@ export function checkBookingRateLimit(ipKey: string, now = Date.now()): boolean 
   }
   window.push(now)
   hits.set(ipKey, window)
+  evictOldestIfNeeded()
   return true
 }
 

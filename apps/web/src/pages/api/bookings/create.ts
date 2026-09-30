@@ -27,8 +27,13 @@
 import type { APIRoute } from 'astro'
 import { createBooking, generateBookingRef, generateAccessToken, getFerryForCheckout } from '@lib/checkout/store'
 import { verifyFormStamp } from '@lib/checkout/signedToken'
-import { checkBookingRateLimit, getClientIp } from '@lib/checkout/rateLimit'
+import { checkBookingRateLimit, getClientIp, hashIp } from '@lib/checkout/rateLimit'
 import { resolveLocation } from '@lib/location'
+
+// Phase 4.66.9 — rate-limit key = salted-hash IP (bukan raw IP) supaya
+// map key tidak bocor identitas visitor. Salt di-baca dari env; fall
+// back ke konstanta dev (bukan security-critical secret).
+const RL_SALT = import.meta.env.BOOKING_RL_SALT || 'dnj-booking-rl-salt'
 
 export const prerender = false
 
@@ -117,8 +122,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   // Honeypot — silent success.
   if (String(form.get('website') ?? '').trim()) return redirect('/', 302)
 
-  // Rate-limit BEFORE HMAC.
-  if (!checkBookingRateLimit(getClientIp(request))) {
+  // Rate-limit BEFORE HMAC. Phase 4.66.9 — bucket = hash(salt, ip).
+  const ipHash = await hashIp(getClientIp(request), RL_SALT)
+  if (!checkBookingRateLimit(ipHash)) {
     return errorRedirect(back, 'rate_limited')
   }
 
