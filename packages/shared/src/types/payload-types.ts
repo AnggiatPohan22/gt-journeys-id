@@ -29770,6 +29770,10 @@ export interface Booking {
    */
   bookingRef: string;
   /**
+   * 128-bit random capability token. Never share screenshot yang mengandung ini.
+   */
+  accessToken: string;
+  /**
    * Jenis layanan yang di-booking.
    */
   serviceType: 'ferry-ticket';
@@ -29816,7 +29820,7 @@ export interface Booking {
         lastName: string;
         dateOfBirth?: string | null;
         /**
-         * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat.
+         * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.
          */
         passportNumber?: string | null;
         passportIssueDate?: string | null;
@@ -44356,6 +44360,7 @@ export interface ChatBlockedEventsSelect<T extends boolean = true> {
  */
 export interface BookingsSelect<T extends boolean = true> {
   bookingRef?: T;
+  accessToken?: T;
   serviceType?: T;
   ferryTicket?: T;
   customerName?: T;
