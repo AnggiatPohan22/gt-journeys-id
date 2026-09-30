@@ -991,6 +991,50 @@ const ServiceListing: Block = {
                     },
                   ],
                 },
+                // ── Phase 4.61.10 — Header eyebrow + value trust badges ──
+                {
+                  name: 'ticketStatusIndicator',
+                  type: 'text',
+                  defaultValue: 'Instant Confirmation · Multi-Route Coverage',
+                  admin: {
+                    description: 'Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.',
+                  },
+                },
+                {
+                  name: 'ticketBadges',
+                  type: 'array',
+                  minRows: 0,
+                  maxRows: 3,
+                  admin: {
+                    description: '3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.',
+                    initCollapsed: true,
+                  },
+                  defaultValue: [
+                    { label: 'Instant Confirmation', color: 'leaf' },
+                    { label: 'Flexible Rescheduling', color: 'ocean' },
+                    { label: 'Secure Online Payment', color: 'amber' },
+                  ],
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'label', type: 'text', required: true, admin: { width: '60%' } },
+                        {
+                          name: 'color',
+                          type: 'select',
+                          defaultValue: 'leaf',
+                          admin: { width: '40%' },
+                          options: [
+                            { label: 'Leaf (green)', value: 'leaf' },
+                            { label: 'Ocean (navy)', value: 'ocean' },
+                            { label: 'Coral (orange-red)', value: 'coral' },
+                            { label: 'Amber (yellow)', value: 'amber' },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
               ],
             },
           ],

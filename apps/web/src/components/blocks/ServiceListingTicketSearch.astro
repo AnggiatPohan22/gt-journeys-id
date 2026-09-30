@@ -53,6 +53,33 @@ const destLabel = b.ticketDestinationLabel || 'Destination'
 const submitText = b.ticketSubmitButtonText || 'Search Tickets'
 const defaultSort = b.ticketDefaultSort || 'earliest'
 
+// Phase 4.61.10 — Header eyebrow + trust badges (CMS-editable).
+const statusIndicator: string = typeof b.ticketStatusIndicator === 'string'
+  ? b.ticketStatusIndicator
+  : 'Instant Confirmation · Multi-Route Coverage'
+const rawBadges = Array.isArray(b.ticketBadges) ? b.ticketBadges : null
+const defaultBadges = [
+  { label: 'Instant Confirmation', color: 'leaf' as const },
+  { label: 'Flexible Rescheduling', color: 'ocean' as const },
+  { label: 'Secure Online Payment', color: 'amber' as const },
+]
+type BadgeColor = 'leaf' | 'ocean' | 'coral' | 'amber'
+const badgeDotClass: Record<BadgeColor, string> = {
+  leaf: 'bg-leaf',
+  ocean: 'bg-ocean',
+  coral: 'bg-coral',
+  amber: 'bg-amber-500',
+}
+// Kalau field belum di-set (null/undefined) → pakai default. Kalau
+// user MEMANG mengosongkan array-nya (rawBadges === [] eksplisit) →
+// hormati, seksi disembunyikan.
+const valueBadges: Array<{ label: string; color: BadgeColor }> = (rawBadges ?? defaultBadges)
+  .filter((v: any) => v && typeof v.label === 'string' && v.label.trim())
+  .map((v: any) => ({
+    label: v.label.trim(),
+    color: (['leaf', 'ocean', 'coral', 'amber'].includes(v.color) ? v.color : 'leaf') as BadgeColor,
+  }))
+
 const url = new URL(Astro.request.url)
 const q = url.searchParams
 const qFrom = q.get('from') || ''
@@ -618,10 +645,12 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
               </button>
             </div>
           ) : <span></span>}
-          <div class="flex items-center gap-2 text-xs">
-            <span class="w-2 h-2 rounded-full bg-leaf inline-block animate-pulse"></span>
-            <span class="font-medium text-stone-light">Instant Confirmation · Multi-Route Coverage</span>
-          </div>
+          {statusIndicator ? (
+            <div class="flex items-center gap-2 text-xs">
+              <span class="w-2 h-2 rounded-full bg-leaf inline-block animate-pulse"></span>
+              <span class="font-medium text-stone-light">{statusIndicator}</span>
+            </div>
+          ) : <span></span>}
         </div>
 
         {/* CORE INPUTS GRID (relative untuk overlay swap button).
@@ -828,21 +857,18 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
         </div>
       </div>{/* /desktop variant */}
 
-      {/* Value Badges — hanya di md+, di bawah kartu */}
-      <div class="hidden md:flex mt-6 lg:mt-8 flex-wrap items-center justify-center gap-6 lg:gap-10 text-xs font-medium text-stone-light">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-leaf"></span>
-          <span>Instant Confirmation</span>
+      {/* Value Badges — hanya di md+, di bawah kartu. Phase 4.61.10:
+          konten dari CMS (block.ticketBadges); kosong = seksi hilang. */}
+      {valueBadges.length > 0 && (
+        <div class="hidden md:flex mt-6 lg:mt-8 flex-wrap items-center justify-center gap-6 lg:gap-10 text-xs font-medium text-stone-light">
+          {valueBadges.map((vb) => (
+            <div class="flex items-center gap-2">
+              <span class={`w-2 h-2 rounded-full ${badgeDotClass[vb.color]}`}></span>
+              <span>{vb.label}</span>
+            </div>
+          ))}
         </div>
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-ocean"></span>
-          <span>Flexible Rescheduling</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-          <span>Secure Online Payment</span>
-        </div>
-      </div>
+      )}
 
       {/* Shared hidden inputs — bound to Alpine state, submit once for both variants */}
       <input type="hidden" name="trip"     x-bind:value="trip" />

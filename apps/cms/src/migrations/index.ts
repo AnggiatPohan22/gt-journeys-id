@@ -35,6 +35,8 @@ import * as migration_20260927_142814_phase_4_62_bookings from './20260927_14281
 import * as migration_20260927_150653_phase_4_62_1_users_api_key from './20260927_150653_phase_4_62_1_users_api_key';
 import * as migration_20260928_000355_phase_4_63_passengers from './20260928_000355_phase_4_63_passengers';
 import * as migration_20260928_085851_phase_4_61_6_ferry_time_and_maps from './20260928_085851_phase_4_61_6_ferry_time_and_maps';
+import * as migration_20260928_152436_phase_4_61_7_ticket_search from './20260928_152436_phase_4_61_7_ticket_search';
+import * as migration_20260930_044533_phase_4_61_10_ticket_cms_fields from './20260930_044533_phase_4_61_10_ticket_cms_fields';
 
 export const migrations = [
   {
@@ -220,6 +222,16 @@ export const migrations = [
   {
     up: migration_20260928_085851_phase_4_61_6_ferry_time_and_maps.up,
     down: migration_20260928_085851_phase_4_61_6_ferry_time_and_maps.down,
-    name: '20260928_085851_phase_4_61_6_ferry_time_and_maps'
+    name: '20260928_085851_phase_4_61_6_ferry_time_and_maps',
+  },
+  {
+    up: migration_20260928_152436_phase_4_61_7_ticket_search.up,
+    down: migration_20260928_152436_phase_4_61_7_ticket_search.down,
+    name: '20260928_152436_phase_4_61_7_ticket_search',
+  },
+  {
+    up: migration_20260930_044533_phase_4_61_10_ticket_cms_fields.up,
+    down: migration_20260930_044533_phase_4_61_10_ticket_cms_fields.down,
+    name: '20260930_044533_phase_4_61_10_ticket_cms_fields'
   },
 ];

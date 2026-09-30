@@ -1928,7 +1928,7 @@ export interface Page {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -2035,6 +2035,39 @@ export interface Page {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -4970,7 +5003,7 @@ export interface Tour {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -5077,6 +5110,39 @@ export interface Tour {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -7761,7 +7827,7 @@ export interface Post {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -7868,6 +7934,39 @@ export interface Post {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -15009,7 +15108,7 @@ export interface Yacht {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -15116,6 +15215,39 @@ export interface Yacht {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -17472,7 +17604,7 @@ export interface Restaurant {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -17579,6 +17711,39 @@ export interface Restaurant {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -20241,7 +20406,7 @@ export interface Venue {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -20348,6 +20513,39 @@ export interface Venue {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -22995,7 +23193,7 @@ export interface Rental {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -23102,6 +23300,39 @@ export interface Rental {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -25749,7 +25980,7 @@ export interface Spa {
             /**
              * Template layout. Hanya Super Admin yang bisa mengubah. Editor lain read-only.
              */
-            layout: 'editorial-featured' | 'hero-immersive';
+            layout: 'editorial-featured' | 'hero-immersive' | 'ticket-search';
             /**
              * Small label above heading (mis: "The Collection")
              */
@@ -25856,6 +26087,39 @@ export interface Spa {
             showDatePicker?: boolean | null;
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
+            /**
+             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             */
+            ticketEnableRoundTrip?: boolean | null;
+            /**
+             * Show Infant counter in the passenger dropdown.
+             */
+            ticketEnableInfant?: boolean | null;
+            ticketMaxAdults?: number | null;
+            ticketMaxChildren?: number | null;
+            ticketMaxInfants?: number | null;
+            /**
+             * Filter dropdown options for Starting Point & Destination by Location type.
+             */
+            ticketLocationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+            ticketStartingPointLabel?: string | null;
+            ticketDestinationLabel?: string | null;
+            ticketSubmitButtonText?: string | null;
+            ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
+             */
+            ticketStatusIndicator?: string | null;
+            /**
+             * 3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.
+             */
+            ticketBadges?:
+              | {
+                  label: string;
+                  color?: ('leaf' | 'ocean' | 'coral' | 'amber') | null;
+                  id?: string | null;
+                }[]
+              | null;
             /**
              * DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.
              */
@@ -26717,6 +26981,7 @@ export interface FerryTicket {
    * Check to disable auto-compute (e.g. overnight ferry or special cases).
    */
   durationOverride?: boolean | null;
+  durationMinutes?: number | null;
   description: {
     root: {
       type: string;
@@ -28951,6 +29216,10 @@ export interface Location {
    */
   name: string;
   /**
+   * Location category. Filters which service search widgets can pick this location (e.g. ferry search only shows ferry-port).
+   */
+  locationType?: ('ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city') | null;
+  /**
    * Terminal / port name (optional). E.g. "Singapore Cruise Center", "Batam Centre Terminal-BTC". Rendered as the second line on cards.
    */
   terminalName?: string | null;
@@ -30606,6 +30875,24 @@ export interface PagesSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -31114,6 +31401,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface LocationsSelect<T extends boolean = true> {
   name?: T;
+  locationType?: T;
   terminalName?: T;
   country?: T;
   code?: T;
@@ -32066,6 +32354,24 @@ export interface PostsSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -33457,6 +33763,24 @@ export interface ToursSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -36971,6 +37295,24 @@ export interface YachtsSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -38181,6 +38523,24 @@ export interface RestaurantsSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -39529,6 +39889,24 @@ export interface VenuesSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -40862,6 +41240,24 @@ export interface RentalsSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -42195,6 +42591,24 @@ export interface SpaSelect<T extends boolean = true> {
               showDatePicker?: T;
               showGuestCount?: T;
               searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
               cardVariant?: T;
               showLoadMore?: T;
               paginationType?: T;
@@ -42621,6 +43035,7 @@ export interface FerryTicketsSelect<T extends boolean = true> {
   arrivalTime?: T;
   duration?: T;
   durationOverride?: T;
+  durationMinutes?: T;
   description?: T;
   quickSpecs?:
     | T
