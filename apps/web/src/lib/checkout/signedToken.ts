@@ -12,7 +12,17 @@
  * Cloudflare Workers runtime the Astro adapter targets.
  */
 
-const SECRET = import.meta.env.BOOKING_FORM_SECRET || 'dnj-dev-booking-secret-change-in-prod'
+import { requireEnv } from '@lib/env'
+
+// Phase 4.66.8 — fail-fast di prod kalau BOOKING_FORM_SECRET kosong.
+// Fallback di dev tetap dipertahankan supaya `pnpm dev` tanpa .env
+// masih jalan. Kalau ada di prod, throw langsung supaya HMAC signing
+// tidak pakai secret yang publik (yang sudah bocor di git).
+const SECRET = requireEnv(
+  'BOOKING_FORM_SECRET',
+  import.meta.env.BOOKING_FORM_SECRET,
+  'dnj-dev-booking-secret-change-in-prod',
+)
 const MIN_AGE_MS = 3_000
 const MAX_AGE_MS = 30 * 60 * 1000
 

@@ -14,9 +14,14 @@
  */
 
 import type { Booking, FerryTicket } from '@shared/types/payload-types'
+import { requireEnvStrict, IS_PROD } from '@lib/env'
 
 const CMS_URL = import.meta.env.CMS_URL || 'http://localhost:3030'
-const API_KEY = import.meta.env.PAYLOAD_API_KEY || ''
+// Phase 4.66.8 — fail-fast di production kalau API key kosong.
+// Dev boleh kosong (fitur booking non-fungsional, tapi server tidak crash).
+const API_KEY = IS_PROD
+  ? requireEnvStrict('PAYLOAD_API_KEY', import.meta.env.PAYLOAD_API_KEY)
+  : import.meta.env.PAYLOAD_API_KEY || ''
 
 export type CreateBookingInput = Omit<
   Booking,
