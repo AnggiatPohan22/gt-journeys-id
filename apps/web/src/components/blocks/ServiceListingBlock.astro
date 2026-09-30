@@ -2,7 +2,16 @@
 import type { Page } from '@shared/types/payload-types'
 import ServiceListingEditorial from './ServiceListingEditorial.astro'
 import ServiceListingHeroImmersive from './ServiceListingHeroImmersive.astro'
+// Phase 4.61.7 Round 3 — set env TICKET_SEARCH_LEGACY=1 to roll back to
+// the previous 5-column horizontal design (kept as ...Legacy.astro).
+import ServiceListingTicketSearch from './ServiceListingTicketSearch.astro'
+import ServiceListingTicketSearchV2 from './ServiceListingTicketSearchV2.astro'
+import ServiceListingTicketSearchLegacy from './ServiceListingTicketSearchLegacy.astro'
 import { getServiceTypeByKey } from '@lib/serviceTypes'
+const TICKET_SEARCH_LEGACY = import.meta.env.TICKET_SEARCH_LEGACY === '1'
+// Phase 4.61.9 — set TICKET_SEARCH_V2=1 di apps/web/.env untuk rollback ke
+// UI ticket-search sebelum 4.61.9 (kept sebagai ServiceListingTicketSearchV2).
+const TICKET_SEARCH_V2 = import.meta.env.TICKET_SEARCH_V2 === '1'
 
 type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'serviceListing' }>
 interface Props { block: Block }
@@ -16,6 +25,8 @@ const layout = (block as any)?.layout ?? 'editorial-featured'
 const serviceMeta = await getServiceTypeByKey((block as any)?.serviceType).catch(() => null)
 ---
 
-{layout === 'hero-immersive'
-  ? <ServiceListingHeroImmersive block={block} serviceMeta={serviceMeta} />
-  : <ServiceListingEditorial block={block} serviceMeta={serviceMeta} />}
+{layout === 'ticket-search' && !TICKET_SEARCH_LEGACY && !TICKET_SEARCH_V2 && <ServiceListingTicketSearch block={block} serviceMeta={serviceMeta} />}
+{layout === 'ticket-search' && !TICKET_SEARCH_LEGACY && TICKET_SEARCH_V2 && <ServiceListingTicketSearchV2 block={block} serviceMeta={serviceMeta} />}
+{layout === 'ticket-search' && TICKET_SEARCH_LEGACY && <ServiceListingTicketSearchLegacy block={block} serviceMeta={serviceMeta} />}
+{layout === 'hero-immersive' && <ServiceListingHeroImmersive block={block} serviceMeta={serviceMeta} />}
+{layout !== 'ticket-search' && layout !== 'hero-immersive' && <ServiceListingEditorial block={block} serviceMeta={serviceMeta} />}

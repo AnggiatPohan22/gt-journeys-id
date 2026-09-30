@@ -793,6 +793,7 @@ const ServiceListing: Block = {
       options: [
         { label: 'Editorial Featured (default — heading, filter tabs, featured card, grid)', value: 'editorial-featured' },
         { label: 'Hero Immersive (hero image + floating filter, no featured card)', value: 'hero-immersive' },
+        { label: 'Ticket Search (trip + route + date + passenger — for ferry, train, flight)', value: 'ticket-search' },
       ],
       access: { update: superAdminFieldAccess },
       admin: {
@@ -853,8 +854,11 @@ const ServiceListing: Block = {
         },
         {
           label: 'Hero',
-          admin: { condition: (_, sib) => sib?.layout === 'hero-immersive' },
-          description: 'Hero background media + overlay (Hero Immersive layout only). Supports single image, multiple images with slider transition, or video background.',
+          // Phase 4.61.9 — Hero tab juga dipakai oleh layout 'ticket-search'
+          // (frontend sudah membaca mediaType / singleImage / imageSlider /
+          // videoFile / heroOverlayOpacity / heroMinHeight yang sama).
+          admin: { condition: (_, sib) => sib?.layout === 'hero-immersive' || sib?.layout === 'ticket-search' },
+          description: 'Hero background media + overlay (Hero Immersive & Ticket Search layouts). Supports single image, multiple images with slider transition, or video background.',
           fields: [
             // Drop per-slide fit/position row from imageSlider (slides inherit
             // block-level imageFit/imagePosition). Reason: the auto-generated
@@ -925,6 +929,69 @@ const ServiceListing: Block = {
               type: 'text',
               defaultValue: 'Search Collection',
               admin: { condition: (_, sib) => sib?.enableSearch !== false },
+            },
+            // ── Phase 4.61.7 — Ticket Search template config ─────────
+            // Only shown when layout = 'ticket-search'. Reusable for ferry,
+            // train, flight, bus.
+            {
+              type: 'collapsible',
+              label: 'Ticket Search — Template 2 Config',
+              admin: { initCollapsed: false, condition: (_, sib) => sib?.layout === 'ticket-search' },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketEnableRoundTrip', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).' } },
+                    { name: 'ticketEnableInfant', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Infant counter in the passenger dropdown.' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketMaxAdults', type: 'number', defaultValue: 9, min: 1, max: 20, admin: { width: '34%' } },
+                    { name: 'ticketMaxChildren', type: 'number', defaultValue: 6, min: 0, max: 20, admin: { width: '33%' } },
+                    { name: 'ticketMaxInfants', type: 'number', defaultValue: 2, min: 0, max: 5, admin: { width: '33%' } },
+                  ],
+                },
+                {
+                  name: 'ticketLocationType',
+                  type: 'select',
+                  defaultValue: 'ferry-port',
+                  admin: { description: 'Filter dropdown options for Starting Point & Destination by Location type.' },
+                  options: [
+                    { label: 'Ferry Port', value: 'ferry-port' },
+                    { label: 'Train Station', value: 'train-station' },
+                    { label: 'Airport', value: 'airport' },
+                    { label: 'Bus Terminal', value: 'bus-terminal' },
+                    { label: 'City / General', value: 'city' },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketStartingPointLabel', type: 'text', defaultValue: 'Starting Point', admin: { width: '50%' } },
+                    { name: 'ticketDestinationLabel', type: 'text', defaultValue: 'Destination', admin: { width: '50%' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketSubmitButtonText', type: 'text', defaultValue: 'Update', admin: { width: '50%' } },
+                    {
+                      name: 'ticketDefaultSort',
+                      type: 'select',
+                      defaultValue: 'earliest',
+                      admin: { width: '50%' },
+                      options: [
+                        { label: 'Earliest Departure', value: 'earliest' },
+                        { label: 'Latest Departure', value: 'latest' },
+                        { label: 'Cheapest', value: 'cheapest' },
+                        { label: 'Shortest Duration', value: 'shortest' },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
           ],
         },

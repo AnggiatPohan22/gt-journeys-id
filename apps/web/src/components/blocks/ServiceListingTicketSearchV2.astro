@@ -1,25 +1,22 @@
 ---
 /**
- * ServiceListingTicketSearch — Phase 4.61.9 (UI refresh).
+ * ServiceListingTicketSearchV2 — snapshot pre-Phase 4.61.9 (kept as rollback
+ * for the 4.61.9 UI refresh). Aktifkan dengan env `TICKET_SEARCH_V2=1`
+ * di apps/web/.env supaya ServiceListingBlock.astro render file ini alih-alih
+ * versi baru. Isinya IDENTIK dengan ServiceListingTicketSearch.astro pada
+ * commit sebelum 4.61.9 (Phase 4.61.7 Round 3 + 4.61.8 + 4.61.8b).
  *
- * Redesign visual filter & search berbasis referensi
- * `ai/reference/ticket_booking_filter` (TiketLaju widget). Fungsi 100%
- * identik dengan versi 4.61.8b — hanya kelas & struktur markup filter/
- * search yang berubah. Alpine state, method, nama field form, script
- * slider, dan style .tsh-form/.tsh-date-native tidak diubah.
+ * Original header:
+ * ServiceListingTicketSearch — Phase 4.61.7 Round 3 (design overhaul).
  *
- * Desktop / Tablet (≥ md): labeled-cell grid 12-col dengan label di ATAS
- * card, card putih dengan icon circle berwarna di kiri, hover coral,
- * tinggi seragam h-16. Swap button overlay absolute antara cell Origin &
- * Destination. Top row = trip pill + status indicator. Bottom row =
- * Quick chips (kiri) + Search CTA (kanan). Value badges di bawah card.
+ * Boarding-pass style card: stacked route (origin above destination with
+ * floating swap button on the right), spacious rounded-3xl container,
+ * date card with badge + quick-date chips, passenger card with breakdown.
+ * Mobile-first design that scales seamlessly to tablet & desktop via
+ * max-width container (no separate layout code path).
  *
- * Mobile (< md): boarding-pass card yang lebih padat + floating swap
- * button di antara Origin/Destination + breakdown pills penumpang.
- *
- * Rollback: set env TICKET_SEARCH_V2=1 (default off) untuk kembali ke
- * UI pre-4.61.9 yang disimpan sebagai ServiceListingTicketSearchV2.astro.
- * Set TICKET_SEARCH_LEGACY=1 untuk kembali ke design 5-col horizontal.
+ * Rollback: set env TICKET_SEARCH_LEGACY=1 (see ServiceListingBlock.astro)
+ * to render the previous 5-column horizontal design kept as .legacy.astro.
  *
  * Alpine state: locations[], fromQ/toQ (display), fromSlug/toSlug (form
  * value), open flags, adults/children/infants, trip, passengerOpen.
@@ -79,10 +76,8 @@ try {
   error = err instanceof Error ? err.message : String(err)
 }
 
-// Phase 4.61.9 (batch 2) — server tidak lagi memfilter qFrom/qTo. Semua
-// items dirender & Alpine yang hide/show via x-show, supaya submit form
-// tidak perlu reload halaman (form state juga terjaga). Sort tetap
-// server-side karena hanya berubah lewat sort dropdown (bukan Find CTA).
+if (qFrom) items = items.filter((it: any) => (typeof it.originLocation === 'object' ? it.originLocation?.slug : '') === qFrom)
+if (qTo) items = items.filter((it: any) => (typeof it.arrivalLocation === 'object' ? it.arrivalLocation?.slug : '') === qTo)
 
 const timeToMin = (t?: string): number => {
   if (typeof t !== 'string') return 99999
@@ -143,12 +138,10 @@ const addDays = (iso: string, n: number): string => {
 const humanDayLabel = (iso: string, offset: number): string => {
   if (offset === 0) return 'Today'
   if (offset === 1) return 'Tomorrow'
-  // H+2, H+3, H+4 → actual weekday+date (mis. "Thu, 1 Oct").
   const d = new Date(iso + 'T00:00:00')
   return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
 }
-// Phase 4.61.9 — 5 quick chips: Today, Tomorrow, H+2, H+3, H+4 (offset 0..4)
-const quickDates = [0, 1, 2, 3, 4].map((offset) => {
+const quickDates = [0, 1, 2].map((offset) => {
   const iso = addDays(today, offset)
   return { iso, label: humanDayLabel(iso, offset) }
 })
@@ -243,13 +236,6 @@ const posterUrl = videoPoster?.sizes?.hero?.url ?? videoPoster?.url ?? ''
 
 const sliderId = `tsh-${Math.random().toString(36).slice(2, 9)}`
 
-// Phase 4.61.9 (batch 2) — items origin+arrival slug pairs untuk
-// client-side filter (Alpine).
-const itemsSlugPairs = items.map((it: any) => ({
-  o: typeof it.originLocation === 'object' ? (it.originLocation?.slug ?? '') : '',
-  a: typeof it.arrivalLocation === 'object' ? (it.arrivalLocation?.slug ?? '') : '',
-}))
-
 // Compute the x-data attribute value server-side. Using JSON.stringify for
 // values + plain string concat avoids nested template-literal parsing
 // issues in Astro/esbuild.
@@ -263,25 +249,18 @@ const xDataState = {
   trip: qTrip, passengerOpen: false,
   enableInfant, maxAdults, maxChildren, maxInfants,
   todayISO: today,
-  allItems: itemsSlugPairs,
 }
 // Combine data + methods. Methods are appended as raw JS (Alpine parses).
 const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
   "dec(k,min){if(this[k]>min)this[k]--}," +
   "passengerSummary(){const p=[this.adults+' Adult'];if(this.children>0)p.push(this.children+' Child');if(this.enableInfant&&this.infants>0)p.push(this.infants+' Infant');return p.join(' - ')}," +
-  "filtered(qs,ex){const s=(qs||'').toLowerCase().trim();return this.locations.filter(l=>{if(ex&&l.slug===ex)return false;if(!s)return true;return l.name.toLowerCase().includes(s)||(l.terminal||'').toLowerCase().includes(s)})}," +
+  "filtered(qs){const s=(qs||'').toLowerCase().trim();if(!s)return this.locations;return this.locations.filter(l=>l.name.toLowerCase().includes(s)||(l.terminal||'').toLowerCase().includes(s))}," +
   "labelOf(l){return l.terminal?l.name+' - '+l.terminal:l.name}," +
   "pick(field,l){this[field+'Q']=this.labelOf(l);this[field+'Slug']=l.slug;this[field+'Sub']=l.country||'';this[field+'Open']=false}," +
   "onInput(field){this[field+'Open']=true;this[field+'Slug']='';this[field+'Sub']=''}," +
   "swap(){const q=this.fromQ,s=this.fromSlug,sub=this.fromSub;this.fromQ=this.toQ;this.fromSlug=this.toSlug;this.fromSub=this.toSub;this.toQ=q;this.toSlug=s;this.toSub=sub}," +
   "dateBadge(){if(!this.date)return '';if(this.date===this.todayISO)return 'Today';const t=new Date(this.todayISO+'T00:00:00');t.setDate(t.getDate()+1);const tomorrow=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');if(this.date===tomorrow)return 'Tomorrow';return ''}," +
-  "humanDate(){if(!this.date)return 'Pick a departure date';const d=new Date(this.date+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}," +
-  // Phase 4.61.9 (batch 2) — client-side filter + no-reload submit.
-  "matchesFilter(o,a){if(this.fromSlug&&o!==this.fromSlug)return false;if(this.toSlug&&a!==this.toSlug)return false;return true}," +
-  "visibleCount(){return this.allItems.filter(it=>this.matchesFilter(it.o,it.a)).length}," +
-  "cardDate(){const iso=this.date||this.todayISO;const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}," +
-  "smoothScrollTo(y,dur){const start=window.scrollY,dist=y-start,t0=performance.now(),ease=t=>1-Math.pow(1-t,3),step=()=>{const t=Math.min(1,(performance.now()-t0)/dur);window.scrollTo(0,start+dist*ease(t));if(t<1)requestAnimationFrame(step)};requestAnimationFrame(step)}," +
-  "applyFilter(){const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}"
+  "humanDate(){if(!this.date)return 'Pick a departure date';const d=new Date(this.date+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}"
 // Emit: `{ locations: [...], fromQ: "..", ..., inc(){...} }`
 const stateEntries = Object.entries(xDataState).map(([k, v]) => k + ':' + JSON.stringify(v)).join(',')
 const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMethods + '}'
@@ -362,26 +341,24 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       width + form dipaksa `md:max-w-6xl lg:max-w-[1360px]` supaya 4 cell + swap
       punya ruang lega. Mobile tetap `max-w-lg` centered. */}
   <div class="relative z-20 mx-auto px-4 -mt-14 md:-mt-16 w-full">
-    <form method="get" class="tsh-form mx-auto" @submit.prevent="applyFilter()">
+    <form method="get" class="tsh-form mx-auto">
 
       {/* ═══════════════════════════════════════════════════════════
-          MOBILE VARIANT — Phase 4.61.9. Boarding-pass card padat,
-          floating swap kanan antar Origin/Destination, breakdown pills
-          penumpang, submit full-width.
+          MOBILE VARIANT — boarding-pass stacked card (md:hidden)
           ═══════════════════════════════════════════════════════════ */}
-      <div class="md:hidden bg-white rounded-3xl shadow-xl border border-sand-dark/10 p-4">
+      <div class="md:hidden bg-white rounded-3xl shadow-2xl border border-sand-dark/10 p-5">
 
-      {/* Trip type segmented pill (rounded-full ala reference) */}
+      {/* Trip type segmented control */}
       {enableRoundTrip && (
-        <div class="bg-sand p-1 rounded-full flex items-center mb-4 border border-sand-dark/10">
+        <div class="bg-sand p-1 rounded-2xl flex items-center mb-5 relative">
           <button type="button" @click.prevent="trip = 'one-way'"
-            class="flex-1 py-1.5 px-3 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5"
+            class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5"
             x-bind:class="trip === 'one-way' ? 'shadow-sm bg-white text-ocean' : 'text-stone-light hover:text-stone'">
             <span class="w-2 h-2 rounded-full" x-bind:class="trip === 'one-way' ? 'bg-coral' : 'border border-stone-light/40'"></span>
             <span>One Way</span>
           </button>
           <button type="button" title="Round-trip booking coming soon"
-            class="flex-1 py-1.5 px-3 rounded-full text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1 opacity-60 cursor-not-allowed text-stone-light"
+            class="flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 opacity-60 cursor-not-allowed text-stone-light"
             disabled>
             <span class="w-2 h-2 rounded-full border border-stone-light/40"></span>
             <span>Round Trip</span>
@@ -391,13 +368,13 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       )}
 
       {/* Route section — stacked cards + floating swap button */}
-      <div class="relative space-y-2.5 mb-3">
+      <div class="relative space-y-2 mb-4">
         {/* Origin card */}
-        <div class="group relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all"
+        <div class="group relative rounded-2xl border border-sand-dark/30 p-3.5 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all"
              @click.outside="fromOpen = false">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-coral/10 text-coral flex items-center justify-center shrink-0">
-              <Icon name="location_on" class="w-4 h-4" />
+          <div class="flex items-start gap-3">
+            <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+              <Icon name="location_on" class="w-4 h-4 text-coral" />
             </div>
             <div class="flex-1 min-w-0">
               <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase" for="from-input-m">{startingLabel}</label>
@@ -419,7 +396,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
           </div>
           <ul x-show="fromOpen" x-cloak x-transition.opacity.duration.100ms
               class="absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-sand-dark/20 z-40">
-            <template x-for="loc in filtered(fromQ,toSlug)" :key="loc.slug">
+            <template x-for="loc in filtered(fromQ)" :key="loc.slug">
               <li @click="pick('from', loc)"
                   class="px-4 py-3 cursor-pointer hover:bg-sand border-b border-sand-dark/10 last:border-b-0">
                 <p class="text-sm font-bold text-ocean" x-text="loc.name"></p>
@@ -427,7 +404,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                 <p class="text-[11px] text-stone-light/80 mt-0.5" x-show="loc.country" x-text="loc.country"></p>
               </li>
             </template>
-            <li x-show="filtered(fromQ,toSlug).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
+            <li x-show="filtered(fromQ).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
           </ul>
         </div>
 
@@ -435,17 +412,17 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
         <div class="absolute right-4 top-1/2 -translate-y-1/2 z-10">
           <button type="button" @click.prevent="swap()"
                   aria-label="Swap origin and destination"
-                  class="w-9 h-9 rounded-full bg-white border border-sand-dark/30 shadow-md flex items-center justify-center text-stone hover:border-coral hover:text-coral hover:rotate-180 active:scale-95 transition-all duration-300">
+                  class="w-10 h-10 rounded-full bg-white border-2 border-sand-dark/20 shadow-md flex items-center justify-center text-ocean hover:border-coral hover:text-coral hover:rotate-180 active:scale-95 transition-all duration-300">
             <Icon name="swap_horiz" class="w-4 h-4 rotate-90" />
           </button>
         </div>
 
         {/* Destination card */}
-        <div class="group relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all"
+        <div class="group relative rounded-2xl border border-sand-dark/30 p-3.5 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all"
              @click.outside="toOpen = false">
-          <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-full bg-leaf/10 text-leaf flex items-center justify-center shrink-0">
-              <Icon name="location_on" class="w-4 h-4" />
+          <div class="flex items-start gap-3">
+            <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+              <Icon name="location_on" class="w-4 h-4 text-leaf" />
             </div>
             <div class="flex-1 min-w-0">
               <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase" for="to-input-m">{destLabel}</label>
@@ -467,7 +444,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
           </div>
           <ul x-show="toOpen" x-cloak x-transition.opacity.duration.100ms
               class="absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-sand-dark/20 z-40">
-            <template x-for="loc in filtered(toQ,fromSlug)" :key="loc.slug">
+            <template x-for="loc in filtered(toQ)" :key="loc.slug">
               <li @click="pick('to', loc)"
                   class="px-4 py-3 cursor-pointer hover:bg-sand border-b border-sand-dark/10 last:border-b-0">
                 <p class="text-sm font-bold text-ocean" x-text="loc.name"></p>
@@ -475,41 +452,41 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                 <p class="text-[11px] text-stone-light/80 mt-0.5" x-show="loc.country" x-text="loc.country"></p>
               </li>
             </template>
-            <li x-show="filtered(toQ,fromSlug).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
+            <li x-show="filtered(toQ).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
           </ul>
         </div>
       </div>
 
       {/* Date card */}
-      <div class="space-y-2 mb-3">
-        <div class="relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral transition-all cursor-pointer">
+      <div class="space-y-2 mb-4">
+        <div class="relative rounded-2xl border border-sand-dark/30 p-3.5 bg-white focus-within:border-coral transition-all cursor-pointer">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0 flex-1">
-              <div class="w-9 h-9 rounded-full bg-sand text-ocean flex items-center justify-center shrink-0">
-                <Icon name="calendar_today" class="w-4 h-4" />
+              <div class="p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+                <Icon name="calendar_today" class="w-4 h-4 text-ocean" />
               </div>
               <div class="min-w-0 flex-1">
                 <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Departure Date</span>
                 <span class="text-sm font-bold text-ocean truncate block" x-text="humanDate()"></span>
               </div>
             </div>
-            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-coral/10 text-coral shrink-0"
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-sand text-stone shrink-0"
                   x-show="dateBadge()" x-text="dateBadge()"></span>
           </div>
           <input type="date" x-model="date" min={today} x-ref="dateInputM"
                  @click="try{$el.showPicker && $el.showPicker()}catch(e){}"
                  class="tsh-date-native" />
         </div>
-        {/* Quick date chips — rounded-full pill style */}
-        <div class="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar">
+        {/* Quick date chips */}
+        <div class="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
           {quickDates.map((qd) => {
             const clickAttr = "date = '" + qd.iso + "'"
-            const classAttr = "date === '" + qd.iso + "' ? 'bg-coral/10 text-coral border border-coral/40 font-bold' : 'bg-sand text-stone-light hover:bg-sand-dark/20 border border-transparent font-semibold'"
+            const classAttr = "date === '" + qd.iso + "' ? 'bg-coral/10 text-coral border border-coral/30' : 'bg-sand text-stone-light hover:bg-sand-dark/20 border border-transparent'"
             return (
               <button type="button"
                       x-on:click.prevent={clickAttr}
                       x-bind:class={classAttr}
-                      class="px-2.5 py-1 rounded-full text-[11px] whitespace-nowrap active:scale-95 transition-all">
+                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap active:scale-95 transition-all">
                 {qd.label}
               </button>
             )
@@ -518,13 +495,13 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       </div>
 
       {/* Passenger card — expand in-place on mobile */}
-      <div class="rounded-2xl border border-sand-dark/30 bg-white mb-4 transition-all"
+      <div class="rounded-2xl border border-sand-dark/30 bg-white mb-5 transition-all"
            @click.outside="passengerOpen = false">
         <button type="button" @click.prevent="passengerOpen = !passengerOpen"
-                class="w-full p-3 flex items-center justify-between text-left focus:outline-none">
+                class="w-full p-3.5 flex items-center justify-between text-left focus:outline-none">
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="w-9 h-9 rounded-full bg-sand text-ocean flex items-center justify-center shrink-0">
-              <Icon name="group" class="w-4 h-4" />
+            <div class="p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+              <Icon name="group" class="w-4 h-4 text-ocean" />
             </div>
             <div class="min-w-0 flex-1">
               <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Passenger</span>
@@ -533,20 +510,22 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
           </div>
           <Icon name="expand_more" class="w-4 h-4 text-stone-light shrink-0 transition-transform" />
         </button>
-        {/* Breakdown pills (ala referensi TiketLaju) */}
-        <div class="px-3 pb-3 pt-1 flex items-center gap-1.5 text-[10px] border-t border-sand-dark/10 mt-1" x-show="!passengerOpen">
-          <span class="text-stone-light font-medium">Breakdown:</span>
-          <span class="px-2 py-0.5 rounded-md font-bold border"
-                x-bind:class="adults > 0 ? 'bg-coral/10 text-coral border-coral/30' : 'bg-sand/50 text-stone-light/50 border-transparent'"
-                x-text="adults + ' Adult'"></span>
-          <span class="px-1.5 py-0.5 rounded-md font-semibold border"
-                x-bind:class="children > 0 ? 'bg-sand text-stone border-sand-dark/20' : 'bg-sand/50 text-stone-light/50 border-transparent'"
-                x-text="children + ' Child'"></span>
-          {enableInfant && (
-            <span class="px-1.5 py-0.5 rounded-md font-semibold border"
-                  x-bind:class="infants > 0 ? 'bg-sand text-stone border-sand-dark/20' : 'bg-sand/50 text-stone-light/50 border-transparent'"
-                  x-text="infants + ' Infant'"></span>
-          )}
+        {/* Breakdown chips */}
+        <div class="px-3.5 pb-3 pt-0.5 flex items-center justify-between text-xs" x-show="!passengerOpen">
+          <span class="text-stone-light text-[11px] font-medium">Breakdown:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold"
+                  x-bind:class="adults > 0 ? 'bg-sand text-stone' : 'bg-sand/50 text-stone-light/60'"
+                  x-text="adults + ' Adult'"></span>
+            <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold"
+                  x-bind:class="children > 0 ? 'bg-sand text-stone' : 'bg-sand/50 text-stone-light/60'"
+                  x-text="children + ' Child'"></span>
+            {enableInfant && (
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold"
+                    x-bind:class="infants > 0 ? 'bg-sand text-stone' : 'bg-sand/50 text-stone-light/60'"
+                    x-text="infants + ' Infant'"></span>
+            )}
+          </div>
         </div>
         {/* Stepper */}
         <div x-show="passengerOpen" x-cloak x-transition class="px-3.5 pb-4 pt-0 border-t border-sand-dark/10">
@@ -580,9 +559,9 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
         </div>
       </div>
 
-      {/* Submit — full-width bar dengan shadow warna brand */}
+      {/* Submit — full-width bar */}
       <button type="submit"
-              class="w-full py-3.5 px-6 rounded-2xl bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold text-xs tracking-wider shadow-lg shadow-coral/30 transition-all flex items-center justify-center gap-2 uppercase">
+              class="w-full py-4 px-6 rounded-2xl bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold text-sm tracking-wide shadow-md transition-all flex items-center justify-center gap-2 uppercase">
         <Icon name="search" class="w-4 h-4" />
         <span>{submitText}</span>
       </button>
@@ -590,77 +569,71 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       </div>{/* /mobile variant */}
 
       {/* ═══════════════════════════════════════════════════════════
-          DESKTOP / TABLET VARIANT — Phase 4.61.9 (UI refresh).
-          Struktur mengikuti referensi TiketLaju: header row (trip pill
-          + status indicator kanan) → grid 12-col dengan LABEL DI ATAS
-          setiap cell (bukan di dalam) → swap button overlay absolute
-          antara Origin & Destination → footer bar Quick chips (kiri) +
-          Search CTA (kanan) → value badges baris terpisah di bawah kartu.
+          DESKTOP / TABLET VARIANT — labeled-field horizontal card
+          Redesign (Round 4): tinggi frame lebih proporsional. Setiap
+          field jadi labeled cell (icon + micro-label uppercase + value
+          bold) mirip Trip.com / Booking.com. Padding container besar,
+          vertical divider halus antar cell. Trip pill di header + quick
+          date chips di footer → tinggi frame terasa "berat" bukan bar
+          tipis. Layout tetap 1 baris (Origin | swap | Dest | Date |
+          Passenger | Search) supaya tablet md tetap muat.
           ═══════════════════════════════════════════════════════════ */}
-      <div class="hidden md:block bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl border border-white/80 p-5 lg:p-7 w-full relative">
+      <div class="hidden md:block bg-white rounded-3xl shadow-2xl border border-sand-dark/10 p-5 lg:p-6 w-full">
 
-        {/* HEADER ROW: trip pill (kiri) + status indicator (kanan) */}
-        <div class="flex flex-wrap items-center justify-between gap-4 pb-5 lg:pb-6 border-b border-sand-dark/15">
-          {enableRoundTrip ? (
-            <div class="inline-flex items-center bg-sand p-1 rounded-full border border-sand-dark/10">
+        {/* Header row: trip type pill (kiri) — memberi tinggi + konteks */}
+        {enableRoundTrip && (
+          <div class="flex items-center justify-between mb-4 lg:mb-5">
+            <div class="inline-flex items-center bg-sand p-1 rounded-full">
               <button type="button" @click.prevent="trip = 'one-way'"
-                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200"
-                x-bind:class="trip === 'one-way' ? 'bg-white text-ocean shadow-sm' : 'text-stone-light hover:text-stone'">
-                <span class="w-2.5 h-2.5 rounded-full inline-block" x-bind:class="trip === 'one-way' ? 'bg-coral' : 'border border-stone-light/40'"></span>
+                class="py-1.5 px-4 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-1.5"
+                x-bind:class="trip === 'one-way' ? 'shadow-sm bg-white text-ocean' : 'text-stone-light hover:text-stone'">
+                <span class="w-1.5 h-1.5 rounded-full" x-bind:class="trip === 'one-way' ? 'bg-coral' : 'border border-stone-light/40'"></span>
                 <span>One Way</span>
               </button>
               <button type="button" title="Round-trip booking coming soon"
-                class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 opacity-60 cursor-not-allowed text-stone-light"
+                class="py-1.5 px-4 rounded-full text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 opacity-60 cursor-not-allowed text-stone-light"
                 disabled>
-                <span class="w-2.5 h-2.5 rounded-full border border-stone-light/40 inline-block"></span>
+                <span class="w-1.5 h-1.5 rounded-full border border-stone-light/40"></span>
                 <span>Round Trip</span>
-                <span class="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800">Soon</span>
+                <span class="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 ml-0.5">Soon</span>
               </button>
             </div>
-          ) : <span></span>}
-          <div class="flex items-center gap-2 text-xs">
-            <span class="w-2 h-2 rounded-full bg-leaf inline-block animate-pulse"></span>
-            <span class="font-medium text-stone-light">Instant Confirmation · Multi-Route Coverage</span>
           </div>
-        </div>
+        )}
 
-        {/* CORE INPUTS GRID (relative untuk overlay swap button).
-            NOTE: JANGAN tambahkan `grid-cols-1` di sini. Karena cascade
-            di build ini, `.grid-cols-1` ter-generate SETELAH
-            `.md:grid-cols-12` sehingga 4-col layout gagal (issue diamati
-            di Phase 4.61.9). Karena parent-nya `hidden md:block`, grid
-            ini tidak pernah render di < md, jadi base grid-cols aman
-            di-omit. */}
-        <div class="mt-5 lg:mt-6 grid md:grid-cols-12 gap-3 lg:gap-3.5 items-stretch relative">
+        {/* Fields row — labeled cells + soft dividers */}
+        <div class="flex flex-row gap-2 lg:gap-3 items-stretch w-full rounded-2xl bg-sand/40 border border-sand-dark/20 p-2 lg:p-2.5">
 
-          {/* 1) Origin cell — col-span 3 */}
-          <div class="md:col-span-3 relative" @click.outside="fromOpen = false">
-            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-stone-light mb-1 ml-3" for="from-input-d">{startingLabel}</label>
-            <div class="flex items-center gap-3 bg-white border border-sand-dark/30 hover:border-coral focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 rounded-2xl px-3.5 py-3 transition-all shadow-sm h-16">
-              <div class="w-9 h-9 rounded-full bg-coral/10 flex items-center justify-center text-coral shrink-0">
-                <Icon name="location_on" class="w-5 h-5" />
+          {/* Origin autocomplete cell */}
+          <div class="relative flex-1 min-w-0 group" @click.outside="fromOpen = false">
+            <div class="relative rounded-xl bg-white border border-transparent hover:border-sand-dark/30 focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all px-4 py-3 lg:py-3.5 h-full">
+              <div class="flex items-start gap-3">
+                <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+                  <Icon name="location_on" class="w-4 h-4 text-coral" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase" for="from-input-d">{startingLabel}</label>
+                  <input id="from-input-d" type="text" autocomplete="off" spellcheck="false"
+                         x-model="fromQ"
+                         @focus="fromOpen = true"
+                         @input="onInput('from')"
+                         @keydown.escape="fromOpen = false"
+                         placeholder="Type city or port…"
+                         aria-label={startingLabel}
+                         class="w-full mt-0.5 p-0 pr-4 border-0 bg-transparent text-ocean font-bold text-sm tracking-tight focus:ring-0 focus:outline-none truncate placeholder:text-stone-light/60 placeholder:font-medium" />
+                  <p class="text-[11px] text-stone-light font-medium truncate" x-text="fromSub" x-show="fromSub"></p>
+                </div>
+                <button type="button" x-show="fromQ" x-cloak
+                        @click.prevent.stop="fromQ=''; fromSlug=''; fromSub=''; fromOpen=true"
+                        aria-label="Clear"
+                        class="text-stone-light/60 hover:text-stone shrink-0 w-5 h-5 flex items-center justify-center">
+                  <span class="text-base leading-none">×</span>
+                </button>
               </div>
-              <div class="flex-1 min-w-0">
-                <input id="from-input-d" type="text" autocomplete="off" spellcheck="false"
-                       x-model="fromQ"
-                       @focus="fromOpen = true"
-                       @input="onInput('from')"
-                       @keydown.escape="fromOpen = false"
-                       placeholder="Type city or port…"
-                       aria-label={startingLabel}
-                       class="w-full p-0 border-0 bg-transparent text-ocean font-bold text-sm tracking-tight focus:ring-0 focus:outline-none truncate placeholder:text-stone-light/60 placeholder:font-medium" />
-                <p class="text-[11px] text-stone-light font-medium truncate" x-text="fromSub || 'City, port, or terminal'"></p>
-              </div>
-              <button type="button" x-show="fromQ" x-cloak
-                      @click.prevent.stop="fromQ=''; fromSlug=''; fromSub=''; fromOpen=true"
-                      aria-label="Clear"
-                      class="text-stone-light/60 hover:text-stone shrink-0 w-5 h-5 flex items-center justify-center">
-                <span class="text-base leading-none">×</span>
-              </button>
             </div>
             <ul x-show="fromOpen" x-cloak x-transition.opacity.duration.100ms
-                class="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-sand-dark/20 z-40">
-              <template x-for="loc in filtered(fromQ,toSlug)" :key="loc.slug">
+                class="absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white rounded-xl shadow-2xl border border-sand-dark/20 z-40">
+              <template x-for="loc in filtered(fromQ)" :key="loc.slug">
                 <li @click="pick('from', loc)"
                     class="px-4 py-3 cursor-pointer hover:bg-sand border-b border-sand-dark/10 last:border-b-0">
                   <p class="text-sm font-bold text-ocean" x-text="loc.name"></p>
@@ -668,48 +641,49 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                   <p class="text-[11px] text-stone-light/80 mt-0.5" x-show="loc.country" x-text="loc.country"></p>
                 </li>
               </template>
-              <li x-show="filtered(fromQ,toSlug).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
+              <li x-show="filtered(fromQ).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
             </ul>
           </div>
 
-          {/* Swap button — absolute overlay pas di batas Origin & Destination */}
-          <div class="hidden md:flex absolute left-[25%] top-[38px] z-20 -translate-x-1/2 -translate-y-1/2">
+          {/* Swap button — floating antara Origin & Dest */}
+          <div class="shrink-0 self-center -mx-1 lg:-mx-1.5 z-10">
             <button type="button" @click.prevent="swap()"
                     aria-label="Swap origin and destination"
-                    title="Swap Origin and Destination"
-                    class="w-9 h-9 rounded-full bg-white border border-sand-dark/30 hover:border-coral hover:bg-coral/5 text-stone hover:text-coral flex items-center justify-center shadow-md transition-all hover:scale-105 active:rotate-180 duration-200">
+                    class="w-10 h-10 rounded-full bg-white border-2 border-sand-dark/20 shadow-md flex items-center justify-center text-ocean hover:border-coral hover:text-coral hover:rotate-180 active:scale-95 transition-all duration-300">
               <Icon name="swap_horiz" class="w-4 h-4" />
             </button>
           </div>
 
-          {/* 2) Destination cell — col-span 3 */}
-          <div class="md:col-span-3 relative" @click.outside="toOpen = false">
-            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-stone-light mb-1 ml-3" for="to-input-d">{destLabel}</label>
-            <div class="flex items-center gap-3 bg-white border border-sand-dark/30 hover:border-leaf focus-within:border-leaf focus-within:ring-2 focus-within:ring-leaf/10 rounded-2xl px-3.5 py-3 transition-all shadow-sm h-16">
-              <div class="w-9 h-9 rounded-full bg-leaf/10 flex items-center justify-center text-leaf shrink-0">
-                <Icon name="location_on" class="w-5 h-5" />
+          {/* Destination autocomplete cell */}
+          <div class="relative flex-1 min-w-0 group" @click.outside="toOpen = false">
+            <div class="relative rounded-xl bg-white border border-transparent hover:border-sand-dark/30 focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all px-4 py-3 lg:py-3.5 h-full">
+              <div class="flex items-start gap-3">
+                <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+                  <Icon name="location_on" class="w-4 h-4 text-leaf" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase" for="to-input-d">{destLabel}</label>
+                  <input id="to-input-d" type="text" autocomplete="off" spellcheck="false"
+                         x-model="toQ"
+                         @focus="toOpen = true"
+                         @input="onInput('to')"
+                         @keydown.escape="toOpen = false"
+                         placeholder="Type city or port…"
+                         aria-label={destLabel}
+                         class="w-full mt-0.5 p-0 pr-4 border-0 bg-transparent text-ocean font-bold text-sm tracking-tight focus:ring-0 focus:outline-none truncate placeholder:text-stone-light/60 placeholder:font-medium" />
+                  <p class="text-[11px] text-stone-light font-medium truncate" x-text="toSub" x-show="toSub"></p>
+                </div>
+                <button type="button" x-show="toQ" x-cloak
+                        @click.prevent.stop="toQ=''; toSlug=''; toSub=''; toOpen=true"
+                        aria-label="Clear"
+                        class="text-stone-light/60 hover:text-stone shrink-0 w-5 h-5 flex items-center justify-center">
+                  <span class="text-base leading-none">×</span>
+                </button>
               </div>
-              <div class="flex-1 min-w-0">
-                <input id="to-input-d" type="text" autocomplete="off" spellcheck="false"
-                       x-model="toQ"
-                       @focus="toOpen = true"
-                       @input="onInput('to')"
-                       @keydown.escape="toOpen = false"
-                       placeholder="Type city or port…"
-                       aria-label={destLabel}
-                       class="w-full p-0 border-0 bg-transparent text-ocean font-bold text-sm tracking-tight focus:ring-0 focus:outline-none truncate placeholder:text-stone-light/60 placeholder:font-medium" />
-                <p class="text-[11px] text-stone-light font-medium truncate" x-text="toSub || 'City, port, or terminal'"></p>
-              </div>
-              <button type="button" x-show="toQ" x-cloak
-                      @click.prevent.stop="toQ=''; toSlug=''; toSub=''; toOpen=true"
-                      aria-label="Clear"
-                      class="text-stone-light/60 hover:text-stone shrink-0 w-5 h-5 flex items-center justify-center">
-                <span class="text-base leading-none">×</span>
-              </button>
             </div>
             <ul x-show="toOpen" x-cloak x-transition.opacity.duration.100ms
-                class="absolute left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-sand-dark/20 z-40">
-              <template x-for="loc in filtered(toQ,fromSlug)" :key="loc.slug">
+                class="absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white rounded-xl shadow-2xl border border-sand-dark/20 z-40">
+              <template x-for="loc in filtered(toQ)" :key="loc.slug">
                 <li @click="pick('to', loc)"
                     class="px-4 py-3 cursor-pointer hover:bg-sand border-b border-sand-dark/10 last:border-b-0">
                   <p class="text-sm font-bold text-ocean" x-text="loc.name"></p>
@@ -717,22 +691,29 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                   <p class="text-[11px] text-stone-light/80 mt-0.5" x-show="loc.country" x-text="loc.country"></p>
                 </li>
               </template>
-              <li x-show="filtered(toQ,fromSlug).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
+              <li x-show="filtered(toQ).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
             </ul>
           </div>
 
-          {/* 3) Departure Date cell — col-span 3 */}
-          <div class="md:col-span-3 relative tsh-date-cell">
-            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-stone-light mb-1 ml-3">Departure Date</label>
-            <div class="relative flex items-center gap-3 bg-white border border-sand-dark/30 hover:border-coral focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 rounded-2xl px-3.5 py-3 transition-all shadow-sm h-16 cursor-pointer">
-              <div class="w-9 h-9 rounded-full bg-sand flex items-center justify-center text-ocean shrink-0">
-                <Icon name="calendar_today" class="w-5 h-5" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <span class="block text-sm font-bold text-ocean truncate" x-text="humanDate()"></span>
-                <span class="text-[11px] font-medium truncate block"
-                      x-bind:class="dateBadge() ? 'text-coral font-semibold' : 'text-stone-light'"
-                      x-text="dateBadge() || 'Pick your travel day'"></span>
+          {/* Date cell — labeled, native date input di atas.
+              Phase 4.61.8b: pakai showPicker() via ref supaya reliabel di
+              semua browser (opacity-0 native input kadang tidak trigger
+              picker di Firefox/Edge tertentu). Container ditandai pointer
+              cursor + z-index rendah agar tidak diblok oleh cell tetangga. */}
+          <div class="relative flex-1 min-w-0 tsh-date-cell">
+            <div class="relative rounded-xl bg-white border border-transparent hover:border-sand-dark/30 focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all px-4 py-3 lg:py-3.5 h-full cursor-pointer">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+                    <Icon name="calendar_today" class="w-4 h-4 text-ocean" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Departure Date</span>
+                    <span class="text-sm font-bold text-ocean truncate block mt-0.5" x-text="humanDate()"></span>
+                  </div>
+                </div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-sand text-stone shrink-0"
+                      x-show="dateBadge()" x-text="dateBadge()"></span>
               </div>
               <input type="date" x-model="date" min={today} x-ref="dateInputD"
                      aria-label="Departure Date"
@@ -741,108 +722,84 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             </div>
           </div>
 
-          {/* 4) Passenger cell — col-span 3 */}
-          <div class="md:col-span-3 relative" @click.outside="passengerOpen = false">
-            <label class="block text-[11px] font-extrabold uppercase tracking-wider text-stone-light mb-1 ml-3">Passenger</label>
+          {/* Passenger cell — labeled, dropdown expands below */}
+          <div class="relative flex-1 min-w-0" @click.outside="passengerOpen = false">
             <button type="button" @click.prevent="passengerOpen = !passengerOpen"
                     aria-label="Passenger"
-                    class="w-full flex items-center justify-between bg-white border border-sand-dark/30 hover:border-coral focus:border-coral focus:ring-2 focus:ring-coral/10 rounded-2xl px-3.5 py-3 transition-all shadow-sm h-16 cursor-pointer text-left">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
-                <div class="w-9 h-9 rounded-full bg-sand flex items-center justify-center text-ocean shrink-0">
-                  <Icon name="group" class="w-5 h-5" />
+                    class="w-full h-full rounded-xl bg-white border border-transparent hover:border-sand-dark/30 focus:border-coral focus:ring-2 focus:ring-coral/10 transition-all px-4 py-3 lg:py-3.5 text-left cursor-pointer">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <div class="mt-0.5 p-2 rounded-xl bg-sand text-stone border border-sand-dark/10 shrink-0">
+                    <Icon name="group" class="w-4 h-4 text-ocean" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Passenger</span>
+                    <span class="text-sm font-bold text-ocean tracking-tight truncate block mt-0.5" x-text="passengerSummary()"></span>
+                  </div>
                 </div>
-                <div class="min-w-0 flex-1">
-                  <span class="block text-sm font-bold text-ocean tracking-tight truncate" x-text="passengerSummary()"></span>
-                  <span class="text-[11px] text-stone-light font-medium truncate block">Adult · Child · Infant</span>
-                </div>
+                <Icon name="expand_more" class="w-4 h-4 text-stone-light shrink-0 transition-transform" />
               </div>
-              <Icon name="expand_more" class="w-4 h-4 text-stone-light shrink-0 transition-transform" />
             </button>
             <div x-show="passengerOpen" x-cloak x-transition
-                 class="absolute right-0 top-full mt-1.5 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-sand-dark/20 p-5 z-40">
-              <div class="flex items-center justify-between pb-3 border-b border-sand-dark/10">
-                <div>
-                  <p class="text-sm font-bold text-ocean">Adult</p>
-                  <p class="text-xs text-stone-light">Ages 12 or above</p>
-                </div>
-                <div class="flex items-center gap-2.5">
-                  <button type="button" @click.prevent="dec('adults', 1)" class="w-8 h-8 rounded-lg border border-sand-dark/30 text-stone hover:bg-sand flex items-center justify-center font-bold disabled:opacity-30" x-bind:disabled="adults <= 1">−</button>
-                  <span class="min-w-[24px] text-center font-bold text-ocean" x-text="adults"></span>
-                  <button type="button" @click.prevent="inc('adults', maxAdults)" class="w-8 h-8 rounded-lg border border-coral bg-coral/10 text-coral hover:bg-coral/20 flex items-center justify-center font-bold disabled:opacity-30" x-bind:disabled="adults >= maxAdults">+</button>
+                 class="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-sand-dark/20 p-4 z-40">
+              <div class="flex items-center justify-between py-3">
+                <div><p class="font-semibold text-stone text-sm">Adult</p><p class="text-xs text-stone-light">Ages 12 or above</p></div>
+                <div class="flex items-center gap-3">
+                  <button type="button" @click.prevent="dec('adults', 1)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="adults <= 1">−</button>
+                  <span class="min-w-[24px] text-center font-bold text-stone" x-text="adults"></span>
+                  <button type="button" @click.prevent="inc('adults', maxAdults)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="adults >= maxAdults">+</button>
                 </div>
               </div>
-              <div class="flex items-center justify-between py-3 border-b border-sand-dark/10">
-                <div>
-                  <p class="text-sm font-bold text-ocean">Child</p>
-                  <p class="text-xs text-stone-light">Ages 12 below</p>
-                </div>
-                <div class="flex items-center gap-2.5">
-                  <button type="button" @click.prevent="dec('children', 0)" class="w-8 h-8 rounded-lg border border-sand-dark/30 text-stone hover:bg-sand flex items-center justify-center font-bold disabled:opacity-30" x-bind:disabled="children <= 0">−</button>
-                  <span class="min-w-[24px] text-center font-bold text-ocean" x-text="children"></span>
-                  <button type="button" @click.prevent="inc('children', maxChildren)" class="w-8 h-8 rounded-lg border border-coral bg-coral/10 text-coral hover:bg-coral/20 flex items-center justify-center font-bold disabled:opacity-30" x-bind:disabled="children >= maxChildren">+</button>
+              <div class="flex items-center justify-between py-3 border-t border-sand-dark/10">
+                <div><p class="font-semibold text-stone text-sm">Child</p><p class="text-xs text-stone-light">Ages 12 below</p></div>
+                <div class="flex items-center gap-3">
+                  <button type="button" @click.prevent="dec('children', 0)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="children <= 0">−</button>
+                  <span class="min-w-[24px] text-center font-bold text-stone" x-text="children"></span>
+                  <button type="button" @click.prevent="inc('children', maxChildren)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="children >= maxChildren">+</button>
                 </div>
               </div>
               {enableInfant && (
-                <div class="flex items-center justify-between pt-3">
-                  <div>
-                    <p class="text-sm font-bold text-ocean">Infant</p>
-                    <p class="text-xs text-stone-light" x-text="'Max infant ' + maxInfants"></p>
-                  </div>
-                  <div class="flex items-center gap-2.5">
-                    <button type="button" @click.prevent="dec('infants', 0)" class="w-8 h-8 rounded-lg border border-sand-dark/30 text-stone hover:bg-sand flex items-center justify-center font-bold disabled:opacity-30" x-bind:disabled="infants <= 0">−</button>
-                    <span class="min-w-[24px] text-center font-bold text-ocean" x-text="infants"></span>
-                    <button type="button" @click.prevent="inc('infants', maxInfants)" class="w-8 h-8 rounded-lg border border-coral bg-coral/10 text-coral hover:bg-coral/20 flex items-center justify-center font-bold disabled:opacity-30" x-bind:disabled="infants >= maxInfants">+</button>
+                <div class="flex items-center justify-between py-3 border-t border-sand-dark/10">
+                  <div><p class="font-semibold text-stone text-sm">Infant</p><p class="text-xs text-stone-light" x-text="'Max infant ' + maxInfants"></p></div>
+                  <div class="flex items-center gap-3">
+                    <button type="button" @click.prevent="dec('infants', 0)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="infants <= 0">−</button>
+                    <span class="min-w-[24px] text-center font-bold text-stone" x-text="infants"></span>
+                    <button type="button" @click.prevent="inc('infants', maxInfants)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="infants >= maxInfants">+</button>
                   </div>
                 </div>
               )}
-              <div class="mt-4 pt-3 border-t border-sand-dark/10 flex items-center justify-between">
-                <span class="text-xs text-stone-light">Max 6 pax / booking</span>
-                <button type="button" @click.prevent="passengerOpen = false" class="text-xs font-bold text-coral hover:underline">Done</button>
-              </div>
+              <button type="button" @click.prevent="passengerOpen = false" class="mt-3 w-full py-2 rounded-lg bg-sand hover:bg-sand-dark/20 text-stone text-xs font-semibold transition-colors">Done</button>
             </div>
           </div>
         </div>
 
-        {/* BOTTOM ACTION BAR: Quick chips (kiri) + Search CTA (kanan) */}
-        <div class="mt-6 pt-5 border-t border-sand-dark/15 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-stone-light mr-1 shrink-0">Quick:</span>
-            {quickDates.map((qd) => {
-              const clickAttr = "date = '" + qd.iso + "'"
-              const classAttr = "date === '" + qd.iso + "' ? 'bg-coral/10 border-coral text-coral font-bold' : 'bg-sand/60 border-sand-dark/30 text-stone hover:border-coral hover:text-coral font-semibold'"
-              return (
-                <button type="button"
-                        x-on:click.prevent={clickAttr}
-                        x-bind:class={classAttr}
-                        class="text-xs px-3 py-1.5 rounded-full border whitespace-nowrap shrink-0 transition-colors active:scale-95">
-                  {qd.label}
-                </button>
-              )
-            })}
-          </div>
+        {/* Quick-date row — Phase 4.61.8b: dipindah ke bawah row Departure
+            Date (bukan lagi di footer bareng submit). */}
+        <div class="flex items-center gap-1.5 mt-3 lg:mt-4 min-w-0 overflow-x-auto no-scrollbar">
+          <span class="text-[10px] font-bold tracking-wider text-stone-light uppercase mr-1 shrink-0">Quick:</span>
+          {quickDates.map((qd) => {
+            const clickAttr = "date = '" + qd.iso + "'"
+            const classAttr = "date === '" + qd.iso + "' ? 'bg-coral/10 text-coral border-coral/30' : 'bg-white text-stone hover:bg-sand border-sand-dark/30'"
+            return (
+              <button type="button"
+                      x-on:click.prevent={clickAttr}
+                      x-bind:class={classAttr}
+                      class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap active:scale-95 transition-all border">
+                {qd.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Footer row: submit button (diperlebar Phase 4.61.8b) */}
+        <div class="flex flex-row items-center justify-end gap-3 mt-4 lg:mt-5">
           <button type="submit"
-                  class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 lg:px-5 py-2 lg:py-2.5 rounded-lg bg-coral hover:bg-coral-dark active:scale-[0.98] text-white font-bold text-[11px] tracking-wide shadow-sm shadow-coral/25 transition-all uppercase">
-            <Icon name="search" class="w-3.5 h-3.5" />
+                  class="shrink-0 inline-flex items-center justify-center gap-2 px-10 lg:px-14 py-3 lg:py-3.5 bg-coral hover:bg-coral-dark text-white text-sm font-bold rounded-xl transition-colors shadow-md hover:shadow-lg whitespace-nowrap uppercase tracking-wide">
+            <Icon name="search" class="w-4 h-4" />
             <span>{submitText}</span>
           </button>
         </div>
       </div>{/* /desktop variant */}
-
-      {/* Value Badges — hanya di md+, di bawah kartu */}
-      <div class="hidden md:flex mt-6 lg:mt-8 flex-wrap items-center justify-center gap-6 lg:gap-10 text-xs font-medium text-stone-light">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-leaf"></span>
-          <span>Instant Confirmation</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-ocean"></span>
-          <span>Flexible Rescheduling</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-          <span>Secure Online Payment</span>
-        </div>
-      </div>
 
       {/* Shared hidden inputs — bound to Alpine state, submit once for both variants */}
       <input type="hidden" name="trip"     x-bind:value="trip" />
@@ -856,13 +813,11 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
     </form>
   </div>
 
-  {/* Listing header + sort. id="tsh-listing" dipakai applyFilter() untuk
-      smooth-scroll ke listing setelah Find Tickets ditekan. */}
-  <div id="tsh-listing" class:list={['relative z-10 mx-auto px-4 mt-8 md:mt-10 mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 scroll-mt-20 md:scroll-mt-24', containerClass]}>
+  {/* Listing header + sort */}
+  <div class:list={['relative z-10 mx-auto px-4 mt-8 md:mt-10 mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3', containerClass]}>
     <div>
       <h3 class="font-display text-xl md:text-2xl text-ocean">{listingTitle}</h3>
-      {/* Phase 4.61.9 (batch 2) — count dinamis via Alpine (client-side filter). */}
-      <p class="text-sm text-stone-light"><span class="font-semibold text-ocean" x-text="visibleCount()">{items.length}</span> {listingSubtitle}</p>
+      <p class="text-sm text-stone-light"><span class="font-semibold text-ocean">{items.length}</span> {listingSubtitle}</p>
     </div>
     <form method="get" class="flex items-center gap-2">
       {qFrom && <input type="hidden" name="from" value={qFrom} />}
@@ -879,30 +834,21 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
     </form>
   </div>
 
-  {/* Grid — Phase 4.61.9 (batch 2): semua items dirender; Alpine hide/show
-      via x-show sesuai fromSlug/toSlug. Ini yang bikin Find Tickets
-      "no-reload" tetap filter dengan benar. Empty state juga dikontrol
-      Alpine (visibleCount()===0). */}
+  {/* Grid */}
   <div class:list={['relative z-10 mx-auto px-4 pb-16 md:pb-20', containerClass]}>
     {error && <p class="text-center text-coral">Error loading items: {error}</p>}
-    {!error && items.length === 0 && <p class="text-center text-stone-light py-10">No trips available right now. Please check back later.</p>}
+    {!error && items.length === 0 && <p class="text-center text-stone-light py-10">No trips match your search. Try adjusting the filters.</p>}
     {items.length > 0 && (
-      <>
-        <p x-show="visibleCount() === 0" x-cloak class="text-center text-stone-light py-10">No trips match your search. Try adjusting the filters.</p>
-        <div class="grid grid-cols-1 gap-5">
-          {items.map((item: any) => {
-            const dateAttr = qDate ? `?date=${qDate}` : ''
-            const originSlug = typeof item.originLocation === 'object' ? (item.originLocation?.slug ?? '') : ''
-            const arrivalSlug = typeof item.arrivalLocation === 'object' ? (item.arrivalLocation?.slug ?? '') : ''
-            const showAttr = "matchesFilter('" + originSlug + "','" + arrivalSlug + "')"
-            return (
-              <div x-show={showAttr}>
-                <FerryTicketsCard ferryTicket={item} hrefBase={detailBase + dateAttr} variant={cardVariant} background={cardBg} selectedDate={qDate || today} />
-              </div>
-            )
-          })}
-        </div>
-      </>
+      <div class="grid grid-cols-1 gap-5">
+        {items.map((item: any) => {
+          const dateAttr = qDate ? `?date=${qDate}` : ''
+          return (
+            <div>
+              <FerryTicketsCard ferryTicket={item} hrefBase={detailBase + dateAttr} variant={cardVariant} background={cardBg} />
+            </div>
+          )
+        })}
+      </div>
     )}
   </div>
 </section>
