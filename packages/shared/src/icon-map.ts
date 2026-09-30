@@ -32,6 +32,7 @@ export const LEGACY_ICON_MAP: Record<string, string> = {
   favorite: 'lucide:heart',
   chevron_right: 'lucide:chevron-right',
   chevron_left: 'lucide:chevron-left',
+  content_copy: 'lucide:copy',
 
   // ── Popup / dialog icons (Phase 4.59.1) ──
   help: 'mdi:help-circle',
