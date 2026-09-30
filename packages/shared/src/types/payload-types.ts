@@ -2053,7 +2053,14 @@ export interface Page {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -5128,7 +5135,14 @@ export interface Tour {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -7952,7 +7966,14 @@ export interface Post {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -15233,7 +15254,14 @@ export interface Yacht {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -17729,7 +17757,14 @@ export interface Restaurant {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -20531,7 +20566,14 @@ export interface Venue {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -23318,7 +23360,14 @@ export interface Rental {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -26105,7 +26154,14 @@ export interface Spa {
             ticketStartingPointLabel?: string | null;
             ticketDestinationLabel?: string | null;
             ticketSubmitButtonText?: string | null;
+            /**
+             * Sort default saat halaman pertama kali dibuka.
+             */
             ticketDefaultSort?: ('earliest' | 'latest' | 'cheapest' | 'shortest') | null;
+            /**
+             * Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).
+             */
+            ticketSortOptions?: ('earliest' | 'latest' | 'cheapest' | 'shortest')[] | null;
             /**
              * Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.
              */
@@ -30885,6 +30941,7 @@ export interface PagesSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -32364,6 +32421,7 @@ export interface PostsSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -33773,6 +33831,7 @@ export interface ToursSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -37305,6 +37364,7 @@ export interface YachtsSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -38533,6 +38593,7 @@ export interface RestaurantsSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -39899,6 +39960,7 @@ export interface VenuesSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -41250,6 +41312,7 @@ export interface RentalsSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T
@@ -42601,6 +42664,7 @@ export interface SpaSelect<T extends boolean = true> {
               ticketDestinationLabel?: T;
               ticketSubmitButtonText?: T;
               ticketDefaultSort?: T;
+              ticketSortOptions?: T;
               ticketStatusIndicator?: T;
               ticketBadges?:
                 | T

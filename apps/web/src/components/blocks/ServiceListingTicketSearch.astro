@@ -125,10 +125,57 @@ const cheapestPriceOf = (it: any): number => {
   const prices = arr.map((c: any) => c?.adultPrice).filter((n: any) => typeof n === 'number' && n > 0)
   return prices.length ? Math.min(...prices) : Number.MAX_SAFE_INTEGER
 }
+// Phase 4.61.11 — parse "1h 8m" / "50m" / "2h" / "2 Hours" ke total menit.
+// Dipakai sebagai fallback untuk `durationMinutes` yang tidak terisi
+// (mis. ticket lama sebelum hook, atau durationOverride=true).
+const parseDurationText = (s: unknown): number | null => {
+  if (typeof s !== 'string') return null
+  const t = s.toLowerCase().trim()
+  if (!t) return null
+  let total = 0
+  const h = t.match(/(\d+)\s*h(?:our)?/)
+  const m = t.match(/(\d+)\s*m(?:in)?/)
+  if (h) total += Number(h[1]) * 60
+  if (m) total += Number(m[1])
+  if (!h && !m) {
+    const n = t.match(/^(\d+)$/)
+    if (n) total = Number(n[1])
+  }
+  return total > 0 ? total : null
+}
+const durationMinutesOf = (it: any): number => {
+  if (typeof it.durationMinutes === 'number' && it.durationMinutes > 0) return it.durationMinutes
+  const parsed = parseDurationText(it.duration)
+  return parsed ?? 99999
+}
+// Phase 4.61.11 — sort options bisa diatur super-admin via CMS
+// (block.ticketSortOptions). Kosong / undefined = pakai semua 4 default.
+// Icon material-symbols dipilih supaya nyambung dengan Icon system yang
+// sudah dipakai di form filter (location_on, calendar_today, group).
+const ALL_SORT_OPTIONS: Array<{ value: 'earliest'|'latest'|'cheapest'|'shortest'; label: string; icon: string }> = [
+  { value: 'earliest', label: 'Earliest Departure', icon: 'schedule' },
+  { value: 'latest',   label: 'Latest Departure',   icon: 'nightlight' },
+  { value: 'cheapest', label: 'Cheapest',           icon: 'sell' },
+  { value: 'shortest', label: 'Shortest Duration',  icon: 'bolt' },
+]
+const rawSortOptions = Array.isArray(b.ticketSortOptions) ? b.ticketSortOptions : null
+const enabledSortValues: string[] = rawSortOptions && rawSortOptions.length > 0
+  ? rawSortOptions.filter((v: any) => typeof v === 'string')
+  : ALL_SORT_OPTIONS.map((o) => o.value)
+const filteredSortOptions = ALL_SORT_OPTIONS.filter((o) => enabledSortValues.includes(o.value))
+// Fallback kalau semua di-uncheck & ternyata filter kosong (defensive):
+const effectiveSortOptions = filteredSortOptions.length > 0 ? filteredSortOptions : ALL_SORT_OPTIONS
+// Kalau sort dari URL tidak termasuk yg enabled, jatuh ke default block.
+const initialSort = effectiveSortOptions.find((o) => o.value === qSort)?.value
+  ?? (effectiveSortOptions.find((o) => o.value === defaultSort)?.value ?? effectiveSortOptions[0].value)
+
+// Phase 4.61.11 — server sort dipakai untuk initial paint saja (SSR). Sort
+// aktual di client dilakukan Alpine (reorder via CSS `order`), supaya
+// tidak butuh page reload saat visitor ganti opsi Sort By.
 items = items.slice().sort((a: any, c: any) => {
-  if (qSort === 'latest')    return timeToMin(c.departureTime) - timeToMin(a.departureTime)
-  if (qSort === 'cheapest')  return cheapestPriceOf(a) - cheapestPriceOf(c)
-  if (qSort === 'shortest')  return (a.durationMinutes ?? 99999) - (c.durationMinutes ?? 99999)
+  if (initialSort === 'latest')    return timeToMin(c.departureTime) - timeToMin(a.departureTime)
+  if (initialSort === 'cheapest')  return cheapestPriceOf(a) - cheapestPriceOf(c)
+  if (initialSort === 'shortest')  return durationMinutesOf(a) - durationMinutesOf(c)
   return timeToMin(a.departureTime) - timeToMin(c.departureTime)
 })
 
@@ -194,13 +241,6 @@ const humanDate = (dateStr: string): string => {
   const d = new Date(dateStr + 'T00:00:00')
   return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
 }
-
-const sortOptions = [
-  { value: 'earliest', label: 'Earliest Departure' },
-  { value: 'latest',   label: 'Latest Departure' },
-  { value: 'cheapest', label: 'Cheapest' },
-  { value: 'shortest', label: 'Shortest Duration' },
-]
 
 const heroMinHeight = b.heroMinHeight ?? 'md'
 // Round 6: mirror HeroImmersive sizes so Ticket Search punya hero visual
@@ -275,10 +315,16 @@ const posterUrl = videoPoster?.sizes?.hero?.url ?? videoPoster?.url ?? ''
 const sliderId = `tsh-${Math.random().toString(36).slice(2, 9)}`
 
 // Phase 4.61.9 (batch 2) — items origin+arrival slug pairs untuk
-// client-side filter (Alpine).
+// client-side filter (Alpine). Phase 4.61.11 — ditambah `dep` (menit
+// sejak 00:00), `price` (cheapest adult), `dur` (menit), `id` supaya
+// Alpine bisa sort tanpa reload.
 const itemsSlugPairs = items.map((it: any) => ({
+  id: String(it.id ?? it.slug ?? ''),
   o: typeof it.originLocation === 'object' ? (it.originLocation?.slug ?? '') : '',
   a: typeof it.arrivalLocation === 'object' ? (it.arrivalLocation?.slug ?? '') : '',
+  dep: timeToMin(it.departureTime),
+  price: cheapestPriceOf(it),
+  dur: durationMinutesOf(it),
 }))
 
 // Compute the x-data attribute value server-side. Using JSON.stringify for
@@ -298,6 +344,10 @@ const xDataState = {
   enableInfant, maxAdults, maxChildren, maxInfants,
   todayISO: today,
   allItems: itemsSlugPairs,
+  // Phase 4.61.11 — sort state client-side.
+  sortKey: initialSort,
+  sortOpen: false,
+  sortRefreshing: false,
 }
 // Combine data + methods. Methods are appended as raw JS (Alpine parses).
 const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
@@ -325,6 +375,13 @@ const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
   "visibleCount(){return this.allItems.filter(it=>this.matchesFilter(it.o,it.a)).length}," +
   "cardDate(){const iso=this.date||this.todayISO;const d=new Date(iso+'T00:00:00');return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'})}," +
   "smoothScrollTo(y,dur){const start=window.scrollY,dist=y-start,t0=performance.now(),ease=t=>1-Math.pow(1-t,3),step=()=>{const t=Math.min(1,(performance.now()-t0)/dur);window.scrollTo(0,start+dist*ease(t));if(t<1)requestAnimationFrame(step)};requestAnimationFrame(step)}," +
+  // Phase 4.61.11 — Sort helpers. `rankOf` menerima item keys (dep/price/
+  // dur) yang di-inject inline per card. Return integer: makin kecil =
+  // makin dulu di grid via CSS `order`.
+  "rankOf(dep,price,dur){if(this.sortKey==='latest')return -dep;if(this.sortKey==='cheapest')return price;if(this.sortKey==='shortest')return dur;return dep}," +
+  "sortLabel(){const m=" + JSON.stringify(Object.fromEntries(effectiveSortOptions.map((o) => [o.value, o.label]))) + ";return m[this.sortKey]||''}," +
+  "sortIcon(){const m=" + JSON.stringify(Object.fromEntries(effectiveSortOptions.map((o) => [o.value, o.icon]))) + ";return m[this.sortKey]||'swap_vert'}," +
+  "pickSort(v){if(this.sortKey===v){this.sortOpen=false;return}this.sortKey=v;this.sortOpen=false;this.sortRefreshing=true;const p=new URLSearchParams(location.search);p.set('sort',v);history.replaceState(null,'',location.pathname+'?'+p.toString());setTimeout(()=>{this.sortRefreshing=false},380)}," +
   "applyFilter(){this.syncReturn();const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);if(this.trip==='round-trip'&&this.returnDate)p.set('return',this.returnDate);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}"
 // Emit: `{ locations: [...], fromQ: "..", ..., inc(){...} }`
 const stateEntries = Object.entries(xDataState).map(([k, v]) => k + ':' + JSON.stringify(v)).join(',')
@@ -986,32 +1043,64 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       <input type="hidden" name="adults"   x-bind:value="adults" />
       <input type="hidden" name="children" x-bind:value="children" />
       <input type="hidden" name="infants"  x-bind:value="infants" />
-      <input type="hidden" name="sort"     value={qSort} />
+      <input type="hidden" name="sort"     x-bind:value="sortKey" />
     </form>
   </div>
 
   {/* Listing header + sort. id="tsh-listing" dipakai applyFilter() untuk
-      smooth-scroll ke listing setelah Find Tickets ditekan. */}
-  <div id="tsh-listing" class:list={['relative z-10 mx-auto px-4 mt-8 md:mt-10 mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 scroll-mt-20 md:scroll-mt-24', containerClass]}>
+      smooth-scroll ke listing setelah Find Tickets ditekan.
+      Phase 4.61.11 — Sort dropdown di-refresh: pure Alpine (no-reload),
+      themed pill button mirroring gaya cell Filter (icon-circle + labeled
+      value bold). Halaman tidak refresh — grid diurut ulang via CSS
+      `order` dan diberi fade-up animation via `sortRefreshing`. */}
+  <div id="tsh-listing" class:list={['relative z-30 mx-auto px-4 mt-8 md:mt-10 mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 scroll-mt-20 md:scroll-mt-24', containerClass]}>
     <div>
       <h3 class="font-display text-xl md:text-2xl text-ocean">{listingTitle}</h3>
       {/* Phase 4.61.9 (batch 2) — count dinamis via Alpine (client-side filter). */}
       <p class="text-sm text-stone-light"><span class="font-semibold text-ocean" x-text="visibleCount()">{items.length}</span> {listingSubtitle}</p>
     </div>
-    <form method="get" class="flex items-center gap-2">
-      {qFrom && <input type="hidden" name="from" value={qFrom} />}
-      {qTo && <input type="hidden" name="to" value={qTo} />}
-      {qDate && <input type="hidden" name="date" value={qDate} />}
-      {qReturnDate && <input type="hidden" name="return" value={qReturnDate} />}
-      <input type="hidden" name="adults" value={qAdults} />
-      <input type="hidden" name="children" value={qChildren} />
-      <input type="hidden" name="infants" value={qInfants} />
-      <input type="hidden" name="trip" value={qTrip} />
-      <label class="text-xs uppercase tracking-wider text-stone-light font-semibold">Sort by</label>
-      <select name="sort" onchange="this.form.submit()" class="px-3 py-2 border border-sand-dark/40 rounded-lg text-sm text-stone bg-white cursor-pointer focus:outline-none focus:border-ocean">
-        {sortOptions.map((o) => <option value={o.value} selected={qSort === o.value}>{o.label}</option>)}
-      </select>
-    </form>
+    {effectiveSortOptions.length > 1 && (
+      <div class="flex items-center gap-2.5 shrink-0">
+        <span class="text-xs uppercase tracking-wider text-stone-light font-semibold whitespace-nowrap">Sort by:</span>
+        <div class="relative" @click.outside="sortOpen = false">
+          <button type="button" @click.prevent="sortOpen = !sortOpen"
+                  aria-haspopup="listbox" x-bind:aria-expanded="sortOpen"
+                  class="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-sand-dark/30 rounded-xl shadow-sm hover:border-coral/60 hover:shadow-md focus:outline-none focus:border-coral focus:ring-2 focus:ring-coral/15 transition-all">
+            <span class="text-sm font-bold text-ocean whitespace-nowrap" x-text="sortLabel()">{effectiveSortOptions.find((o) => o.value === initialSort)?.label ?? ''}</span>
+            <Icon name="expand_more" class="w-4 h-4 text-stone-light shrink-0 transition-transform"
+                  x-bind:class="sortOpen ? 'rotate-180 text-coral' : ''" />
+          </button>
+          <ul x-show="sortOpen" x-cloak
+              x-transition:enter="transition ease-out duration-150"
+              x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.98]"
+              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+              x-transition:leave="transition ease-in duration-100"
+              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+              x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
+              role="listbox"
+              class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-sand-dark/20 p-1.5 z-50 origin-top-right">
+            {effectiveSortOptions.map((o) => {
+              const clickAttr = "pickSort('" + o.value + "')"
+              const selAttr = "sortKey === '" + o.value + "'"
+              return (
+                <li>
+                  <button type="button" role="option"
+                          x-on:click.prevent={clickAttr}
+                          x-bind:aria-selected={selAttr}
+                          x-bind:class={selAttr + " ? 'bg-coral/10 text-ocean' : 'hover:bg-sand text-stone'"}
+                          class="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-left transition-colors focus:outline-none focus:bg-sand">
+                    <span class="flex-1 text-sm font-semibold truncate">{o.label}</span>
+                    <span x-show={selAttr} x-cloak class="text-coral shrink-0">
+                      <Icon name="check" class="w-4 h-4" />
+                    </span>
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+    )}
   </div>
 
   {/* Grid — Phase 4.61.9 (batch 2): semua items dirender; Alpine hide/show
@@ -1024,7 +1113,12 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
     {items.length > 0 && (
       <>
         <p x-show="visibleCount() === 0" x-cloak class="text-center text-stone-light py-10">No trips match your search. Try adjusting the filters.</p>
-        <div class="grid grid-cols-1 gap-5">
+        {/* Phase 4.61.11 — grid dibungkus dengan `flex-col` supaya CSS
+            `order` bekerja (grid juga honor `order`, tapi flex lebih
+            deterministik pada satu kolom). Fade-up animation dipicu oleh
+            `sortRefreshing` selama ~380ms setelah user pilih sort baru. */}
+        <div class="tsh-listing-grid flex flex-col gap-5 transition-all duration-300 ease-out"
+             x-bind:class="sortRefreshing ? 'opacity-0 translate-y-3' : 'opacity-100 translate-y-0'">
           {items.map((item: any) => {
             // Phase 4.64 — passthrough date + return + trip ke detail page.
             const detailParams = new URLSearchParams()
@@ -1037,9 +1131,13 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             const dateAttr = detailQs ? `?${detailQs}` : ''
             const originSlug = typeof item.originLocation === 'object' ? (item.originLocation?.slug ?? '') : ''
             const arrivalSlug = typeof item.arrivalLocation === 'object' ? (item.arrivalLocation?.slug ?? '') : ''
+            const dep = timeToMin(item.departureTime)
+            const price = cheapestPriceOf(item)
+            const dur = durationMinutesOf(item)
             const showAttr = "matchesFilter('" + originSlug + "','" + arrivalSlug + "')"
+            const orderStyle = "'order:'+rankOf(" + dep + "," + price + "," + dur + ")"
             return (
-              <div x-show={showAttr}>
+              <div x-show={showAttr} x-bind:style={orderStyle} class="tsh-card-wrap">
                 <FerryTicketsCard ferryTicket={item} hrefBase={detailBase + dateAttr} variant={cardVariant} background={cardBg} selectedDate={qDate || today} />
               </div>
             )

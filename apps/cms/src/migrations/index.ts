@@ -37,6 +37,7 @@ import * as migration_20260928_000355_phase_4_63_passengers from './20260928_000
 import * as migration_20260928_085851_phase_4_61_6_ferry_time_and_maps from './20260928_085851_phase_4_61_6_ferry_time_and_maps';
 import * as migration_20260928_152436_phase_4_61_7_ticket_search from './20260928_152436_phase_4_61_7_ticket_search';
 import * as migration_20260930_044533_phase_4_61_10_ticket_cms_fields from './20260930_044533_phase_4_61_10_ticket_cms_fields';
+import * as migration_20260930_070209_phase_4_61_11_ticket_sort_options from './20260930_070209_phase_4_61_11_ticket_sort_options';
 
 export const migrations = [
   {
@@ -232,6 +233,11 @@ export const migrations = [
   {
     up: migration_20260930_044533_phase_4_61_10_ticket_cms_fields.up,
     down: migration_20260930_044533_phase_4_61_10_ticket_cms_fields.down,
-    name: '20260930_044533_phase_4_61_10_ticket_cms_fields'
+    name: '20260930_044533_phase_4_61_10_ticket_cms_fields',
+  },
+  {
+    up: migration_20260930_070209_phase_4_61_11_ticket_sort_options.up,
+    down: migration_20260930_070209_phase_4_61_11_ticket_sort_options.down,
+    name: '20260930_070209_phase_4_61_11_ticket_sort_options'
   },
 ];

@@ -981,7 +981,7 @@ const ServiceListing: Block = {
                       name: 'ticketDefaultSort',
                       type: 'select',
                       defaultValue: 'earliest',
-                      admin: { width: '50%' },
+                      admin: { width: '50%', description: 'Sort default saat halaman pertama kali dibuka.' },
                       options: [
                         { label: 'Earliest Departure', value: 'earliest' },
                         { label: 'Latest Departure', value: 'latest' },
@@ -989,6 +989,25 @@ const ServiceListing: Block = {
                         { label: 'Shortest Duration', value: 'shortest' },
                       ],
                     },
+                  ],
+                },
+                // Phase 4.61.11 — Super-admin memilih opsi Sort By mana saja
+                // yang tampil di dropdown listing. Kosong = pakai default
+                // (semua 4 opsi). Default value adalah `ticketDefaultSort`.
+                {
+                  name: 'ticketSortOptions',
+                  type: 'select',
+                  hasMany: true,
+                  defaultValue: ['earliest', 'latest', 'cheapest', 'shortest'],
+                  admin: {
+                    description:
+                      'Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).',
+                  },
+                  options: [
+                    { label: 'Earliest Departure', value: 'earliest' },
+                    { label: 'Latest Departure', value: 'latest' },
+                    { label: 'Cheapest', value: 'cheapest' },
+                    { label: 'Shortest Duration', value: 'shortest' },
                   ],
                 },
                 // ── Phase 4.61.10 — Header eyebrow + value trust badges ──
