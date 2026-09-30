@@ -35,6 +35,15 @@ const token = new URL(Astro.request.url).searchParams.get('t') ?? ''
 const booking = await getBookingByRefAndToken(ref, token)
 if (!booking) return Astro.redirect('/404')
 
+// Phase 4.66.6 — defense-in-depth di atas _headers (Phase 4.66.3):
+// pastikan tidak ada cache intermediate (CDN, reverse proxy, browser
+// history restore) yang menyimpan halaman ini + tandai noindex/nofollow.
+// `_headers` sudah menetapkan aturan sama, tapi header dari response
+// menang atas file `_headers` di CDN edge yang caching aggresif.
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate')
+Astro.response.headers.set('Pragma', 'no-cache')
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+
 const currency = (booking.currency as 'IDR' | 'USD' | undefined) ?? 'IDR'
 const unit = booking.unitPrice != null ? formatPrice(booking.unitPrice, currency) : null
 const total = booking.totalEstimate != null ? formatPrice(booking.totalEstimate, currency) : null
@@ -88,7 +97,7 @@ const crumbs = [
 ]
 ---
 
-<PageLayout title={`Booking ${booking.bookingRef}`} description={`Booking confirmation for ${ferryTitle ?? 'Ferry Ticket'}.`}>
+<PageLayout title={`Booking ${booking.bookingRef}`} description={`Booking confirmation for ${ferryTitle ?? 'Ferry Ticket'}.`} noindex={true}>
   <section class="container-content py-8 lg:py-10">
 
     {/* ─── Stepper + Breadcrumb card ─── */}

@@ -145,7 +145,7 @@ const priceFmt = (n: number) => formatPrice(n, currency)
 const totalPax = qAdults + qChildren
 ---
 
-<PageLayout title={`Checkout — ${item.title}`} description={`Enter passenger details for ${item.title}.`}>
+<PageLayout title={`Checkout — ${item.title}`} description={`Enter passenger details for ${item.title}.`} noindex={true}>
   <section class="container-content py-8 lg:py-10">
 
     {/* ─── Stepper + Breadcrumb card ─── */}
