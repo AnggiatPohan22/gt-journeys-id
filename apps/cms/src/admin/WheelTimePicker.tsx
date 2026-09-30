@@ -17,6 +17,7 @@
  * Nilai yang di-persist tetap kompatibel dgn validate regex existing.
  */
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useField } from '@payloadcms/ui'
 
 type Props = {
@@ -155,6 +156,38 @@ const WheelTimePicker: React.FC<Props> = (props) => {
   const parsed = useMemo(() => parseHHMM(value), [value])
   const [hour, setHour] = useState(parsed.h)
   const [minute, setMinute] = useState(parsed.m)
+  const [popRect, setPopRect] = useState<{ top: number; left: number; placeAbove: boolean } | null>(null)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+  const popRef = useRef<HTMLDivElement | null>(null)
+  const POP_WIDTH = 260
+  const POP_HEIGHT_ESTIMATE = 260
+
+  // Compute popover viewport position; flip above button when no room below.
+  const updatePopRect = useCallback(() => {
+    const btn = buttonRef.current
+    if (!btn) return
+    const r = btn.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - r.bottom
+    const placeAbove = spaceBelow < POP_HEIGHT_ESTIMATE + 12 && r.top > POP_HEIGHT_ESTIMATE + 12
+    const top = placeAbove ? r.top - 6 : r.bottom + 6
+    let left = r.left
+    // keep within viewport horizontally (8px margin)
+    if (left + POP_WIDTH > window.innerWidth - 8) left = window.innerWidth - POP_WIDTH - 8
+    if (left < 8) left = 8
+    setPopRect({ top, left, placeAbove })
+  }, [])
+
+  useLayoutEffect(() => {
+    if (!open) return
+    updatePopRect()
+    const onScrollOrResize = () => updatePopRect()
+    window.addEventListener('scroll', onScrollOrResize, true)
+    window.addEventListener('resize', onScrollOrResize)
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true)
+      window.removeEventListener('resize', onScrollOrResize)
+    }
+  }, [open, updatePopRect])
 
   // Re-sync internal state saat popover dibuka.
   useEffect(() => {
@@ -171,8 +204,10 @@ const WheelTimePicker: React.FC<Props> = (props) => {
   useEffect(() => {
     if (!open) return
     const onDoc = (e: MouseEvent) => {
-      if (!wrapRef.current) return
-      if (!wrapRef.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      const inWrap = wrapRef.current?.contains(target)
+      const inPop = popRef.current?.contains(target)
+      if (!inWrap && !inPop) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -219,6 +254,7 @@ const WheelTimePicker: React.FC<Props> = (props) => {
       <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
         <button
           id={`wtp-${path}`}
+          ref={buttonRef}
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="dialog"
@@ -268,20 +304,22 @@ const WheelTimePicker: React.FC<Props> = (props) => {
         </div>
       )}
 
-      {open && (
+      {open && popRect && typeof document !== 'undefined' && createPortal(
         <div
+          ref={popRef}
           role="dialog"
           aria-label={`Pilih ${label}`}
           style={{
-            position: 'absolute',
-            zIndex: 100,
-            top: 'calc(100% + 6px)',
-            left: 0,
-            width: 260,
+            position: 'fixed',
+            zIndex: 9999,
+            top: popRect.placeAbove ? undefined : popRect.top,
+            bottom: popRect.placeAbove ? window.innerHeight - popRect.top : undefined,
+            left: popRect.left,
+            width: POP_WIDTH,
             background: 'var(--theme-elevation-0)',
             border: '1px solid var(--theme-elevation-200)',
             borderRadius: 8,
-            boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.25)',
             padding: 12,
           }}
         >
@@ -367,7 +405,8 @@ const WheelTimePicker: React.FC<Props> = (props) => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
