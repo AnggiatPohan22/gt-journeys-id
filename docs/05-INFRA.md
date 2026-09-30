@@ -189,8 +189,9 @@ compatibility_flags = ["nodejs_compat"]
 
 main = ".open-next/worker.js"
 
+# Phase 4.66.1 — secrets tidak ada di [vars] lagi. Set via
+# `wrangler secret put PAYLOAD_SECRET` (encrypted at rest).
 [vars]
-PAYLOAD_SECRET = "CHANGE-THIS-TO-A-RANDOM-32-CHAR-STRING"   # ← ganti ke wrangler secret put
 SERVER_URL = "http://localhost:8787"
 
 [[d1_databases]]
@@ -205,11 +206,14 @@ bucket_name = "dn-journeys-media"
 
 **⚠️ Yang perlu diubah sebelum production:**
 
-1. Pindahkan `PAYLOAD_SECRET` dari `[vars]` (plaintext) ke **secret**:
+1. Set `PAYLOAD_SECRET` sebagai **Worker secret** (encrypted at rest, tidak ada di git):
    ```bash
-   wrangler secret put PAYLOAD_SECRET
+   cd apps/cms
+   wrangler secret put PAYLOAD_SECRET       # 32+ char random string
+   wrangler secret put PAYLOAD_API_KEY      # optional rotation
+   wrangler secret put BOOKING_FORM_SECRET  # kalau checkout ikut worker ini
    ```
-   Hapus baris `PAYLOAD_SECRET` dari `[vars]`.
+   Phase 4.66.1 sudah menghapus `PAYLOAD_SECRET` dari `[vars]` di [`apps/cms/wrangler.toml`](apps/cms/wrangler.toml). Jangan menambahkannya kembali di sana.
 2. Set `SERVER_URL` ke domain production (`https://cms.dnjourneysbali.com`).
 3. Tambahkan `SITE_URL`:
    ```toml

@@ -5,8 +5,13 @@ compatibility_flags = ["nodejs_compat"]
 # Main entry point (OpenNext adapter handles this)
 main = ".open-next/worker.js"
 
+# Phase 4.66.1 — Secrets tidak lagi di [vars] (di-commit ke git).
+# Set via wrangler CLI (encrypted at rest, tidak visible di dashboard):
+#   wrangler secret put PAYLOAD_SECRET       # 32+ char random string
+#   wrangler secret put PAYLOAD_API_KEY      # optional: rotate ini juga
+#   wrangler secret put BOOKING_FORM_SECRET  # kalau ferry checkout ikut aktif di worker ini
+# Non-sensitif tetap boleh di [vars]:
 [vars]
-PAYLOAD_SECRET = "CHANGE-THIS-TO-A-RANDOM-32-CHAR-STRING"
 SERVER_URL = "http://localhost:8787"
 
 # D1 Database — IDs will be auto-filled after first deploy
