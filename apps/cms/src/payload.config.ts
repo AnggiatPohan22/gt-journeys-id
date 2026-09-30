@@ -129,6 +129,23 @@ export default buildConfig({
     process.env.SITE_URL ?? 'https://dnjourneysbali.com',
   ],
 
+  // ── CSRF (Phase 4.66.2) ─────────────────────
+  // Payload menerapkan CSRF check pada request yang membawa cookie sesi
+  // (mis. admin login, mutation dari /admin). Tanpa daftar ini, cookie
+  // session bisa dipakai request cross-origin (state-changing) dari
+  // domain manapun. Kita whitelist origin yang sah:
+  //   - localhost dev untuk web (4321) & admin (3030)
+  //   - SITE_URL (frontend production)
+  //   - SERVER_URL (admin production)
+  // API-key request (Astro → /api/bookings) TIDAK terpengaruh CSRF check
+  // ini — CSRF hanya berlaku kalau ada cookie sesi.
+  csrf: [
+    'http://localhost:4321',
+    'http://localhost:3030',
+    process.env.SITE_URL ?? 'https://dnjourneysbali.com',
+    process.env.SERVER_URL ?? '',
+  ].filter(Boolean),
+
   // ── Database ────────────────────────────────
   // Local dev: file-based SQLite (auto-created).
   // Production (Cloudflare Workers): swap with D1 adapter driven by env.DB.
