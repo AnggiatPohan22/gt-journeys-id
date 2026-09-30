@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdmin, isSuperAdmin } from '../access/roles'
+import { isAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
 
 /**
  * Bookings — Phase 4.62.
@@ -184,7 +184,22 @@ export const Bookings: CollectionConfig = {
           type: 'row',
           fields: [
             { name: 'dateOfBirth',        type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' } } },
-            { name: 'passportNumber',     type: 'text', admin: { width: '33%', description: 'Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat.' } },
+            {
+              name: 'passportNumber',
+              type: 'text',
+              // Phase 4.66.7 (finding S-09) — passport = data paling sensitif
+              // di collection ini. Update dibatasi ke super-admin (walaupun
+              // collection-level `update: isAdmin` sudah cukup ketat, ini
+              // memberi tambahan defense: seorang admin yang login juga tidak
+              // bisa mengubah passport tanpa naik ke super-admin dulu).
+              access: {
+                update: superAdminFieldAccess,
+              },
+              admin: {
+                width: '33%',
+                description: 'Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.',
+              },
+            },
             { name: 'passportIssueDate',  type: 'date', admin: { width: '17%', date: { pickerAppearance: 'dayOnly' } } },
           ],
         },
