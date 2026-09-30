@@ -3,6 +3,8 @@
 > Skema database proyek **DnJourneysBali**, di-generate dari definisi Payload CMS 3.x pada `apps/cms/src/collections/` dan `apps/cms/src/globals/`.
 >
 > Database: **Cloudflare D1** (SQLite-compatible) di produksi, SQLite file lokal (`apps/cms/cms.db`) saat development. Adapter: `@payloadcms/db-sqlite` (Drizzle ORM) — lihat [payload.config.ts](apps/cms/src/payload.config.ts).
+>
+> ⚠️ **Belum lengkap** — koleksi terbaru (Phase 4.62 Bookings + passengers) belum dituliskan lengkap di sini. Detail schema Bookings ada di [`apps/cms/src/collections/Bookings.ts`](apps/cms/src/collections/Bookings.ts) + migrations `20260927_142814_phase_4_62_bookings`, `20260928_000355_phase_4_63_passengers`, dan `20260930_231200_phase_4_66_5_booking_access_token` (kolom `access_token` untuk IDOR fix Phase 4.66.5).
 
 ---
 

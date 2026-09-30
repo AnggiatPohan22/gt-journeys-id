@@ -44,6 +44,9 @@ Legenda: ✅ boleh · ❌ tidak boleh · ⚠️ terbatas (lihat keterangan).
 | **Global `footer-settings`** — update | ✅ | ❌ | ❌ | ❌ | Kolom footer. |
 | **Global `site-features`** — update | ✅ | ❌ | ❌ | ❌ | Toggle modul/section/fitur — keputusan owner, bukan editor. |
 | **Global `site-features`** — read | ✅ | ✅ | ✅ | ✅ | Publik: frontend butuh fetch tanpa auth. |
+| **Bookings** — read/create/update | ✅ | ✅ | ❌ | ❌ | Public REST ditutup (Phase 4.62). Public checkout page write via API-key user (`/api/bookings/create`). |
+| **Bookings** — delete | ✅ | ❌ | ❌ | ❌ | Super-admin only. |
+| **Bookings** — confirmation page public | — | — | — | ⚠️ | Phase 4.66.5: `/checkout/…/confirmation/<ref>` butuh query `?t=<accessToken>` 128-bit yang match record. Ref saja tidak cukup — mencegah IDOR. |
 
 ### 1.2 Field-level & Fitur Khusus
 
@@ -52,6 +55,7 @@ Legenda: ✅ boleh · ❌ tidak boleh · ⚠️ terbatas (lihat keterangan).
 | Field `users.role` | ✅ | ❌ | ❌ | Hanya super-admin bisa mengubah role user lain. |
 | Field `status` (draft/published) di semua service + destinations + categories + pages | ✅ | ✅ | ❌ | Editor tidak boleh **publish** — hanya edit isi. Guard: [fields/status.ts:14](apps/cms/src/fields/status.ts#L14) pakai `adminFieldAccess`. |
 | Field `additionalBlocks` (Custom Sections) di setiap service | ✅ | ❌ | ❌ | Block extra di detail page — super-admin only. Guard: `superAdminFieldAccess`. |
+| Field `bookings.passengers[].passportNumber` — update | ✅ | ❌ | ❌ | Phase 4.66.7: passport paling sensitif. Admin **read** (untuk ticketing) tapi tidak **update** — naik ke super-admin. |
 | Upload file baru ke Media Library | ✅ | ✅ | ✅ | Semua login. |
 | Hapus file Media | ✅ | ✅ | ❌ | |
 | Module toggle (Global `site-features.modules.*`) | ✅ | ❌ | ❌ | Sudah di CMS via [SiteFeatures.ts](apps/cms/src/globals/SiteFeatures.ts). Update = super-admin only; effect butuh rebuild frontend (SSG). |
