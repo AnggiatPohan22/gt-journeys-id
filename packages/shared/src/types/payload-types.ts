@@ -2036,7 +2036,7 @@ export interface Page {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -5111,7 +5111,7 @@ export interface Tour {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -7935,7 +7935,7 @@ export interface Post {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -15216,7 +15216,7 @@ export interface Yacht {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -17712,7 +17712,7 @@ export interface Restaurant {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -20514,7 +20514,7 @@ export interface Venue {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -23301,7 +23301,7 @@ export interface Rental {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**
@@ -26088,7 +26088,7 @@ export interface Spa {
             showGuestCount?: boolean | null;
             searchButtonText?: string | null;
             /**
-             * Show Round Trip / One Way pills. Round Trip UI shows "Coming soon" (booking flow lands in a later phase).
+             * Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.
              */
             ticketEnableRoundTrip?: boolean | null;
             /**

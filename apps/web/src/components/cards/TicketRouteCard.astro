@@ -320,9 +320,11 @@ const midIcon = middle.icon ?? 'ship'
   @media (min-width: 640px) { .tkc__term { font-size: 13px; } }
   @media (min-width: 1024px) { .tkc__term { font-size: 14px; } }
 
-  .tkc__time { font-weight: 700; color: var(--ocean); font-size: 16px; line-height: 1.1; margin-top: 5px; }
-  @media (min-width: 640px) { .tkc__time { font-size: 22px; } }
-  @media (min-width: 1024px) { .tkc__time { font-size: 30px; } }
+  /* Phase 4.61.7 — samakan dengan .tkc__name (Location title) supaya
+     time (HH:mm TZ) tidak dominan. Bold + color coral untuk menonjol. */
+  .tkc__time { font-weight: 700; color: var(--coral); font-size: 14px; line-height: 1.15; margin-top: 4px; letter-spacing: -0.005em; }
+  @media (min-width: 640px) { .tkc__time { font-size: 16px; } }
+  @media (min-width: 1024px) { .tkc__time { font-size: 20px; } }
 
   .tkc__date { font-size: 10px; color: var(--stoneL); margin-top: 3px; }
   @media (min-width: 640px) { .tkc__date { font-size: 12px; } }

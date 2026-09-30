@@ -153,6 +153,25 @@ export const getFerryTickets = (opts?: Partial<FetchOptions>) =>
 export const getFerryTicketsBySlug = (slug: string) =>
   fetchBySlug<FerryTicket>('ferry-tickets', slug)
 
+// Phase 4.61.7 — Locations (ferry ports, train stations, etc.).
+export interface LocationDoc {
+  id: number
+  name: string
+  terminalName?: string
+  slug: string
+  code?: string
+  country?: string
+  timezone?: string
+  locationType?: 'ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city'
+  isActive?: boolean
+  mapEmbedUrl?: string
+  mapLink?: string
+}
+export const getLocations = (opts?: Partial<FetchOptions>) =>
+  // Locations don't have a `status` field — must fetch with status:'all' or
+  // the default status=published filter returns zero rows.
+  fetchCollection<LocationDoc>({ collection: 'locations', sort: 'sortOrder', limit: 200, status: 'all', ...opts })
+
 /**
  * ServiceType metadata doc. Typed locally (loose) so builds don't hard-depend
  * on regenerated payload-types before `generate:types` runs. Status enum is

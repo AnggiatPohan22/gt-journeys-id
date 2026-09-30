@@ -175,6 +175,13 @@ export const FerryTickets: CollectionConfig = {
                     },
                   ],
                 },
+                // Phase 4.61.7 — durationMinutes (auto-set by hook,
+                // hidden from UI). Used by frontend for sort by "Shortest".
+                {
+                  name: 'durationMinutes',
+                  type: 'number',
+                  admin: { hidden: true, readOnly: true },
+                },
                 // Phase 4.61.6 — hidden ui field: watches durationOverride
                 // and disables the <input name="duration"> when unchecked.
                 {

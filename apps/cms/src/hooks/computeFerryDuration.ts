@@ -65,16 +65,17 @@ export const computeFerryDuration: CollectionBeforeChangeHook = async ({ data, r
     const arrivalOffset = TIMEZONE_OFFSETS[arrivalTz]
     if (originOffset === undefined || arrivalOffset === undefined) return data
 
-    // Konversi ke menit UTC
     const depUtc = depMin - originOffset
     let arrUtc = arrMin - arrivalOffset
     let diff = arrUtc - depUtc
-    if (diff < 0) diff += 24 * 60 // asumsi next day
-    if (diff <= 0 || diff > 24 * 60) return data // sanity
+    if (diff < 0) diff += 24 * 60
+    if (diff <= 0 || diff > 24 * 60) return data
 
     data.duration = formatDuration(diff)
+    // Phase 4.61.7 — numeric for sortable frontend.
+    data.durationMinutes = diff
   } catch {
-    // fail-silent — jangan block save karena hitung durasi gagal
+    // fail-silent
   }
   return data
 }

@@ -42,6 +42,21 @@ export const Locations: CollectionConfig = {
       admin: { placeholder: 'Batam', description: 'Display name, e.g. "Batam", "Singapore", "Tanjung Pinang".' },
     },
     {
+      name: 'locationType',
+      type: 'select',
+      defaultValue: 'ferry-port',
+      admin: {
+        description: 'Location category. Filters which service search widgets can pick this location (e.g. ferry search only shows ferry-port).',
+      },
+      options: [
+        { label: 'Ferry Port', value: 'ferry-port' },
+        { label: 'Train Station', value: 'train-station' },
+        { label: 'Airport', value: 'airport' },
+        { label: 'Bus Terminal', value: 'bus-terminal' },
+        { label: 'City / General', value: 'city' },
+      ],
+    },
+    {
       name: 'terminalName',
       type: 'text',
       label: 'Terminal / Sub-title',

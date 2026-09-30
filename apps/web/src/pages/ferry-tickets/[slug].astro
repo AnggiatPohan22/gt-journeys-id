@@ -12,6 +12,7 @@ import { formatPrice } from '@shared/utils/format-price'
 import { siteConfig } from '@config/site'
 import { lexicalToPlainText } from '@lib/lexical'
 import { resolveLocation, routeLabelFrom, tzLabel } from '@lib/location'
+import { todayLocalISO } from '@lib/date'
 import Breadcrumbs from '@components/common/Breadcrumbs.astro'
 import StructuredData from '@components/common/StructuredData.astro'
 import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
@@ -435,7 +436,7 @@ const itemSchema = serviceItemSchema({
             <label class="block">
               <span class="block text-xs font-semibold text-stone mb-1">Ferry Schedule Date</span>
               <div class="relative">
-                <input type="date" name="date" required class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
+                <input type="date" name="date" required min={todayLocalISO()} class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
                 <Icon name="calendar_today" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
               </div>
             </label>
