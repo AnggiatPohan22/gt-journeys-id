@@ -1,21 +1,24 @@
 /**
  * Fallback site config — used when CMS data isn't available yet.
  * In production, all values come from CMS SiteSettings global.
+ *
+ * Brand = GtJourneysID (umbrella, general-purpose). Per-instance deployments
+ * (Bali, Jakarta, etc.) override these via CMS SiteSettings.
  */
 export const siteConfig = {
-  name: 'DnJourneysBali',
-  tagline: 'Your Bali Journey, Our Local Expertise',
-  url: 'https://dnjourneysbali.com',
+  name: 'GtJourneysID',
+  tagline: 'Explore Indonesia with Local Expertise',
+  url: 'https://example.com', // TODO: set production domain
 
   contact: {
-    email: 'hello@dnjourneysbali.com',
+    email: 'hello@example.com',
     phone: '+62-xxx-xxxx-xxxx',
     whatsapp: '62xxxxxxxxxxx',
-    address: 'Bali, Indonesia',
+    address: 'Indonesia',
   },
 
   social: {
-    instagram: 'https://instagram.com/dnjourneysbali',
+    instagram: '',
     facebook: '',
     tiktok: '',
     youtube: '',
@@ -23,8 +26,8 @@ export const siteConfig = {
   },
 
   defaultSeo: {
-    title: 'DnJourneysBali — Tours, Villas, Activities in Bali',
-    description: 'Discover the best of Bali with local expertise. Tours, villa bookings, water activities, yacht charters, restaurants, weddings, and rental services.',
+    title: 'GtJourneysID — Tours, Stays, and Experiences in Indonesia',
+    description: 'Discover Indonesia with local expertise. Tours, accommodations, water activities, ferry tickets, dining, and more.',
     ogImage: '/og-default.jpg',
   },
 }
