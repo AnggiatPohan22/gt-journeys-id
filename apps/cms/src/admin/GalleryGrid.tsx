@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Gallery thumbnail grid (Phase 4.26c, pilot rewrite).
+ * GtJourneysID — Gallery thumbnail grid (Phase 4.26c, pilot rewrite).
  *
  * Rendered via `admin.components.afterInput` on the Accommodations
  * `gallery` array field. Fully owns the visual layout — the default

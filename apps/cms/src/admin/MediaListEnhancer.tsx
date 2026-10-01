@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Media Library toolbar (Phase 4.11 · revised 4.60).
+ * GtJourneysID — Media Library toolbar (Phase 4.11 · revised 4.60).
  *
  * Mounted globally via `admin.components.providers`. Self-hides on every
  * route except the media library. It enhances TWO surfaces:

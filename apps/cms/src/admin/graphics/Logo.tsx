@@ -3,7 +3,7 @@ import React from 'react'
 /**
  * Brand Logo untuk halaman login admin (menggantikan logo default Payload).
  * Didaftarkan di `admin.components.graphics.Logo`.
- * Badge monogram gradient (ocean→leaf) + wordmark DnJourneysBali.
+ * Badge monogram gradient (ocean→leaf) + wordmark GtJourneysID.
  */
 /** const Logo = () => (
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>

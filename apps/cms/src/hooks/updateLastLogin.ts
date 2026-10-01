@@ -1,7 +1,7 @@
 import type { CollectionAfterLoginHook } from 'payload'
 
 /**
- * DnJourneysBali — Users afterLogin hook (Phase 4.14 · Track A).
+ * GtJourneysID — Users afterLogin hook (Phase 4.14 · Track A).
  *
  * Writes `lastLoginAt` (ISO timestamp) onto the user doc every time
  * they successfully log in. Powers the "Last login: 2h ago" line in

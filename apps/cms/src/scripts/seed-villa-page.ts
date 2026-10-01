@@ -89,7 +89,7 @@ const run = async () => {
       },
     ],
     seo: {
-      metaTitle: 'Villas & Hotels Collection | DnJourneysBali',
+      metaTitle: 'Villas & Hotels Collection | GtJourneysID',
       metaDescription: 'Curated luxury villas, hotels, and resorts across Bali, Nusa Penida, Lembongan, and Ceningan.',
     },
   }

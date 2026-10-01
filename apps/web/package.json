@@ -1,5 +1,5 @@
 {
-  "name": "@dn-journeys/web",
+  "name": "@gt-journeys/web",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -13,7 +13,7 @@
     "@astrojs/cloudflare": "^12.4.0",
     "@astrojs/sitemap": "^3.3.0",
     "@astrojs/tailwind": "^6.0.0",
-    "@dn-journeys/shared": "workspace:*",
+    "@gt-journeys/shared": "workspace:*",
     "@iconify-json/lucide": "^1.2.127",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/utils": "^3.1.4",

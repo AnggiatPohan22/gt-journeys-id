@@ -41,7 +41,7 @@ export interface TemplateDef {
 }
 
 // ── Fingerprint kontrak (untuk portabilitas antar-project) ──────────────
-export const REGISTRY_ID = 'dnjourneys-headerfooter'
+export const REGISTRY_ID = 'gtjourneys-headerfooter'
 export const REGISTRY_VERSION = '1.0.0'
 export const SCHEMA_VERSION = '1.0'
 

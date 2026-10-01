@@ -1,6 +1,6 @@
 # 05 — INFRA
 
-> Blueprint & SOP infrastruktur proyek **DnJourneysBali** di Cloudflare — Pages (Astro) + Workers (Payload CMS + Next.js via OpenNext) + D1 (database) + R2 (media). Target budget ~$5/bulan.
+> Blueprint & SOP infrastruktur proyek **GtJourneysID** di Cloudflare — Pages (Astro) + Workers (Payload CMS + Next.js via OpenNext) + D1 (database) + R2 (media). Target budget ~$5/bulan.
 
 ---
 
@@ -14,10 +14,10 @@ flowchart TB
 
     subgraph CF[Cloudflare Edge]
         DNS[Cloudflare DNS<br/>example.com]
-        Pages[Cloudflare Pages<br/>apps/web — Astro static<br/>dnjourneysbali.com]
-        Workers[Cloudflare Workers<br/>apps/cms — Payload + Next<br/>cms.dnjourneysbali.com]
-        D1[(Cloudflare D1<br/>dn-journeys-db<br/>SQLite serverless)]
-        R2[(Cloudflare R2<br/>dn-journeys-media<br/>S3-compatible)]
+        Pages[Cloudflare Pages<br/>apps/web — Astro static<br/>gtjourneysid.com]
+        Workers[Cloudflare Workers<br/>apps/cms — Payload + Next<br/>cms.gtjourneysid.com]
+        D1[(Cloudflare D1<br/>gt-journeys-db<br/>SQLite serverless)]
+        R2[(Cloudflare R2<br/>gt-journeys-media<br/>S3-compatible)]
     end
 
     User -->|HTTPS| DNS
@@ -62,7 +62,7 @@ flowchart TB
 
 | Variable | Tipe | Contoh | Deskripsi |
 |---|---|---|---|
-| `CMS_URL` | Publik (build-time) | `https://cms.dnjourneysbali.com` | Base URL Payload API — dipakai oleh Astro saat build (SSG). Fallback `http://localhost:3030` di dev. Lihat [lib/payload.ts:16](apps/web/src/lib/payload.ts#L16). |
+| `CMS_URL` | Publik (build-time) | `https://cms.gtjourneysid.com` | Base URL Payload API — dipakai oleh Astro saat build (SSG). Fallback `http://localhost:3030` di dev. Lihat [lib/payload.ts:16](apps/web/src/lib/payload.ts#L16). |
 
 <!-- TODO: file apps/web/.env.example belum ada — buat manual dengan CMS_URL. -->
 
@@ -74,8 +74,8 @@ Set di Cloudflare Dashboard:
 | Variable | Tipe | Contoh | Deskripsi |
 |---|---|---|---|
 | `PAYLOAD_SECRET` | **Secret** | random 32+ char | Kunci enkripsi JWT & session. **Wajib** di production. |
-| `SERVER_URL` | Publik (vars) | `https://cms.dnjourneysbali.com` | URL publik CMS (dipakai Payload untuk absolute links, email verify). |
-| `SITE_URL` | Publik (vars) | `https://dnjourneysbali.com` | Origin frontend — dipakai untuk CORS allowlist. Lihat [payload.config.ts:88-92](apps/cms/src/payload.config.ts#L88). |
+| `SERVER_URL` | Publik (vars) | `https://cms.gtjourneysid.com` | URL publik CMS (dipakai Payload untuk absolute links, email verify). |
+| `SITE_URL` | Publik (vars) | `https://gtjourneysid.com` | Origin frontend — dipakai untuk CORS allowlist. Lihat [payload.config.ts:88-92](apps/cms/src/payload.config.ts#L88). |
 | `DATABASE_URI` | (dev only) | `file:./cms.db` | Lokal saja. Di production, akses D1 via **binding** `DB` (bukan connection string) — lihat wrangler.toml. |
 | `DB` | Binding | (D1) | Binding D1 database — auto tersedia sebagai `env.DB` di Worker. |
 | `R2_BUCKET` | Binding | (R2) | Binding R2 bucket — auto tersedia sebagai `env.R2_BUCKET`. |
@@ -123,25 +123,25 @@ wrangler secret put PAYLOAD_SECRET
 ```
 
 **Via Dashboard:**
-- Workers & Pages → `dn-journeys-cms` → Settings → Variables & Secrets → **Add** → Type: Secret.
+- Workers & Pages → `gt-journeys-cms` → Settings → Variables & Secrets → **Add** → Type: Secret.
 
 ---
 
 ## 3. Konfigurasi Domain & DNS
 
-Skenario domain contoh: **`dnjourneysbali.com`**.
+Skenario domain contoh: **`gtjourneysid.com`**.
 
 ### 3.1 Custom Domain untuk Pages (frontend)
 
-1. Cloudflare Dashboard → **Workers & Pages** → pilih project `dn-journeys-web`.
+1. Cloudflare Dashboard → **Workers & Pages** → pilih project `gt-journeys-web`.
 2. Tab **Custom domains** → **Set up a custom domain**.
-3. Masukkan `dnjourneysbali.com` (apex) → Continue → Activate.
-4. Ulangi untuk `www.dnjourneysbali.com`. Cloudflare otomatis buat CNAME/ALIAS record di zone DNS.
+3. Masukkan `gtjourneysid.com` (apex) → Continue → Activate.
+4. Ulangi untuk `www.gtjourneysid.com`. Cloudflare otomatis buat CNAME/ALIAS record di zone DNS.
 
 ### 3.2 Subdomain untuk Workers (CMS/API)
 
-1. Workers & Pages → pilih `dn-journeys-cms` → **Settings** → **Domains & Routes** → **Add**.
-2. Pilih **Custom domain**, masukkan `cms.dnjourneysbali.com` → Add.
+1. Workers & Pages → pilih `gt-journeys-cms` → **Settings** → **Domains & Routes** → **Add**.
+2. Pilih **Custom domain**, masukkan `cms.gtjourneysid.com` → Add.
 3. Cloudflare auto-provision SSL cert (~1 menit).
 
 ### 3.3 SSL/TLS
@@ -158,21 +158,21 @@ CORS allowlist di-set di [payload.config.ts:88-92](apps/cms/src/payload.config.t
 cors: [
   'http://localhost:4321',                            // Astro dev
   'http://localhost:3030',                            // CMS admin self
-  process.env.SITE_URL ?? 'https://dnjourneysbali.com', // production frontend
+  process.env.SITE_URL ?? 'https://gtjourneysid.com', // production frontend
 ],
 ```
 
-Pastikan `SITE_URL` var di Workers **tepat sama** dengan origin frontend (`https://dnjourneysbali.com`), tanpa trailing slash.
+Pastikan `SITE_URL` var di Workers **tepat sama** dengan origin frontend (`https://gtjourneysid.com`), tanpa trailing slash.
 
-<!-- TODO: kalau ada multi-domain (mis. dnjourneysbali.com + www.dnjourneysbali.com sebagai origin berbeda), tambahkan array explicit di CORS. -->
+<!-- TODO: kalau ada multi-domain (mis. gtjourneysid.com + www.gtjourneysid.com sebagai origin berbeda), tambahkan array explicit di CORS. -->
 
 ### 3.5 Ringkasan routing DNS
 
 | Host | Target | Type |
 |---|---|---|
-| `dnjourneysbali.com` (apex) | Pages `dn-journeys-web` | CNAME (flattened) |
-| `www.dnjourneysbali.com` | Pages `dn-journeys-web` | CNAME |
-| `cms.dnjourneysbali.com` | Workers `dn-journeys-cms` | Auto (Workers custom domain) |
+| `gtjourneysid.com` (apex) | Pages `gt-journeys-web` | CNAME (flattened) |
+| `www.gtjourneysid.com` | Pages `gt-journeys-web` | CNAME |
+| `cms.gtjourneysid.com` | Workers `gt-journeys-cms` | Auto (Workers custom domain) |
 
 ---
 
@@ -183,7 +183,7 @@ Pastikan `SITE_URL` var di Workers **tepat sama** dengan origin frontend (`https
 Isi sekarang di [apps/cms/wrangler.toml](apps/cms/wrangler.toml):
 
 ```toml
-name = "dn-journeys-cms"
+name = "gt-journeys-cms"
 compatibility_date = "2025-09-30"
 compatibility_flags = ["nodejs_compat"]
 
@@ -196,12 +196,12 @@ SERVER_URL = "http://localhost:8787"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "dn-journeys-db"
+database_name = "gt-journeys-db"
 database_id = "YOUR_D1_DATABASE_ID"   # ← isi setelah wrangler d1 create
 
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "dn-journeys-media"
+bucket_name = "gt-journeys-media"
 ```
 
 **⚠️ Yang perlu diubah sebelum production:**
@@ -214,25 +214,25 @@ bucket_name = "dn-journeys-media"
    wrangler secret put BOOKING_FORM_SECRET  # kalau checkout ikut worker ini
    ```
    Phase 4.66.1 sudah menghapus `PAYLOAD_SECRET` dari `[vars]` di [`apps/cms/wrangler.toml`](apps/cms/wrangler.toml). Jangan menambahkannya kembali di sana.
-2. Set `SERVER_URL` ke domain production (`https://cms.dnjourneysbali.com`).
+2. Set `SERVER_URL` ke domain production (`https://cms.gtjourneysid.com`).
 3. Tambahkan `SITE_URL`:
    ```toml
    [vars]
-   SERVER_URL = "https://cms.dnjourneysbali.com"
-   SITE_URL = "https://dnjourneysbali.com"
+   SERVER_URL = "https://cms.gtjourneysid.com"
+   SITE_URL = "https://gtjourneysid.com"
    ```
-4. Isi `database_id` dgn output `wrangler d1 create dn-journeys-db`.
+4. Isi `database_id` dgn output `wrangler d1 create gt-journeys-db`.
 5. (Opsional) Environment terpisah untuk staging:
    ```toml
    [env.staging]
-   name = "dn-journeys-cms-staging"
+   name = "gt-journeys-cms-staging"
    [[env.staging.d1_databases]]
    binding = "DB"
-   database_name = "dn-journeys-db-staging"
+   database_name = "gt-journeys-db-staging"
    database_id = "..."
    [[env.staging.r2_buckets]]
    binding = "R2_BUCKET"
-   bucket_name = "dn-journeys-media-staging"
+   bucket_name = "gt-journeys-media-staging"
    ```
 
 ### 4.2 `apps/web/astro.config.mjs` (existing)
@@ -243,10 +243,10 @@ import tailwind from '@astrojs/tailwind'
 import sitemap from '@astrojs/sitemap'
 
 export default defineConfig({
-  site: 'https://dnjourneysbali.com',
+  site: 'https://gtjourneysid.com',
   output: 'static',
   integrations: [tailwind(), sitemap({ filter: (p) => !p.includes('/admin') })],
-  image: { domains: ['dn-journeys-media.r2.cloudflarestorage.com'] },
+  image: { domains: ['gt-journeys-media.r2.cloudflarestorage.com'] },
 })
 ```
 
@@ -316,11 +316,11 @@ pnpm add -g wrangler
 wrangler login
 
 # Buat D1 database
-wrangler d1 create dn-journeys-db
+wrangler d1 create gt-journeys-db
 # → Copy database_id ke apps/cms/wrangler.toml [[d1_databases]] database_id
 
 # Buat R2 bucket
-wrangler r2 bucket create dn-journeys-media
+wrangler r2 bucket create gt-journeys-media
 
 # Set secrets (dari dalam apps/cms/)
 cd apps/cms
@@ -359,7 +359,7 @@ pnpm payload migrate:create
 pnpm payload migrate
 
 # Jalankan migrasi ke D1 production
-wrangler d1 migrations apply dn-journeys-db --remote
+wrangler d1 migrations apply gt-journeys-db --remote
 ```
 
 <!-- TODO: folder migrations/ belum ada — akan auto-generated saat migrate:create pertama kali dijalankan. -->
@@ -381,7 +381,7 @@ pnpm deploy:web          # astro build + wrangler pages deploy dist/
 
 # Atau manual explicit
 cd apps/web
-wrangler pages deploy dist/ --project-name=dn-journeys-web
+wrangler pages deploy dist/ --project-name=gt-journeys-web
 ```
 
 **Backend (Workers via OpenNext):**
@@ -430,10 +430,10 @@ jobs:
 
 ```bash
 # Export full database ke SQL
-wrangler d1 export dn-journeys-db --remote --output=backup-$(date +%Y%m%d).sql
+wrangler d1 export gt-journeys-db --remote --output=backup-$(date +%Y%m%d).sql
 
 # Restore ke DB baru (mis. staging)
-wrangler d1 execute dn-journeys-db-staging --file=backup-YYYYMMDD.sql --remote
+wrangler d1 execute gt-journeys-db-staging --file=backup-YYYYMMDD.sql --remote
 ```
 
 Jadwal backup: **mingguan** untuk site aktif, harian kalau editorial tinggi. Simpan di R2 bucket terpisah atau external storage.
@@ -442,12 +442,12 @@ Jadwal backup: **mingguan** untuk site aktif, harian kalau editorial tinggi. Sim
 
 ```bash
 # Sync bucket ke lokal via wrangler
-for key in $(wrangler r2 object list dn-journeys-media --output=json | jq -r '.[].key'); do
-  wrangler r2 object get dn-journeys-media/$key --file=./r2-backup/$key
+for key in $(wrangler r2 object list gt-journeys-media --output=json | jq -r '.[].key'); do
+  wrangler r2 object get gt-journeys-media/$key --file=./r2-backup/$key
 done
 
 # Atau pakai rclone (lebih cepat, mendukung parallel + delta)
-rclone sync r2:dn-journeys-media ./r2-backup --transfers=8
+rclone sync r2:gt-journeys-media ./r2-backup --transfers=8
 ```
 
 Setup `rclone` config: [rclone.org/s3/#cloudflare-r2](https://rclone.org/s3/#cloudflare-r2).
@@ -456,10 +456,10 @@ Setup `rclone` config: [rclone.org/s3/#cloudflare-r2](https://rclone.org/s3/#clo
 
 ```bash
 # Real-time log Worker (streaming)
-wrangler tail dn-journeys-cms
+wrangler tail gt-journeys-cms
 
 # Filter status/method
-wrangler tail dn-journeys-cms --status error --method POST
+wrangler tail gt-journeys-cms --status error --method POST
 
 # Log Pages build via Dashboard
 # → Pages → project → Deployments → klik deploy → View build log
@@ -472,11 +472,11 @@ Metrics: Cloudflare Dashboard → Workers → analytics → CPU time / requests 
 | Gejala | Cek |
 |---|---|
 | **Worker 500 / crash** | `wrangler tail` — cari stack trace. Common cause: `PAYLOAD_SECRET` belum di-set, atau D1 binding salah nama. |
-| **D1 migration gagal** | `wrangler d1 execute dn-journeys-db --command "SELECT name FROM sqlite_master WHERE type='table'" --remote` — verifikasi state DB. Kalau field type mismatch (mis. text vs number), rollback: restore dari backup terakhir. |
-| **R2 upload gagal (media 500)** | 1) Verifikasi `r2Storage` plugin sudah di-register di `payload.config.ts` (lihat §4.3 TODO). 2) Cek binding: `wrangler r2 object list dn-journeys-media --remote`. 3) Cek Worker log. |
+| **D1 migration gagal** | `wrangler d1 execute gt-journeys-db --command "SELECT name FROM sqlite_master WHERE type='table'" --remote` — verifikasi state DB. Kalau field type mismatch (mis. text vs number), rollback: restore dari backup terakhir. |
+| **R2 upload gagal (media 500)** | 1) Verifikasi `r2Storage` plugin sudah di-register di `payload.config.ts` (lihat §4.3 TODO). 2) Cek binding: `wrangler r2 object list gt-journeys-media --remote`. 3) Cek Worker log. |
 | **Pages build gagal** | Dashboard → Deployments → build log. Common: env var `CMS_URL` tidak ter-set, atau CMS lagi down saat build (SSG fetch fail). |
 | **CORS error di browser** | `SITE_URL` var di Worker beda dgn origin actual. Update `wrangler.toml [vars]` + redeploy. |
-| **`Failed to fetch` di Astro** | `CMS_URL` env di Pages salah, atau CMS Worker down. Cek `curl https://cms.dnjourneysbali.com/api/tours`. |
+| **`Failed to fetch` di Astro** | `CMS_URL` env di Pages salah, atau CMS Worker down. Cek `curl https://cms.gtjourneysid.com/api/tours`. |
 | **Draft entry muncul di production** | Cek query di `apps/web/src/lib/payload.ts` — default `where[status][equals]=published`. Kalau custom, pastikan filter tetap ada. |
 
 ### 6.5 Rollback Deploy

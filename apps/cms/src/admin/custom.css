@@ -1,5 +1,5 @@
 /*
- * DnJourneysBali — Role-based dashboard styles (Phase 4.1 → 4.3)
+ * GtJourneysID — Role-based dashboard styles (Phase 4.1 → 4.3)
  * ------------------------------------------------------------------
  * Scoped under `.dnj-dash` (+ one `.dashboard` hide rule) so it can never
  * leak into Payload's core UI (forms, lists, editor).

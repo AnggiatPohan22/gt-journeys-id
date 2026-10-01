@@ -96,7 +96,7 @@ const run = async () => {
       },
     ],
     seo: {
-      metaTitle: 'Bali Travel Stories & Guides | DnJourneysBali',
+      metaTitle: 'Bali Travel Stories & Guides | GtJourneysID',
       metaDescription: 'Expert travel guides, hidden gems, and unforgettable adventures — stories from the heart of Bali by our editors.',
     },
   }

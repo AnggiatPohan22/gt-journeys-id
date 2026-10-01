@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Colored status chip for list views (Phase 4.12).
+ * GtJourneysID — Colored status chip for list views (Phase 4.12).
  *
  * Registered per-collection via a field's `admin.components.Cell`.
  * Reusable across every collection that has a `status` field. Reads

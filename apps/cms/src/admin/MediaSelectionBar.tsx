@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Media selection bar (Phase 4.61).
+ * GtJourneysID — Media selection bar (Phase 4.61).
  *
  * Registered as Media's `admin.components.beforeListTable`, so it renders
  * INSIDE the list view's SelectionProvider and can drive selection state.

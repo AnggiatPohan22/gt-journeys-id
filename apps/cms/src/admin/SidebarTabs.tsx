@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Sidebar tab bar (Phase 4.8, refined Phase 4.9).
+ * GtJourneysID — Sidebar tab bar (Phase 4.8, refined Phase 4.9).
  *
  * Registered as a `ui`-type field on the sidebar. Clicking a tab writes
  * `data-sidebar-tab="general" | "seo" | "status"` on the sidebar

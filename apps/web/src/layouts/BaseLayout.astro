@@ -24,14 +24,14 @@ const {
   noindex = false,
 } = Astro.props
 
-// Canonical (absolute). Astro.site = https://dnjourneysbali.com (astro.config).
+// Canonical (absolute). Astro.site = https://gtjourneysid.com (astro.config).
 const canonicalURL =
   canonicalProp ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href
 
 // Fetch site-settings — semua fallback branding/SEO dari sini. Fail-safe: null → hardcoded fallback.
 const settings = await getSiteSettings().catch(() => null)
 
-const siteName = settings?.siteName ?? 'DnJourneysBali'
+const siteName = settings?.siteName ?? 'GtJourneysID'
 const siteTitle = `${title} — ${siteName}`
 
 // Description cascade: prop → CMS defaultSeo.metaDescription → hardcoded fallback

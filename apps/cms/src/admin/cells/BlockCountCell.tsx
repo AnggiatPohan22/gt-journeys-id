@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Block-count cell for the Pages list (Phase 4.12).
+ * GtJourneysID — Block-count cell for the Pages list (Phase 4.12).
  *
  * Attached as `admin.components.Cell` on a `ui`-type virtual field.
  * Reads rowData.content (the Pages blocks array) and renders "N blocks".

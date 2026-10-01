@@ -56,7 +56,7 @@ function buildMessage(b: Booking): string {
     ((b.children ?? 0) > 0 ? ` + ${b.children} anak` : '')
 
   const lines = [
-    'Halo DnJourneysBali! 👋',
+    'Halo GtJourneysID! 👋',
     '',
     'Saya ingin konfirmasi booking Ferry Ticket:',
     `🔖 *Ref:* ${b.bookingRef}`,

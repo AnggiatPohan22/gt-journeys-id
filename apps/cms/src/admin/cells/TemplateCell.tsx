@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Template badge for the Pages list (Phase 4.12).
+ * GtJourneysID — Template badge for the Pages list (Phase 4.12).
  *
  * Reads cellData (the raw `template` select value) and renders a subtle
  * neutral chip so it doesn't compete visually with the Status chip.

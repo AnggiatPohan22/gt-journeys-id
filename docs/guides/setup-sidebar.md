@@ -23,7 +23,7 @@ Semua file admin ada di **`apps/cms/src/admin/`** (kecuali collections/globals).
 | `apps/cms/src/admin/NavDashboardLink.tsx` | Item **"Dashboard"** di atas grup menu (slot `beforeNavLinks`). |
 | `apps/cms/src/admin/NavAccordion.tsx` | Perilaku **accordion** grup (default-collapse + single-open). Client. |
 | `apps/cms/src/admin/SidebarFooter.tsx` | **Footer sidebar**: kartu profil user + tombol logout + toggle tema. Client. |
-| `apps/cms/src/admin/graphics/Logo.tsx` · `Icon.tsx` | **Brand logo/icon** DnJourneysBali (halaman login + header app). |
+| `apps/cms/src/admin/graphics/Logo.tsx` · `Icon.tsx` | **Brand logo/icon** GtJourneysID (halaman login + header app). |
 | `apps/cms/public/logo-giattech/` | **Aset gambar** logo giattech (`white-…png`, `navy-…png`). |
 | `apps/cms/src/app/(payload)/admin/importMap.js` | Peta import komponen (auto-generate). **Regenerate** setiap tambah/hapus komponen di config. |
 | `apps/cms/src/collections/*.ts` · `globals/*.ts` | **Sumber item & grup menu** (`admin.group`, `admin.hidden`). Menu TIDAK di-hardcode di sidebar. |
@@ -57,7 +57,7 @@ Urutan render di dalam sidebar (atas → bawah):
 3. **Kapan harus restart / regenerate** (penting):
    - Ubah **CSS** (`admin-global.css`) atau isi komponen → cukup **reload** `/admin` (HMR).
    - **Tambah/hapus** komponen di `admin.components` (config) → jalankan
-     **`pnpm --filter @dn-journeys/cms generate:importmap`** lalu **restart** dev
+     **`pnpm --filter @gt-journeys/cms generate:importmap`** lalu **restart** dev
      server (`next dev -p 3030`). importMap di-bundle sekali; HMR tak rebundle.
    - **JANGAN** `rm importMap.js` saat server jalan (bikin error transient).
 4. **Jangan pernah** menghapus/menyembunyikan item navigasi supaya "rapi" tanpa
@@ -275,7 +275,7 @@ Untuk mengubah (mis. izinkan banyak grup terbuka), edit logika di file ini
 **Komponen:** `apps/cms/src/admin/Giattech.tsx` (ganti `src` / ukuran).
 CSS swap per tema: `.dnj-giattech__img--dark/--light` di `admin-global.css`.
 
-### 9b. Brand logo DnJourneysBali (halaman login + header)
+### 9b. Brand logo GtJourneysID (halaman login + header)
 **File:** `apps/cms/src/admin/graphics/Logo.tsx` (login, besar) &
 `graphics/Icon.tsx` (header, kecil). Terdaftar di `admin.components.graphics`.
 
@@ -288,7 +288,7 @@ Kalau bikin komponen baru (mis. banner promo di atas menu):
    kebutuhan; client kalau pakai hook Payload seperti `useAuth`/`useNav`).
 2. Daftarkan di `payload.config.ts` → slot yang tepat:
    - `beforeNavLinks` = atas menu · `afterNavLinks` = bawah menu.
-3. **`pnpm --filter @dn-journeys/cms generate:importmap`**.
+3. **`pnpm --filter @gt-journeys/cms generate:importmap`**.
 4. **Restart** dev server.
 5. Tambah styling di `admin-global.css` (scope dengan prefix `.dnj-`).
 

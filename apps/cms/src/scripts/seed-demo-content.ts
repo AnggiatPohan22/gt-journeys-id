@@ -124,7 +124,7 @@ const pages: { slug: string; data: any }[] = [
         },
       ],
       seo: {
-        metaTitle: 'DnJourneysBali — Curated Bali Experiences',
+        metaTitle: 'GtJourneysID — Curated Bali Experiences',
         metaDescription: 'Discover curated tours, luxury villas, water activities, yacht charters, and more across Bali, Nusa Penida, and Lembongan.',
       },
     },
@@ -140,7 +140,7 @@ const pages: { slug: string; data: any }[] = [
       content: [
         {
           blockType: 'hero',
-          heading: 'About DnJourneysBali',
+          heading: 'About GtJourneysID',
           subheading: 'Your trusted partner for authentic Bali experiences since day one.',
           mediaType: 'none',
           sectionPadding: 'normal',
@@ -148,7 +148,7 @@ const pages: { slug: string; data: any }[] = [
         {
           blockType: 'richText',
           content: richNode(
-            'Born from a deep love for Bali and a desire to share its hidden treasures with the world, DnJourneysBali was founded by a team of local experts and travel enthusiasts. We believe that the best travel experiences come from authentic connections — with the land, the culture, and the people.\n\n' +
+            'Born from a deep love for Bali and a desire to share its hidden treasures with the world, GtJourneysID was founded by a team of local experts and travel enthusiasts. We believe that the best travel experiences come from authentic connections — with the land, the culture, and the people.\n\n' +
             'Our journey started in Nusa Ceningan, a small island nestled between Lembongan and Penida. From this tranquil base, we expanded our network across all of Bali, forging partnerships with villa owners, tour guides, boat captains, and restaurant chefs who share our commitment to quality.\n\n' +
             'Every experience we offer has been personally vetted. We visit the properties, we join the tours, we taste the food. When we recommend something, it is because we have experienced it ourselves and know it meets the standard our guests deserve.\n\n' +
             'Our mission is simple: to make every moment of your Bali journey exceptional. Whether you are seeking adventure on the waves, tranquility in a private villa, or celebration at a cliff-top venue, our concierge team is here to make it happen — seamlessly and memorably.'
@@ -188,8 +188,8 @@ const pages: { slug: string; data: any }[] = [
         },
       ],
       seo: {
-        metaTitle: 'About Us | DnJourneysBali',
-        metaDescription: 'Meet the team behind DnJourneysBali — local experts curating authentic Bali experiences since Nusa Ceningan.',
+        metaTitle: 'About Us | GtJourneysID',
+        metaDescription: 'Meet the team behind GtJourneysID — local experts curating authentic Bali experiences since Nusa Ceningan.',
       },
     },
   },
@@ -224,7 +224,7 @@ const pages: { slug: string; data: any }[] = [
         },
       ],
       seo: {
-        metaTitle: 'Contact | DnJourneysBali',
+        metaTitle: 'Contact | GtJourneysID',
         metaDescription: 'Reach us via WhatsApp, email, or visit our office in Nusa Ceningan, Bali.',
       },
     },
@@ -241,7 +241,7 @@ const pages: { slug: string; data: any }[] = [
         {
           blockType: 'richText',
           content: richNode(
-            'Privacy Policy — DnJourneysBali\n\n' +
+            'Privacy Policy — GtJourneysID\n\n' +
             'Last updated: August 2026\n\n' +
             '1. Information We Collect\n\n' +
             'We collect personal information that you voluntarily provide when making inquiries or bookings through our website or WhatsApp. This includes your name, email address, phone number, travel dates, and booking preferences. We also collect standard web analytics data (page views, device type, browser) through privacy-respecting analytics tools.\n\n' +
@@ -265,8 +265,8 @@ const pages: { slug: string; data: any }[] = [
         },
       ],
       seo: {
-        metaTitle: 'Privacy Policy | DnJourneysBali',
-        metaDescription: 'How DnJourneysBali collects, uses, and protects your personal information.',
+        metaTitle: 'Privacy Policy | GtJourneysID',
+        metaDescription: 'How GtJourneysID collects, uses, and protects your personal information.',
       },
     },
   },
@@ -282,20 +282,20 @@ const pages: { slug: string; data: any }[] = [
         {
           blockType: 'richText',
           content: richNode(
-            'Terms & Conditions — DnJourneysBali\n\n' +
+            'Terms & Conditions — GtJourneysID\n\n' +
             'Last updated: August 2026\n\n' +
             '1. General\n\n' +
-            'DnJourneysBali acts as a booking facilitator connecting travelers with local service providers including but not limited to hotels, villas, tour operators, yacht charters, restaurants, and rental companies in Bali, Indonesia. By using our services, you agree to these terms.\n\n' +
+            'GtJourneysID acts as a booking facilitator connecting travelers with local service providers including but not limited to hotels, villas, tour operators, yacht charters, restaurants, and rental companies in Bali, Indonesia. By using our services, you agree to these terms.\n\n' +
             '2. Bookings and Payments\n\n' +
             'All bookings are subject to availability. Prices displayed are indicative and may vary based on dates, group size, and specific requirements. Final pricing is confirmed via WhatsApp before payment. Payment methods and terms are communicated during the booking process. A deposit may be required to secure certain bookings.\n\n' +
             '3. Cancellations and Refunds\n\n' +
             'Cancellation policies vary by service provider. Generally, cancellations made more than 48 hours before the scheduled service are eligible for a full refund minus any processing fees. Cancellations within 48 hours may be subject to partial or no refund depending on the provider. Force majeure events (natural disasters, government restrictions) are handled on a case-by-case basis.\n\n' +
             '4. Service Provider Responsibility\n\n' +
-            'DnJourneysBali facilitates bookings but the services are provided by independent third-party operators. We vet all partners for quality and safety, but the service provider bears direct responsibility for the delivery of their service. Any disputes regarding service quality should be raised with us within 7 days of the service date.\n\n' +
+            'GtJourneysID facilitates bookings but the services are provided by independent third-party operators. We vet all partners for quality and safety, but the service provider bears direct responsibility for the delivery of their service. Any disputes regarding service quality should be raised with us within 7 days of the service date.\n\n' +
             '5. Liability\n\n' +
-            'DnJourneysBali is not liable for injuries, losses, or damages arising from activities booked through our platform. Travelers are strongly advised to obtain comprehensive travel insurance covering medical emergencies, trip cancellations, and adventure activities. Participation in water activities, tours, and vehicle rentals is at your own risk.\n\n' +
+            'GtJourneysID is not liable for injuries, losses, or damages arising from activities booked through our platform. Travelers are strongly advised to obtain comprehensive travel insurance covering medical emergencies, trip cancellations, and adventure activities. Participation in water activities, tours, and vehicle rentals is at your own risk.\n\n' +
             '6. Intellectual Property\n\n' +
-            'All content on this website including text, images, logos, and design is the property of DnJourneysBali and may not be reproduced without written permission.\n\n' +
+            'All content on this website including text, images, logos, and design is the property of GtJourneysID and may not be reproduced without written permission.\n\n' +
             '7. Governing Law\n\n' +
             'These terms are governed by the laws of the Republic of Indonesia. Any disputes shall be resolved in the courts of Denpasar, Bali.\n\n' +
             '8. Changes\n\n' +
@@ -308,8 +308,8 @@ const pages: { slug: string; data: any }[] = [
         },
       ],
       seo: {
-        metaTitle: 'Terms & Conditions | DnJourneysBali',
-        metaDescription: 'Booking terms, cancellation policies, and conditions for using DnJourneysBali services.',
+        metaTitle: 'Terms & Conditions | GtJourneysID',
+        metaDescription: 'Booking terms, cancellation policies, and conditions for using GtJourneysID services.',
       },
     },
   },

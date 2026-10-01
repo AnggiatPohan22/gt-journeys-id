@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Custom collapsed block header (Phase 4.8, Goal 4).
+ * GtJourneysID — Custom collapsed block header (Phase 4.8, Goal 4).
  *
  * Registered via `admin.components.Label` on each block in `blocks/index.ts`.
  * Payload renders this in place of the default "Hero 01" row header.

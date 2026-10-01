@@ -26,7 +26,7 @@ export class AnthropicProvider implements ChannelProvider {
     const model = block?.model?.trim?.() || 'claude-haiku-4-5'
     const systemPrompt =
       block?.systemPrompt?.trim?.() ||
-      'You are a helpful assistant for DnJourneysBali, a Bali travel service.'
+      'You are a helpful assistant for GtJourneysID, a Bali travel service.'
 
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {

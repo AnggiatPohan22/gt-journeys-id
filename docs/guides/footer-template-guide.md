@@ -236,7 +236,7 @@ Pemetaan slot→field footer existing (referensi saat memakai ulang slot):
 cd apps/cms && pnpm generate:types       # perubahan registry → perbarui union select
 cd apps/cms && pnpm generate:importmap   # hanya kalau custom admin component berubah
 cd apps/cms && pnpm dev                   # schema push hanya jika menambah field baru
-cd apps/web && pnpm dev                   # atau pnpm --filter @dn-journeys/web build
+cd apps/web && pnpm dev                   # atau pnpm --filter @gt-journeys/web build
 ```
 - **Admin:** `Footer Settings` → picker menampilkan thumbnail baru; hanya field slot yang dideklarasikan muncul.
 - **Frontend:** pilih `footer-4`, reload → layout baru; kecilkan viewport → kolom menumpuk.

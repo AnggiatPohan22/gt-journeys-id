@@ -24,7 +24,7 @@ try { cmsHome = await getPageBySlug('home') } catch { /* fallback */ }
 
 const settings = await getSiteSettings().catch(() => null)
 const home = await getHomepageContent().catch(() => null)
-const siteName = settings?.siteName ?? 'DnJourneysBali'
+const siteName = settings?.siteName ?? 'GtJourneysID'
 const tagline = settings?.tagline ?? 'Your Bali Journey, Our Local Expertise'
 const waNumber = (settings?.contact?.whatsapp ?? '').replace(/\D/g, '')
 
@@ -61,7 +61,7 @@ const D_STATS = [
 ]
 const D_TESTIMONIALS = [
   { name: 'Sarah', location: 'Australia', quote: 'The Lembongan tour was amazing! Everything was perfectly arranged. Highly recommended!', rating: 5 },
-  { name: 'James', location: 'UK',        quote: 'Booked a villa through DnJourneysBali and the experience was seamless. Great service!', rating: 5 },
+  { name: 'James', location: 'UK',        quote: 'Booked a villa through GtJourneysID and the experience was seamless. Great service!', rating: 5 },
   { name: 'Maya',  location: 'Indonesia', quote: 'We had our wedding arranged by their team. It was beyond our expectations!', rating: 5 },
 ]
 

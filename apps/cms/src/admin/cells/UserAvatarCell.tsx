@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — User avatar list cell (Phase 4.14 · Track A).
+ * GtJourneysID — User avatar list cell (Phase 4.14 · Track A).
  *
  * Reads `rowData.avatar` (populated media doc when depth >= 1) and
  * renders a small circular thumbnail. Falls back to initials from

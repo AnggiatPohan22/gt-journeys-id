@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — "Force unlock" button (Phase 4.14 · Track B).
+ * GtJourneysID — "Force unlock" button (Phase 4.14 · Track B).
  *
  * Rendered as a `ui`-type field on the user Security tab. Clicking
  * POSTs Payload's built-in `/api/users/unlock` endpoint with the

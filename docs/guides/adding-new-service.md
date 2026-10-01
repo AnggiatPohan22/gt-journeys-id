@@ -1,7 +1,7 @@
 # Guideline: Menambahkan Service Baru
 
 > Panduan step-by-step untuk developer/AI agent menambahkan **service type baru**
-> ke DnJourneysBali (service ke-8 dan seterusnya).
+> ke GtJourneysID (service ke-8 dan seterusnya).
 >
 > **Estimasi waktu:** 45–90 menit
 > **Skill level:** Mid-level developer / AI agent (bukan pure-junior — ada ~17 file seam wajib)
@@ -521,7 +521,7 @@ Item 1–17 + 23 = **wajib**. Item 18–22 = kondisional/opsional.
 > / `spa` dengan service Anda.
 
 ```
-TASK: Tambahkan service baru "Spa & Wellness" (key: spa) ke DnJourneysBali.
+TASK: Tambahkan service baru "Spa & Wellness" (key: spa) ke GtJourneysID.
 
 Ikuti PERSIS docs/guides/adding-new-service.md. Aturan:
 - JANGAN ubah 7 service existing; semua perubahan additive.
