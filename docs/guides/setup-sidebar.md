@@ -210,7 +210,7 @@ untuk **ikon** item aktif (karena `::before` pakai `currentColor`).
 #3D405B`. `--dnj-active-grad` = gradient untuk **avatar** & **tombol login**
 (bukan nav). `--dnj-coral` = hover logout.
 
-> Referensi lengkap tabel warna: `docs/phases/phase-4.5-sidebar-redesign.md`
+> Referensi lengkap tabel warna: `docs/phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.5-sidebar-redesign.md`
 > bagian "Polish Pass".
 
 ---
@@ -232,7 +232,7 @@ Semua di `apps/cms/src/admin/admin-global.css` kecuali disebut lain.
 | Transisi tema | rule `transition` di `.nav, .dnj-footer, …` | 200ms |
 
 Struktur 3-seksi (header / menu scroll / footer fixed) dibahas di
-`docs/phases/phase-4.5-sidebar-redesign.md`.
+`docs/phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.5-sidebar-redesign.md`.
 
 ---
 

@@ -19,7 +19,7 @@ import type { Field } from 'payload'
  *      collections that don't have SEO — see ServiceTypes in Phase 4.9).
  *
  * Fields never unmount — only visibility toggles via CSS → form state
- * stays intact. See `docs/phases/phase-4.9-editor-ux-replication.md` §4.1.
+ * stays intact. See `docs/phases/phase-4-polish-launch/admin-ui/editor-ux/phase-4.9-editor-ux-replication.md` §4.1.
  */
 
 export type SidebarTab = 'general' | 'seo' | 'status'

@@ -5,7 +5,7 @@ import { adminFieldAccess } from '../access/roles'
 /**
  * Blog Settings — rich configuration for the Blog vertical.
  *
- * Placement rationale (see docs/phases/phase-4.35-...):
+ * Placement rationale (see docs/phases/phase-4-polish-launch/features/blog/phase-4.35-blog-feature-scaffold.md):
  *   - SiteSettings = brand + layout tokens (org-wide)
  *   - SiteFeatures = on/off toggles only (kill switches)
  *   - BlogSettings = editorial defaults for the blog domain

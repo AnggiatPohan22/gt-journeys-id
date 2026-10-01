@@ -7,7 +7,7 @@
 > **Skill level:** Mid-level developer / AI agent (bukan pure-junior — ada ~17 file seam wajib)
 > **Risiko:** Rendah-menengah — semua perubahan **additive**, tapi menyentuh banyak
 > titik hardcoded karena arsitektur sengaja dibuat "7 vertical fixed" (lihat
-> [keputusan Phase 3.15](../phases/phase-3.14-cms-enhancement-sprint.md#phase-315--servicetypes-cms-collection-task-32)).
+> [keputusan Phase 3.15](../phases/phase-3-cms-driven/cms-enhancement/phase-3.14-cms-enhancement-sprint.md#phase-315--servicetypes-cms-collection-task-32)).
 
 ---
 
@@ -22,7 +22,7 @@ dynamic" yang **tidak dipilih** saat desain. Jadi service baru butuh:
 3. **~15 seam hardcoded** di frontend + CMS yang meng-enumerasi 7 tipe (select block,
    Categories, Testimonials, SiteFeatures, DashboardStats, route maps, SEO maps, dll).
 
-Listing page **BUKAN** file `.astro` — sejak [Phase 3.20](../phases/phase-3.20-service-listing-fixes.md)
+Listing page **BUKAN** file `.astro` — sejak [Phase 3.20](../phases/phase-3-cms-driven/service-listing/phase-3.20-service-listing-fixes.md)
 semua listing (`/tour`, `/villa`, …) adalah **CMS Page** ber-block `serviceListing`,
 di-render oleh catch-all [`pages/[...slug].astro`](../../apps/web/src/pages/%5B...slug%5D.astro).
 Jadi listing service baru = bikin CMS Page, bukan file kode.
@@ -118,7 +118,7 @@ service Anda saat mengikuti.
   - `labels`, `useAsTitle`, `admin.group: 'Services'` (biarkan group Services)
   - `rentalType` / field domain-spesifik → field yang relevan untuk spa (mis. `treatmentType`, `durationMinutes`). **Pertahankan** field generik reusable: `title`, `slug`, `featuredImage`, `gallery`, `description`, `destination`, `pricingFields`/`pricingTiers`, `subtitle`, `quickSpecs`, `features`, `additionalBlocks`, `seoFields`.
 - ⚠️ **Schema push SQLite rawan** kalau nama identifier > 63 char (lihat pola recovery
-  di [Phase 3.18](../phases/phase-3.14-cms-enhancement-sprint.md#phase-318--testimonials-block-dari-collection)).
+  di [Phase 3.18](../phases/phase-3-cms-driven/cms-enhancement/phase-3.14-cms-enhancement-sprint.md#phase-318--testimonials-block-dari-collection)).
   Jaga nama field pendek; hindari block sub-table dengan prefix panjang.
 
 ### Step A2: Register collection
@@ -430,7 +430,7 @@ CMS admin → **Spa** (collection baru) → buat 2–3 entry `status: published`
 - Jalankan `pnpm generate:types` di apps/cms setelah collection ter-register.
 
 **CMS 500 / schema push gagal saat bikin collection**
-- Nama identifier > 63 char (SQLite). Pendekkan nama field/block. Lihat pola recovery drop-and-recreate di [Phase 3.18](../phases/phase-3.14-cms-enhancement-sprint.md#-schema-migration-recovery-payload-sqlite-push-bug).
+- Nama identifier > 63 char (SQLite). Pendekkan nama field/block. Lihat pola recovery drop-and-recreate di [Phase 3.18](../phases/phase-3-cms-driven/cms-enhancement/phase-3.14-cms-enhancement-sprint.md#-schema-migration-recovery-payload-sqlite-push-bug).
 - Jalankan schema push dengan `pnpm dev` CMS **stop** (SQLite exclusive lock).
 
 **Kelas Tailwind tidak ter-styling di file baru**
@@ -561,7 +561,7 @@ Jangan sentuh ai/prompt/.
 
 ## Related
 
-- [Phase 3.15 — ServiceTypes CMS Collection](../phases/phase-3.14-cms-enhancement-sprint.md#phase-315--servicetypes-cms-collection-task-32) — kenapa 7 tipe fixed
-- [Phase 3.7 — Service Landing Pages](../phases/phase-3-cms-driven.md#phase-37--service-landing-pages--code--2-manual-test-villa-pending) — asal pola detail "mirror villa"
-- [Phase 3.20 — Service Listing Fixes](../phases/phase-3.20-service-listing-fixes.md) — konsolidasi singular + SEO
+- [Phase 3.15 — ServiceTypes CMS Collection](../phases/phase-3-cms-driven/cms-enhancement/phase-3.14-cms-enhancement-sprint.md#phase-315--servicetypes-cms-collection-task-32) — kenapa 7 tipe fixed
+- [Phase 3.7 — Service Landing Pages](../phases/phase-3-cms-driven/phase-3-cms-driven.md#phase-37--service-landing-pages--code--2-manual-test-villa-pending) — asal pola detail "mirror villa"
+- [Phase 3.20 — Service Listing Fixes](../phases/phase-3-cms-driven/service-listing/phase-3.20-service-listing-fixes.md) — konsolidasi singular + SEO
 - [service-listing-visual-audit.md](../reports/service-listing-visual-audit.md) — arsitektur listing/detail + SEO
