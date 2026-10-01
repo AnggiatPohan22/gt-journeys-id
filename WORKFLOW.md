@@ -695,7 +695,7 @@ cross-origin request dari frontend port ke CMS port.
 cors: [
   'http://localhost:4321',                                 // Astro dev
   'http://localhost:3030',                                 // CMS admin
-  process.env.SITE_URL ?? 'https://dnjourneysbali.com',    // production
+  process.env.SITE_URL ?? 'https://gtjourneysid.com',    // production
 ],
 ```
 

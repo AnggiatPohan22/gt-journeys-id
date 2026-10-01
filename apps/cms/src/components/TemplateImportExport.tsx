@@ -65,7 +65,7 @@ const TemplateImportExport: React.FC<any> = (props) => {
         registryId: REGISTRY_ID,
         registryVersion: REGISTRY_VERSION,
         exportedAt: new Date().toISOString(),
-        exportedFrom: 'dnjourneysbali',
+        exportedFrom: 'gtjourneysid',
         content,
       }
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })

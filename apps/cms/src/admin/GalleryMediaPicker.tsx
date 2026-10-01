@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Gallery Media Picker (Phase 4.40).
+ * GtJourneysID — Gallery Media Picker (Phase 4.40).
  *
  * Sibling `ui` field yang di-mount tepat sebelum array `gallery`. Menampilkan
  * dua tombol yang bersanding:

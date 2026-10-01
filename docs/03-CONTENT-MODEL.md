@@ -1,6 +1,6 @@
 # 03 — CONTENT MODEL
 
-> Audit pemetaan konten proyek **DnJourneysBali** — mana yang sudah dikontrol dari **Payload CMS**, mana yang masih **hardcoded** di kode Astro, dan panduan pengelolaan untuk admin/content manager.
+> Audit pemetaan konten proyek **GtJourneysID** — mana yang sudah dikontrol dari **Payload CMS**, mana yang masih **hardcoded** di kode Astro, dan panduan pengelolaan untuk admin/content manager.
 >
 > Prinsip: *"No Hardcode"* — semua konten yang bisa berubah tanpa perubahan struktur/design harus dikelola dari CMS.
 
@@ -243,7 +243,7 @@ Diurutkan berdasarkan dampak untuk content manager.
 
 #### 3.8 Meta tag default site-wide
 
-- **Sekarang**: `BaseLayout.astro` mem-format `siteTitle = "{title} — DnJourneysBali"` hardcoded.
+- **Sekarang**: `BaseLayout.astro` mem-format `siteTitle = "{title} — GtJourneysID"` hardcoded.
 - **Ideal**: **Option B** — `— {siteName}` dari `site-settings.siteName`.
 
 ### 🟢 Prioritas RENDAH — biarkan hardcoded

@@ -44520,19 +44520,19 @@ export interface SiteSetting {
   };
   socialMedia?: {
     /**
-     * Full URL, e.g. https://instagram.com/dnjourneysbali
+     * Full URL, e.g. https://instagram.com/gtjourneysid
      */
     instagram?: string | null;
     /**
-     * Full URL, e.g. https://facebook.com/dnjourneysbali
+     * Full URL, e.g. https://facebook.com/gtjourneysid
      */
     facebook?: string | null;
     /**
-     * Full URL, e.g. https://tiktok.com/@dnjourneysbali
+     * Full URL, e.g. https://tiktok.com/@gtjourneysid
      */
     tiktok?: string | null;
     /**
-     * Full URL, e.g. https://youtube.com/@dnjourneysbali
+     * Full URL, e.g. https://youtube.com/@gtjourneysid
      */
     youtube?: string | null;
     /**
@@ -44694,7 +44694,7 @@ export interface SiteSetting {
    */
   footer?: {
     /**
-     * Free text shown at the bottom of the footer. Example: "© 2026 DnJourneysBali. All rights reserved."
+     * Free text shown at the bottom of the footer. Example: "© 2026 GtJourneysID. All rights reserved."
      */
     copyrightText?: string | null;
     /**

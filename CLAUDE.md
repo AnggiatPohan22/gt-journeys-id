@@ -1,6 +1,6 @@
 # CLAUDE.md — Pointer file untuk Claude Code
 
-Project **GtJourneysID** (previously DnJourneysBali) memakai [AGENTS.md](AGENTS.md) sebagai master rule untuk semua AI agent (termasuk Claude Code). File ini hanya pointer ringkas.
+Project **GtJourneysID** (previously GtJourneysID) memakai [AGENTS.md](AGENTS.md) sebagai master rule untuk semua AI agent (termasuk Claude Code). File ini hanya pointer ringkas.
 
 ## Baca dulu
 

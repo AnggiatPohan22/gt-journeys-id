@@ -265,7 +265,7 @@ cd apps/cms && pnpm generate:importmap
 cd apps/cms && pnpm dev
 
 # 4. Frontend
-cd apps/web && pnpm dev      # atau: pnpm --filter @dn-journeys/web build
+cd apps/web && pnpm dev      # atau: pnpm --filter @gt-journeys/web build
 ```
 
 - **Admin:** buka `Header Settings` → picker menampilkan thumbnail baru; memilihnya hanya

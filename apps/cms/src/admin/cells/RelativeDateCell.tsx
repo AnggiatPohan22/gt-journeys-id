@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Relative date cell (Phase 4.12).
+ * GtJourneysID — Relative date cell (Phase 4.12).
  *
  * Renders "2 hours ago" style text with the full ISO timestamp exposed
  * via `title` tooltip. Reusable across every list view that displays

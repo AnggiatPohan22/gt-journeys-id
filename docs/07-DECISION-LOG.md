@@ -1,6 +1,6 @@
 # 07 — DECISION LOG
 
-> Riwayat keputusan arsitektur proyek **DnJourneysBali** dalam format ADR (Architecture Decision Record) yang disederhanakan.
+> Riwayat keputusan arsitektur proyek **GtJourneysID** dalam format ADR (Architecture Decision Record) yang disederhanakan.
 >
 > Tujuan: menjaga konteks strategis agar diskusi yang sama tidak diulang setiap kali onboarding developer baru atau ada usulan perubahan besar.
 
@@ -88,7 +88,7 @@ Format: satu ADR = satu keputusan. Nomornya urut (ADR-001, 002, …) dan tidak p
 - **Status**: Diterima ✅
 - **Konteks**: Frontend Astro dan backend Payload adalah dua aplikasi berbeda (framework, deploy target, lifecycle), tapi berbagi **kontrak data**: tipe TypeScript yang di-generate Payload harus dipakai Astro.
 - **Opsi yang Dipertimbangkan**:
-  1. **Dua repo terpisah** — `dn-journeys-web` + `dn-journeys-cms`.
+  1. **Dua repo terpisah** — `gt-journeys-web` + `gt-journeys-cms`.
      - ✅ Isolasi lebih tegas, deploy independen di-enforce infra.
      - ❌ Duplikasi tipe → drift antara schema CMS dan konsumen frontend.
      - ❌ Perlu setup npm package publish untuk shared types.

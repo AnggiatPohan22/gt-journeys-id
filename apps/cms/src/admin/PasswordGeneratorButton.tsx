@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — "Generate random password" helper (Phase 4.14 · Track B).
+ * GtJourneysID — "Generate random password" helper (Phase 4.14 · Track B).
  *
  * Rendered as a `ui`-type field inside the Security tab. Clicking the
  * button generates a 16-char password (crypto.getRandomValues), copies

@@ -37,7 +37,7 @@ export class WorkersAiProvider implements ChannelProvider {
     const model = block?.model?.trim?.() || '@cf/meta/llama-3.1-8b-instruct'
     const systemPrompt =
       block?.systemPrompt?.trim?.() ||
-      'You are a helpful assistant for DnJourneysBali, a Bali travel service.'
+      'You are a helpful assistant for GtJourneysID, a Bali travel service.'
     const messages = [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: input.content },

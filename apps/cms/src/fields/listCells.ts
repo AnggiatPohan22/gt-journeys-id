@@ -1,7 +1,7 @@
 import type { Field } from 'payload'
 
 /**
- * DnJourneysBali — Shared list-view Cell helpers (Phase 4.12).
+ * GtJourneysID — Shared list-view Cell helpers (Phase 4.12).
  *
  * Keeps per-collection edits down to two lines:
  *   1. Wrap the collection's status field with `withStatusCell(...)`.

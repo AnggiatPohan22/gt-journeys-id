@@ -1,6 +1,6 @@
 # 08 — SECURITY PATCH LOG
 
-> Master log untuk **semua pekerjaan security** di proyek **DnJourneysBali**. Satu entri per series/phase, dari discovery → mitigation → verification. Developer baru buka file ini untuk tahu "apa saja yang sudah di-hardening dan dari mana" tanpa harus scroll PROGRESS.md yang bercampur dengan pekerjaan UI/content/CMS.
+> Master log untuk **semua pekerjaan security** di proyek **GtJourneysID**. Satu entri per series/phase, dari discovery → mitigation → verification. Developer baru buka file ini untuk tahu "apa saja yang sudah di-hardening dan dari mana" tanpa harus scroll PROGRESS.md yang bercampur dengan pekerjaan UI/content/CMS.
 >
 > **Lokasi file terkait:**
 > - Detail per-step: `docs/phases/phase-<N>-*.md`

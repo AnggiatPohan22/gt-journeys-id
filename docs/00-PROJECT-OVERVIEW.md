@@ -1,6 +1,6 @@
 # 00 — PROJECT OVERVIEW
 
-> Pintu masuk dokumentasi proyek **DnJourneysBali**. Baca file ini dulu sebelum yang lain. Detail teknis ada di file-file `01`-`07`.
+> Pintu masuk dokumentasi proyek **GtJourneysID**. Baca file ini dulu sebelum yang lain. Detail teknis ada di file-file `01`-`07`.
 >
 > Estimasi baca: **5-10 menit**.
 
@@ -8,7 +8,7 @@
 
 ## 1. Tentang Proyek
 
-**DnJourneysBali** adalah website travel agency berbasis di Bali dengan **7 modul layanan** — tours, akomodasi, water activities, yacht, restoran, wedding venue, rental. Website ini juga dirancang sebagai **template reusable** yang bisa dideploy ulang untuk client travel agency lain dengan modifikasi minimal (ganti brand + toggle modul + isi konten).
+**GtJourneysID** adalah website travel agency berbasis di Bali dengan **7 modul layanan** — tours, akomodasi, water activities, yacht, restoran, wedding venue, rental. Website ini juga dirancang sebagai **template reusable** yang bisa dideploy ulang untuk client travel agency lain dengan modifikasi minimal (ganti brand + toggle modul + isi konten).
 
 ### Tujuan bisnis
 - Landing pengunjung dari organic search / social → convert jadi lead lewat **WhatsApp direct booking** (bukan payment gateway online). Match pola konsumsi turis Bali & customer lokal Indonesia.
@@ -177,7 +177,7 @@ Detail selanjutnya (deploy production, custom domain, seed data) → [05-INFRA.m
 
 - **Owner / Maintainer**: solo developer (anggiatcool1@gmail.com per env session).
 - **Workflow development**: **Claude Code-assisted** — semua fitur, refactor, dan dokumentasi dibangun via pairing dengan Claude Code (sub-agents untuk research, main agent untuk implementasi). Aturan pembagian task manual vs AI ada di [06-MAINTENANCE-RUNBOOK.md](docs/06-MAINTENANCE-RUNBOOK.md) (3-tier system).
-- **Repository**: monorepo lokal di `C:\laragon\www\dn-journeys-bali` (belum di-inisialisasi git per env — kalau sudah, tambah remote di sini).
+- **Repository**: monorepo lokal di `C:\laragon\www\gt-journeys-id` (belum di-inisialisasi git per env — kalau sudah, tambah remote di sini).
 - **Deployment**: Cloudflare account owner-managed.
 
 ### Untuk kontribusi / handover
@@ -191,4 +191,4 @@ Detail selanjutnya (deploy production, custom domain, seed data) → [05-INFRA.m
 
 ## Ringkasan 30 Detik
 
-**DnJourneysBali** = website travel agency Bali + template reusable. **Astro** static frontend + **Payload CMS** on Cloudflare Workers + D1 + R2. Booking via **WhatsApp**. **7 modul** (Tours/Villa/WaterAct/Yacht/Restaurant/Wedding/Rental) togglable per client. **3-role RBAC** (Super Admin/Admin/Editor). Total infra **~$5/bulan**. Content team maintain 90%+ dari CMS; sisanya edit kode dgn panduan 3-tier di [06-MAINTENANCE-RUNBOOK.md](docs/06-MAINTENANCE-RUNBOOK.md).
+**GtJourneysID** = website travel agency Bali + template reusable. **Astro** static frontend + **Payload CMS** on Cloudflare Workers + D1 + R2. Booking via **WhatsApp**. **7 modul** (Tours/Villa/WaterAct/Yacht/Restaurant/Wedding/Rental) togglable per client. **3-role RBAC** (Super Admin/Admin/Editor). Total infra **~$5/bulan**. Content team maintain 90%+ dari CMS; sisanya edit kode dgn panduan 3-tier di [06-MAINTENANCE-RUNBOOK.md](docs/06-MAINTENANCE-RUNBOOK.md).

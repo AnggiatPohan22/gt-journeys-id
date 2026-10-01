@@ -78,7 +78,7 @@ const seeds: LandingPageSeed[] = [
         },
       ],
       seo: {
-        metaTitle: 'Villas & Hotels Collection | DnJourneysBali',
+        metaTitle: 'Villas & Hotels Collection | GtJourneysID',
         metaDescription: 'Curated luxury villas, hotels, and resorts across Bali, Nusa Penida, Lembongan, and Ceningan.',
       },
     },
@@ -125,7 +125,7 @@ const seeds: LandingPageSeed[] = [
         },
       ],
       seo: {
-        metaTitle: 'Bali Tours & Journeys | DnJourneysBali',
+        metaTitle: 'Bali Tours & Journeys | GtJourneysID',
         metaDescription: 'Hand-crafted tours across Bali, Nusa Penida, and Lembongan — led by local Balinese guides.',
       },
     },
@@ -171,7 +171,7 @@ const seeds: LandingPageSeed[] = [
           containerWidth: 'wide',
         },
       ],
-      seo: { metaTitle: 'Bali Rentals — Motorbike, Car, Gear | DnJourneysBali', metaDescription: 'Insured motorbikes, cars, and gear rentals across Bali. Delivered to your accommodation.' },
+      seo: { metaTitle: 'Bali Rentals — Motorbike, Car, Gear | GtJourneysID', metaDescription: 'Insured motorbikes, cars, and gear rentals across Bali. Delivered to your accommodation.' },
     },
   },
   {
@@ -208,7 +208,7 @@ const seeds: LandingPageSeed[] = [
           sectionPadding: 'compact', containerWidth: 'wide',
         },
       ],
-      seo: { metaTitle: 'Bali Water Activities | DnJourneysBali', metaDescription: 'Snorkeling, diving, surfing, and watersports across Bali and Nusa islands.' },
+      seo: { metaTitle: 'Bali Water Activities | GtJourneysID', metaDescription: 'Snorkeling, diving, surfing, and watersports across Bali and Nusa islands.' },
     },
   },
   {
@@ -245,7 +245,7 @@ const seeds: LandingPageSeed[] = [
           sectionPadding: 'compact', containerWidth: 'wide',
         },
       ],
-      seo: { metaTitle: 'Private Yacht Charters Bali | DnJourneysBali', metaDescription: 'Charter catamarans, sailing yachts, and phinisi. Full crew, custom itineraries.' },
+      seo: { metaTitle: 'Private Yacht Charters Bali | GtJourneysID', metaDescription: 'Charter catamarans, sailing yachts, and phinisi. Full crew, custom itineraries.' },
     },
   },
   {
@@ -282,7 +282,7 @@ const seeds: LandingPageSeed[] = [
           sectionPadding: 'compact', containerWidth: 'wide',
         },
       ],
-      seo: { metaTitle: 'Bali Restaurant Reservations | DnJourneysBali', metaDescription: 'Hand-picked restaurants across Bali. We handle bookings, dietary requests, and special occasions.' },
+      seo: { metaTitle: 'Bali Restaurant Reservations | GtJourneysID', metaDescription: 'Hand-picked restaurants across Bali. We handle bookings, dietary requests, and special occasions.' },
     },
   },
   {
@@ -319,7 +319,7 @@ const seeds: LandingPageSeed[] = [
           sectionPadding: 'compact', containerWidth: 'wide',
         },
       ],
-      seo: { metaTitle: 'Wedding & Event Venues Bali | DnJourneysBali', metaDescription: 'Beach, garden, cliff, chapel — venue for weddings and celebrations across Bali.' },
+      seo: { metaTitle: 'Wedding & Event Venues Bali | GtJourneysID', metaDescription: 'Beach, garden, cliff, chapel — venue for weddings and celebrations across Bali.' },
     },
   },
 ]

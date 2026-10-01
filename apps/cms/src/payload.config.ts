@@ -126,7 +126,7 @@ export default buildConfig({
   cors: [
     'http://localhost:4321', // Astro dev
     'http://localhost:3030', // CMS admin self-origin
-    process.env.SITE_URL ?? 'https://dnjourneysbali.com',
+    process.env.SITE_URL ?? 'https://gtjourneysid.com',
   ],
 
   // ── CSRF (Phase 4.66.2) ─────────────────────
@@ -142,7 +142,7 @@ export default buildConfig({
   csrf: [
     'http://localhost:4321',
     'http://localhost:3030',
-    process.env.SITE_URL ?? 'https://dnjourneysbali.com',
+    process.env.SITE_URL ?? 'https://gtjourneysid.com',
     process.env.SERVER_URL ?? '',
   ].filter(Boolean),
 
@@ -248,7 +248,7 @@ export default buildConfig({
       ],
     },
     meta: {
-      titleSuffix: ' — DnJourneysBali CMS',
+      titleSuffix: ' — GtJourneysID CMS',
     },
   },
 

@@ -1,5 +1,5 @@
 /**
- * DnJourneysBali — Preview URL helper (Phase 4.9).
+ * GtJourneysID — Preview URL helper (Phase 4.9).
  *
  * Turns a per-collection URL base (e.g. `/tour`, `/villa`) into a
  * `admin.preview` function that:

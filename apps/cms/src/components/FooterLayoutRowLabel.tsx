@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Footer Layout Column RowLabel (Phase 4.48.1).
+ * GtJourneysID — Footer Layout Column RowLabel (Phase 4.48.1).
  *
  * Registered via `admin.components.RowLabel` pada
  * `footerSettings.layoutColumns` array. Payload render sebagai header

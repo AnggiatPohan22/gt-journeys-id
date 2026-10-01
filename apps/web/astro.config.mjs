@@ -10,7 +10,7 @@ import cloudflare from '@astrojs/cloudflare'
 // on-demand routes via `export const prerender = false`. All existing
 // pages remain pre-rendered; only files that opt in execute on demand.
 export default defineConfig({
-  site: 'https://dnjourneysbali.com',
+  site: 'https://gtjourneysid.com',
   output: 'static',
   adapter: cloudflare({ imageService: 'passthrough' }),
 
@@ -22,6 +22,6 @@ export default defineConfig({
   ],
 
   image: {
-    domains: ['dn-journeys-media.r2.cloudflarestorage.com'],
+    domains: ['gt-journeys-media.r2.cloudflarestorage.com'],
   },
 })

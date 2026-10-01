@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Menu item RowLabel (Phase 4.13).
+ * GtJourneysID — Menu item RowLabel (Phase 4.13).
  *
  * Rendered by Payload as the collapsed row header on Menus > items.
  * Reads the row data via `useRowLabel` and emits classed markup so all

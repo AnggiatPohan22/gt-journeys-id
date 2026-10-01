@@ -1,6 +1,6 @@
 # 04 — RBAC (Role-Based Access Control)
 
-> Sistem hak akses proyek **DnJourneysBali** — 3 role (Super Admin / Admin / Editor) yang diimplementasikan di Payload CMS 3.x. Semua aturan didefinisikan di [apps/cms/src/access/roles.ts](apps/cms/src/access/roles.ts) dan di-attach per koleksi/global/field.
+> Sistem hak akses proyek **GtJourneysID** — 3 role (Super Admin / Admin / Editor) yang diimplementasikan di Payload CMS 3.x. Semua aturan didefinisikan di [apps/cms/src/access/roles.ts](apps/cms/src/access/roles.ts) dan di-attach per koleksi/global/field.
 
 ---
 

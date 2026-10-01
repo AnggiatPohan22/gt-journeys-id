@@ -1,4 +1,4 @@
-name = "dn-journeys-cms"
+name = "gt-journeys-cms"
 compatibility_date = "2025-09-30"
 compatibility_flags = ["nodejs_compat"]
 
@@ -17,13 +17,13 @@ SERVER_URL = "http://localhost:8787"
 # D1 Database — IDs will be auto-filled after first deploy
 [[d1_databases]]
 binding = "DB"
-database_name = "dn-journeys-db"
+database_name = "gt-journeys-db"
 database_id = "YOUR_D1_DATABASE_ID"
 
 # R2 Storage for media uploads
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "dn-journeys-media"
+bucket_name = "gt-journeys-media"
 
 # ── Chat retention cron trigger — Phase 4.50.7 ──
 # Runs POST /api/chat-retention daily at 03:00 UTC (10:00 WITA).

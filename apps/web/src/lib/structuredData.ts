@@ -7,7 +7,7 @@
  */
 
 /** Site origin default (selaras `astro.config.mjs` `site`). */
-export const SITE_URL = 'https://dnjourneysbali.com'
+export const SITE_URL = 'https://gtjourneysid.com'
 
 /** Absolutize a path/URL terhadap site origin. */
 export const absUrl = (path: string, site: string = SITE_URL): string => {

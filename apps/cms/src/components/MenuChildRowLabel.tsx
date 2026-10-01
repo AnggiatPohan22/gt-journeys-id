@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Menu child (sub-item) RowLabel (Phase 4.13).
+ * GtJourneysID — Menu child (sub-item) RowLabel (Phase 4.13).
  *
  * Same layout as MenuItemRowLabel but marks itself as child so CSS in
  * `admin/menu-editor.css` can render the indent, smaller badge, and

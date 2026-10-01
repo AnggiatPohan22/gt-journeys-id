@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Media Library folder sidebar (Phase 4.61).
+ * GtJourneysID — Media Library folder sidebar (Phase 4.61).
  *
  * FileBird-style two-pane layout for the flat media list route
  * (`/admin/collections/media`). Registered as a global provider; it

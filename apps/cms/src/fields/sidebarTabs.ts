@@ -1,7 +1,7 @@
 import type { Field } from 'payload'
 
 /**
- * DnJourneysBali — Shared sidebar-tabs helpers (Phase 4.9).
+ * GtJourneysID — Shared sidebar-tabs helpers (Phase 4.9).
  *
  * Extracted from `collections/Pages.ts` (Phase 4.8) so every collection
  * that gets the sidebar-tabs treatment imports the same building blocks:

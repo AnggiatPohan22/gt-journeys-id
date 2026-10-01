@@ -129,7 +129,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Tours & Journeys | DnJourneysBali', metaDescription: 'Hand-crafted tours across Bali, Nusa Penida, and Lembongan — led by local Balinese guides.' },
+        seo: { metaTitle: 'Bali Tours & Journeys | GtJourneysID', metaDescription: 'Hand-crafted tours across Bali, Nusa Penida, and Lembongan — led by local Balinese guides.' },
       },
     },
     {
@@ -160,7 +160,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Private Yacht Charters Bali | DnJourneysBali', metaDescription: 'Charter catamarans, sailing yachts, and phinisi across Bali. Full crew, custom itineraries.' },
+        seo: { metaTitle: 'Private Yacht Charters Bali | GtJourneysID', metaDescription: 'Charter catamarans, sailing yachts, and phinisi across Bali. Full crew, custom itineraries.' },
       },
     },
     {
@@ -191,7 +191,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Restaurant Reservations | DnJourneysBali', metaDescription: 'Hand-picked restaurants across Bali. We handle bookings, dietary requests, and special occasions.' },
+        seo: { metaTitle: 'Bali Restaurant Reservations | GtJourneysID', metaDescription: 'Hand-picked restaurants across Bali. We handle bookings, dietary requests, and special occasions.' },
       },
     },
     {
@@ -222,7 +222,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Rentals — Motorbike, Car, Gear | DnJourneysBali', metaDescription: 'Insured motorbikes, cars, and gear rentals across Bali. Delivered to your accommodation.' },
+        seo: { metaTitle: 'Bali Rentals — Motorbike, Car, Gear | GtJourneysID', metaDescription: 'Insured motorbikes, cars, and gear rentals across Bali. Delivered to your accommodation.' },
       },
     },
     {
@@ -253,7 +253,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Water Activities | DnJourneysBali', metaDescription: 'Snorkeling, diving, surfing, and watersports across Bali and Nusa islands.' },
+        seo: { metaTitle: 'Bali Water Activities | GtJourneysID', metaDescription: 'Snorkeling, diving, surfing, and watersports across Bali and Nusa islands.' },
       },
     },
     {
@@ -284,7 +284,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Wedding & Event Venues Bali | DnJourneysBali', metaDescription: 'Beach, garden, cliff, chapel — venues for weddings and celebrations across Bali.' },
+        seo: { metaTitle: 'Wedding & Event Venues Bali | GtJourneysID', metaDescription: 'Beach, garden, cliff, chapel — venues for weddings and celebrations across Bali.' },
       },
     },
     // ── Explore Bali — multi-service showcase ────────────────────
@@ -353,7 +353,7 @@ const run = async () => {
             mediaType: 'none',
           },
         ],
-        seo: { metaTitle: 'Explore Bali — Tours, Stays & Adventures | DnJourneysBali', metaDescription: 'Discover everything Bali offers: tours, villas, water activities, yachts, dining, and events — curated by local experts.' },
+        seo: { metaTitle: 'Explore Bali — Tours, Stays & Adventures | GtJourneysID', metaDescription: 'Discover everything Bali offers: tours, villas, water activities, yachts, dining, and events — curated by local experts.' },
       },
     },
   ]

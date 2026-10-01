@@ -1,6 +1,6 @@
 # 02 — DATABASE SCHEMA
 
-> Skema database proyek **DnJourneysBali**, di-generate dari definisi Payload CMS 3.x pada `apps/cms/src/collections/` dan `apps/cms/src/globals/`.
+> Skema database proyek **GtJourneysID**, di-generate dari definisi Payload CMS 3.x pada `apps/cms/src/collections/` dan `apps/cms/src/globals/`.
 >
 > Database: **Cloudflare D1** (SQLite-compatible) di produksi, SQLite file lokal (`apps/cms/cms.db`) saat development. Adapter: `@payloadcms/db-sqlite` (Drizzle ORM) — lihat [payload.config.ts](apps/cms/src/payload.config.ts).
 >
@@ -508,7 +508,7 @@ Field khas: `title`, `subtitle`, `rentalType` (motorbike/car/bicycle/boat/surfbo
 #### `site-settings` — [SiteSettings.ts](apps/cms/src/globals/SiteSettings.ts)
 
 Setelan brand global. Fields:
-- `siteName` (req, default `DnJourneysBali`), `tagline`, `logo`, `logoDark`, `favicon` (semua upload → media)
+- `siteName` (req, default `GtJourneysID`), `tagline`, `logo`, `logoDark`, `favicon` (semua upload → media)
 - `contact` (group): `email, phone, whatsapp, address, mapEmbed`
 - `socialMedia` (group): `instagram, facebook, tiktok, youtube, tripadvisor`
 - `defaultSeo` (group): `metaTitle, metaDescription, ogImage, googleAnalyticsId`
@@ -627,8 +627,8 @@ Saat CMS start di dev, Drizzle akan mendeteksi perubahan schema dan menawarkan m
 4. Untuk produksi (Cloudflare D1):
 
 ```bash
-pnpm --filter @dn-journeys/cms payload migrate:create
-pnpm --filter @dn-journeys/cms payload migrate
+pnpm --filter @gt-journeys/cms payload migrate:create
+pnpm --filter @gt-journeys/cms payload migrate
 ```
 
 <!-- PLANNED: belum ada folder migrations/ di apps/cms — akan di-generate otomatis saat perintah migrate:create dijalankan pertama kali. -->
@@ -683,8 +683,8 @@ collections: [
 
 ```bash
 pnpm generate:types
-pnpm --filter @dn-journeys/cms payload migrate:create
-pnpm --filter @dn-journeys/cms payload migrate
+pnpm --filter @gt-journeys/cms payload migrate:create
+pnpm --filter @gt-journeys/cms payload migrate
 ```
 
 4. (Opsional) Tambah helper fetch di [apps/web/src/lib/payload.ts](apps/web/src/lib/payload.ts):
@@ -725,8 +725,8 @@ Setelah menambah relasi:
 
 ```bash
 pnpm generate:types            # tipe TS ter-update — FK sekarang typed sebagai `number | Destination`
-pnpm --filter @dn-journeys/cms payload migrate:create
-pnpm --filter @dn-journeys/cms payload migrate
+pnpm --filter @gt-journeys/cms payload migrate:create
+pnpm --filter @gt-journeys/cms payload migrate
 ```
 
 **Dampak pada shared types:** Payload meng-generate field relasi sebagai union `number | RelatedType`. Front-end harus handle `depth` fetch — kalau `depth: 0` hasilnya cuma ID number, `depth ≥ 1` sudah populated object. Helper `fetchBySlug` default `depth: 2`.

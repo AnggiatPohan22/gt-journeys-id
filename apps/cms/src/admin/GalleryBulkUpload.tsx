@@ -1,6 +1,6 @@
 'use client'
 /**
- * DnJourneysBali — Gallery bulk uploader (Phase 4.26 · A, pilot; v2 bugfix).
+ * GtJourneysID — Gallery bulk uploader (Phase 4.26 · A, pilot; v2 bugfix).
  *
  * Rendered as a `ui` field sibling right before `gallery` on the
  * Accommodations edit view. Lets the editor pick up to 10 image files

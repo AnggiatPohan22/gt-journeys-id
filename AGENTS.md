@@ -1,4 +1,4 @@
-# AGENTS.md — DnJourneysBali Master Rules
+# AGENTS.md — GtJourneysID Master Rules
 
 This file is the master rule for all AI agents working on this project.
 Read this file first before making any changes.
@@ -7,7 +7,7 @@ Read this file first before making any changes.
 
 ## 1. Project Identity
 
-**Project:** DnJourneysBali — Travel Website Template
+**Project:** GtJourneysID — Travel Website Template
 **Architecture:** Monorepo with separated Frontend + Backend CMS
 **Goal:** Reusable travel website template with 7 service modules,
 CMS-managed content, WhatsApp-first booking, deployable to Cloudflare.
@@ -20,7 +20,7 @@ This project is a monorepo with two independent applications.
 They share types but deploy separately. Never mix their concerns.
 
 ```
-dn-journeys-bali/
+gt-journeys-id/
 ├── apps/web/          ← FRONTEND (Astro static site)
 ├── apps/cms/          ← BACKEND  (Payload CMS on Next.js)
 ├── packages/shared/   ← SHARED types & utilities only
@@ -135,7 +135,7 @@ Developer pushes to GitHub
              ├── Build command:  cd apps/web && pnpm install && pnpm build
              ├── Output dir:     apps/web/dist
              ├── Build output:   Static HTML + CSS + JS + images
-             └── Result:         Live at dnjourneysbali.com
+             └── Result:         Live at gtjourneysid.com
 
 Size: typically 5-20 MB (HTML + optimized assets)
 Cost: $0/month (Cloudflare Pages free tier)
@@ -160,7 +160,7 @@ Developer runs: cd apps/cms && pnpm deploy
         ├── Worker bundle:   .open-next/worker.js
         ├── Database:        Cloudflare D1 (managed, no file in repo)
         ├── Media storage:   Cloudflare R2 (managed, no file in repo)
-        └── Result:          Live at cms.dnjourneysbali.com
+        └── Result:          Live at cms.gtjourneysid.com
 
 Size: Worker bundle ~3-10 MB (Cloudflare limit: varies by plan)
 Cost: $5/month (Workers paid plan)
