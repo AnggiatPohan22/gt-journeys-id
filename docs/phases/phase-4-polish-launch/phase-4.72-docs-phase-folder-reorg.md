@@ -16,28 +16,35 @@ Reorg: topik → folder, nomor phase tetap jadi prefix nama file.
 
 ## Yang berubah
 
-### Struktur folder baru (2 level)
+### Struktur folder baru
+
+Root `docs/phases/` hanya berisi folder phase — tidak ada loose `.md` file.
+Setiap phase punya folder sendiri (bahkan yang isinya 1 file). Phase 3 & 4
+dapat sub-folder topikal; Phase 4 sampai 2 level nesting.
 
 ```
 docs/phases/
-├── phase-1-foundation.md                   (unchanged root)
-├── phase-2-service-modules.md              (unchanged root)
-├── phase-5-deploy.md                       (unchanged root)
-├── README.md                               (baru — peta folder)
-├── phase-3-cms-driven/                     (5 sub-folder)
-└── phase-4-polish-launch/                  (10 area → sub-topik)
-    ├── admin-ui/           8 sub-topik
-    ├── blocks-and-content/ 7 sub-topik
-    ├── theming/            5 sub-topik
-    ├── mobile-polish/      4 sub-topik
-    ├── features/           3 sub-topik
-    ├── ferry-tickets/      3 sub-topik
-    ├── checkout-flow/      (flat, 8 file)
-    ├── cms-infra/          3 sub-topik
-    └── security-patch/     (flat, 15 file)
+├── phase-1-foundation/        (1 file)
+├── phase-2-service-modules/   (1 file)
+├── phase-3-cms-driven/        (index + 4 sub-folder)
+├── phase-4-polish-launch/     (index + 10 area → sub-topik + README + 4.72)
+│   ├── admin-ui/           8 sub-topik
+│   ├── blocks-and-content/ 7 sub-topik
+│   ├── theming/            5 sub-topik
+│   ├── mobile-polish/      4 sub-topik
+│   ├── features/           3 sub-topik
+│   ├── ferry-tickets/      3 sub-topik
+│   ├── checkout-flow/      (flat, 8 file)
+│   ├── cms-infra/          3 sub-topik
+│   └── security-patch/     (flat, 15 file)
+└── phase-5-deploy/            (1 file)
 ```
 
-Peta lengkap: lihat [`docs/phases/README.md`](./README.md).
+`README.md` (peta folder) dan report ini dipindah ke dalam
+`phase-4-polish-launch/` karena Phase 4 adalah phase paling aktif, dan
+supaya root `docs/phases/` tetap bersih.
+
+Peta lengkap: lihat [`README.md`](./README.md).
 
 ### File operation
 
@@ -66,7 +73,7 @@ Peta lengkap: lihat [`docs/phases/README.md`](./README.md).
 ## Konvensi baru untuk phase berikutnya
 
 - Phase baru → tentukan topiknya → taruh di folder yang sesuai. Topik baru →
-  bikin folder baru + update peta di `docs/phases/README.md`.
+  bikin folder baru + update peta di `docs/phases/phase-4-polish-launch/README.md`.
 - Reference phase di dokumen lain WAJIB pakai path lengkap:
   `phases/<folder>/<file>.md` (relatif ke `docs/`) atau
   `docs/phases/<folder>/<file>.md` (dari root repo).
@@ -89,4 +96,4 @@ semua rename + link rewrite dalam 1 operasi karena satu commit.
 
 - `pnpm build` di CMS tetap jalan — zero code change (hanya 2 komentar).
 - Tidak perlu migration, tidak perlu re-deploy.
-- Developer baru dapat scan `docs/phases/README.md` untuk peta folder.
+- Developer baru dapat scan `docs/phases/phase-4-polish-launch/README.md` untuk peta folder.
