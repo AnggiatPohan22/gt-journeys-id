@@ -529,8 +529,21 @@ laporan dalam file terpisah.
 | Infra / deploy berubah | `docs/05-INFRA.md` |
 | Runbook / maintenance berubah | `docs/06-MAINTENANCE-RUNBOOK.md` |
 | Keputusan arsitektur baru | `docs/07-DECISION-LOG.md` |
+| **Pekerjaan security** (audit, hardening, patch CVE, pengetatan RBAC, dsb.) | `docs/08-SECURITY-PATCH.md` — tambah 1 baris di tabel series yang relevan (atau buka series baru). Isi ringkas saja; detail tetap di phase report. |
 | Apapun yang selesai | `docs/PROGRESS.md` |
 | **Selalu** | `docs/reports/phase-[nama].md` (buat baru) |
+
+### Aturan khusus Security (Phase 4.66+)
+
+Semua perintah user yang menyentuh **security** (audit, hardening, patch, pengetatan access control, CSP, rate-limit, secret rotation, dsb.) wajib:
+
+1. Dijalankan sebagai phase bernomor di `docs/phases/phase-<N>-*.md` seperti task biasa.
+2. **DITAMBAHKAN entri garis-besar** di [`docs/08-SECURITY-PATCH.md`](docs/08-SECURITY-PATCH.md) — satu baris per phase, dengan finding ID, severity, link, status.
+3. Jangan menduplikasi isi phase report ke `08-SECURITY-PATCH.md`. File itu adalah **index**, bukan laporan.
+4. Series security baru (bukan sub-phase dari series yang sudah ada) dibuat sebagai **section baru** di `08-SECURITY-PATCH.md`, mengikuti template yang ada di akhir file tsb.
+5. PROGRESS.md tetap diupdate seperti biasa untuk timeline keseluruhan proyek — security bukan pengecualian.
+
+Rasionale: developer yang masuk project butuh satu tempat untuk cek "proteksi apa saja yang sudah terpasang" tanpa harus scroll PROGRESS.md yang bercampur dengan pekerjaan UI/content/CMS.
 
 ### Format Ringkas (untuk update inline di chat / commit message)
 
