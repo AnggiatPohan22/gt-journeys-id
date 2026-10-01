@@ -126,4 +126,4 @@ cannot change tab labels from the admin UI — this was a deliberate decision:
 tab structure is a template/structural concern (developer's responsibility),
 while content within the tabs is the client's responsibility.
 
-See `docs/phases/phase-4.18-service-content-tabs-v2.md` for full reasoning.
+See `docs/phases/phase-4-polish-launch/blocks-and-content/service-grid-cards/phase-4.18-service-content-tabs-v2.md` for full reasoning.

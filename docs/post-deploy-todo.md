@@ -4,8 +4,8 @@
 > **SETELAH** deploy ke Cloudflare Pages dan register ke Google Search Console /
 > webmaster tools lainnya.
 >
-> Sumber: di-defer dari [Phase 4](phases/phase-4-polish-launch.md) SEO work &
-> [Phase 3.20](phases/phase-3.20-service-listing-fixes.md) — butuh environment produksi.
+> Sumber: di-defer dari [Phase 4](phases/phase-4-polish-launch/phase-4-polish-launch.md) SEO work &
+> [Phase 3.20](phases/phase-3-cms-driven/service-listing/phase-3.20-service-listing-fixes.md) — butuh environment produksi.
 > Referensi implementasi: [service-listing-visual-audit.md](reports/service-listing-visual-audit.md).
 
 ---

@@ -714,7 +714,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   // ── Delete blog rows from Categories. ──
   // All references have been migrated to blog_categories. The 'blog'
   // value has been removed from Categories.module enum in the code
-  // (docs/phases/phase-4.35 §4.35.3), so leaving these rows would be an
+  // (docs/phases/phase-4-polish-launch/features/blog/phase-4.35-blog-feature-scaffold.md §4.35.3), so leaving these rows would be an
   // invalid enum state.
   await db.run(sql`DELETE FROM \`categories\` WHERE module='blog';`)
 }

@@ -458,7 +458,7 @@ Format: satu ADR = satu keputusan. Nomornya urut (ADR-001, 002, …) dan tidak p
   - ✅ Migration Payload auto-generate tabel per block-type.
   - ✅ Admin UX: "Add Block" dropdown lebih deklaratif dibanding row uniform dengan conditional field.
   - ⚠️ Shared field (label/enabled/subtitle/agentAvatar/iconOverride/brandColorOverride) di-duplicate di setiap block schema → mitigasi: helper `commonChannelFields` untuk avoid drift.
-- **Bukti**: [ChatWidgetSettings.ts](apps/cms/src/globals/ChatWidgetSettings.ts), [phase-4.50.1](docs/phases/phase-4.50.1-chat-widget-schema-and-security.md).
+- **Bukti**: [ChatWidgetSettings.ts](apps/cms/src/globals/ChatWidgetSettings.ts), [phase-4.50.1](docs/phases/phase-4-polish-launch/features/chat-widget/phase-4.50.1-chat-widget-schema-and-security.md).
 
 ---
 
@@ -475,7 +475,7 @@ Format: satu ADR = satu keputusan. Nomornya urut (ADR-001, 002, …) dan tidak p
   - ✅ GDPR-friendly: IP tidak recoverable.
   - ✅ Dedup + rate-limit tetap jalan via hash equality.
   - ⚠️ Salt hilang = semua history hash rusak (mitigasi: salt disimpan di Wrangler secrets, ada di runbook).
-- **Bukti**: [ip-hasher.ts](apps/web/src/lib/chat-security/ip-hasher.ts), [phase-4.50.4](docs/phases/phase-4.50.4-chat-security-lib.md).
+- **Bukti**: [ip-hasher.ts](apps/web/src/lib/chat-security/ip-hasher.ts), [phase-4.50.4](docs/phases/phase-4-polish-launch/features/chat-widget/phase-4.50.4-chat-security-lib.md).
 
 ---
 
@@ -492,7 +492,7 @@ Format: satu ADR = satu keputusan. Nomornya urut (ADR-001, 002, …) dan tidak p
   - ✅ Zero DB write di hot path.
   - ✅ Interface abstract — swap ke DO/Redis = 1 class baru.
   - ⚠️ Race window: 2 request paralel bisa lolos counter, mitigasi: pilih rule dengan buffer (mis. limit=5 dengan expected traffic 3-4/menit).
-- **Bukti**: [rate-limit-store.ts](apps/web/src/lib/chat-security/rate-limit-store.ts), [phase-4.50.4](docs/phases/phase-4.50.4-chat-security-lib.md).
+- **Bukti**: [rate-limit-store.ts](apps/web/src/lib/chat-security/rate-limit-store.ts), [phase-4.50.4](docs/phases/phase-4-polish-launch/features/chat-widget/phase-4.50.4-chat-security-lib.md).
 
 ---
 

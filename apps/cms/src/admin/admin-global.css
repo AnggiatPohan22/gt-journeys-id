@@ -660,7 +660,7 @@ html[data-theme='dark'] .dnj-brand-icon__img--dark { display: block; }
    ModularDashboard (Edit Dashboard / Reset Layout). Kita PERTAHANKAN teks
    "Dashboard", tapi SEMBUNYIKAN panah ▾ + matikan interaksinya (popup tak bisa
    dibuka) → tampil seperti label breadcrumb biasa. Bukan dihapus; lihat
-   docs/phases/phase-4.7-dashboard-logo-and-cleanup.md untuk cara re-enable. */
+   docs/phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.7-dashboard-logo-and-cleanup.md untuk cara re-enable. */
 .dashboard-breadcrumb-select .rs__indicators {
   display: none !important;
 }
