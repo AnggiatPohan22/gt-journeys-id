@@ -22,7 +22,7 @@ export const Bookings: CollectionConfig = {
   labels: { singular: 'Booking', plural: 'Bookings' },
   admin: {
     useAsTitle: 'bookingRef',
-    group: 'Administration',
+    group: 'Bookings',
     defaultColumns: ['bookingRef', 'serviceType', 'status', 'channel', 'customerName', 'departureDate', 'createdAt'],
     defaultSort: '-createdAt',
     description: 'Data booking dari frontend. Ferry Ticket sekarang; siap untuk gateway (Xendit/Midtrans) nanti.',

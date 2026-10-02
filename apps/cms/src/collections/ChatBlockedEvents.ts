@@ -19,7 +19,7 @@ export const ChatBlockedEvents: CollectionConfig = {
   labels: { singular: 'Blocked Event', plural: 'Blocked Events' },
   admin: {
     useAsTitle: 'ruleTriggered',
-    group: 'Administration',
+    group: 'Chat',
     defaultColumns: ['layer', 'ruleTriggered', 'action', 'ipHash', 'createdAt'],
     description: 'Audit trail setiap kali security layer memblokir/challenge.',
     hidden: ({ user }) => !user || user.role === 'editor',

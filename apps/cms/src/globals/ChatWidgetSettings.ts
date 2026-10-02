@@ -93,7 +93,7 @@ export const ChatWidgetSettings: GlobalConfig = {
   slug: 'chat-widget',
   label: 'Chat Widget',
   admin: {
-    group: 'Settings',
+    group: 'Chat',
     description:
       'Floating chat widget kanan-bawah. Channel-agnostic: bisa berisi WhatsApp, AI chatbot, live chat, email. Master toggle di Pengaturan Fitur → WhatsApp Floating Button.',
     // Phase 4.57 — hanya Super Admin yang boleh melihat menu ini di sidebar

@@ -1,5 +1,5 @@
 import type { GlobalConfig } from 'payload'
-import { isSuperAdmin } from '../access/roles'
+import { isAdmin } from '../access/roles'
 import { iconField } from '../fields/iconOptions'
 
 /**
@@ -21,13 +21,13 @@ export const HomepageContent: GlobalConfig = {
   slug: 'homepage-content',
   label: 'Homepage — Fallback Content',
   admin: {
-    group: 'Appearance',
+    group: 'Content',
     description: 'Copy fallback untuk homepage. Kalau Page(slug=home) ada, semua field di sini diabaikan.',
     hidden: ({ user }) => user?.role === 'editor',
   },
   access: {
     read: () => true,
-    update: isSuperAdmin,
+    update: isAdmin,
   },
   fields: [
     {

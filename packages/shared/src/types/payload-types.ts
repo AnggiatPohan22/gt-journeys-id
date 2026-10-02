@@ -74,27 +74,27 @@ export interface Config {
     categories: Category;
     locations: Location;
     testimonials: Testimonial;
-    authors: Author;
     posts: Post;
     'blog-categories': BlogCategory;
     tags: Tag;
+    authors: Author;
     tours: Tour;
     accommodations: Accommodation;
     'water-activities': WaterActivity;
     yachts: Yacht;
+    'ferry-tickets': FerryTicket;
+    rentals: Rental;
     restaurants: Restaurant;
     venues: Venue;
-    rentals: Rental;
     spa: Spa;
-    'ferry-tickets': FerryTicket;
-    menus: Menu;
-    media: Media;
-    users: User;
-    'newsletter-subscribers': NewsletterSubscriber;
+    bookings: Booking;
     'chat-visitors': ChatVisitor;
     'chat-messages': ChatMessage;
     'chat-blocked-events': ChatBlockedEvent;
-    bookings: Booking;
+    'newsletter-subscribers': NewsletterSubscriber;
+    menus: Menu;
+    media: Media;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
@@ -114,27 +114,27 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     locations: LocationsSelect<false> | LocationsSelect<true>;
     testimonials: TestimonialsSelect<false> | TestimonialsSelect<true>;
-    authors: AuthorsSelect<false> | AuthorsSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     'blog-categories': BlogCategoriesSelect<false> | BlogCategoriesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
+    authors: AuthorsSelect<false> | AuthorsSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
     accommodations: AccommodationsSelect<false> | AccommodationsSelect<true>;
     'water-activities': WaterActivitiesSelect<false> | WaterActivitiesSelect<true>;
     yachts: YachtsSelect<false> | YachtsSelect<true>;
+    'ferry-tickets': FerryTicketsSelect<false> | FerryTicketsSelect<true>;
+    rentals: RentalsSelect<false> | RentalsSelect<true>;
     restaurants: RestaurantsSelect<false> | RestaurantsSelect<true>;
     venues: VenuesSelect<false> | VenuesSelect<true>;
-    rentals: RentalsSelect<false> | RentalsSelect<true>;
     spa: SpaSelect<false> | SpaSelect<true>;
-    'ferry-tickets': FerryTicketsSelect<false> | FerryTicketsSelect<true>;
-    menus: MenusSelect<false> | MenusSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
-    'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
     'chat-visitors': ChatVisitorsSelect<false> | ChatVisitorsSelect<true>;
     'chat-messages': ChatMessagesSelect<false> | ChatMessagesSelect<true>;
     'chat-blocked-events': ChatBlockedEventsSelect<false> | ChatBlockedEventsSelect<true>;
-    bookings: BookingsSelect<false> | BookingsSelect<true>;
+    'newsletter-subscribers': NewsletterSubscribersSelect<false> | NewsletterSubscribersSelect<true>;
+    menus: MenusSelect<false> | MenusSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -146,28 +146,28 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
-    'site-settings': SiteSetting;
-    'header-settings': HeaderSetting;
-    'footer-settings': FooterSetting;
     'homepage-content': HomepageContent;
-    'site-features': SiteFeature;
-    'announcement-bar': AnnouncementBar;
-    'promo-banner': PromoBanner;
     'blog-settings': BlogSetting;
     'chat-widget': ChatWidget;
+    'announcement-bar': AnnouncementBar;
+    'promo-banner': PromoBanner;
     'popup-settings': PopupSetting;
+    'header-settings': HeaderSetting;
+    'footer-settings': FooterSetting;
+    'site-settings': SiteSetting;
+    'site-features': SiteFeature;
   };
   globalsSelect: {
-    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
-    'header-settings': HeaderSettingsSelect<false> | HeaderSettingsSelect<true>;
-    'footer-settings': FooterSettingsSelect<false> | FooterSettingsSelect<true>;
     'homepage-content': HomepageContentSelect<false> | HomepageContentSelect<true>;
-    'site-features': SiteFeaturesSelect<false> | SiteFeaturesSelect<true>;
-    'announcement-bar': AnnouncementBarSelect<false> | AnnouncementBarSelect<true>;
-    'promo-banner': PromoBannerSelect<false> | PromoBannerSelect<true>;
     'blog-settings': BlogSettingsSelect<false> | BlogSettingsSelect<true>;
     'chat-widget': ChatWidgetSelect<false> | ChatWidgetSelect<true>;
+    'announcement-bar': AnnouncementBarSelect<false> | AnnouncementBarSelect<true>;
+    'promo-banner': PromoBannerSelect<false> | PromoBannerSelect<true>;
     'popup-settings': PopupSettingsSelect<false> | PopupSettingsSelect<true>;
+    'header-settings': HeaderSettingsSelect<false> | HeaderSettingsSelect<true>;
+    'footer-settings': FooterSettingsSelect<false> | FooterSettingsSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'site-features': SiteFeaturesSelect<false> | SiteFeaturesSelect<true>;
   };
   locale: null;
   widgets: {
@@ -29489,131 +29489,132 @@ export interface Testimonial {
   createdAt: string;
 }
 /**
+ * Data booking dari frontend. Ferry Ticket sekarang; siap untuk gateway (Xendit/Midtrans) nanti.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "menus".
+ * via the `definition` "bookings".
  */
-export interface Menu {
+export interface Booking {
   id: number;
   /**
-   * e.g. "Main Navigation", "Footer Links"
+   * Auto-generated reference, mis. "FT-20260927-A1B2C3". Jangan diubah manual.
    */
-  name: string;
-  slug: string;
-  items?:
+  bookingRef: string;
+  /**
+   * 128-bit random capability token. Never share screenshot yang mengandung ini.
+   */
+  accessToken: string;
+  /**
+   * Jenis layanan yang di-booking.
+   */
+  serviceType: 'ferry-ticket';
+  /**
+   * Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.
+   */
+  ferryTicket?: (number | null) | FerryTicket;
+  customerName: string;
+  customerEmail?: string | null;
+  /**
+   * Kode negara telepon (mis. +62, +65).
+   */
+  contactPhoneRegion?: string | null;
+  /**
+   * Nomor telepon tanpa kode negara.
+   */
+  contactPhone?: string | null;
+  /**
+   * Nomor ini juga WhatsApp.
+   */
+  contactPhoneIsWhatsapp?: boolean | null;
+  /**
+   * Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.
+   */
+  customerWhatsapp: string;
+  /**
+   * Negara asal (opsional).
+   */
+  customerCountry?: string | null;
+  /**
+   * Catatan tambahan dari customer (opsional).
+   */
+  customerNotes?: string | null;
+  /**
+   * Data lengkap tiap penumpang untuk keperluan ticketing / manifest / payment gateway.
+   */
+  passengers?:
     | {
-        label: string;
-        type: 'page' | 'service_index' | 'custom_url' | 'anchor' | 'none';
-        page?: (number | null) | Page;
+        passengerType: 'adult' | 'child';
+        title?: ('mr' | 'mrs' | 'ms' | 'master' | 'miss') | null;
+        gender?: ('male' | 'female') | null;
+        nationality?: string | null;
+        firstName: string;
+        lastName: string;
+        dateOfBirth?: string | null;
         /**
-         * URL lengkap, path (/tours), atau anchor (#contact).
+         * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.
          */
-        url?: string | null;
-        target?: ('_self' | '_blank') | null;
-        children?:
-          | {
-              label: string;
-              type: 'page' | 'custom_url' | 'anchor' | 'none';
-              page?: (number | null) | Page;
-              /**
-               * URL lengkap, path, atau anchor (#section).
-               */
-              url?: string | null;
-              target?: ('_self' | '_blank') | null;
-              id?: string | null;
-            }[]
-          | null;
+        passportNumber?: string | null;
+        passportIssueDate?: string | null;
+        /**
+         * Minimal 6 bulan setelah departureDate.
+         */
+        passportExpiryDate?: string | null;
         id?: string | null;
       }[]
     | null;
-  status?: ('active' | 'inactive') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number;
+  departureDate: string;
+  adults: number;
+  children?: number | null;
   /**
-   * Only super-admin can change roles.
+   * Snapshot nama lokasi asal saat booking dibuat.
    */
-  role: 'editor' | 'admin' | 'super-admin';
+  originLocation?: string | null;
   /**
-   * Uncheck to soft-disable an account without deleting it. Currently used as an audit signal — active enforcement of login lockout should be wired via a beforeLogin hook when required.
+   * Snapshot nama lokasi tujuan saat booking dibuat.
    */
-  enabled?: boolean | null;
+  destinationLocation?: string | null;
   /**
-   * Profile picture. Falls back to initials if empty.
+   * Snapshot jadwal (mis. "08:20 → 09:10"). Opsional.
    */
-  avatar?: (number | null) | Media;
-  name: string;
+  scheduleTimeLabel?: string | null;
   /**
-   * Contact number (WhatsApp-compatible). Format: +62 812 xxxx-xxxx.
+   * Snapshot nama kelas (mis. "Ekonomi", "Emerald").
    */
-  phone?: string | null;
+  ferryClassName?: string | null;
   /**
-   * Full address (optional). Max 500 characters.
+   * Snapshot classType (ekonomi/emerald).
    */
-  address?: string | null;
+  ferryClassType?: string | null;
   /**
-   * Set automatically after each successful login.
+   * Harga per adult saat booking dibuat.
    */
-  lastLoginAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  enableAPIKey?: boolean | null;
-  apiKey?: string | null;
-  apiKeyIndex?: string | null;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
+  unitPrice?: number | null;
+  currency?: string | null;
+  /**
+   * Estimasi total = adults*unitPrice + children*childPrice.
+   */
+  totalEstimate?: number | null;
+  status: 'pending' | 'awaiting_payment' | 'confirmed' | 'cancelled' | 'expired';
+  /**
+   * Channel checkout yang dipakai. Manual WA = konfirmasi lewat WhatsApp (fallback).
+   */
+  channel: 'manual_wa';
+  /**
+   * Payload data dari channel (mis. gateway invoice id/URL). Kosong untuk manual_wa.
+   */
+  channelData?:
     | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
     | null;
-  password?: string | null;
-  collection: 'users';
-}
-/**
- * Emails collected via the site Newsletter Signup form. Read-only for editors.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "newsletter-subscribers".
- */
-export interface NewsletterSubscriber {
-  id: number;
   /**
-   * Subscriber email. Unique.
+   * Auto-expire booking pending setelah waktu ini. Nullable.
    */
-  email: string;
-  /**
-   * Lifecycle status. Set to "unsubscribed" if the person opts out.
-   */
-  status: 'active' | 'unsubscribed' | 'bounced';
-  /**
-   * URL path where signup happened (auto-filled by the API).
-   */
-  source?: string | null;
-  /**
-   * Browser UA at signup time (diagnostic).
-   */
-  userAgent?: string | null;
-  /**
-   * SHA-256(ip + salt). GDPR-friendly; used only for spam forensics.
-   */
-  ipHash?: string | null;
-  /**
-   * Internal admin notes. Not visible to the subscriber.
-   */
-  notes?: string | null;
+  expiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -29758,134 +29759,133 @@ export interface ChatBlockedEvent {
   createdAt: string;
 }
 /**
- * Data booking dari frontend. Ferry Ticket sekarang; siap untuk gateway (Xendit/Midtrans) nanti.
+ * Emails collected via the site Newsletter Signup form. Read-only for editors.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "bookings".
+ * via the `definition` "newsletter-subscribers".
  */
-export interface Booking {
+export interface NewsletterSubscriber {
   id: number;
   /**
-   * Auto-generated reference, mis. "FT-20260927-A1B2C3". Jangan diubah manual.
+   * Subscriber email. Unique.
    */
-  bookingRef: string;
+  email: string;
   /**
-   * 128-bit random capability token. Never share screenshot yang mengandung ini.
+   * Lifecycle status. Set to "unsubscribed" if the person opts out.
    */
-  accessToken: string;
+  status: 'active' | 'unsubscribed' | 'bounced';
   /**
-   * Jenis layanan yang di-booking.
+   * URL path where signup happened (auto-filled by the API).
    */
-  serviceType: 'ferry-ticket';
+  source?: string | null;
   /**
-   * Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.
+   * Browser UA at signup time (diagnostic).
    */
-  ferryTicket?: (number | null) | FerryTicket;
-  customerName: string;
-  customerEmail?: string | null;
+  userAgent?: string | null;
   /**
-   * Kode negara telepon (mis. +62, +65).
+   * SHA-256(ip + salt). GDPR-friendly; used only for spam forensics.
    */
-  contactPhoneRegion?: string | null;
+  ipHash?: string | null;
   /**
-   * Nomor telepon tanpa kode negara.
+   * Internal admin notes. Not visible to the subscriber.
    */
-  contactPhone?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "menus".
+ */
+export interface Menu {
+  id: number;
   /**
-   * Nomor ini juga WhatsApp.
+   * e.g. "Main Navigation", "Footer Links"
    */
-  contactPhoneIsWhatsapp?: boolean | null;
-  /**
-   * Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.
-   */
-  customerWhatsapp: string;
-  /**
-   * Negara asal (opsional).
-   */
-  customerCountry?: string | null;
-  /**
-   * Catatan tambahan dari customer (opsional).
-   */
-  customerNotes?: string | null;
-  /**
-   * Data lengkap tiap penumpang untuk keperluan ticketing / manifest / payment gateway.
-   */
-  passengers?:
+  name: string;
+  slug: string;
+  items?:
     | {
-        passengerType: 'adult' | 'child';
-        title?: ('mr' | 'mrs' | 'ms' | 'master' | 'miss') | null;
-        gender?: ('male' | 'female') | null;
-        nationality?: string | null;
-        firstName: string;
-        lastName: string;
-        dateOfBirth?: string | null;
+        label: string;
+        type: 'page' | 'service_index' | 'custom_url' | 'anchor' | 'none';
+        page?: (number | null) | Page;
         /**
-         * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.
+         * URL lengkap, path (/tours), atau anchor (#contact).
          */
-        passportNumber?: string | null;
-        passportIssueDate?: string | null;
-        /**
-         * Minimal 6 bulan setelah departureDate.
-         */
-        passportExpiryDate?: string | null;
+        url?: string | null;
+        target?: ('_self' | '_blank') | null;
+        children?:
+          | {
+              label: string;
+              type: 'page' | 'custom_url' | 'anchor' | 'none';
+              page?: (number | null) | Page;
+              /**
+               * URL lengkap, path, atau anchor (#section).
+               */
+              url?: string | null;
+              target?: ('_self' | '_blank') | null;
+              id?: string | null;
+            }[]
+          | null;
         id?: string | null;
       }[]
     | null;
-  departureDate: string;
-  adults: number;
-  children?: number | null;
-  /**
-   * Snapshot nama lokasi asal saat booking dibuat.
-   */
-  originLocation?: string | null;
-  /**
-   * Snapshot nama lokasi tujuan saat booking dibuat.
-   */
-  destinationLocation?: string | null;
-  /**
-   * Snapshot jadwal (mis. "08:20 → 09:10"). Opsional.
-   */
-  scheduleTimeLabel?: string | null;
-  /**
-   * Snapshot nama kelas (mis. "Ekonomi", "Emerald").
-   */
-  ferryClassName?: string | null;
-  /**
-   * Snapshot classType (ekonomi/emerald).
-   */
-  ferryClassType?: string | null;
-  /**
-   * Harga per adult saat booking dibuat.
-   */
-  unitPrice?: number | null;
-  currency?: string | null;
-  /**
-   * Estimasi total = adults*unitPrice + children*childPrice.
-   */
-  totalEstimate?: number | null;
-  status: 'pending' | 'awaiting_payment' | 'confirmed' | 'cancelled' | 'expired';
-  /**
-   * Channel checkout yang dipakai. Manual WA = konfirmasi lewat WhatsApp (fallback).
-   */
-  channel: 'manual_wa';
-  /**
-   * Payload data dari channel (mis. gateway invoice id/URL). Kosong untuk manual_wa.
-   */
-  channelData?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Auto-expire booking pending setelah waktu ini. Nullable.
-   */
-  expiresAt?: string | null;
+  status?: ('active' | 'inactive') | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  /**
+   * Only super-admin can change roles.
+   */
+  role: 'editor' | 'admin' | 'super-admin';
+  /**
+   * Uncheck to soft-disable an account without deleting it. Currently used as an audit signal — active enforcement of login lockout should be wired via a beforeLogin hook when required.
+   */
+  enabled?: boolean | null;
+  /**
+   * Profile picture. Falls back to initials if empty.
+   */
+  avatar?: (number | null) | Media;
+  name: string;
+  /**
+   * Contact number (WhatsApp-compatible). Format: +62 812 xxxx-xxxx.
+   */
+  phone?: string | null;
+  /**
+   * Full address (optional). Max 500 characters.
+   */
+  address?: string | null;
+  /**
+   * Set automatically after each successful login.
+   */
+  lastLoginAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -29940,10 +29940,6 @@ export interface PayloadLockedDocument {
         value: number | Testimonial;
       } | null)
     | ({
-        relationTo: 'authors';
-        value: number | Author;
-      } | null)
-    | ({
         relationTo: 'posts';
         value: number | Post;
       } | null)
@@ -29954,6 +29950,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'tags';
         value: number | Tag;
+      } | null)
+    | ({
+        relationTo: 'authors';
+        value: number | Author;
       } | null)
     | ({
         relationTo: 'tours';
@@ -29972,6 +29972,14 @@ export interface PayloadLockedDocument {
         value: number | Yacht;
       } | null)
     | ({
+        relationTo: 'ferry-tickets';
+        value: number | FerryTicket;
+      } | null)
+    | ({
+        relationTo: 'rentals';
+        value: number | Rental;
+      } | null)
+    | ({
         relationTo: 'restaurants';
         value: number | Restaurant;
       } | null)
@@ -29980,32 +29988,12 @@ export interface PayloadLockedDocument {
         value: number | Venue;
       } | null)
     | ({
-        relationTo: 'rentals';
-        value: number | Rental;
-      } | null)
-    | ({
         relationTo: 'spa';
         value: number | Spa;
       } | null)
     | ({
-        relationTo: 'ferry-tickets';
-        value: number | FerryTicket;
-      } | null)
-    | ({
-        relationTo: 'menus';
-        value: number | Menu;
-      } | null)
-    | ({
-        relationTo: 'media';
-        value: number | Media;
-      } | null)
-    | ({
-        relationTo: 'users';
-        value: number | User;
-      } | null)
-    | ({
-        relationTo: 'newsletter-subscribers';
-        value: number | NewsletterSubscriber;
+        relationTo: 'bookings';
+        value: number | Booking;
       } | null)
     | ({
         relationTo: 'chat-visitors';
@@ -30020,8 +30008,20 @@ export interface PayloadLockedDocument {
         value: number | ChatBlockedEvent;
       } | null)
     | ({
-        relationTo: 'bookings';
-        value: number | Booking;
+        relationTo: 'newsletter-subscribers';
+        value: number | NewsletterSubscriber;
+      } | null)
+    | ({
+        relationTo: 'menus';
+        value: number | Menu;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -31498,35 +31498,6 @@ export interface TestimonialsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "authors_select".
- */
-export interface AuthorsSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  avatar?: T;
-  role?: T;
-  bio?: T;
-  socialLinks?:
-    | T
-    | {
-        platform?: T;
-        url?: T;
-        id?: T;
-      };
-  seo?:
-    | T
-    | {
-        metaTitle?: T;
-        metaDescription?: T;
-        ogImage?: T;
-      };
-  status?: T;
-  sortOrder?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
@@ -32867,6 +32838,35 @@ export interface TagsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   color?: T;
+  status?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors_select".
+ */
+export interface AuthorsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  avatar?: T;
+  role?: T;
+  bio?: T;
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
   status?: T;
   sortOrder?: T;
   updatedAt?: T;
@@ -37785,6 +37785,2432 @@ export interface YachtsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ferry-tickets_select".
+ */
+export interface FerryTicketsSelect<T extends boolean = true> {
+  slug?: T;
+  status?: T;
+  sortOrder?: T;
+  isFeatured?: T;
+  title?: T;
+  subtitle?: T;
+  destination?: T;
+  category?: T;
+  originLocation?: T;
+  arrivalLocation?: T;
+  origin?: T;
+  arrival?: T;
+  operator?: T;
+  departureTime?: T;
+  arrivalTime?: T;
+  duration?: T;
+  durationOverride?: T;
+  durationMinutes?: T;
+  description?: T;
+  quickSpecs?:
+    | T
+    | {
+        iconName?: T;
+        label?: T;
+        subtitle?: T;
+        id?: T;
+      };
+  highlights?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  operatorLogo?: T;
+  bookedCount?: T;
+  badges?:
+    | T
+    | {
+        text?: T;
+        style?: T;
+        id?: T;
+      };
+  featuredImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  videoUrl?: T;
+  scheduleTime?:
+    | T
+    | {
+        departureLocation?: T;
+        arrivalLocation?: T;
+        departurePort?: T;
+        arrivalPort?: T;
+        departureTime?: T;
+        arrivalTime?: T;
+        duration?: T;
+        notes?: T;
+        id?: T;
+      };
+  ferryClasses?:
+    | T
+    | {
+        name?: T;
+        description?: T;
+        classType?: T;
+        currency?: T;
+        adultPrice?: T;
+        childPrice?: T;
+        originalPrice?: T;
+        images?:
+          | T
+          | {
+              image?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  additionalRemark?: T;
+  whatsappMessage?: T;
+  howToCheckIn?: T;
+  purchaseNotice?: T;
+  additionalInfo?: T;
+  relatedOverride?: T;
+  relatedSectionTitle?: T;
+  relatedCardStyle?: T;
+  relatedMaxItems?: T;
+  relatedSelectionMode?: T;
+  relatedShowExploreAll?: T;
+  relatedManualPicks?: T;
+  additionalBlocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              ctaText?: T;
+              ctaLink?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              button?:
+                | T
+                | {
+                    variant?: T;
+                    radius?: T;
+                    color?: T;
+                    textColor?: T;
+                    hoverAnimation?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    subheadingColor?: T;
+                    subheadingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              backgroundImage?: T;
+              overlayOpacity?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richText?:
+          | T
+          | {
+              content?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    paragraphColor?: T;
+                    paragraphAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        image?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              desktopColumns?: T;
+              tabletColumns?: T;
+              mobileColumns?: T;
+              enableLightbox?: T;
+              hoverEffect?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              buttonText?: T;
+              buttonLink?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              mediaLayout?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              button?:
+                | T
+                | {
+                    variant?: T;
+                    radius?: T;
+                    color?: T;
+                    textColor?: T;
+                    hoverAnimation?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              style?: T;
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        testimonials?:
+          | T
+          | {
+              heading?: T;
+              source?: T;
+              svc?: T;
+              maxItems?: T;
+              filterDest?: T;
+              onlyFeatured?: T;
+              items?:
+                | T
+                | {
+                    name?: T;
+                    quote?: T;
+                    photo?: T;
+                    rating?: T;
+                    id?: T;
+                  };
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        serviceGrid?:
+          | T
+          | {
+              heading?: T;
+              serviceType?: T;
+              limit?: T;
+              featuredOnly?: T;
+              cardVariant?: T;
+              template?: T;
+              selectionMode?: T;
+              sectionTitle?: T;
+              showViewAll?: T;
+              viewAllText?: T;
+              viewAllLink?: T;
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contact?:
+          | T
+          | {
+              showMap?: T;
+              showWhatsApp?: T;
+              additionalText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    paragraphColor?: T;
+                    paragraphAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        embed?:
+          | T
+          | {
+              embedType?: T;
+              embedCode?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        spacer?:
+          | T
+          | {
+              height?: T;
+              id?: T;
+              blockName?: T;
+            };
+        statsBanner?:
+          | T
+          | {
+              theme?: T;
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    iconName?: T;
+                    value?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              backgroundImage?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              ts?:
+                | T
+                | {
+                    eyebrowColor?: T;
+                    eyebrowAnimIn?: T;
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    labelColor?: T;
+                    labelAnimIn?: T;
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        postList?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              limit?: T;
+              featuredOnly?: T;
+              columns?: T;
+              filterCategory?: T;
+              showViewAll?: T;
+              viewAllText?: T;
+              viewAllLink?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        featuredPost?:
+          | T
+          | {
+              heading?: T;
+              selectionMode?: T;
+              featuredPost?: T;
+              sidePosts?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        categoryGrid?:
+          | T
+          | {
+              heading?: T;
+              module?: T;
+              limit?: T;
+              columns?: T;
+              showCount?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        popularPosts?:
+          | T
+          | {
+              heading?: T;
+              limit?: T;
+              variant?: T;
+              daysWindow?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        adSlot?:
+          | T
+          | {
+              slotName?: T;
+              size?: T;
+              provider?: T;
+              adsenseClient?: T;
+              adsenseSlotId?: T;
+              customHtml?: T;
+              placement?: T;
+              id?: T;
+              blockName?: T;
+            };
+        newsletter?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              placeholderText?: T;
+              buttonLabel?: T;
+              successMessage?: T;
+              errorMessage?: T;
+              theme?: T;
+              layout?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "rentals_select".
+ */
+export interface RentalsSelect<T extends boolean = true> {
+  slug?: T;
+  status?: T;
+  sortOrder?: T;
+  isFeatured?: T;
+  title?: T;
+  subtitle?: T;
+  rentalType?: T;
+  destination?: T;
+  description?: T;
+  quickSpecs?:
+    | T
+    | {
+        iconName?: T;
+        label?: T;
+        subtitle?: T;
+        id?: T;
+      };
+  featuredImage?: T;
+  gallery?:
+    | T
+    | {
+        image?: T;
+        caption?: T;
+        id?: T;
+      };
+  specifications?:
+    | T
+    | {
+        brand?: T;
+        model?: T;
+        year?: T;
+        details?: T;
+      };
+  features?:
+    | T
+    | {
+        name?: T;
+        icon?: T;
+        id?: T;
+      };
+  pricingTiers?:
+    | T
+    | {
+        duration?: T;
+        price?: T;
+        currency?: T;
+        note?: T;
+        id?: T;
+      };
+  whatsappMessage?: T;
+  includes?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  requirements?: T;
+  relatedOverride?: T;
+  relatedSectionTitle?: T;
+  relatedCardStyle?: T;
+  relatedMaxItems?: T;
+  relatedSelectionMode?: T;
+  relatedShowExploreAll?: T;
+  relatedManualPicks?: T;
+  additionalBlocks?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              heading?: T;
+              subheading?: T;
+              ctaText?: T;
+              ctaLink?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              button?:
+                | T
+                | {
+                    variant?: T;
+                    radius?: T;
+                    color?: T;
+                    textColor?: T;
+                    hoverAnimation?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    subheadingColor?: T;
+                    subheadingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              backgroundImage?: T;
+              overlayOpacity?: T;
+              id?: T;
+              blockName?: T;
+            };
+        richText?:
+          | T
+          | {
+              content?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    paragraphColor?: T;
+                    paragraphAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              alignment?: T;
+              id?: T;
+              blockName?: T;
+            };
+        image?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              size?: T;
+              aspectRatio?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        gallery?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              layout?: T;
+              desktopColumns?: T;
+              tabletColumns?: T;
+              mobileColumns?: T;
+              enableLightbox?: T;
+              hoverEffect?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              columns?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              buttonText?: T;
+              buttonLink?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    imageFit?: T;
+                    imagePosition?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              mediaLayout?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              button?:
+                | T
+                | {
+                    variant?: T;
+                    radius?: T;
+                    color?: T;
+                    textColor?: T;
+                    hoverAnimation?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              style?: T;
+              id?: T;
+              blockName?: T;
+            };
+        faq?:
+          | T
+          | {
+              heading?: T;
+              items?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        testimonials?:
+          | T
+          | {
+              heading?: T;
+              source?: T;
+              svc?: T;
+              maxItems?: T;
+              filterDest?: T;
+              onlyFeatured?: T;
+              items?:
+                | T
+                | {
+                    name?: T;
+                    quote?: T;
+                    photo?: T;
+                    rating?: T;
+                    id?: T;
+                  };
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        serviceGrid?:
+          | T
+          | {
+              heading?: T;
+              serviceType?: T;
+              limit?: T;
+              featuredOnly?: T;
+              cardVariant?: T;
+              template?: T;
+              selectionMode?: T;
+              sectionTitle?: T;
+              showViewAll?: T;
+              viewAllText?: T;
+              viewAllLink?: T;
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        contact?:
+          | T
+          | {
+              showMap?: T;
+              showWhatsApp?: T;
+              additionalText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    paragraphColor?: T;
+                    paragraphAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        embed?:
+          | T
+          | {
+              embedType?: T;
+              embedCode?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        spacer?:
+          | T
+          | {
+              height?: T;
+              id?: T;
+              blockName?: T;
+            };
+        valuePropsBanner?:
+          | T
+          | {
+              items?:
+                | T
+                | {
+                    iconName?: T;
+                    label?: T;
+                    subtitle?: T;
+                    id?: T;
+                  };
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    labelColor?: T;
+                    labelAnimIn?: T;
+                    subheadingColor?: T;
+                    subheadingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        statsBanner?:
+          | T
+          | {
+              theme?: T;
+              eyebrow?: T;
+              heading?: T;
+              items?:
+                | T
+                | {
+                    iconName?: T;
+                    value?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              backgroundImage?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              ts?:
+                | T
+                | {
+                    eyebrowColor?: T;
+                    eyebrowAnimIn?: T;
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    labelColor?: T;
+                    labelAnimIn?: T;
+                    captionColor?: T;
+                    captionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        testimonialsCarousel?:
+          | T
+          | {
+              eyebrow?: T;
+              heading?: T;
+              source?: T;
+              svc?: T;
+              maxItems?: T;
+              filterDest?: T;
+              onlyFeatured?: T;
+              items?:
+                | T
+                | {
+                    name?: T;
+                    location?: T;
+                    quote?: T;
+                    photo?: T;
+                    rating?: T;
+                    id?: T;
+                  };
+              paginate?: T;
+              pageMode?: T;
+              pageSize?: T;
+              moreText?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    eyebrowColor?: T;
+                    eyebrowAnimIn?: T;
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    quoteColor?: T;
+                    quoteAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        serviceListing?:
+          | T
+          | {
+              layout?: T;
+              eyebrow?: T;
+              heading?: T;
+              description?: T;
+              serviceType?: T;
+              accommodationTypes?: T;
+              limit?: T;
+              featuredMode?: T;
+              mediaType?: T;
+              singleImage?: T;
+              imageFit?: T;
+              imagePosition?: T;
+              imageSlider?:
+                | T
+                | {
+                    image?: T;
+                    caption?: T;
+                    id?: T;
+                  };
+              imageTransition?: T;
+              transitionInterval?: T;
+              sliderAutoStart?: T;
+              videoSource?: T;
+              videoUrl?: T;
+              videoFile?: T;
+              videoPoster?: T;
+              videoOptions?:
+                | T
+                | {
+                    autoplay?: T;
+                    muted?: T;
+                    loop?: T;
+                    controls?: T;
+                  };
+              lazyLoad?: T;
+              heroOverlayOpacity?: T;
+              heroMinHeight?: T;
+              enableDestinationFilter?: T;
+              enableSearch?: T;
+              searchNamePlaceholder?: T;
+              showDatePicker?: T;
+              showGuestCount?: T;
+              searchButtonText?: T;
+              ticketEnableRoundTrip?: T;
+              ticketEnableInfant?: T;
+              ticketMaxAdults?: T;
+              ticketMaxChildren?: T;
+              ticketMaxInfants?: T;
+              ticketLocationType?: T;
+              ticketStartingPointLabel?: T;
+              ticketDestinationLabel?: T;
+              ticketSubmitButtonText?: T;
+              ticketDefaultSort?: T;
+              ticketSortOptions?: T;
+              ticketStatusIndicator?: T;
+              ticketBadges?:
+                | T
+                | {
+                    label?: T;
+                    color?: T;
+                    id?: T;
+                  };
+              cardVariant?: T;
+              showLoadMore?: T;
+              paginationType?: T;
+              loadMoreText?: T;
+              initialVisibleCount?: T;
+              initialVisibleCountTablet?: T;
+              initialVisibleCountMobile?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    eyebrowColor?: T;
+                    eyebrowAnimIn?: T;
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        trustBadges?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              primaryButtonText?: T;
+              primaryButtonLink?: T;
+              secondaryButtonText?: T;
+              secondaryButtonLink?: T;
+              badges?:
+                | T
+                | {
+                    iconName?: T;
+                    title?: T;
+                    subtitle?: T;
+                    id?: T;
+                  };
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        postList?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              limit?: T;
+              featuredOnly?: T;
+              columns?: T;
+              filterCategory?: T;
+              showViewAll?: T;
+              viewAllText?: T;
+              viewAllLink?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        featuredPost?:
+          | T
+          | {
+              heading?: T;
+              selectionMode?: T;
+              featuredPost?: T;
+              sidePosts?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        categoryGrid?:
+          | T
+          | {
+              heading?: T;
+              module?: T;
+              limit?: T;
+              columns?: T;
+              showCount?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        popularPosts?:
+          | T
+          | {
+              heading?: T;
+              limit?: T;
+              variant?: T;
+              daysWindow?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        adSlot?:
+          | T
+          | {
+              slotName?: T;
+              size?: T;
+              provider?: T;
+              adsenseClient?: T;
+              adsenseSlotId?: T;
+              customHtml?: T;
+              placement?: T;
+              id?: T;
+              blockName?: T;
+            };
+        newsletter?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              placeholderText?: T;
+              buttonLabel?: T;
+              successMessage?: T;
+              errorMessage?: T;
+              theme?: T;
+              layout?: T;
+              sectionPadding?: T;
+              contentAlignment?: T;
+              containerWidth?: T;
+              entryAnimation?: T;
+              entrySpeed?: T;
+              entryDurMs?: T;
+              background?:
+                | T
+                | {
+                    type?: T;
+                    color?: T;
+                    image?: T;
+                    overlayOpacity?: T;
+                  };
+              ts?:
+                | T
+                | {
+                    headingColor?: T;
+                    headingAnimIn?: T;
+                    descriptionColor?: T;
+                    descriptionAnimIn?: T;
+                  };
+              pad?:
+                | T
+                | {
+                    enabled?: T;
+                    top?: T;
+                    bottom?: T;
+                    topMobPx?: T;
+                    topDeskPx?: T;
+                    btmMobPx?: T;
+                    btmDeskPx?: T;
+                  };
+              spacingOverride?:
+                | T
+                | {
+                    enabled?: T;
+                    mt?: T;
+                    mb?: T;
+                    topPx?: T;
+                    btmPx?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  seo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "restaurants_select".
  */
 export interface RestaurantsSelect<T extends boolean = true> {
@@ -39089,1358 +41515,6 @@ export interface VenuesSelect<T extends boolean = true> {
         quote?: T;
         id?: T;
       };
-  relatedOverride?: T;
-  relatedSectionTitle?: T;
-  relatedCardStyle?: T;
-  relatedMaxItems?: T;
-  relatedSelectionMode?: T;
-  relatedShowExploreAll?: T;
-  relatedManualPicks?: T;
-  additionalBlocks?:
-    | T
-    | {
-        hero?:
-          | T
-          | {
-              heading?: T;
-              subheading?: T;
-              ctaText?: T;
-              ctaLink?: T;
-              mediaType?: T;
-              singleImage?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              imageSlider?:
-                | T
-                | {
-                    image?: T;
-                    imageFit?: T;
-                    imagePosition?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              imageTransition?: T;
-              transitionInterval?: T;
-              sliderAutoStart?: T;
-              videoSource?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              videoPoster?: T;
-              videoOptions?:
-                | T
-                | {
-                    autoplay?: T;
-                    muted?: T;
-                    loop?: T;
-                    controls?: T;
-                  };
-              lazyLoad?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              button?:
-                | T
-                | {
-                    variant?: T;
-                    radius?: T;
-                    color?: T;
-                    textColor?: T;
-                    hoverAnimation?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    subheadingColor?: T;
-                    subheadingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              backgroundImage?: T;
-              overlayOpacity?: T;
-              id?: T;
-              blockName?: T;
-            };
-        richText?:
-          | T
-          | {
-              content?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    paragraphColor?: T;
-                    paragraphAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              alignment?: T;
-              id?: T;
-              blockName?: T;
-            };
-        image?:
-          | T
-          | {
-              image?: T;
-              caption?: T;
-              size?: T;
-              aspectRatio?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    captionColor?: T;
-                    captionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        gallery?:
-          | T
-          | {
-              images?:
-                | T
-                | {
-                    image?: T;
-                    imageFit?: T;
-                    imagePosition?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              desktopColumns?: T;
-              tabletColumns?: T;
-              mobileColumns?: T;
-              enableLightbox?: T;
-              hoverEffect?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    captionColor?: T;
-                    captionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              columns?: T;
-              id?: T;
-              blockName?: T;
-            };
-        cta?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              buttonText?: T;
-              buttonLink?: T;
-              mediaType?: T;
-              singleImage?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              imageSlider?:
-                | T
-                | {
-                    image?: T;
-                    imageFit?: T;
-                    imagePosition?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              imageTransition?: T;
-              transitionInterval?: T;
-              sliderAutoStart?: T;
-              videoSource?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              videoPoster?: T;
-              videoOptions?:
-                | T
-                | {
-                    autoplay?: T;
-                    muted?: T;
-                    loop?: T;
-                    controls?: T;
-                  };
-              lazyLoad?: T;
-              mediaLayout?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              button?:
-                | T
-                | {
-                    variant?: T;
-                    radius?: T;
-                    color?: T;
-                    textColor?: T;
-                    hoverAnimation?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              style?: T;
-              id?: T;
-              blockName?: T;
-            };
-        faq?:
-          | T
-          | {
-              heading?: T;
-              items?:
-                | T
-                | {
-                    question?: T;
-                    answer?: T;
-                    id?: T;
-                  };
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    quoteColor?: T;
-                    quoteAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        testimonials?:
-          | T
-          | {
-              heading?: T;
-              source?: T;
-              svc?: T;
-              maxItems?: T;
-              filterDest?: T;
-              onlyFeatured?: T;
-              items?:
-                | T
-                | {
-                    name?: T;
-                    quote?: T;
-                    photo?: T;
-                    rating?: T;
-                    id?: T;
-                  };
-              paginate?: T;
-              pageMode?: T;
-              pageSize?: T;
-              moreText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    quoteColor?: T;
-                    quoteAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        serviceGrid?:
-          | T
-          | {
-              heading?: T;
-              serviceType?: T;
-              limit?: T;
-              featuredOnly?: T;
-              cardVariant?: T;
-              template?: T;
-              selectionMode?: T;
-              sectionTitle?: T;
-              showViewAll?: T;
-              viewAllText?: T;
-              viewAllLink?: T;
-              paginate?: T;
-              pageMode?: T;
-              pageSize?: T;
-              moreText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contact?:
-          | T
-          | {
-              showMap?: T;
-              showWhatsApp?: T;
-              additionalText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    paragraphColor?: T;
-                    paragraphAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        embed?:
-          | T
-          | {
-              embedType?: T;
-              embedCode?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        spacer?:
-          | T
-          | {
-              height?: T;
-              id?: T;
-              blockName?: T;
-            };
-        valuePropsBanner?:
-          | T
-          | {
-              items?:
-                | T
-                | {
-                    iconName?: T;
-                    label?: T;
-                    subtitle?: T;
-                    id?: T;
-                  };
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    labelColor?: T;
-                    labelAnimIn?: T;
-                    subheadingColor?: T;
-                    subheadingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        statsBanner?:
-          | T
-          | {
-              theme?: T;
-              eyebrow?: T;
-              heading?: T;
-              items?:
-                | T
-                | {
-                    iconName?: T;
-                    value?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              backgroundImage?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              ts?:
-                | T
-                | {
-                    eyebrowColor?: T;
-                    eyebrowAnimIn?: T;
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    labelColor?: T;
-                    labelAnimIn?: T;
-                    captionColor?: T;
-                    captionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        testimonialsCarousel?:
-          | T
-          | {
-              eyebrow?: T;
-              heading?: T;
-              source?: T;
-              svc?: T;
-              maxItems?: T;
-              filterDest?: T;
-              onlyFeatured?: T;
-              items?:
-                | T
-                | {
-                    name?: T;
-                    location?: T;
-                    quote?: T;
-                    photo?: T;
-                    rating?: T;
-                    id?: T;
-                  };
-              paginate?: T;
-              pageMode?: T;
-              pageSize?: T;
-              moreText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    eyebrowColor?: T;
-                    eyebrowAnimIn?: T;
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    quoteColor?: T;
-                    quoteAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        serviceListing?:
-          | T
-          | {
-              layout?: T;
-              eyebrow?: T;
-              heading?: T;
-              description?: T;
-              serviceType?: T;
-              accommodationTypes?: T;
-              limit?: T;
-              featuredMode?: T;
-              mediaType?: T;
-              singleImage?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              imageSlider?:
-                | T
-                | {
-                    image?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              imageTransition?: T;
-              transitionInterval?: T;
-              sliderAutoStart?: T;
-              videoSource?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              videoPoster?: T;
-              videoOptions?:
-                | T
-                | {
-                    autoplay?: T;
-                    muted?: T;
-                    loop?: T;
-                    controls?: T;
-                  };
-              lazyLoad?: T;
-              heroOverlayOpacity?: T;
-              heroMinHeight?: T;
-              enableDestinationFilter?: T;
-              enableSearch?: T;
-              searchNamePlaceholder?: T;
-              showDatePicker?: T;
-              showGuestCount?: T;
-              searchButtonText?: T;
-              ticketEnableRoundTrip?: T;
-              ticketEnableInfant?: T;
-              ticketMaxAdults?: T;
-              ticketMaxChildren?: T;
-              ticketMaxInfants?: T;
-              ticketLocationType?: T;
-              ticketStartingPointLabel?: T;
-              ticketDestinationLabel?: T;
-              ticketSubmitButtonText?: T;
-              ticketDefaultSort?: T;
-              ticketSortOptions?: T;
-              ticketStatusIndicator?: T;
-              ticketBadges?:
-                | T
-                | {
-                    label?: T;
-                    color?: T;
-                    id?: T;
-                  };
-              cardVariant?: T;
-              showLoadMore?: T;
-              paginationType?: T;
-              loadMoreText?: T;
-              initialVisibleCount?: T;
-              initialVisibleCountTablet?: T;
-              initialVisibleCountMobile?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    eyebrowColor?: T;
-                    eyebrowAnimIn?: T;
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        trustBadges?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              primaryButtonText?: T;
-              primaryButtonLink?: T;
-              secondaryButtonText?: T;
-              secondaryButtonLink?: T;
-              badges?:
-                | T
-                | {
-                    iconName?: T;
-                    title?: T;
-                    subtitle?: T;
-                    id?: T;
-                  };
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        postList?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              limit?: T;
-              featuredOnly?: T;
-              columns?: T;
-              filterCategory?: T;
-              showViewAll?: T;
-              viewAllText?: T;
-              viewAllLink?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        featuredPost?:
-          | T
-          | {
-              heading?: T;
-              selectionMode?: T;
-              featuredPost?: T;
-              sidePosts?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        categoryGrid?:
-          | T
-          | {
-              heading?: T;
-              module?: T;
-              limit?: T;
-              columns?: T;
-              showCount?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        popularPosts?:
-          | T
-          | {
-              heading?: T;
-              limit?: T;
-              variant?: T;
-              daysWindow?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        adSlot?:
-          | T
-          | {
-              slotName?: T;
-              size?: T;
-              provider?: T;
-              adsenseClient?: T;
-              adsenseSlotId?: T;
-              customHtml?: T;
-              placement?: T;
-              id?: T;
-              blockName?: T;
-            };
-        newsletter?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              placeholderText?: T;
-              buttonLabel?: T;
-              successMessage?: T;
-              errorMessage?: T;
-              theme?: T;
-              layout?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-      };
-  seo?:
-    | T
-    | {
-        metaTitle?: T;
-        metaDescription?: T;
-        ogImage?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "rentals_select".
- */
-export interface RentalsSelect<T extends boolean = true> {
-  slug?: T;
-  status?: T;
-  sortOrder?: T;
-  isFeatured?: T;
-  title?: T;
-  subtitle?: T;
-  rentalType?: T;
-  destination?: T;
-  description?: T;
-  quickSpecs?:
-    | T
-    | {
-        iconName?: T;
-        label?: T;
-        subtitle?: T;
-        id?: T;
-      };
-  featuredImage?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        caption?: T;
-        id?: T;
-      };
-  specifications?:
-    | T
-    | {
-        brand?: T;
-        model?: T;
-        year?: T;
-        details?: T;
-      };
-  features?:
-    | T
-    | {
-        name?: T;
-        icon?: T;
-        id?: T;
-      };
-  pricingTiers?:
-    | T
-    | {
-        duration?: T;
-        price?: T;
-        currency?: T;
-        note?: T;
-        id?: T;
-      };
-  whatsappMessage?: T;
-  includes?:
-    | T
-    | {
-        item?: T;
-        id?: T;
-      };
-  requirements?: T;
   relatedOverride?: T;
   relatedSectionTitle?: T;
   relatedCardStyle?: T;
@@ -43085,1075 +44159,124 @@ export interface SpaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ferry-tickets_select".
+ * via the `definition` "bookings_select".
  */
-export interface FerryTicketsSelect<T extends boolean = true> {
-  slug?: T;
-  status?: T;
-  sortOrder?: T;
-  isFeatured?: T;
-  title?: T;
-  subtitle?: T;
-  destination?: T;
-  category?: T;
+export interface BookingsSelect<T extends boolean = true> {
+  bookingRef?: T;
+  accessToken?: T;
+  serviceType?: T;
+  ferryTicket?: T;
+  customerName?: T;
+  customerEmail?: T;
+  contactPhoneRegion?: T;
+  contactPhone?: T;
+  contactPhoneIsWhatsapp?: T;
+  customerWhatsapp?: T;
+  customerCountry?: T;
+  customerNotes?: T;
+  passengers?:
+    | T
+    | {
+        passengerType?: T;
+        title?: T;
+        gender?: T;
+        nationality?: T;
+        firstName?: T;
+        lastName?: T;
+        dateOfBirth?: T;
+        passportNumber?: T;
+        passportIssueDate?: T;
+        passportExpiryDate?: T;
+        id?: T;
+      };
+  departureDate?: T;
+  adults?: T;
+  children?: T;
   originLocation?: T;
-  arrivalLocation?: T;
-  origin?: T;
-  arrival?: T;
-  operator?: T;
-  departureTime?: T;
-  arrivalTime?: T;
-  duration?: T;
-  durationOverride?: T;
-  durationMinutes?: T;
-  description?: T;
-  quickSpecs?:
-    | T
-    | {
-        iconName?: T;
-        label?: T;
-        subtitle?: T;
-        id?: T;
-      };
-  highlights?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  operatorLogo?: T;
-  bookedCount?: T;
-  badges?:
-    | T
-    | {
-        text?: T;
-        style?: T;
-        id?: T;
-      };
-  featuredImage?: T;
-  gallery?:
-    | T
-    | {
-        image?: T;
-        caption?: T;
-        id?: T;
-      };
-  videoUrl?: T;
-  scheduleTime?:
-    | T
-    | {
-        departureLocation?: T;
-        arrivalLocation?: T;
-        departurePort?: T;
-        arrivalPort?: T;
-        departureTime?: T;
-        arrivalTime?: T;
-        duration?: T;
-        notes?: T;
-        id?: T;
-      };
-  ferryClasses?:
-    | T
-    | {
-        name?: T;
-        description?: T;
-        classType?: T;
-        currency?: T;
-        adultPrice?: T;
-        childPrice?: T;
-        originalPrice?: T;
-        images?:
-          | T
-          | {
-              image?: T;
-              id?: T;
-            };
-        id?: T;
-      };
-  additionalRemark?: T;
-  whatsappMessage?: T;
-  howToCheckIn?: T;
-  purchaseNotice?: T;
-  additionalInfo?: T;
-  relatedOverride?: T;
-  relatedSectionTitle?: T;
-  relatedCardStyle?: T;
-  relatedMaxItems?: T;
-  relatedSelectionMode?: T;
-  relatedShowExploreAll?: T;
-  relatedManualPicks?: T;
-  additionalBlocks?:
-    | T
-    | {
-        hero?:
-          | T
-          | {
-              heading?: T;
-              subheading?: T;
-              ctaText?: T;
-              ctaLink?: T;
-              mediaType?: T;
-              singleImage?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              imageSlider?:
-                | T
-                | {
-                    image?: T;
-                    imageFit?: T;
-                    imagePosition?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              imageTransition?: T;
-              transitionInterval?: T;
-              sliderAutoStart?: T;
-              videoSource?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              videoPoster?: T;
-              videoOptions?:
-                | T
-                | {
-                    autoplay?: T;
-                    muted?: T;
-                    loop?: T;
-                    controls?: T;
-                  };
-              lazyLoad?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              button?:
-                | T
-                | {
-                    variant?: T;
-                    radius?: T;
-                    color?: T;
-                    textColor?: T;
-                    hoverAnimation?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    subheadingColor?: T;
-                    subheadingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              backgroundImage?: T;
-              overlayOpacity?: T;
-              id?: T;
-              blockName?: T;
-            };
-        richText?:
-          | T
-          | {
-              content?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    paragraphColor?: T;
-                    paragraphAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              alignment?: T;
-              id?: T;
-              blockName?: T;
-            };
-        image?:
-          | T
-          | {
-              image?: T;
-              caption?: T;
-              size?: T;
-              aspectRatio?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    captionColor?: T;
-                    captionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        gallery?:
-          | T
-          | {
-              images?:
-                | T
-                | {
-                    image?: T;
-                    imageFit?: T;
-                    imagePosition?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              layout?: T;
-              desktopColumns?: T;
-              tabletColumns?: T;
-              mobileColumns?: T;
-              enableLightbox?: T;
-              hoverEffect?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    captionColor?: T;
-                    captionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              columns?: T;
-              id?: T;
-              blockName?: T;
-            };
-        cta?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              buttonText?: T;
-              buttonLink?: T;
-              mediaType?: T;
-              singleImage?: T;
-              imageFit?: T;
-              imagePosition?: T;
-              imageSlider?:
-                | T
-                | {
-                    image?: T;
-                    imageFit?: T;
-                    imagePosition?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              imageTransition?: T;
-              transitionInterval?: T;
-              sliderAutoStart?: T;
-              videoSource?: T;
-              videoUrl?: T;
-              videoFile?: T;
-              videoPoster?: T;
-              videoOptions?:
-                | T
-                | {
-                    autoplay?: T;
-                    muted?: T;
-                    loop?: T;
-                    controls?: T;
-                  };
-              lazyLoad?: T;
-              mediaLayout?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              button?:
-                | T
-                | {
-                    variant?: T;
-                    radius?: T;
-                    color?: T;
-                    textColor?: T;
-                    hoverAnimation?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              style?: T;
-              id?: T;
-              blockName?: T;
-            };
-        faq?:
-          | T
-          | {
-              heading?: T;
-              items?:
-                | T
-                | {
-                    question?: T;
-                    answer?: T;
-                    id?: T;
-                  };
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    quoteColor?: T;
-                    quoteAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        testimonials?:
-          | T
-          | {
-              heading?: T;
-              source?: T;
-              svc?: T;
-              maxItems?: T;
-              filterDest?: T;
-              onlyFeatured?: T;
-              items?:
-                | T
-                | {
-                    name?: T;
-                    quote?: T;
-                    photo?: T;
-                    rating?: T;
-                    id?: T;
-                  };
-              paginate?: T;
-              pageMode?: T;
-              pageSize?: T;
-              moreText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    quoteColor?: T;
-                    quoteAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        serviceGrid?:
-          | T
-          | {
-              heading?: T;
-              serviceType?: T;
-              limit?: T;
-              featuredOnly?: T;
-              cardVariant?: T;
-              template?: T;
-              selectionMode?: T;
-              sectionTitle?: T;
-              showViewAll?: T;
-              viewAllText?: T;
-              viewAllLink?: T;
-              paginate?: T;
-              pageMode?: T;
-              pageSize?: T;
-              moreText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        contact?:
-          | T
-          | {
-              showMap?: T;
-              showWhatsApp?: T;
-              additionalText?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    paragraphColor?: T;
-                    paragraphAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        embed?:
-          | T
-          | {
-              embedType?: T;
-              embedCode?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        spacer?:
-          | T
-          | {
-              height?: T;
-              id?: T;
-              blockName?: T;
-            };
-        statsBanner?:
-          | T
-          | {
-              theme?: T;
-              eyebrow?: T;
-              heading?: T;
-              items?:
-                | T
-                | {
-                    iconName?: T;
-                    value?: T;
-                    caption?: T;
-                    id?: T;
-                  };
-              backgroundImage?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              ts?:
-                | T
-                | {
-                    eyebrowColor?: T;
-                    eyebrowAnimIn?: T;
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    labelColor?: T;
-                    labelAnimIn?: T;
-                    captionColor?: T;
-                    captionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        postList?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              limit?: T;
-              featuredOnly?: T;
-              columns?: T;
-              filterCategory?: T;
-              showViewAll?: T;
-              viewAllText?: T;
-              viewAllLink?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        featuredPost?:
-          | T
-          | {
-              heading?: T;
-              selectionMode?: T;
-              featuredPost?: T;
-              sidePosts?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        categoryGrid?:
-          | T
-          | {
-              heading?: T;
-              module?: T;
-              limit?: T;
-              columns?: T;
-              showCount?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        popularPosts?:
-          | T
-          | {
-              heading?: T;
-              limit?: T;
-              variant?: T;
-              daysWindow?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-        adSlot?:
-          | T
-          | {
-              slotName?: T;
-              size?: T;
-              provider?: T;
-              adsenseClient?: T;
-              adsenseSlotId?: T;
-              customHtml?: T;
-              placement?: T;
-              id?: T;
-              blockName?: T;
-            };
-        newsletter?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              placeholderText?: T;
-              buttonLabel?: T;
-              successMessage?: T;
-              errorMessage?: T;
-              theme?: T;
-              layout?: T;
-              sectionPadding?: T;
-              contentAlignment?: T;
-              containerWidth?: T;
-              entryAnimation?: T;
-              entrySpeed?: T;
-              entryDurMs?: T;
-              background?:
-                | T
-                | {
-                    type?: T;
-                    color?: T;
-                    image?: T;
-                    overlayOpacity?: T;
-                  };
-              ts?:
-                | T
-                | {
-                    headingColor?: T;
-                    headingAnimIn?: T;
-                    descriptionColor?: T;
-                    descriptionAnimIn?: T;
-                  };
-              pad?:
-                | T
-                | {
-                    enabled?: T;
-                    top?: T;
-                    bottom?: T;
-                    topMobPx?: T;
-                    topDeskPx?: T;
-                    btmMobPx?: T;
-                    btmDeskPx?: T;
-                  };
-              spacingOverride?:
-                | T
-                | {
-                    enabled?: T;
-                    mt?: T;
-                    mb?: T;
-                    topPx?: T;
-                    btmPx?: T;
-                  };
-              id?: T;
-              blockName?: T;
-            };
-      };
-  seo?:
-    | T
-    | {
-        metaTitle?: T;
-        metaDescription?: T;
-        ogImage?: T;
-      };
+  destinationLocation?: T;
+  scheduleTimeLabel?: T;
+  ferryClassName?: T;
+  ferryClassType?: T;
+  unitPrice?: T;
+  currency?: T;
+  totalEstimate?: T;
+  status?: T;
+  channel?: T;
+  channelData?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-visitors_select".
+ */
+export interface ChatVisitorsSelect<T extends boolean = true> {
+  visitorId?: T;
+  ipHash?: T;
+  userAgentHash?: T;
+  country?: T;
+  status?: T;
+  blockedUntil?: T;
+  blockReason?: T;
+  messageCount?: T;
+  firstSeenAt?: T;
+  lastSeenAt?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-messages_select".
+ */
+export interface ChatMessagesSelect<T extends boolean = true> {
+  visitor?: T;
+  sessionId?: T;
+  channelType?: T;
+  direction?: T;
+  contentHash?: T;
+  contentLength?: T;
+  content?: T;
+  wasBlocked?: T;
+  blockReason?: T;
+  spamScore?: T;
+  verificationProvider?: T;
+  verificationScore?: T;
+  ipHash?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "chat-blocked-events_select".
+ */
+export interface ChatBlockedEventsSelect<T extends boolean = true> {
+  visitor?: T;
+  sessionId?: T;
+  message?: T;
+  layer?: T;
+  ruleTriggered?: T;
+  action?: T;
+  ipHash?: T;
+  country?: T;
+  userAgent?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "newsletter-subscribers_select".
+ */
+export interface NewsletterSubscribersSelect<T extends boolean = true> {
+  email?: T;
+  status?: T;
+  source?: T;
+  userAgent?: T;
+  ipHash?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -44283,129 +44406,6 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "newsletter-subscribers_select".
- */
-export interface NewsletterSubscribersSelect<T extends boolean = true> {
-  email?: T;
-  status?: T;
-  source?: T;
-  userAgent?: T;
-  ipHash?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "chat-visitors_select".
- */
-export interface ChatVisitorsSelect<T extends boolean = true> {
-  visitorId?: T;
-  ipHash?: T;
-  userAgentHash?: T;
-  country?: T;
-  status?: T;
-  blockedUntil?: T;
-  blockReason?: T;
-  messageCount?: T;
-  firstSeenAt?: T;
-  lastSeenAt?: T;
-  context?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "chat-messages_select".
- */
-export interface ChatMessagesSelect<T extends boolean = true> {
-  visitor?: T;
-  sessionId?: T;
-  channelType?: T;
-  direction?: T;
-  contentHash?: T;
-  contentLength?: T;
-  content?: T;
-  wasBlocked?: T;
-  blockReason?: T;
-  spamScore?: T;
-  verificationProvider?: T;
-  verificationScore?: T;
-  ipHash?: T;
-  context?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "chat-blocked-events_select".
- */
-export interface ChatBlockedEventsSelect<T extends boolean = true> {
-  visitor?: T;
-  sessionId?: T;
-  message?: T;
-  layer?: T;
-  ruleTriggered?: T;
-  action?: T;
-  ipHash?: T;
-  country?: T;
-  userAgent?: T;
-  context?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "bookings_select".
- */
-export interface BookingsSelect<T extends boolean = true> {
-  bookingRef?: T;
-  accessToken?: T;
-  serviceType?: T;
-  ferryTicket?: T;
-  customerName?: T;
-  customerEmail?: T;
-  contactPhoneRegion?: T;
-  contactPhone?: T;
-  contactPhoneIsWhatsapp?: T;
-  customerWhatsapp?: T;
-  customerCountry?: T;
-  customerNotes?: T;
-  passengers?:
-    | T
-    | {
-        passengerType?: T;
-        title?: T;
-        gender?: T;
-        nationality?: T;
-        firstName?: T;
-        lastName?: T;
-        dateOfBirth?: T;
-        passportNumber?: T;
-        passportIssueDate?: T;
-        passportExpiryDate?: T;
-        id?: T;
-      };
-  departureDate?: T;
-  adults?: T;
-  children?: T;
-  originLocation?: T;
-  destinationLocation?: T;
-  scheduleTimeLabel?: T;
-  ferryClassName?: T;
-  ferryClassType?: T;
-  unitPrice?: T;
-  currency?: T;
-  totalEstimate?: T;
-  status?: T;
-  channel?: T;
-  channelData?: T;
-  expiresAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -44457,498 +44457,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-settings".
- */
-export interface SiteSetting {
-  id: number;
-  /**
-   * Appears in the browser tab, default SEO titles, and as the fallback for footer copyright.
-   */
-  siteName: string;
-  /**
-   * Short brand line shown under the logo (where enabled) and used as a default SEO description fallback.
-   */
-  tagline?: string | null;
-  /**
-   * Primary logo used on light navbars/sections. SVG preferred; PNG accepted at 2× (e.g. 400×120).
-   */
-  logo?: (number | null) | Media;
-  /**
-   * Optional. Used on dark navbar/footer variants. Falls back to the main Logo if empty.
-   */
-  logoDark?: (number | null) | Media;
-  /**
-   * Small icon shown in the browser tab. Square image, recommended 64×64 (PNG or SVG).
-   */
-  favicon?: (number | null) | Media;
-  contact?: {
-    /**
-     * Public contact email address.
-     */
-    email?: string | null;
-    /**
-     * Display phone number for the footer. Include country code, e.g. +62 812 3456 7890.
-     */
-    phone?: string | null;
-    /**
-     * Primary WhatsApp number used across the whole site (header button, floating button, service enquiries). Digits only with country code, no + or spaces, e.g. 6281234567890.
-     */
-    whatsapp?: string | null;
-    /**
-     * Physical or mailing address shown in the footer and on the contact page.
-     */
-    address?: string | null;
-    /**
-     * Paste ONLY the `src` URL from a Google Maps "Embed a map" iframe (starts with https://www.google.com/maps/embed?…). Do not paste the full <iframe> tag.
-     */
-    mapEmbed?: string | null;
-  };
-  whatsappDefaults?: {
-    /**
-     * Optional. Used only by the floating WhatsApp button if the primary WhatsApp Number above is empty. Same format: 6281234567890.
-     */
-    defaultNumber?: string | null;
-    /**
-     * Pre-filled message opened when a guest taps the floating WhatsApp button on a page that does not define its own template.
-     */
-    greetingMessage?: string | null;
-    /**
-     * Shown in the footer under WhatsApp. Free text, one line per day, e.g. "Mon–Fri 09:00–18:00 (WITA)".
-     */
-    businessHours?: string | null;
-  };
-  socialMedia?: {
-    /**
-     * Full URL, e.g. https://instagram.com/gtjourneysid
-     */
-    instagram?: string | null;
-    /**
-     * Full URL, e.g. https://facebook.com/gtjourneysid
-     */
-    facebook?: string | null;
-    /**
-     * Full URL, e.g. https://tiktok.com/@gtjourneysid
-     */
-    tiktok?: string | null;
-    /**
-     * Full URL, e.g. https://youtube.com/@gtjourneysid
-     */
-    youtube?: string | null;
-    /**
-     * Full URL to the TripAdvisor listing.
-     */
-    tripadvisor?: string | null;
-  };
-  /**
-   * Kosongkan kalau tidak mau tampil.
-   */
-  paymentMethods?:
-    | {
-        /**
-         * Nama payment (mis. "Visa", "GoPay").
-         */
-        label: string;
-        /**
-         * Transparent PNG/SVG.
-         */
-        logo: number | Media;
-        /**
-         * Optional. URL provider (opsional).
-         */
-        url?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * These values are used when a page or service does not define its own SEO. Analytics IDs are optional.
-   */
-  defaultSeo?: {
-    /**
-     * Default browser-tab / search-result title. Aim for 50–60 characters.
-     */
-    metaTitle?: string | null;
-    /**
-     * Default snippet shown in search results. Max 160 characters.
-     */
-    metaDescription?: string | null;
-    /**
-     * Default image used when the site is shared on social media. Recommended 1200×630.
-     */
-    ogImage?: (number | null) | Media;
-    /**
-     * GA4 Measurement ID, e.g. G-XXXXXXXXXX. Leave empty to disable GA.
-     */
-    googleAnalyticsId?: string | null;
-    /**
-     * Site token from Cloudflare Web Analytics (privacy-first, cookieless). Can be used alongside Google Analytics.
-     */
-    cloudflareWebAnalyticsToken?: string | null;
-  };
-  /**
-   * Vertical rhythm between blocks and internal padding defaults used across all pages.
-   */
-  layout?: {
-    /**
-     * Vertical space between page blocks. Compact = tight, Normal = standard, Spacious = airy.
-     */
-    blockGap?: ('compact' | 'normal' | 'spacious') | null;
-    /**
-     * Space between the last block on a page and the footer. If left empty, follows the Gap Between Blocks setting.
-     */
-    beforeFooter?: ('compact' | 'normal' | 'spacious') | null;
-    blockPadding?: {
-      top?: {
-        /**
-         * Pixels, screens under 768px.
-         */
-        mobile?: number | null;
-        /**
-         * Pixels, screens 768px and up.
-         */
-        desktop?: number | null;
-      };
-      bottom?: {
-        /**
-         * Pixels, screens under 768px.
-         */
-        mobile?: number | null;
-        /**
-         * Pixels, screens 768px and up.
-         */
-        desktop?: number | null;
-      };
-    };
-  };
-  sectionPages?: {
-    /**
-     * Main heading shown on the listing hero.
-     */
-    listingTitle?: string | null;
-    /**
-     * Shown after the live result count. Example output: "12 properties available in Bali & surrounding islands".
-     */
-    listingSubtitle?: string | null;
-  };
-  /**
-   * Pengaturan default untuk section "Related Services" di semua halaman detail service. Bisa di-override per Service Type atau per service individual.
-   */
-  relatedServices?: {
-    /**
-     * Matikan = section tidak muncul di semua halaman detail (kecuali di-override).
-     */
-    enabled?: boolean | null;
-    /**
-     * Kosong = otomatis per tipe layanan (mis: "Curated Alternatives" / "More Yachts").
-     */
-    sectionTitle?: string | null;
-    cardStyle?: ('curated' | 'compact' | 'detailed') | null;
-    maxItems?: number | null;
-    selectionMode?: ('same_type' | 'same_destination' | 'random') | null;
-    showExploreAll?: boolean | null;
-  };
-  errorPages?: {
-    notFound?: {
-      /**
-       * Main heading on the 404 page.
-       */
-      title?: string | null;
-      /**
-       * Body text explaining what happened.
-       */
-      message?: string | null;
-      /**
-       * Label for the button that returns to the homepage.
-       */
-      buttonText?: string | null;
-    };
-    propertyComingSoon?: {
-      /**
-       * Small label above the main title.
-       */
-      eyebrow?: string | null;
-      /**
-       * Main heading of the placeholder page.
-       */
-      title?: string | null;
-      /**
-       * Explanatory paragraph shown to visitors.
-       */
-      description?: string | null;
-      /**
-       * Pre-filled WhatsApp message when the primary button is tapped.
-       */
-      whatsappMessage?: string | null;
-      /**
-       * Label for the WhatsApp CTA button.
-       */
-      primaryButtonText?: string | null;
-      /**
-       * Label for the secondary "back to home" button.
-       */
-      secondaryButtonText?: string | null;
-    };
-  };
-  /**
-   * Footer copyright line and any additional HTML/JS injected before </body>.
-   */
-  footer?: {
-    /**
-     * Free text shown at the bottom of the footer. Example: "© 2026 GtJourneysID. All rights reserved."
-     */
-    copyrightText?: string | null;
-    /**
-     * ⚠️ DANGER ZONE. Pasted HTML/JS is injected verbatim before </body> on every page. Only paste code from trusted providers (Meta Pixel, Hotjar, etc.). Hostile code here can steal visitor data. Leave empty if unsure.
-     */
-    additionalScripts?: string | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Layout Header, konten, dan warna/shape aksesorial. Tab "Advanced" khusus Super Admin.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "header-settings".
- */
-export interface HeaderSetting {
-  id: number;
-  /**
-   * Layout Header. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
-   */
-  template: 'header-1' | 'header-2' | 'header-3';
-  /**
-   * Header sticky saat scroll
-   */
-  stickyOnScroll?: boolean | null;
-  /**
-   * Transparan di hero, solid setelah scroll
-   */
-  transparentOnTop?: boolean | null;
-  /**
-   * Menu utama Header. Default: main-navigation.
-   */
-  primaryMenu?: (number | null) | Menu;
-  /**
-   * Menu sekunder (opsional).
-   */
-  secondaryMenu?: (number | null) | Menu;
-  /**
-   * Tampilkan tombol/box search.
-   */
-  showSearch?: boolean | null;
-  /**
-   * Tampilkan ikon social (dari SiteSettings).
-   */
-  showSocialLinks?: boolean | null;
-  /**
-   * Tampilkan tombol CTA.
-   */
-  showCtaButton?: boolean | null;
-  /**
-   * Text button (mobile auto "Book")
-   */
-  ctaText?: string | null;
-  ctaType?: ('whatsapp' | 'custom') | null;
-  /**
-   * Custom URL (mis: /contact).
-   */
-  ctaCustomLink?: string | null;
-  /**
-   * Tampilkan address di top bar (dari SiteSettings.contact).
-   */
-  showTopBarAddress?: boolean | null;
-  /**
-   * Tampilkan phone di top bar (dari SiteSettings.contact).
-   */
-  showTopBarPhone?: boolean | null;
-  /**
-   * Teks bebas di top bar (mis. "Free cancellation").
-   */
-  topBarText?: string | null;
-  /**
-   * Override warna menu/CTA/icon/top-bar + shape tombol CTA. Layout theme tetap sesuai template terpilih.
-   */
-  advanced?: {
-    /**
-     * Warna surface header. Default `#FFFFFFE6` (90% alpha putih). Kosong → default.
-     */
-    bgColor?: string | null;
-    /**
-     * Warna teks menu link biasa.
-     */
-    menuDefaultColor?: string | null;
-    /**
-     * Warna teks saat kursor di atas link.
-     */
-    menuHoverColor?: string | null;
-    /**
-     * Warna teks link halaman aktif.
-     */
-    menuActiveColor?: string | null;
-    /**
-     * Warna background tombol CTA.
-     */
-    ctaBgColor?: string | null;
-    /**
-     * Warna background saat hover.
-     */
-    ctaBgHoverColor?: string | null;
-    /**
-     * Warna teks tombol CTA.
-     */
-    ctaTextColor?: string | null;
-    /**
-     * Bentuk sudut tombol CTA. Layout template tetap; hanya radius yang berubah.
-     */
-    ctaRadius?: ('pill' | 'rounded' | 'rounded-md' | 'square') | null;
-    /**
-     * Warna icon (mobile toggle, chevron dropdown).
-     */
-    iconColor?: string | null;
-    /**
-     * Warna background top-bar.
-     */
-    topBarBgColor?: string | null;
-    /**
-     * Warna teks top-bar.
-     */
-    topBarTextColor?: string | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Layout Footer, konten, dan warna aksesorial. Tab "Advanced" khusus Super Admin.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "footer-settings".
- */
-export interface FooterSetting {
-  id: number;
-  /**
-   * Layout Footer. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
-   */
-  template: 'footer-1' | 'footer-2' | 'footer-3';
-  /**
-   * Tiap row = satu kolom footer, dari kiri ke kanan. Pilih Type + Width, lalu isi content sesuai type.
-   */
-  layoutColumns?:
-    | {
-        /**
-         * Type isi kolom.
-         */
-        type: 'brand' | 'menuList' | 'services' | 'contact' | 'paymentMethods' | 'custom';
-        /**
-         * Lebar kolom. Auto = bagi rata sisa space.
-         */
-        width: 'auto' | '25' | '33' | '50';
-        /**
-         * Heading kolom (kosong = tanpa heading). Untuk type Brand, heading di-abaikan (pakai siteName).
-         */
-        heading?: string | null;
-        /**
-         * Tampilkan ikon social (dari SiteSettings.socialMedia) di bawah brand.
-         */
-        showSocialLinks?: boolean | null;
-        /**
-         * Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override — kosong = auto dari Modul Layanan yang aktif (Settings → Pengaturan Fitur).
-         */
-        menu?: (number | null) | Menu;
-        /**
-         * Tampilkan business hours (dari SiteSettings.whatsappDefaults.businessHours) di bawah contact.
-         */
-        showBusinessHours?: boolean | null;
-        /**
-         * Selipkan badge Payment Methods (dari SiteSettings.paymentMethods) di bawah content contact.
-         */
-        showPaymentMethods?: boolean | null;
-        /**
-         * Isi rich text bebas. Dipakai untuk kolom sponsor, disclaimer, promo, dll.
-         */
-        customContent?: {
-          root: {
-            type: string;
-            children: {
-              type: any;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        id?: string | null;
-      }[]
-    | null;
-  showBrandColumn?: boolean | null;
-  brandTaglineOverride?: string | null;
-  showSocialLinks?: boolean | null;
-  columns?:
-    | {
-        columnLabel: string;
-        menu: number | Menu;
-        id?: string | null;
-      }[]
-    | null;
-  showServicesColumn?: boolean | null;
-  servicesColumnLabel?: string | null;
-  servicesMenu?: (number | null) | Menu;
-  showContactColumn?: boolean | null;
-  contactColumnLabel?: string | null;
-  newsletter: {
-    heading: string;
-    theme: 'ocean' | 'sand' | 'leaf';
-    description?: string | null;
-    placeholderText: string;
-    buttonLabel: string;
-    successMessage: string;
-    errorMessage: string;
-  };
-  /**
-   * Menu link legal (Privacy, Terms) untuk footer minimal.
-   */
-  legalLinks?: (number | null) | Menu;
-  /**
-   * Teks kanan bawah (copyright pakai SiteSettings.footer.copyrightText).
-   */
-  bottomBarRightText?: string | null;
-  /**
-   * Override warna background, teks, heading, link hover, dan divider Footer. Layout theme tetap.
-   */
-  advanced?: {
-    /**
-     * Warna background footer.
-     */
-    bgColor?: string | null;
-    /**
-     * Warna teks default (paragraph, link normal).
-     */
-    textColor?: string | null;
-    /**
-     * Warna teks kecil (copyright, bottom bar).
-     */
-    mutedTextColor?: string | null;
-    /**
-     * Warna link saat hover.
-     */
-    linkHoverColor?: string | null;
-    /**
-     * Warna heading kolom (mis. "Quick Links").
-     */
-    headingColor?: string | null;
-    /**
-     * Warna garis pemisah antar-section.
-     */
-    dividerColor?: string | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
  * Copy fallback untuk homepage. Kalau Page(slug=home) ada, semua field di sini diabaikan.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -44996,494 +44504,6 @@ export interface HomepageContent {
    * Kosong = auto pakai WhatsApp number dari SiteSettings.
    */
   ctaButtonLinkOverride?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Enable/disable modul layanan, section halaman, dan fitur opsional. Hanya Super Admin.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-features".
- */
-export interface SiteFeature {
-  id: number;
-  /**
-   * Aktifkan modul & pilih desain kartunya. Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Menambah modul baru = 1 entry di config/serviceModules.ts.
-   */
-  modules?: {
-    tours?: boolean | null;
-    toursDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    accommodations?: boolean | null;
-    accommodationsDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    waterActivities?: boolean | null;
-    waterActivitiesDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    yacht?: boolean | null;
-    yachtDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    restaurants?: boolean | null;
-    restaurantsDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    weddings?: boolean | null;
-    weddingsDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    rentals?: boolean | null;
-    rentalsDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    spa?: boolean | null;
-    spaDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    ferryTickets?: boolean | null;
-    ferryTicketsDesign?: ('compact' | 'detailed' | 'ticket') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    toursTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    toursTicketBgOpacity?: number | null;
-    toursTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    accommodationsTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    accommodationsTicketBgOpacity?: number | null;
-    accommodationsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    waterActivitiesTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    waterActivitiesTicketBgOpacity?: number | null;
-    waterActivitiesTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    yachtTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    yachtTicketBgOpacity?: number | null;
-    yachtTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    restaurantsTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    restaurantsTicketBgOpacity?: number | null;
-    restaurantsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    weddingsTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    weddingsTicketBgOpacity?: number | null;
-    weddingsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    rentalsTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    rentalsTicketBgOpacity?: number | null;
-    rentalsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    spaTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    spaTicketBgOpacity?: number | null;
-    spaTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-    /**
-     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
-     */
-    ferryTicketsTicketBg?: (number | null) | Media;
-    /**
-     * Kecil (5–15%) biar teks tetap jelas.
-     */
-    ferryTicketsTicketBgOpacity?: number | null;
-    ferryTicketsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
-  };
-  /**
-   * Toggle section besar di homepage / landing pages.
-   */
-  sections?: {
-    testimonials?: boolean | null;
-    faq?: boolean | null;
-    /**
-     * Master switch for the timed promo modal. Content in Settings → Promo Banner.
-     */
-    promoBanner?: boolean | null;
-    /**
-     * Master switch for the footer newsletter signup. Content in Settings → Footer Settings → Newsletter.
-     */
-    newsletter?: boolean | null;
-  };
-  /**
-   * Kontrol perilaku filter destinasi di listing service.
-   */
-  destinations?: {
-    /**
-     * Kalau aktif: hanya destinasi "core" (Core Destination di collection Destinations) yang jadi tab filter; sub-lokasi (child) disembunyikan tapi ikut cocok saat core-nya dipilih atau dicari. Kalau non-aktif: semua destinasi tampil flat (perilaku lama).
-     */
-    hierarchicalFilter?: boolean | null;
-    /**
-     * Phase 3.23. Kalau aktif: Admin boleh edit collection Destination Types. Kalau non-aktif: hanya Super Admin yang bisa edit (data tetap utuh). Type = taksonomi internal, tidak tampil di frontend.
-     */
-    destinationTypesEnabled?: boolean | null;
-  };
-  blog?: {
-    /**
-     * Off = /blog dan /blog/* return 404, feed RSS kosong.
-     */
-    enabled?: boolean | null;
-    /**
-     * Off = block AdSlot dilewati saat render (posisi kosong, tidak ada script AdSense yang dimuat).
-     */
-    enableAds?: boolean | null;
-  };
-  /**
-   * Kosongkan field pemilihan (multi-select) → dashboard fallback ke default hardcoded. Modul layanan yang di-off di tab "Modul Layanan" otomatis di-skip di Quick Access & At A Glance walaupun terpilih di sini.
-   */
-  dashboardWidgets?: {
-    /**
-     * Kosongkan → "Overview". Bisa disesuaikan mis. "Beranda Admin" / "Ringkasan Situs".
-     */
-    headerTitle?: string | null;
-    /**
-     * Gunakan `{name}` sebagai placeholder nama user. Kosongkan → pakai default English.
-     */
-    headerSubtitle?: string | null;
-    /**
-     * Kosongkan → "At a glance".
-     */
-    atAGlanceTitle?: string | null;
-    /**
-     * Master switch untuk stat row.
-     */
-    atAGlanceEnabled?: boolean | null;
-    /**
-     * Setiap kotak jadi link ke listing terkait.
-     */
-    atAGlanceClickable?: boolean | null;
-    /**
-     * Kosongkan → default 6 stat (Pages/Destinations/Categories/Services/Media/Users). Runtime cap 6, "Users" hanya super-admin.
-     */
-    atAGlanceStats?:
-      | (
-          | 'pages'
-          | 'destinations'
-          | 'categories'
-          | 'services'
-          | 'media'
-          | 'users'
-          | 'tours'
-          | 'accommodations'
-          | 'water-activities'
-          | 'yachts'
-          | 'restaurants'
-        )[]
-      | null;
-    /**
-     * Kosongkan → "Recent activity".
-     */
-    recentActivityTitle?: string | null;
-    recentActivityEnabled?: boolean | null;
-    /**
-     * Berlaku untuk semua role.
-     */
-    recentActivityLimit?: number | null;
-    /**
-     * Kosongkan → "Quick access".
-     */
-    quickAccessTitle?: string | null;
-    /**
-     * Kosongkan → default: semua service module aktif + Menu. Order sesuai urutan pilih.
-     */
-    quickAccessAdmin?:
-      | (
-          | 'pages'
-          | 'tours'
-          | 'accommodations'
-          | 'water-activities'
-          | 'yachts'
-          | 'restaurants'
-          | 'venues'
-          | 'rentals'
-          | 'spa'
-          | 'ferry-tickets'
-          | 'destinations'
-          | 'categories'
-          | 'menu'
-          | 'media'
-          | 'users'
-          | 'site-features'
-          | 'site-settings'
-        )[]
-      | null;
-    /**
-     * Kosongkan → default: semua service module aktif + Media. Order sesuai urutan pilih.
-     */
-    quickAccessEditor?:
-      | (
-          | 'pages'
-          | 'tours'
-          | 'accommodations'
-          | 'water-activities'
-          | 'yachts'
-          | 'restaurants'
-          | 'venues'
-          | 'rentals'
-          | 'spa'
-          | 'ferry-tickets'
-          | 'destinations'
-          | 'categories'
-          | 'menu'
-          | 'media'
-          | 'users'
-          | 'site-features'
-          | 'site-settings'
-        )[]
-      | null;
-    /**
-     * Kosongkan → auto: "Media Usage" kalau hanya Media+Storage, else "System Health". Isi manual untuk override.
-     */
-    systemHealthTitle?: string | null;
-    /**
-     * Kosongkan → default: semua 5 info (Media/Storage/Payload/Node/Backup).
-     */
-    systemHealthAdmin?: ('media' | 'storage' | 'payload' | 'node' | 'backup')[] | null;
-    /**
-     * Kosongkan → default: Media + Storage (title jadi "Media Usage" kalau hanya 2 itu).
-     */
-    systemHealthEditor?: ('media' | 'storage' | 'payload' | 'node' | 'backup')[] | null;
-    /**
-     * Kosongkan → "Smart Insight".
-     */
-    smartInsightTitle?: string | null;
-    /**
-     * Scan issue SEO umum (rule-based heuristic).
-     */
-    smartInsightSeo?: boolean | null;
-    /**
-     * Placeholder untuk AI vision (butuh provider). Wiring 4.58.4.
-     */
-    smartInsightImageTag?: boolean | null;
-    /**
-     * Kartu GA setup. Kosongkan → default.
-     */
-    analyticsCardTitle?: string | null;
-    /**
-     * Widget analytics. Kosongkan → default.
-     */
-    topPerformingTitle?: string | null;
-    /**
-     * Destinasi/service dgn view tertinggi.
-     */
-    topPerformingViews?: boolean | null;
-    /**
-     * Yg dpt WhatsApp click / form submit terbanyak.
-     */
-    topPerformingInquiries?: boolean | null;
-    /**
-     * Sumber data widget Top Performing. `none` → tampil placeholder. Provider wiring akan datang di phase berikutnya.
-     */
-    analyticsProvider?: ('none' | 'own' | 'ga') | null;
-  };
-  /**
-   * Toggle floating widget & fitur global lain.
-   */
-  features?: {
-    whatsappFloat?: boolean | null;
-    /**
-     * Master switch for the slim site-wide bar above the header. Content in Settings → Announcement Bar.
-     */
-    announcementBar?: boolean | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Slim site-wide bar shown below the header. Master on/off in Site Features → Fitur Opsional.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "announcement-bar".
- */
-export interface AnnouncementBar {
-  id: number;
-  /**
-   * Single-line announcement (max 140 chars).
-   */
-  message: string;
-  /**
-   * Show an "×" button so visitors can dismiss the bar. Dismissal is remembered for the duration set in the Trigger & Behavior tab.
-   */
-  dismissible?: boolean | null;
-  link?: {
-    enabled?: boolean | null;
-    /**
-     * e.g. "Learn more"
-     */
-    label?: string | null;
-    /**
-     * Absolute or relative URL
-     */
-    url?: string | null;
-    /**
-     * Open in a new tab.
-     */
-    newTab?: boolean | null;
-  };
-  /**
-   * After a visitor dismisses the bar, wait this long before showing it to them again.
-   */
-  displayFrequency: '30' | '60' | '360' | '720' | '1440';
-  /**
-   * Check this and Save to force the bar to reappear for every visitor (including yourself) on their next page load, regardless of the duration setting above. Auto-unchecks after save. Any content edit (message/link/theme/frequency) already triggers the same reset automatically.
-   */
-  resetVisitorCookies?: boolean | null;
-  /**
-   * Do not show before this date.
-   */
-  startDate?: string | null;
-  /**
-   * Auto-hide after this date.
-   */
-  endDate?: string | null;
-  /**
-   * When ON: bar only shows on the homepage. When OFF (default): bar shows site-wide on every page. Announcement bars are usually site-wide (that's their point), so leave this OFF unless you specifically want a homepage-only teaser.
-   */
-  showOnHomepageOnly?: boolean | null;
-  advanced?: {
-    /**
-     * Warna background bar.
-     */
-    bgColor?: string | null;
-    /**
-     * Warna teks utama bar.
-     */
-    textColor?: string | null;
-    /**
-     * Warna link CTA (kalau ada).
-     */
-    linkColor?: string | null;
-    /**
-     * Warna link saat hover.
-     */
-    linkHoverColor?: string | null;
-  };
-  /**
-   * Auto-generated hash of the content + reset counter. Do not edit — it keys the visitor dismissal cookie.
-   */
-  version?: string | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Timed pop-up modal. Master on/off in Site Features → Section Halaman → Banner Promo.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "promo-banner".
- */
-export interface PromoBanner {
-  id: number;
-  /**
-   * Layout variant. Theme 1 requires an image; Theme 2 renders headline + CTA only.
-   */
-  theme: 'theme1-with-image' | 'theme2-text-only';
-  /**
-   * Main heading (max 80 chars).
-   */
-  headline: string;
-  /**
-   * Optional supporting copy (max 240 chars).
-   */
-  subheadline?: string | null;
-  /**
-   * Required when Theme 1 is selected. Recommended 800×600 or landscape.
-   */
-  image?: (number | null) | Media;
-  cta: {
-    label: string;
-    /**
-     * Absolute or relative URL
-     */
-    url: string;
-    newTab?: boolean | null;
-  };
-  /**
-   * Seconds to wait after page load before showing the modal. Range 0 – 60. Default 5.
-   */
-  triggerDelay: number;
-  /**
-   * How long to wait before showing the modal again to a visitor who dismissed or converted.
-   */
-  displayFrequency: '30' | '60' | '360' | '720' | '1440';
-  /**
-   * When ON: do not trigger the modal if the visitor has scrolled past ~50% of the page before the delay elapses (they are already engaged). Recommended.
-   */
-  suppressAfterScroll?: boolean | null;
-  /**
-   * Check this and Save to force the modal to reappear for every visitor (including yourself) on their next page load, regardless of the frequency setting above. Auto-unchecks after save. Any content edit (headline/CTA/image/theme) already triggers the same reset automatically, so use this only when you want to reset without changing the copy.
-   */
-  resetVisitorCookies?: boolean | null;
-  /**
-   * Auto-generated hash tied to the current content + reset counter. Do not edit — it keys the visitor localStorage cookie.
-   */
-  version?: string | null;
-  /**
-   * Do not show before this date.
-   */
-  startDate?: string | null;
-  /**
-   * Auto-hide after this date.
-   */
-  endDate?: string | null;
-  /**
-   * When ON (default): modal only triggers on the homepage. When OFF: modal triggers site-wide on every page (frequency cookie still applies). Site-wide can hurt conversion on detail pages — keep this ON unless running a very short campaign.
-   */
-  showOnHomepageOnly?: boolean | null;
-  advanced?: {
-    /**
-     * Warna background panel modal.
-     */
-    panelBgColor?: string | null;
-    /**
-     * Warna backdrop di belakang modal (dengan alpha kalau perlu).
-     */
-    backdropColor?: string | null;
-    /**
-     * Warna heading modal.
-     */
-    headingColor?: string | null;
-    /**
-     * Warna teks subheadline.
-     */
-    bodyColor?: string | null;
-    /**
-     * Warna background tombol CTA.
-     */
-    ctaBgColor?: string | null;
-    /**
-     * Warna background saat hover.
-     */
-    ctaBgHoverColor?: string | null;
-    /**
-     * Warna teks tombol CTA.
-     */
-    ctaTextColor?: string | null;
-    /**
-     * Bentuk sudut tombol CTA modal.
-     */
-    ctaRadius?: ('pill' | 'rounded' | 'rounded-md' | 'square') | null;
-  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -46117,6 +45137,183 @@ export interface ChatWidget {
   createdAt?: string | null;
 }
 /**
+ * Slim site-wide bar shown below the header. Master on/off in Site Features → Fitur Opsional.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcement-bar".
+ */
+export interface AnnouncementBar {
+  id: number;
+  /**
+   * Single-line announcement (max 140 chars).
+   */
+  message: string;
+  /**
+   * Show an "×" button so visitors can dismiss the bar. Dismissal is remembered for the duration set in the Trigger & Behavior tab.
+   */
+  dismissible?: boolean | null;
+  link?: {
+    enabled?: boolean | null;
+    /**
+     * e.g. "Learn more"
+     */
+    label?: string | null;
+    /**
+     * Absolute or relative URL
+     */
+    url?: string | null;
+    /**
+     * Open in a new tab.
+     */
+    newTab?: boolean | null;
+  };
+  /**
+   * After a visitor dismisses the bar, wait this long before showing it to them again.
+   */
+  displayFrequency: '30' | '60' | '360' | '720' | '1440';
+  /**
+   * Check this and Save to force the bar to reappear for every visitor (including yourself) on their next page load, regardless of the duration setting above. Auto-unchecks after save. Any content edit (message/link/theme/frequency) already triggers the same reset automatically.
+   */
+  resetVisitorCookies?: boolean | null;
+  /**
+   * Do not show before this date.
+   */
+  startDate?: string | null;
+  /**
+   * Auto-hide after this date.
+   */
+  endDate?: string | null;
+  /**
+   * When ON: bar only shows on the homepage. When OFF (default): bar shows site-wide on every page. Announcement bars are usually site-wide (that's their point), so leave this OFF unless you specifically want a homepage-only teaser.
+   */
+  showOnHomepageOnly?: boolean | null;
+  advanced?: {
+    /**
+     * Warna background bar.
+     */
+    bgColor?: string | null;
+    /**
+     * Warna teks utama bar.
+     */
+    textColor?: string | null;
+    /**
+     * Warna link CTA (kalau ada).
+     */
+    linkColor?: string | null;
+    /**
+     * Warna link saat hover.
+     */
+    linkHoverColor?: string | null;
+  };
+  /**
+   * Auto-generated hash of the content + reset counter. Do not edit — it keys the visitor dismissal cookie.
+   */
+  version?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Timed pop-up modal. Master on/off in Site Features → Section Halaman → Banner Promo.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-banner".
+ */
+export interface PromoBanner {
+  id: number;
+  /**
+   * Layout variant. Theme 1 requires an image; Theme 2 renders headline + CTA only.
+   */
+  theme: 'theme1-with-image' | 'theme2-text-only';
+  /**
+   * Main heading (max 80 chars).
+   */
+  headline: string;
+  /**
+   * Optional supporting copy (max 240 chars).
+   */
+  subheadline?: string | null;
+  /**
+   * Required when Theme 1 is selected. Recommended 800×600 or landscape.
+   */
+  image?: (number | null) | Media;
+  cta: {
+    label: string;
+    /**
+     * Absolute or relative URL
+     */
+    url: string;
+    newTab?: boolean | null;
+  };
+  /**
+   * Seconds to wait after page load before showing the modal. Range 0 – 60. Default 5.
+   */
+  triggerDelay: number;
+  /**
+   * How long to wait before showing the modal again to a visitor who dismissed or converted.
+   */
+  displayFrequency: '30' | '60' | '360' | '720' | '1440';
+  /**
+   * When ON: do not trigger the modal if the visitor has scrolled past ~50% of the page before the delay elapses (they are already engaged). Recommended.
+   */
+  suppressAfterScroll?: boolean | null;
+  /**
+   * Check this and Save to force the modal to reappear for every visitor (including yourself) on their next page load, regardless of the frequency setting above. Auto-unchecks after save. Any content edit (headline/CTA/image/theme) already triggers the same reset automatically, so use this only when you want to reset without changing the copy.
+   */
+  resetVisitorCookies?: boolean | null;
+  /**
+   * Auto-generated hash tied to the current content + reset counter. Do not edit — it keys the visitor localStorage cookie.
+   */
+  version?: string | null;
+  /**
+   * Do not show before this date.
+   */
+  startDate?: string | null;
+  /**
+   * Auto-hide after this date.
+   */
+  endDate?: string | null;
+  /**
+   * When ON (default): modal only triggers on the homepage. When OFF: modal triggers site-wide on every page (frequency cookie still applies). Site-wide can hurt conversion on detail pages — keep this ON unless running a very short campaign.
+   */
+  showOnHomepageOnly?: boolean | null;
+  advanced?: {
+    /**
+     * Warna background panel modal.
+     */
+    panelBgColor?: string | null;
+    /**
+     * Warna backdrop di belakang modal (dengan alpha kalau perlu).
+     */
+    backdropColor?: string | null;
+    /**
+     * Warna heading modal.
+     */
+    headingColor?: string | null;
+    /**
+     * Warna teks subheadline.
+     */
+    bodyColor?: string | null;
+    /**
+     * Warna background tombol CTA.
+     */
+    ctaBgColor?: string | null;
+    /**
+     * Warna background saat hover.
+     */
+    ctaBgHoverColor?: string | null;
+    /**
+     * Warna teks tombol CTA.
+     */
+    ctaTextColor?: string | null;
+    /**
+     * Bentuk sudut tombol CTA modal.
+     */
+    ctaRadius?: ('pill' | 'rounded' | 'rounded-md' | 'square') | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Default popup frame (title, icon, buttons, colors) used by every popup trigger on the frontend. Body copy is passed per-context by the trigger.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -46201,224 +45398,807 @@ export interface PopupSetting {
   createdAt?: string | null;
 }
 /**
+ * Layout Header, konten, dan warna/shape aksesorial. Tab "Advanced" khusus Super Admin.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-settings_select".
+ * via the `definition` "header-settings".
  */
-export interface SiteSettingsSelect<T extends boolean = true> {
-  siteName?: T;
-  tagline?: T;
-  logo?: T;
-  logoDark?: T;
-  favicon?: T;
-  contact?:
-    | T
-    | {
-        email?: T;
-        phone?: T;
-        whatsapp?: T;
-        address?: T;
-        mapEmbed?: T;
-      };
-  whatsappDefaults?:
-    | T
-    | {
-        defaultNumber?: T;
-        greetingMessage?: T;
-        businessHours?: T;
-      };
-  socialMedia?:
-    | T
-    | {
-        instagram?: T;
-        facebook?: T;
-        tiktok?: T;
-        youtube?: T;
-        tripadvisor?: T;
-      };
-  paymentMethods?:
-    | T
-    | {
-        label?: T;
-        logo?: T;
-        url?: T;
-        id?: T;
-      };
-  defaultSeo?:
-    | T
-    | {
-        metaTitle?: T;
-        metaDescription?: T;
-        ogImage?: T;
-        googleAnalyticsId?: T;
-        cloudflareWebAnalyticsToken?: T;
-      };
-  layout?:
-    | T
-    | {
-        blockGap?: T;
-        beforeFooter?: T;
-        blockPadding?:
-          | T
-          | {
-              top?:
-                | T
-                | {
-                    mobile?: T;
-                    desktop?: T;
-                  };
-              bottom?:
-                | T
-                | {
-                    mobile?: T;
-                    desktop?: T;
-                  };
-            };
-      };
-  sectionPages?:
-    | T
-    | {
-        listingTitle?: T;
-        listingSubtitle?: T;
-      };
-  relatedServices?:
-    | T
-    | {
-        enabled?: T;
-        sectionTitle?: T;
-        cardStyle?: T;
-        maxItems?: T;
-        selectionMode?: T;
-        showExploreAll?: T;
-      };
-  errorPages?:
-    | T
-    | {
-        notFound?:
-          | T
-          | {
-              title?: T;
-              message?: T;
-              buttonText?: T;
-            };
-        propertyComingSoon?:
-          | T
-          | {
-              eyebrow?: T;
-              title?: T;
-              description?: T;
-              whatsappMessage?: T;
-              primaryButtonText?: T;
-              secondaryButtonText?: T;
-            };
-      };
-  footer?:
-    | T
-    | {
-        copyrightText?: T;
-        additionalScripts?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
+export interface HeaderSetting {
+  id: number;
+  /**
+   * Layout Header. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
+   */
+  template: 'header-1' | 'header-2' | 'header-3';
+  /**
+   * Header sticky saat scroll
+   */
+  stickyOnScroll?: boolean | null;
+  /**
+   * Transparan di hero, solid setelah scroll
+   */
+  transparentOnTop?: boolean | null;
+  /**
+   * Menu utama Header. Default: main-navigation.
+   */
+  primaryMenu?: (number | null) | Menu;
+  /**
+   * Menu sekunder (opsional).
+   */
+  secondaryMenu?: (number | null) | Menu;
+  /**
+   * Tampilkan tombol/box search.
+   */
+  showSearch?: boolean | null;
+  /**
+   * Tampilkan ikon social (dari SiteSettings).
+   */
+  showSocialLinks?: boolean | null;
+  /**
+   * Tampilkan tombol CTA.
+   */
+  showCtaButton?: boolean | null;
+  /**
+   * Text button (mobile auto "Book")
+   */
+  ctaText?: string | null;
+  ctaType?: ('whatsapp' | 'custom') | null;
+  /**
+   * Custom URL (mis: /contact).
+   */
+  ctaCustomLink?: string | null;
+  /**
+   * Tampilkan address di top bar (dari SiteSettings.contact).
+   */
+  showTopBarAddress?: boolean | null;
+  /**
+   * Tampilkan phone di top bar (dari SiteSettings.contact).
+   */
+  showTopBarPhone?: boolean | null;
+  /**
+   * Teks bebas di top bar (mis. "Free cancellation").
+   */
+  topBarText?: string | null;
+  /**
+   * Override warna menu/CTA/icon/top-bar + shape tombol CTA. Layout theme tetap sesuai template terpilih.
+   */
+  advanced?: {
+    /**
+     * Warna surface header. Default `#FFFFFFE6` (90% alpha putih). Kosong → default.
+     */
+    bgColor?: string | null;
+    /**
+     * Warna teks menu link biasa.
+     */
+    menuDefaultColor?: string | null;
+    /**
+     * Warna teks saat kursor di atas link.
+     */
+    menuHoverColor?: string | null;
+    /**
+     * Warna teks link halaman aktif.
+     */
+    menuActiveColor?: string | null;
+    /**
+     * Warna background tombol CTA.
+     */
+    ctaBgColor?: string | null;
+    /**
+     * Warna background saat hover.
+     */
+    ctaBgHoverColor?: string | null;
+    /**
+     * Warna teks tombol CTA.
+     */
+    ctaTextColor?: string | null;
+    /**
+     * Bentuk sudut tombol CTA. Layout template tetap; hanya radius yang berubah.
+     */
+    ctaRadius?: ('pill' | 'rounded' | 'rounded-md' | 'square') | null;
+    /**
+     * Warna icon (mobile toggle, chevron dropdown).
+     */
+    iconColor?: string | null;
+    /**
+     * Warna background top-bar.
+     */
+    topBarBgColor?: string | null;
+    /**
+     * Warna teks top-bar.
+     */
+    topBarTextColor?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
+ * Layout Footer, konten, dan warna aksesorial. Tab "Advanced" khusus Super Admin.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "header-settings_select".
+ * via the `definition` "footer-settings".
  */
-export interface HeaderSettingsSelect<T extends boolean = true> {
-  template?: T;
-  stickyOnScroll?: T;
-  transparentOnTop?: T;
-  primaryMenu?: T;
-  secondaryMenu?: T;
-  showSearch?: T;
-  showSocialLinks?: T;
-  showCtaButton?: T;
-  ctaText?: T;
-  ctaType?: T;
-  ctaCustomLink?: T;
-  showTopBarAddress?: T;
-  showTopBarPhone?: T;
-  topBarText?: T;
-  advanced?:
-    | T
-    | {
-        bgColor?: T;
-        menuDefaultColor?: T;
-        menuHoverColor?: T;
-        menuActiveColor?: T;
-        ctaBgColor?: T;
-        ctaBgHoverColor?: T;
-        ctaTextColor?: T;
-        ctaRadius?: T;
-        iconColor?: T;
-        topBarBgColor?: T;
-        topBarTextColor?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "footer-settings_select".
- */
-export interface FooterSettingsSelect<T extends boolean = true> {
-  template?: T;
+export interface FooterSetting {
+  id: number;
+  /**
+   * Layout Footer. Hanya Super Admin. Slot content di tab Content menyesuaikan template.
+   */
+  template: 'footer-1' | 'footer-2' | 'footer-3';
+  /**
+   * Tiap row = satu kolom footer, dari kiri ke kanan. Pilih Type + Width, lalu isi content sesuai type.
+   */
   layoutColumns?:
-    | T
     | {
-        type?: T;
-        width?: T;
-        heading?: T;
-        showSocialLinks?: T;
-        menu?: T;
-        showBusinessHours?: T;
-        showPaymentMethods?: T;
-        customContent?: T;
-        id?: T;
-      };
-  showBrandColumn?: T;
-  brandTaglineOverride?: T;
-  showSocialLinks?: T;
+        /**
+         * Type isi kolom.
+         */
+        type: 'brand' | 'menuList' | 'services' | 'contact' | 'paymentMethods' | 'custom';
+        /**
+         * Lebar kolom. Auto = bagi rata sisa space.
+         */
+        width: 'auto' | '25' | '33' | '50';
+        /**
+         * Heading kolom (kosong = tanpa heading). Untuk type Brand, heading di-abaikan (pakai siteName).
+         */
+        heading?: string | null;
+        /**
+         * Tampilkan ikon social (dari SiteSettings.socialMedia) di bawah brand.
+         */
+        showSocialLinks?: boolean | null;
+        /**
+         * Menu source untuk kolom link. Wajib untuk Menu List. Untuk Services, opsional override — kosong = auto dari Modul Layanan yang aktif (Settings → Pengaturan Fitur).
+         */
+        menu?: (number | null) | Menu;
+        /**
+         * Tampilkan business hours (dari SiteSettings.whatsappDefaults.businessHours) di bawah contact.
+         */
+        showBusinessHours?: boolean | null;
+        /**
+         * Selipkan badge Payment Methods (dari SiteSettings.paymentMethods) di bawah content contact.
+         */
+        showPaymentMethods?: boolean | null;
+        /**
+         * Isi rich text bebas. Dipakai untuk kolom sponsor, disclaimer, promo, dll.
+         */
+        customContent?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        id?: string | null;
+      }[]
+    | null;
+  showBrandColumn?: boolean | null;
+  brandTaglineOverride?: string | null;
+  showSocialLinks?: boolean | null;
   columns?:
-    | T
     | {
-        columnLabel?: T;
-        menu?: T;
-        id?: T;
-      };
-  showServicesColumn?: T;
-  servicesColumnLabel?: T;
-  servicesMenu?: T;
-  showContactColumn?: T;
-  contactColumnLabel?: T;
-  newsletter?:
-    | T
+        columnLabel: string;
+        menu: number | Menu;
+        id?: string | null;
+      }[]
+    | null;
+  showServicesColumn?: boolean | null;
+  servicesColumnLabel?: string | null;
+  servicesMenu?: (number | null) | Menu;
+  showContactColumn?: boolean | null;
+  contactColumnLabel?: string | null;
+  newsletter: {
+    heading: string;
+    theme: 'ocean' | 'sand' | 'leaf';
+    description?: string | null;
+    placeholderText: string;
+    buttonLabel: string;
+    successMessage: string;
+    errorMessage: string;
+  };
+  /**
+   * Menu link legal (Privacy, Terms) untuk footer minimal.
+   */
+  legalLinks?: (number | null) | Menu;
+  /**
+   * Teks kanan bawah (copyright pakai SiteSettings.footer.copyrightText).
+   */
+  bottomBarRightText?: string | null;
+  /**
+   * Override warna background, teks, heading, link hover, dan divider Footer. Layout theme tetap.
+   */
+  advanced?: {
+    /**
+     * Warna background footer.
+     */
+    bgColor?: string | null;
+    /**
+     * Warna teks default (paragraph, link normal).
+     */
+    textColor?: string | null;
+    /**
+     * Warna teks kecil (copyright, bottom bar).
+     */
+    mutedTextColor?: string | null;
+    /**
+     * Warna link saat hover.
+     */
+    linkHoverColor?: string | null;
+    /**
+     * Warna heading kolom (mis. "Quick Links").
+     */
+    headingColor?: string | null;
+    /**
+     * Warna garis pemisah antar-section.
+     */
+    dividerColor?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  /**
+   * Appears in the browser tab, default SEO titles, and as the fallback for footer copyright.
+   */
+  siteName: string;
+  /**
+   * Short brand line shown under the logo (where enabled) and used as a default SEO description fallback.
+   */
+  tagline?: string | null;
+  /**
+   * Primary logo used on light navbars/sections. SVG preferred; PNG accepted at 2× (e.g. 400×120).
+   */
+  logo?: (number | null) | Media;
+  /**
+   * Optional. Used on dark navbar/footer variants. Falls back to the main Logo if empty.
+   */
+  logoDark?: (number | null) | Media;
+  /**
+   * Small icon shown in the browser tab. Square image, recommended 64×64 (PNG or SVG).
+   */
+  favicon?: (number | null) | Media;
+  contact?: {
+    /**
+     * Public contact email address.
+     */
+    email?: string | null;
+    /**
+     * Display phone number for the footer. Include country code, e.g. +62 812 3456 7890.
+     */
+    phone?: string | null;
+    /**
+     * Primary WhatsApp number used across the whole site (header button, floating button, service enquiries). Digits only with country code, no + or spaces, e.g. 6281234567890.
+     */
+    whatsapp?: string | null;
+    /**
+     * Physical or mailing address shown in the footer and on the contact page.
+     */
+    address?: string | null;
+    /**
+     * Paste ONLY the `src` URL from a Google Maps "Embed a map" iframe (starts with https://www.google.com/maps/embed?…). Do not paste the full <iframe> tag.
+     */
+    mapEmbed?: string | null;
+  };
+  whatsappDefaults?: {
+    /**
+     * Optional. Used only by the floating WhatsApp button if the primary WhatsApp Number above is empty. Same format: 6281234567890.
+     */
+    defaultNumber?: string | null;
+    /**
+     * Pre-filled message opened when a guest taps the floating WhatsApp button on a page that does not define its own template.
+     */
+    greetingMessage?: string | null;
+    /**
+     * Shown in the footer under WhatsApp. Free text, one line per day, e.g. "Mon–Fri 09:00–18:00 (WITA)".
+     */
+    businessHours?: string | null;
+  };
+  socialMedia?: {
+    /**
+     * Full URL, e.g. https://instagram.com/gtjourneysid
+     */
+    instagram?: string | null;
+    /**
+     * Full URL, e.g. https://facebook.com/gtjourneysid
+     */
+    facebook?: string | null;
+    /**
+     * Full URL, e.g. https://tiktok.com/@gtjourneysid
+     */
+    tiktok?: string | null;
+    /**
+     * Full URL, e.g. https://youtube.com/@gtjourneysid
+     */
+    youtube?: string | null;
+    /**
+     * Full URL to the TripAdvisor listing.
+     */
+    tripadvisor?: string | null;
+  };
+  /**
+   * Kosongkan kalau tidak mau tampil.
+   */
+  paymentMethods?:
     | {
-        heading?: T;
-        theme?: T;
-        description?: T;
-        placeholderText?: T;
-        buttonLabel?: T;
-        successMessage?: T;
-        errorMessage?: T;
+        /**
+         * Nama payment (mis. "Visa", "GoPay").
+         */
+        label: string;
+        /**
+         * Transparent PNG/SVG.
+         */
+        logo: number | Media;
+        /**
+         * Optional. URL provider (opsional).
+         */
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * These values are used when a page or service does not define its own SEO. Analytics IDs are optional.
+   */
+  defaultSeo?: {
+    /**
+     * Default browser-tab / search-result title. Aim for 50–60 characters.
+     */
+    metaTitle?: string | null;
+    /**
+     * Default snippet shown in search results. Max 160 characters.
+     */
+    metaDescription?: string | null;
+    /**
+     * Default image used when the site is shared on social media. Recommended 1200×630.
+     */
+    ogImage?: (number | null) | Media;
+    /**
+     * GA4 Measurement ID, e.g. G-XXXXXXXXXX. Leave empty to disable GA.
+     */
+    googleAnalyticsId?: string | null;
+    /**
+     * Site token from Cloudflare Web Analytics (privacy-first, cookieless). Can be used alongside Google Analytics.
+     */
+    cloudflareWebAnalyticsToken?: string | null;
+  };
+  /**
+   * Vertical rhythm between blocks and internal padding defaults used across all pages.
+   */
+  layout?: {
+    /**
+     * Vertical space between page blocks. Compact = tight, Normal = standard, Spacious = airy.
+     */
+    blockGap?: ('compact' | 'normal' | 'spacious') | null;
+    /**
+     * Space between the last block on a page and the footer. If left empty, follows the Gap Between Blocks setting.
+     */
+    beforeFooter?: ('compact' | 'normal' | 'spacious') | null;
+    blockPadding?: {
+      top?: {
+        /**
+         * Pixels, screens under 768px.
+         */
+        mobile?: number | null;
+        /**
+         * Pixels, screens 768px and up.
+         */
+        desktop?: number | null;
       };
-  legalLinks?: T;
-  bottomBarRightText?: T;
-  advanced?:
-    | T
-    | {
-        bgColor?: T;
-        textColor?: T;
-        mutedTextColor?: T;
-        linkHoverColor?: T;
-        headingColor?: T;
-        dividerColor?: T;
+      bottom?: {
+        /**
+         * Pixels, screens under 768px.
+         */
+        mobile?: number | null;
+        /**
+         * Pixels, screens 768px and up.
+         */
+        desktop?: number | null;
       };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
+    };
+  };
+  sectionPages?: {
+    /**
+     * Main heading shown on the listing hero.
+     */
+    listingTitle?: string | null;
+    /**
+     * Shown after the live result count. Example output: "12 properties available in Bali & surrounding islands".
+     */
+    listingSubtitle?: string | null;
+  };
+  /**
+   * Pengaturan default untuk section "Related Services" di semua halaman detail service. Bisa di-override per Service Type atau per service individual.
+   */
+  relatedServices?: {
+    /**
+     * Matikan = section tidak muncul di semua halaman detail (kecuali di-override).
+     */
+    enabled?: boolean | null;
+    /**
+     * Kosong = otomatis per tipe layanan (mis: "Curated Alternatives" / "More Yachts").
+     */
+    sectionTitle?: string | null;
+    cardStyle?: ('curated' | 'compact' | 'detailed') | null;
+    maxItems?: number | null;
+    selectionMode?: ('same_type' | 'same_destination' | 'random') | null;
+    showExploreAll?: boolean | null;
+  };
+  errorPages?: {
+    notFound?: {
+      /**
+       * Main heading on the 404 page.
+       */
+      title?: string | null;
+      /**
+       * Body text explaining what happened.
+       */
+      message?: string | null;
+      /**
+       * Label for the button that returns to the homepage.
+       */
+      buttonText?: string | null;
+    };
+    propertyComingSoon?: {
+      /**
+       * Small label above the main title.
+       */
+      eyebrow?: string | null;
+      /**
+       * Main heading of the placeholder page.
+       */
+      title?: string | null;
+      /**
+       * Explanatory paragraph shown to visitors.
+       */
+      description?: string | null;
+      /**
+       * Pre-filled WhatsApp message when the primary button is tapped.
+       */
+      whatsappMessage?: string | null;
+      /**
+       * Label for the WhatsApp CTA button.
+       */
+      primaryButtonText?: string | null;
+      /**
+       * Label for the secondary "back to home" button.
+       */
+      secondaryButtonText?: string | null;
+    };
+  };
+  /**
+   * Footer copyright line and any additional HTML/JS injected before </body>.
+   */
+  footer?: {
+    /**
+     * Free text shown at the bottom of the footer. Example: "© 2026 GtJourneysID. All rights reserved."
+     */
+    copyrightText?: string | null;
+    /**
+     * ⚠️ DANGER ZONE. Pasted HTML/JS is injected verbatim before </body> on every page. Only paste code from trusted providers (Meta Pixel, Hotjar, etc.). Hostile code here can steal visitor data. Leave empty if unsure.
+     */
+    additionalScripts?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Enable/disable modul layanan, section halaman, dan fitur opsional. Hanya Super Admin.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-features".
+ */
+export interface SiteFeature {
+  id: number;
+  /**
+   * Aktifkan modul & pilih desain kartunya. Matikan modul → hilang dari navigasi, homepage, sitemap, footer, dan URL-nya 404. Menambah modul baru = 1 entry di config/serviceModules.ts.
+   */
+  modules?: {
+    tours?: boolean | null;
+    toursDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    accommodations?: boolean | null;
+    accommodationsDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    waterActivities?: boolean | null;
+    waterActivitiesDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    yacht?: boolean | null;
+    yachtDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    restaurants?: boolean | null;
+    restaurantsDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    weddings?: boolean | null;
+    weddingsDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    rentals?: boolean | null;
+    rentalsDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    spa?: boolean | null;
+    spaDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    ferryTickets?: boolean | null;
+    ferryTicketsDesign?: ('compact' | 'detailed' | 'ticket') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    toursTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    toursTicketBgOpacity?: number | null;
+    toursTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    accommodationsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    accommodationsTicketBgOpacity?: number | null;
+    accommodationsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    waterActivitiesTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    waterActivitiesTicketBgOpacity?: number | null;
+    waterActivitiesTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    yachtTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    yachtTicketBgOpacity?: number | null;
+    yachtTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    restaurantsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    restaurantsTicketBgOpacity?: number | null;
+    restaurantsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    weddingsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    weddingsTicketBgOpacity?: number | null;
+    weddingsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    rentalsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    rentalsTicketBgOpacity?: number | null;
+    rentalsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    spaTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    spaTicketBgOpacity?: number | null;
+    spaTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+    /**
+     * Corak/watermark di kartu service ini (compact/detailed/ticket). Mis. peta dunia. Ringan — dirender opacity rendah. Kosongkan → kartu polos.
+     */
+    ferryTicketsTicketBg?: (number | null) | Media;
+    /**
+     * Kecil (5–15%) biar teks tetap jelas.
+     */
+    ferryTicketsTicketBgOpacity?: number | null;
+    ferryTicketsTicketBgPosition?: ('right' | 'cover' | 'tile' | 'center') | null;
+  };
+  /**
+   * Toggle section besar di homepage / landing pages.
+   */
+  sections?: {
+    testimonials?: boolean | null;
+    faq?: boolean | null;
+    /**
+     * Master switch for the timed promo modal. Content in Settings → Promo Banner.
+     */
+    promoBanner?: boolean | null;
+    /**
+     * Master switch for the footer newsletter signup. Content in Settings → Footer Settings → Newsletter.
+     */
+    newsletter?: boolean | null;
+  };
+  /**
+   * Kontrol perilaku filter destinasi di listing service.
+   */
+  destinations?: {
+    /**
+     * Kalau aktif: hanya destinasi "core" (Core Destination di collection Destinations) yang jadi tab filter; sub-lokasi (child) disembunyikan tapi ikut cocok saat core-nya dipilih atau dicari. Kalau non-aktif: semua destinasi tampil flat (perilaku lama).
+     */
+    hierarchicalFilter?: boolean | null;
+    /**
+     * Phase 3.23. Kalau aktif: Admin boleh edit collection Destination Types. Kalau non-aktif: hanya Super Admin yang bisa edit (data tetap utuh). Type = taksonomi internal, tidak tampil di frontend.
+     */
+    destinationTypesEnabled?: boolean | null;
+  };
+  blog?: {
+    /**
+     * Off = /blog dan /blog/* return 404, feed RSS kosong.
+     */
+    enabled?: boolean | null;
+    /**
+     * Off = block AdSlot dilewati saat render (posisi kosong, tidak ada script AdSense yang dimuat).
+     */
+    enableAds?: boolean | null;
+  };
+  /**
+   * Kosongkan field pemilihan (multi-select) → dashboard fallback ke default hardcoded. Modul layanan yang di-off di tab "Modul Layanan" otomatis di-skip di Quick Access & At A Glance walaupun terpilih di sini.
+   */
+  dashboardWidgets?: {
+    /**
+     * Kosongkan → "Overview". Bisa disesuaikan mis. "Beranda Admin" / "Ringkasan Situs".
+     */
+    headerTitle?: string | null;
+    /**
+     * Gunakan `{name}` sebagai placeholder nama user. Kosongkan → pakai default English.
+     */
+    headerSubtitle?: string | null;
+    /**
+     * Kosongkan → "At a glance".
+     */
+    atAGlanceTitle?: string | null;
+    /**
+     * Master switch untuk stat row.
+     */
+    atAGlanceEnabled?: boolean | null;
+    /**
+     * Setiap kotak jadi link ke listing terkait.
+     */
+    atAGlanceClickable?: boolean | null;
+    /**
+     * Kosongkan → default 6 stat (Pages/Destinations/Categories/Services/Media/Users). Runtime cap 6, "Users" hanya super-admin.
+     */
+    atAGlanceStats?:
+      | (
+          | 'pages'
+          | 'destinations'
+          | 'categories'
+          | 'services'
+          | 'media'
+          | 'users'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+        )[]
+      | null;
+    /**
+     * Kosongkan → "Recent activity".
+     */
+    recentActivityTitle?: string | null;
+    recentActivityEnabled?: boolean | null;
+    /**
+     * Berlaku untuk semua role.
+     */
+    recentActivityLimit?: number | null;
+    /**
+     * Kosongkan → "Quick access".
+     */
+    quickAccessTitle?: string | null;
+    /**
+     * Kosongkan → default: semua service module aktif + Menu. Order sesuai urutan pilih.
+     */
+    quickAccessAdmin?:
+      | (
+          | 'pages'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+          | 'venues'
+          | 'rentals'
+          | 'spa'
+          | 'ferry-tickets'
+          | 'destinations'
+          | 'categories'
+          | 'menu'
+          | 'media'
+          | 'users'
+          | 'site-features'
+          | 'site-settings'
+        )[]
+      | null;
+    /**
+     * Kosongkan → default: semua service module aktif + Media. Order sesuai urutan pilih.
+     */
+    quickAccessEditor?:
+      | (
+          | 'pages'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+          | 'venues'
+          | 'rentals'
+          | 'spa'
+          | 'ferry-tickets'
+          | 'destinations'
+          | 'categories'
+          | 'menu'
+          | 'media'
+          | 'users'
+          | 'site-features'
+          | 'site-settings'
+        )[]
+      | null;
+    /**
+     * Kosongkan → auto: "Media Usage" kalau hanya Media+Storage, else "System Health". Isi manual untuk override.
+     */
+    systemHealthTitle?: string | null;
+    /**
+     * Kosongkan → default: semua 5 info (Media/Storage/Payload/Node/Backup).
+     */
+    systemHealthAdmin?: ('media' | 'storage' | 'payload' | 'node' | 'backup')[] | null;
+    /**
+     * Kosongkan → default: Media + Storage (title jadi "Media Usage" kalau hanya 2 itu).
+     */
+    systemHealthEditor?: ('media' | 'storage' | 'payload' | 'node' | 'backup')[] | null;
+    /**
+     * Kosongkan → "Smart Insight".
+     */
+    smartInsightTitle?: string | null;
+    /**
+     * Scan issue SEO umum (rule-based heuristic).
+     */
+    smartInsightSeo?: boolean | null;
+    /**
+     * Placeholder untuk AI vision (butuh provider). Wiring 4.58.4.
+     */
+    smartInsightImageTag?: boolean | null;
+    /**
+     * Kartu GA setup. Kosongkan → default.
+     */
+    analyticsCardTitle?: string | null;
+    /**
+     * Widget analytics. Kosongkan → default.
+     */
+    topPerformingTitle?: string | null;
+    /**
+     * Destinasi/service dgn view tertinggi.
+     */
+    topPerformingViews?: boolean | null;
+    /**
+     * Yg dpt WhatsApp click / form submit terbanyak.
+     */
+    topPerformingInquiries?: boolean | null;
+    /**
+     * Sumber data widget Top Performing. `none` → tampil placeholder. Provider wiring akan datang di phase berikutnya.
+     */
+    analyticsProvider?: ('none' | 'own' | 'ga') | null;
+  };
+  /**
+   * Toggle floating widget & fitur global lain.
+   */
+  features?: {
+    whatsappFloat?: boolean | null;
+    /**
+     * Master switch for the slim site-wide bar above the header. Content in Settings → Announcement Bar.
+     */
+    announcementBar?: boolean | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -46453,190 +46233,6 @@ export interface HomepageContentSelect<T extends boolean = true> {
   ctaDescription?: T;
   ctaButtonText?: T;
   ctaButtonLinkOverride?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-features_select".
- */
-export interface SiteFeaturesSelect<T extends boolean = true> {
-  modules?:
-    | T
-    | {
-        tours?: T;
-        toursDesign?: T;
-        accommodations?: T;
-        accommodationsDesign?: T;
-        waterActivities?: T;
-        waterActivitiesDesign?: T;
-        yacht?: T;
-        yachtDesign?: T;
-        restaurants?: T;
-        restaurantsDesign?: T;
-        weddings?: T;
-        weddingsDesign?: T;
-        rentals?: T;
-        rentalsDesign?: T;
-        spa?: T;
-        spaDesign?: T;
-        ferryTickets?: T;
-        ferryTicketsDesign?: T;
-        toursTicketBg?: T;
-        toursTicketBgOpacity?: T;
-        toursTicketBgPosition?: T;
-        accommodationsTicketBg?: T;
-        accommodationsTicketBgOpacity?: T;
-        accommodationsTicketBgPosition?: T;
-        waterActivitiesTicketBg?: T;
-        waterActivitiesTicketBgOpacity?: T;
-        waterActivitiesTicketBgPosition?: T;
-        yachtTicketBg?: T;
-        yachtTicketBgOpacity?: T;
-        yachtTicketBgPosition?: T;
-        restaurantsTicketBg?: T;
-        restaurantsTicketBgOpacity?: T;
-        restaurantsTicketBgPosition?: T;
-        weddingsTicketBg?: T;
-        weddingsTicketBgOpacity?: T;
-        weddingsTicketBgPosition?: T;
-        rentalsTicketBg?: T;
-        rentalsTicketBgOpacity?: T;
-        rentalsTicketBgPosition?: T;
-        spaTicketBg?: T;
-        spaTicketBgOpacity?: T;
-        spaTicketBgPosition?: T;
-        ferryTicketsTicketBg?: T;
-        ferryTicketsTicketBgOpacity?: T;
-        ferryTicketsTicketBgPosition?: T;
-      };
-  sections?:
-    | T
-    | {
-        testimonials?: T;
-        faq?: T;
-        promoBanner?: T;
-        newsletter?: T;
-      };
-  destinations?:
-    | T
-    | {
-        hierarchicalFilter?: T;
-        destinationTypesEnabled?: T;
-      };
-  blog?:
-    | T
-    | {
-        enabled?: T;
-        enableAds?: T;
-      };
-  dashboardWidgets?:
-    | T
-    | {
-        headerTitle?: T;
-        headerSubtitle?: T;
-        atAGlanceTitle?: T;
-        atAGlanceEnabled?: T;
-        atAGlanceClickable?: T;
-        atAGlanceStats?: T;
-        recentActivityTitle?: T;
-        recentActivityEnabled?: T;
-        recentActivityLimit?: T;
-        quickAccessTitle?: T;
-        quickAccessAdmin?: T;
-        quickAccessEditor?: T;
-        systemHealthTitle?: T;
-        systemHealthAdmin?: T;
-        systemHealthEditor?: T;
-        smartInsightTitle?: T;
-        smartInsightSeo?: T;
-        smartInsightImageTag?: T;
-        analyticsCardTitle?: T;
-        topPerformingTitle?: T;
-        topPerformingViews?: T;
-        topPerformingInquiries?: T;
-        analyticsProvider?: T;
-      };
-  features?:
-    | T
-    | {
-        whatsappFloat?: T;
-        announcementBar?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "announcement-bar_select".
- */
-export interface AnnouncementBarSelect<T extends boolean = true> {
-  message?: T;
-  dismissible?: T;
-  link?:
-    | T
-    | {
-        enabled?: T;
-        label?: T;
-        url?: T;
-        newTab?: T;
-      };
-  displayFrequency?: T;
-  resetVisitorCookies?: T;
-  startDate?: T;
-  endDate?: T;
-  showOnHomepageOnly?: T;
-  advanced?:
-    | T
-    | {
-        bgColor?: T;
-        textColor?: T;
-        linkColor?: T;
-        linkHoverColor?: T;
-      };
-  version?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "promo-banner_select".
- */
-export interface PromoBannerSelect<T extends boolean = true> {
-  theme?: T;
-  headline?: T;
-  subheadline?: T;
-  image?: T;
-  cta?:
-    | T
-    | {
-        label?: T;
-        url?: T;
-        newTab?: T;
-      };
-  triggerDelay?: T;
-  displayFrequency?: T;
-  suppressAfterScroll?: T;
-  resetVisitorCookies?: T;
-  version?: T;
-  startDate?: T;
-  endDate?: T;
-  showOnHomepageOnly?: T;
-  advanced?:
-    | T
-    | {
-        panelBgColor?: T;
-        backdropColor?: T;
-        headingColor?: T;
-        bodyColor?: T;
-        ctaBgColor?: T;
-        ctaBgHoverColor?: T;
-        ctaTextColor?: T;
-        ctaRadius?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -46895,6 +46491,79 @@ export interface ChatWidgetSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "announcement-bar_select".
+ */
+export interface AnnouncementBarSelect<T extends boolean = true> {
+  message?: T;
+  dismissible?: T;
+  link?:
+    | T
+    | {
+        enabled?: T;
+        label?: T;
+        url?: T;
+        newTab?: T;
+      };
+  displayFrequency?: T;
+  resetVisitorCookies?: T;
+  startDate?: T;
+  endDate?: T;
+  showOnHomepageOnly?: T;
+  advanced?:
+    | T
+    | {
+        bgColor?: T;
+        textColor?: T;
+        linkColor?: T;
+        linkHoverColor?: T;
+      };
+  version?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "promo-banner_select".
+ */
+export interface PromoBannerSelect<T extends boolean = true> {
+  theme?: T;
+  headline?: T;
+  subheadline?: T;
+  image?: T;
+  cta?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        newTab?: T;
+      };
+  triggerDelay?: T;
+  displayFrequency?: T;
+  suppressAfterScroll?: T;
+  resetVisitorCookies?: T;
+  version?: T;
+  startDate?: T;
+  endDate?: T;
+  showOnHomepageOnly?: T;
+  advanced?:
+    | T
+    | {
+        panelBgColor?: T;
+        backdropColor?: T;
+        headingColor?: T;
+        bodyColor?: T;
+        ctaBgColor?: T;
+        ctaBgHoverColor?: T;
+        ctaTextColor?: T;
+        ctaRadius?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "popup-settings_select".
  */
 export interface PopupSettingsSelect<T extends boolean = true> {
@@ -46916,6 +46585,337 @@ export interface PopupSettingsSelect<T extends boolean = true> {
   confirmText?: T;
   cancelBg?: T;
   cancelText?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header-settings_select".
+ */
+export interface HeaderSettingsSelect<T extends boolean = true> {
+  template?: T;
+  stickyOnScroll?: T;
+  transparentOnTop?: T;
+  primaryMenu?: T;
+  secondaryMenu?: T;
+  showSearch?: T;
+  showSocialLinks?: T;
+  showCtaButton?: T;
+  ctaText?: T;
+  ctaType?: T;
+  ctaCustomLink?: T;
+  showTopBarAddress?: T;
+  showTopBarPhone?: T;
+  topBarText?: T;
+  advanced?:
+    | T
+    | {
+        bgColor?: T;
+        menuDefaultColor?: T;
+        menuHoverColor?: T;
+        menuActiveColor?: T;
+        ctaBgColor?: T;
+        ctaBgHoverColor?: T;
+        ctaTextColor?: T;
+        ctaRadius?: T;
+        iconColor?: T;
+        topBarBgColor?: T;
+        topBarTextColor?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer-settings_select".
+ */
+export interface FooterSettingsSelect<T extends boolean = true> {
+  template?: T;
+  layoutColumns?:
+    | T
+    | {
+        type?: T;
+        width?: T;
+        heading?: T;
+        showSocialLinks?: T;
+        menu?: T;
+        showBusinessHours?: T;
+        showPaymentMethods?: T;
+        customContent?: T;
+        id?: T;
+      };
+  showBrandColumn?: T;
+  brandTaglineOverride?: T;
+  showSocialLinks?: T;
+  columns?:
+    | T
+    | {
+        columnLabel?: T;
+        menu?: T;
+        id?: T;
+      };
+  showServicesColumn?: T;
+  servicesColumnLabel?: T;
+  servicesMenu?: T;
+  showContactColumn?: T;
+  contactColumnLabel?: T;
+  newsletter?:
+    | T
+    | {
+        heading?: T;
+        theme?: T;
+        description?: T;
+        placeholderText?: T;
+        buttonLabel?: T;
+        successMessage?: T;
+        errorMessage?: T;
+      };
+  legalLinks?: T;
+  bottomBarRightText?: T;
+  advanced?:
+    | T
+    | {
+        bgColor?: T;
+        textColor?: T;
+        mutedTextColor?: T;
+        linkHoverColor?: T;
+        headingColor?: T;
+        dividerColor?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  tagline?: T;
+  logo?: T;
+  logoDark?: T;
+  favicon?: T;
+  contact?:
+    | T
+    | {
+        email?: T;
+        phone?: T;
+        whatsapp?: T;
+        address?: T;
+        mapEmbed?: T;
+      };
+  whatsappDefaults?:
+    | T
+    | {
+        defaultNumber?: T;
+        greetingMessage?: T;
+        businessHours?: T;
+      };
+  socialMedia?:
+    | T
+    | {
+        instagram?: T;
+        facebook?: T;
+        tiktok?: T;
+        youtube?: T;
+        tripadvisor?: T;
+      };
+  paymentMethods?:
+    | T
+    | {
+        label?: T;
+        logo?: T;
+        url?: T;
+        id?: T;
+      };
+  defaultSeo?:
+    | T
+    | {
+        metaTitle?: T;
+        metaDescription?: T;
+        ogImage?: T;
+        googleAnalyticsId?: T;
+        cloudflareWebAnalyticsToken?: T;
+      };
+  layout?:
+    | T
+    | {
+        blockGap?: T;
+        beforeFooter?: T;
+        blockPadding?:
+          | T
+          | {
+              top?:
+                | T
+                | {
+                    mobile?: T;
+                    desktop?: T;
+                  };
+              bottom?:
+                | T
+                | {
+                    mobile?: T;
+                    desktop?: T;
+                  };
+            };
+      };
+  sectionPages?:
+    | T
+    | {
+        listingTitle?: T;
+        listingSubtitle?: T;
+      };
+  relatedServices?:
+    | T
+    | {
+        enabled?: T;
+        sectionTitle?: T;
+        cardStyle?: T;
+        maxItems?: T;
+        selectionMode?: T;
+        showExploreAll?: T;
+      };
+  errorPages?:
+    | T
+    | {
+        notFound?:
+          | T
+          | {
+              title?: T;
+              message?: T;
+              buttonText?: T;
+            };
+        propertyComingSoon?:
+          | T
+          | {
+              eyebrow?: T;
+              title?: T;
+              description?: T;
+              whatsappMessage?: T;
+              primaryButtonText?: T;
+              secondaryButtonText?: T;
+            };
+      };
+  footer?:
+    | T
+    | {
+        copyrightText?: T;
+        additionalScripts?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-features_select".
+ */
+export interface SiteFeaturesSelect<T extends boolean = true> {
+  modules?:
+    | T
+    | {
+        tours?: T;
+        toursDesign?: T;
+        accommodations?: T;
+        accommodationsDesign?: T;
+        waterActivities?: T;
+        waterActivitiesDesign?: T;
+        yacht?: T;
+        yachtDesign?: T;
+        restaurants?: T;
+        restaurantsDesign?: T;
+        weddings?: T;
+        weddingsDesign?: T;
+        rentals?: T;
+        rentalsDesign?: T;
+        spa?: T;
+        spaDesign?: T;
+        ferryTickets?: T;
+        ferryTicketsDesign?: T;
+        toursTicketBg?: T;
+        toursTicketBgOpacity?: T;
+        toursTicketBgPosition?: T;
+        accommodationsTicketBg?: T;
+        accommodationsTicketBgOpacity?: T;
+        accommodationsTicketBgPosition?: T;
+        waterActivitiesTicketBg?: T;
+        waterActivitiesTicketBgOpacity?: T;
+        waterActivitiesTicketBgPosition?: T;
+        yachtTicketBg?: T;
+        yachtTicketBgOpacity?: T;
+        yachtTicketBgPosition?: T;
+        restaurantsTicketBg?: T;
+        restaurantsTicketBgOpacity?: T;
+        restaurantsTicketBgPosition?: T;
+        weddingsTicketBg?: T;
+        weddingsTicketBgOpacity?: T;
+        weddingsTicketBgPosition?: T;
+        rentalsTicketBg?: T;
+        rentalsTicketBgOpacity?: T;
+        rentalsTicketBgPosition?: T;
+        spaTicketBg?: T;
+        spaTicketBgOpacity?: T;
+        spaTicketBgPosition?: T;
+        ferryTicketsTicketBg?: T;
+        ferryTicketsTicketBgOpacity?: T;
+        ferryTicketsTicketBgPosition?: T;
+      };
+  sections?:
+    | T
+    | {
+        testimonials?: T;
+        faq?: T;
+        promoBanner?: T;
+        newsletter?: T;
+      };
+  destinations?:
+    | T
+    | {
+        hierarchicalFilter?: T;
+        destinationTypesEnabled?: T;
+      };
+  blog?:
+    | T
+    | {
+        enabled?: T;
+        enableAds?: T;
+      };
+  dashboardWidgets?:
+    | T
+    | {
+        headerTitle?: T;
+        headerSubtitle?: T;
+        atAGlanceTitle?: T;
+        atAGlanceEnabled?: T;
+        atAGlanceClickable?: T;
+        atAGlanceStats?: T;
+        recentActivityTitle?: T;
+        recentActivityEnabled?: T;
+        recentActivityLimit?: T;
+        quickAccessTitle?: T;
+        quickAccessAdmin?: T;
+        quickAccessEditor?: T;
+        systemHealthTitle?: T;
+        systemHealthAdmin?: T;
+        systemHealthEditor?: T;
+        smartInsightTitle?: T;
+        smartInsightSeo?: T;
+        smartInsightImageTag?: T;
+        analyticsCardTitle?: T;
+        topPerformingTitle?: T;
+        topPerformingViews?: T;
+        topPerformingInquiries?: T;
+        analyticsProvider?: T;
+      };
+  features?:
+    | T
+    | {
+        whatsappFloat?: T;
+        announcementBar?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

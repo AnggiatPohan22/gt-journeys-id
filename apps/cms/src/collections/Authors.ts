@@ -19,7 +19,7 @@ export const Authors: CollectionConfig = {
   slug: 'authors',
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Blog',
     defaultColumns: ['name', 'role', 'status', 'updatedAtRelative'],
     listSearchableFields: ['name', 'role'],
   },

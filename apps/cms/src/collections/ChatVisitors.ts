@@ -19,7 +19,7 @@ export const ChatVisitors: CollectionConfig = {
   labels: { singular: 'Chat Visitor', plural: 'Chat Visitors' },
   admin: {
     useAsTitle: 'visitorId',
-    group: 'Administration',
+    group: 'Chat',
     defaultColumns: ['visitorId', 'ipHash', 'status', 'messageCount', 'lastSeenAt'],
     description:
       'Visitor records untuk chat widget. Cookie ID + IP hash (bukan raw IP). Populated server-side.',

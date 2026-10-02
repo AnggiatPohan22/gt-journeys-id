@@ -170,9 +170,16 @@ export default buildConfig({
 
   // ── Collections ─────────────────────────────
   // Order determines admin sidebar accordion sequence (Payload groups
-  // by admin.group; first-appearance sets group position).
+  // by admin.group; first-appearance of each group fixes its position).
+  //
+  // Phase 4.67 — sidebar reorg. Groups now (top→bottom):
+  //   Content · Blog · Services · Bookings · Chat · Marketing ·
+  //   Site Builder · Appearance · Settings · Administration
+  // Globals participate in the same groups and are interleaved with
+  // collections — the ordering here only establishes group order via
+  // the first appearance of each group label.
   collections: [
-    // ── CONTENT group ───────────────────────────
+    // ── Content ─────────────────────────────────
     Pages,
     ServiceTypes,
     Destinations,
@@ -180,35 +187,57 @@ export default buildConfig({
     Categories,        // cross-module (tours/villa/…) — stays in Content
     Locations,         // reusable lokasi/pelabuhan (Phase 4.61) — Origin/Arrival Ferry
     Testimonials,
-    Authors,
-    // ── POSTS group (Phase 4.35.3) ──────────────
+    // ── Blog ────────────────────────────────────
     Posts,
     BlogCategories,
     Tags,
-    // ── SERVICES group ──────────────────────────
+    Authors,
+    // ── Services ────────────────────────────────
     Tours,
     Accommodations,
     WaterActivities,
     Yachts,
+    FerryTickets,
+    Rentals,
     Restaurants,
     Venues,
-    Rentals,
     Spa,
-    FerryTickets,
-    // Site Builder
-    Menus,
-    Media,
-    // Administration
-    Users,
-    NewsletterSubscribers,
+    // ── Bookings (Phase 4.67 — ready for payment/invoice growth) ──
+    Bookings,
+    // ── Chat (Phase 4.67 — consolidation of chat data + widget) ──
     ChatVisitors,
     ChatMessages,
     ChatBlockedEvents,
-    Bookings,
+    // ── Marketing (newsletter + engagement widgets) ──
+    NewsletterSubscribers,
+    // ── Site Builder ────────────────────────────
+    Menus,
+    Media,
+    // ── Administration ──────────────────────────
+    Users,
   ],
 
-  // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings, ChatWidgetSettings, PopupSettings],
+  // ── Globals ─────────────────────────────────
+  // Order relative to each other inside the SAME group only; group
+  // position is fixed by the collections array above.
+  globals: [
+    // Content
+    HomepageContent,
+    // Blog
+    BlogSettings,
+    // Chat
+    ChatWidgetSettings,
+    // Marketing
+    AnnouncementBar,
+    PromoBanner,
+    PopupSettings,
+    // Appearance
+    HeaderSettings,
+    FooterSettings,
+    // Settings
+    SiteSettings,
+    SiteFeatures,
+  ],
 
   // ── Admin ───────────────────────────────────
   admin: {

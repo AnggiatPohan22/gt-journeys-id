@@ -17,7 +17,7 @@ export const ChatMessages: CollectionConfig = {
   labels: { singular: 'Chat Message', plural: 'Chat Messages' },
   admin: {
     useAsTitle: 'id',
-    group: 'Administration',
+    group: 'Chat',
     defaultColumns: ['channelType', 'direction', 'wasBlocked', 'blockReason', 'createdAt'],
     description: 'Audit log per message untuk channel yang backend-hit (AI, Email).',
     hidden: ({ user }) => !user || user.role === 'editor',
