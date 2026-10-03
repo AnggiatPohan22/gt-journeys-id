@@ -28,6 +28,13 @@ const QUICK_ACCESS_OPTIONS = [
   { label: 'Users', value: 'users' },
   { label: 'Site Features', value: 'site-features' },
   { label: 'Site Settings', value: 'site-settings' },
+  // Phase 4.68 — opsi tambahan untuk Quick Access (termasuk shortcut super-admin)
+  { label: 'Bookings', value: 'bookings' },
+  { label: 'Posts', value: 'posts' },
+  { label: 'Testimonials', value: 'testimonials' },
+  { label: '➕ New Page', value: 'new-page' },
+  { label: '➕ New Destination', value: 'new-dest' },
+  { label: '➕ New Category', value: 'new-cat' },
 ] as const
 
 const SYSTEM_HEALTH_OPTIONS = [
@@ -444,7 +451,7 @@ export const SiteFeatures: GlobalConfig = {
                   label: '⚡ Access · Quick Access (per role)',
                   admin: {
                     initCollapsed: true,
-                    description: 'Max 12 icon per baris (di-cap runtime supaya tetap 1 baris). Modul layanan yang di-off di tab "Modul Layanan" otomatis di-hide walaupun terpilih di sini.',
+                    description: 'Icon shortcut yang tampil di dashboard. Max 12 icon per baris (di-cap runtime supaya tetap 1 baris). Modul layanan yang di-off di tab "Modul Layanan" otomatis di-hide walaupun terpilih di sini. Order mengikuti urutan pilih.',
                   },
                   fields: [
                     {
@@ -455,6 +462,15 @@ export const SiteFeatures: GlobalConfig = {
                         placeholder: 'Quick access',
                         description: 'Kosongkan → "Quick access".',
                       },
+                    },
+                    // Phase 4.68 — Super-admin kini juga configurable (sebelumnya hardcoded).
+                    {
+                      name: 'quickAccessSuper',
+                      type: 'select',
+                      label: 'Super Admin — pilih icon',
+                      hasMany: true,
+                      options: quickAccessOptions(),
+                      admin: { description: 'Kosongkan → default: 3 shortcut buat baru (Page/Destination/Category) + Menu/Media/Users/Site Features/Site Settings. Super-admin tidak difilter oleh modul off.' },
                     },
                     {
                       name: 'quickAccessAdmin',
@@ -470,7 +486,7 @@ export const SiteFeatures: GlobalConfig = {
                       label: 'Editor — pilih icon',
                       hasMany: true,
                       options: quickAccessOptions(),
-                      admin: { description: 'Kosongkan → default: semua service module aktif + Media. Order sesuai urutan pilih.' },
+                      admin: { description: 'Kosongkan → default: semua service module aktif + Media. Hindari memilih shortcut "➕ New …" (editor tidak punya izin create).' },
                     },
                   ],
                 },

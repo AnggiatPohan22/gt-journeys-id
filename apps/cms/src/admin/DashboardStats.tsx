@@ -548,9 +548,9 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
   const recentAll = recents // sliced later based on configured limit
 
   // ── Quick access — Phase 4.58.1 registry (keyed by slug) ────
-  // Super-admin bisa memilih apa yang tampil untuk Admin & Editor via
-  // SiteFeatures.dashboardWidgets.quickAccessAdmin/Editor. Super sendiri
-  // tetap dapat set lengkap (tak dibatasi CMS toggle).
+  // Phase 4.68: Super-admin bisa memilih apa yang tampil untuk SEMUA role
+  // (super/admin/editor) via SiteFeatures.dashboardWidgets.quickAccess*.
+  // Default per role tetap sama dgn sebelum 4.68 → zero-regression.
   const ACTION_REGISTRY: Record<string, Action> = {
     pages:              { key: 'pages',              title: 'Pages',              href: '/admin/collections/pages',              accent: BRAND.ocean, icon: 'pages' },
     tours:              { key: 'tours',              title: 'Tours',              href: '/admin/collections/tours',              accent: BRAND.leaf,  icon: 'compass' },
@@ -569,19 +569,18 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
     users:              { key: 'users',              title: 'Users',              href: '/admin/collections/users',              accent: BRAND.ocean, icon: 'users' },
     'site-features':    { key: 'site-features',      title: 'Site Features',      href: '/admin/globals/site-features',          accent: BRAND.leaf,  icon: 'sliders' },
     'site-settings':    { key: 'site-settings',      title: 'Site Settings',      href: '/admin/globals/site-settings',          accent: BRAND.stone, icon: 'settings' },
+    // Phase 4.68 — opsi tambahan (align dgn QUICK_ACCESS_OPTIONS di SiteFeatures.ts)
+    bookings:           { key: 'bookings',           title: 'Bookings',           href: '/admin/collections/bookings',           accent: BRAND.coral, icon: 'calendar' },
+    posts:              { key: 'posts',              title: 'Posts',              href: '/admin/collections/posts',              accent: BRAND.ocean, icon: 'pages' },
+    testimonials:       { key: 'testimonials',       title: 'Testimonials',       href: '/admin/collections/testimonials',       accent: BRAND.leaf,  icon: 'star' },
+    'new-page':         { key: 'new-page',           title: 'New Page',           href: '/admin/collections/pages/create',        accent: BRAND.ocean, icon: 'plus' },
+    'new-dest':         { key: 'new-dest',           title: 'New Destination',    href: '/admin/collections/destinations/create', accent: BRAND.coral, icon: 'map' },
+    'new-cat':          { key: 'new-cat',            title: 'New Category',       href: '/admin/collections/categories/create',   accent: BRAND.stone, icon: 'category' },
   }
   const DEFAULT_ADMIN_ACTION_KEYS = ['pages', 'tours', 'accommodations', 'water-activities', 'yachts', 'restaurants', 'venues', 'rentals', 'spa', 'menu']
   const DEFAULT_EDITOR_ACTION_KEYS = ['pages', 'tours', 'accommodations', 'water-activities', 'yachts', 'restaurants', 'venues', 'rentals', 'spa', 'media']
-  const superActions: Action[] = [
-    { key: 'new-page',       title: 'New Page',        href: '/admin/collections/pages/create',        accent: BRAND.ocean, icon: 'plus' },
-    { key: 'new-dest',       title: 'New Destination', href: '/admin/collections/destinations/create', accent: BRAND.coral, icon: 'map' },
-    { key: 'new-cat',        title: 'New Category',    href: '/admin/collections/categories/create',   accent: BRAND.stone, icon: 'category' },
-    ACTION_REGISTRY.menu,
-    ACTION_REGISTRY.media,
-    ACTION_REGISTRY.users,
-    ACTION_REGISTRY['site-features'],
-    ACTION_REGISTRY['site-settings'],
-  ]
+  // Phase 4.68 — super default (8 ikon), tetap sama dgn hardcoded sebelumnya.
+  const DEFAULT_SUPER_ACTION_KEYS = ['new-page', 'new-dest', 'new-cat', 'menu', 'media', 'users', 'site-features', 'site-settings']
 
   const nodeVersion = typeof process !== 'undefined' ? process.version : undefined
 
@@ -601,6 +600,7 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
     atAGlanceStats: [] as string[],
     recentActivityEnabled: true,
     recentActivityLimit: 10,
+    quickAccessSuper: [] as string[],
     quickAccessAdmin: [] as string[],
     quickAccessEditor: [] as string[],
     systemHealthAdmin: [] as HealthKey[],
@@ -633,6 +633,7 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
         atAGlanceStats: Array.isArray(dw.atAGlanceStats) ? dw.atAGlanceStats : [],
         recentActivityEnabled: dw.recentActivityEnabled !== false,
         recentActivityLimit: Number(dw.recentActivityLimit ?? 10),
+        quickAccessSuper: Array.isArray(dw.quickAccessSuper) ? dw.quickAccessSuper : [],
         quickAccessAdmin: Array.isArray(dw.quickAccessAdmin) ? dw.quickAccessAdmin : [],
         quickAccessEditor: Array.isArray(dw.quickAccessEditor) ? dw.quickAccessEditor : [],
         systemHealthAdmin: Array.isArray(dw.systemHealthAdmin) ? dw.systemHealthAdmin : [],
@@ -704,25 +705,32 @@ const DashboardStats = async ({ payload, user }: ServerProps) => {
     .filter((s): s is Stat => Boolean(s))
     .slice(0, 6)
 
-  // ── Resolve Quick Access per role (Phase 4.58.1 → 4.58.2) ─
-  // Super = superActions (hardcoded 8, tak difilter CMS).
-  // Admin/Editor = pilih dari registry via array config; kalau kosong → default.
-  // 4.58.2: modul layanan yg di-off di SiteFeatures.modules OTOMATIS di-hide
-  // dari Quick Access — mencegah ambigu (icon service yg module-nya inactive).
+  // ── Resolve Quick Access per role (Phase 4.58.1 → 4.58.2 → 4.68) ─
+  // Semua role (super/admin/editor) kini configurable via SiteFeatures.
+  // Config kosong → default per role (lihat DEFAULT_*_ACTION_KEYS).
+  // Modul layanan yg di-off di SiteFeatures.modules OTOMATIS di-hide dari
+  // Quick Access untuk admin/editor. Super-admin tidak difilter modul off
+  // (super bisa butuh akses walau module disembunyikan di frontend).
   // Cap 12 icon supaya muat 1 baris di kolom `.dnj-col--main` (2fr).
   const QUICK_ACCESS_CAP = 12
-  const resolveActions = (roleKey: 'admin' | 'editor'): Action[] => {
-    const selected = roleKey === 'admin' ? widgetToggles.quickAccessAdmin : widgetToggles.quickAccessEditor
-    const defaults = roleKey === 'admin' ? DEFAULT_ADMIN_ACTION_KEYS : DEFAULT_EDITOR_ACTION_KEYS
+  const resolveActions = (roleKey: 'super' | 'admin' | 'editor'): Action[] => {
+    const selected =
+      roleKey === 'super' ? widgetToggles.quickAccessSuper
+      : roleKey === 'admin' ? widgetToggles.quickAccessAdmin
+      : widgetToggles.quickAccessEditor
+    const defaults =
+      roleKey === 'super' ? DEFAULT_SUPER_ACTION_KEYS
+      : roleKey === 'admin' ? DEFAULT_ADMIN_ACTION_KEYS
+      : DEFAULT_EDITOR_ACTION_KEYS
     const keys = selected.length > 0 ? selected : defaults
-    return keys
-      .filter(isModuleActive)
+    const filtered = roleKey === 'super' ? keys : keys.filter(isModuleActive)
+    return filtered
       .map((k) => ACTION_REGISTRY[k])
       .filter((a): a is Action => Boolean(a))
       .slice(0, QUICK_ACCESS_CAP)
   }
   const actions: Action[] = isSuper
-    ? superActions
+    ? resolveActions('super')
     : role === 'admin'
       ? resolveActions('admin')
       : resolveActions('editor')

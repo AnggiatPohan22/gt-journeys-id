@@ -41,6 +41,7 @@ import * as migration_20260930_070209_phase_4_61_11_ticket_sort_options from './
 import * as migration_20260930_081508 from './20260930_081508';
 import * as migration_20260930_120000_popup_settings_en_defaults from './20260930_120000_popup_settings_en_defaults';
 import * as migration_20260930_231200_phase_4_66_5_booking_access_token from './20260930_231200_phase_4_66_5_booking_access_token';
+import * as migration_20261003_022915_phase_4_68_quick_access_super from './20261003_022915_phase_4_68_quick_access_super';
 
 export const migrations = [
   {
@@ -246,7 +247,7 @@ export const migrations = [
   {
     up: migration_20260930_081508.up,
     down: migration_20260930_081508.down,
-    name: '20260930_081508'
+    name: '20260930_081508',
   },
   {
     up: migration_20260930_120000_popup_settings_en_defaults.up,
@@ -257,5 +258,10 @@ export const migrations = [
     up: migration_20260930_231200_phase_4_66_5_booking_access_token.up,
     down: migration_20260930_231200_phase_4_66_5_booking_access_token.down,
     name: '20260930_231200_phase_4_66_5_booking_access_token',
+  },
+  {
+    up: migration_20261003_022915_phase_4_68_quick_access_super.up,
+    down: migration_20261003_022915_phase_4_68_quick_access_super.down,
+    name: '20261003_022915_phase_4_68_quick_access_super'
   },
 ];

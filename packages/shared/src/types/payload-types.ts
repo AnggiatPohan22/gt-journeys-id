@@ -46095,6 +46095,36 @@ export interface SiteFeature {
      */
     quickAccessTitle?: string | null;
     /**
+     * Kosongkan → default: 3 shortcut buat baru (Page/Destination/Category) + Menu/Media/Users/Site Features/Site Settings. Super-admin tidak difilter oleh modul off.
+     */
+    quickAccessSuper?:
+      | (
+          | 'pages'
+          | 'tours'
+          | 'accommodations'
+          | 'water-activities'
+          | 'yachts'
+          | 'restaurants'
+          | 'venues'
+          | 'rentals'
+          | 'spa'
+          | 'ferry-tickets'
+          | 'destinations'
+          | 'categories'
+          | 'menu'
+          | 'media'
+          | 'users'
+          | 'site-features'
+          | 'site-settings'
+          | 'bookings'
+          | 'posts'
+          | 'testimonials'
+          | 'new-page'
+          | 'new-dest'
+          | 'new-cat'
+        )[]
+      | null;
+    /**
      * Kosongkan → default: semua service module aktif + Menu. Order sesuai urutan pilih.
      */
     quickAccessAdmin?:
@@ -46116,10 +46146,16 @@ export interface SiteFeature {
           | 'users'
           | 'site-features'
           | 'site-settings'
+          | 'bookings'
+          | 'posts'
+          | 'testimonials'
+          | 'new-page'
+          | 'new-dest'
+          | 'new-cat'
         )[]
       | null;
     /**
-     * Kosongkan → default: semua service module aktif + Media. Order sesuai urutan pilih.
+     * Kosongkan → default: semua service module aktif + Media. Hindari memilih shortcut "➕ New …" (editor tidak punya izin create).
      */
     quickAccessEditor?:
       | (
@@ -46140,6 +46176,12 @@ export interface SiteFeature {
           | 'users'
           | 'site-features'
           | 'site-settings'
+          | 'bookings'
+          | 'posts'
+          | 'testimonials'
+          | 'new-page'
+          | 'new-dest'
+          | 'new-cat'
         )[]
       | null;
     /**
@@ -46896,6 +46938,7 @@ export interface SiteFeaturesSelect<T extends boolean = true> {
         recentActivityEnabled?: T;
         recentActivityLimit?: T;
         quickAccessTitle?: T;
+        quickAccessSuper?: T;
         quickAccessAdmin?: T;
         quickAccessEditor?: T;
         systemHealthTitle?: T;
