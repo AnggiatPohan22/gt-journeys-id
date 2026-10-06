@@ -552,6 +552,24 @@ const totalPax = qAdults + qChildren
             <span class="text-[10px] font-semibold tracking-wider uppercase text-white/85">One Way</span>
           </div>
 
+          {/* ── Session timer strip (Phase 4.67.1) ── */}
+          <div
+            id="sessionTimerStrip"
+            class="bg-amber-50 border-b border-amber-200/60 px-5 py-2.5 flex items-center justify-between gap-2 text-xs"
+            data-timer-seconds="900"
+          >
+            <span class="flex items-center gap-1.5 font-semibold text-amber-900">
+              <Icon name="info" class="w-3.5 h-3.5" />
+              <span>Session expires in</span>
+            </span>
+            <span
+              id="sessionTimerValue"
+              class="font-mono font-bold tabular-nums text-amber-900 text-sm"
+              aria-live="polite"
+              aria-atomic="true"
+            >15:00</span>
+          </div>
+
           {/* Body — reduced padding & type sizes */}
           <div class="px-5 pt-4 pb-5 space-y-4">
 
@@ -694,6 +712,41 @@ const totalPax = qAdults + qChildren
       </aside>
     </div>
   </section>
+
+  {/* ── Session Expired modal (Phase 4.67.1) ── */}
+  <div
+    id="sessionExpiredModal"
+    class="hidden fixed inset-0 z-[100] items-center justify-center bg-ocean/70 backdrop-blur-sm px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sessionExpiredTitle"
+    aria-describedby="sessionExpiredDesc"
+  >
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-sand-dark/10">
+      <div class="bg-coral px-6 py-4 flex items-center gap-3 text-white">
+        <span class="w-10 h-10 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0">
+          <Icon name="info" class="w-5 h-5" />
+        </span>
+        <h2 id="sessionExpiredTitle" class="text-base font-bold tracking-wide">Session Expired</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <p id="sessionExpiredDesc" class="text-sm text-stone leading-relaxed">
+          You have exceeded the time limit to complete your booking. For security and seat-availability reasons, this booking session is no longer valid and <span class="font-semibold">has not been recorded</span>.
+          <br /><br />
+          Please go back to the ferry details page and start a new booking.
+        </p>
+        <button
+          type="button"
+          id="sessionExpiredOk"
+          data-return-url={detailUrl}
+          class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-coral/20 transition text-sm uppercase tracking-wider"
+          autofocus
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
 </PageLayout>
 
 <script>
@@ -748,6 +801,82 @@ const totalPax = qAdults + qChildren
       if (!i) return
       el.addEventListener('input', () => updatePreview(i))
     })
+
+    // (3b) Session countdown timer (Phase 4.67.1)
+    //   - 15 min client-side countdown (server stamp TTL is 30 min).
+    //   - At <= 120s: coral + pulse warning.
+    //   - At 0: disable submit button, show blocking modal; OK → return to detail page.
+    const strip = document.getElementById('sessionTimerStrip')
+    const valueEl = document.getElementById('sessionTimerValue')
+    const modal = document.getElementById('sessionExpiredModal')
+    const okBtn = document.getElementById('sessionExpiredOk') as HTMLButtonElement | null
+    const form = document.getElementById('checkout-form') as HTMLFormElement | null
+    if (strip && valueEl && modal && okBtn && form) {
+      const total = Number(strip.dataset.timerSeconds ?? '900')
+      let remaining = Number.isFinite(total) && total > 0 ? total : 900
+      let expired = false
+
+      const fmt = (s: number) => {
+        const m = Math.floor(s / 60)
+        const r = s % 60
+        return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`
+      }
+
+      const render = () => {
+        valueEl.textContent = fmt(remaining)
+        if (remaining <= 120 && remaining > 0) {
+          strip.classList.remove('bg-amber-50', 'border-amber-200/60')
+          strip.classList.add('bg-coral/10', 'border-coral/40')
+          valueEl.classList.remove('text-amber-900')
+          valueEl.classList.add('text-coral', 'animate-pulse')
+          strip.querySelector('span.flex')?.classList.remove('text-amber-900')
+          strip.querySelector('span.flex')?.classList.add('text-coral')
+        }
+      }
+
+      const expire = () => {
+        if (expired) return
+        expired = true
+        remaining = 0
+        render()
+        // Disable form & submit — guarantees no POST reaches /api/bookings/create.
+        const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+        if (submitBtn) {
+          submitBtn.disabled = true
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed')
+        }
+        form.addEventListener('submit', (e) => e.preventDefault(), { capture: true })
+        // Show modal.
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        // Prevent background scroll.
+        document.body.style.overflow = 'hidden'
+        // Focus OK.
+        setTimeout(() => okBtn.focus(), 0)
+      }
+
+      render()
+      const tick = setInterval(() => {
+        remaining -= 1
+        if (remaining <= 0) {
+          clearInterval(tick)
+          expire()
+          return
+        }
+        render()
+      }, 1000)
+
+      okBtn.addEventListener('click', () => {
+        const url = okBtn.dataset.returnUrl || '/ferry-tickets'
+        window.location.href = url
+      })
+      // Also respond to Enter key when modal open (OK has autofocus).
+      modal.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          okBtn.click()
+        }
+      })
+    }
 
     // (3) Sidebar details toggle
     const toggle = document.getElementById('toggleSummaryDetails')
