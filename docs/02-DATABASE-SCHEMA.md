@@ -4,7 +4,7 @@
 >
 > Database: **Cloudflare D1** (SQLite-compatible) di produksi, SQLite file lokal (`apps/cms/cms.db`) saat development. Adapter: `@payloadcms/db-sqlite` (Drizzle ORM) — lihat [payload.config.ts](apps/cms/src/payload.config.ts).
 >
-> ⚠️ **Belum lengkap** — koleksi terbaru (Phase 4.62 Bookings + passengers) belum dituliskan lengkap di sini. Detail schema Bookings ada di [`apps/cms/src/collections/Bookings.ts`](apps/cms/src/collections/Bookings.ts) + migrations `20260927_142814_phase_4_62_bookings`, `20260928_000355_phase_4_63_passengers`, dan `20260930_231200_phase_4_66_5_booking_access_token` (kolom `access_token` untuk IDOR fix Phase 4.66.5).
+> ⚠️ **Belum lengkap** — koleksi terbaru (Phase 4.62 Bookings + passengers + Phase 4.67.2a round-trip) belum dituliskan lengkap di sini. Detail schema Bookings ada di [`apps/cms/src/collections/Bookings.ts`](apps/cms/src/collections/Bookings.ts) + migrations `20260927_142814_phase_4_62_bookings`, `20260928_000355_phase_4_63_passengers`, `20260930_231200_phase_4_66_5_booking_access_token` (kolom `access_token` untuk IDOR fix Phase 4.66.5), dan `20261007_061355_phase_4_67_2a_bookings_roundtrip` (kolom `trip_type` + 10 kolom snapshot leg return — `return_date`, `return_ferry_ticket_id`, `return_origin_location`, `return_destination_location`, `return_schedule_time_label`, `return_ferry_class_name`, `return_ferry_class_type`, `return_unit_price`, `return_total_estimate` — plus index `bookings_return_ferry_ticket_idx`). Nama STRICT PARALLEL ke outbound (`departure_date ↔ return_date`, `ferry_ticket_id ↔ return_ferry_ticket_id`, dst) supaya migration path ke multi-city `legs[]` di masa depan cukup copy outbound→legs[0] + return→legs[1].
 
 ---
 

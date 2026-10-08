@@ -1,10 +1,23 @@
 /**
- * POST /api/bookings/create — Phase 4.62 → 4.63 → 4.66.4.
+ * POST /api/bookings/create — Phase 4.62 → 4.63 → 4.66.4 → 4.67.2e.
  *
  * Receives the Ferry Ticket checkout form (contact + passenger array),
  * validates, and creates a Booking record with default channel `manual_wa`.
  * Anti-spam: honeypot + signed formStamp (Phase 4.62) + IP rate-limit
  * (Phase 4.62.2).
+ *
+ * Phase 4.67.2e — Round-trip 2-leg support:
+ *   - `tripType=round-trip` triggers 2-leg flow: verify `returnFerryTicketId`
+ *     via `getFerryForCheckout`, recompute `returnUnitPrice`/`returnTotalEstimate`
+ *     dari CMS, snapshot `returnOrigin/DestinationLocation`,
+ *     `returnScheduleTimeLabel`, `returnFerryClass*`.
+ *   - Sanity check reverse route: return origin.id must equal outbound
+ *     destination.id AND vice versa — reject `return_route_mismatch`.
+ *   - Currency sanity: outbound + return harus sama currency (reject
+ *     `return_currency_mismatch`). Audit §11 — multi-currency defer.
+ *   - `totalEstimate` persist di DB = grand total (outbound + return).
+ *   - Field return nullable di DB (schema 4.67.2a); one-way kirim null
+ *     → zero impact.
  *
  * Passenger array (Phase 4.63): fields arrive as `passengers[N][key]` in
  * FormData. Server enforces: N === adults + children, firstName/lastName
@@ -117,7 +130,33 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   if (!form) return errorRedirect('/', 'invalid_body')
 
   const slug = String(form.get('slug') ?? '')
-  const back = slug ? `/checkout/ferry-tickets/${slug}` : '/'
+  // Preserve query params needed by checkout page frontmatter — kalau `date`
+  // hilang dari URL, halaman checkout bounce balik ke detail page (ferry
+  // classes). Rekonstruksi dari form data sendiri biar error flow tetap
+  // mendarat di checkout, bukan di listing/detail.
+  const backParams = new URLSearchParams()
+  const dateForBack = String(form.get('departureDate') ?? '').trim()
+  const adultsForBack = String(form.get('adults') ?? '').trim()
+  const childrenForBack = String(form.get('children') ?? '').trim()
+  const classForBack = String(form.get('ferryClassType') ?? '').trim()
+  const tripForBack = String(form.get('tripType') ?? '').trim()
+  const returnDateForBack = String(form.get('returnDate') ?? '').trim()
+  const returnFerryIdForBack = String(form.get('returnFerryTicketId') ?? '').trim()
+  const returnSlugForBack = String(form.get('returnTicketSlug') ?? '').trim()
+  const returnClassForBack = String(form.get('returnFerryClassType') ?? '').trim()
+  if (dateForBack) backParams.set('date', dateForBack)
+  if (adultsForBack) backParams.set('adults', adultsForBack)
+  if (childrenForBack) backParams.set('children', childrenForBack)
+  if (classForBack) backParams.set('class', classForBack)
+  if (tripForBack === 'round-trip') {
+    backParams.set('tripType', 'round-trip')
+    if (returnDateForBack) backParams.set('returnDate', returnDateForBack)
+    if (returnFerryIdForBack) backParams.set('returnFerryTicketId', returnFerryIdForBack)
+    if (returnSlugForBack) backParams.set('returnTicketSlug', returnSlugForBack)
+    if (returnClassForBack) backParams.set('returnFerryClassType', returnClassForBack)
+  }
+  const backQs = backParams.toString()
+  const back = slug ? `/checkout/ferry-tickets/${slug}${backQs ? '?' + backQs : ''}` : '/'
 
   // Honeypot — silent success.
   if (String(form.get('website') ?? '').trim()) return redirect('/', 302)
@@ -152,19 +191,21 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return errorRedirect(back, 'past_departure_date')
     }
   }
-  // Phase 4.64 — Round Trip guard: kalau field `return` dikirim (misal
-  // dari widget filter atau bookmark), pastikan >= departureDate. Booking
-  // flow round-trip (2 legs) diaktifkan di Phase 4.65 — di sini kita hanya
-  // validate, tidak persist ke Booking record.
-  {
-    const tripType = String(form.get('trip') ?? '').trim()
-    const returnDate = String(form.get('return') ?? '').trim()
-    if (returnDate && /^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
-      if (returnDate < departureDate) {
-        return errorRedirect(back, 'return_before_departure')
-      }
-    } else if (tripType === 'round-trip' && !returnDate) {
+  // Phase 4.67.2e — Round-trip tripType parse (full 2-leg validation
+  // dilakukan setelah outbound ferry resolved di bawah).
+  const tripType = String(form.get('tripType') ?? form.get('trip') ?? 'one-way').trim()
+  const isRoundTrip = tripType === 'round-trip'
+  const returnDate = String(form.get('returnDate') ?? form.get('return') ?? '').trim()
+  if (isRoundTrip) {
+    if (!returnDate || !/^\d{4}-\d{2}-\d{2}$/.test(returnDate)) {
       return errorRedirect(back, 'missing_return_date')
+    }
+    if (returnDate < departureDate) {
+      return errorRedirect(back, 'return_before_departure')
+    }
+    const todayISO = new Date().toISOString().slice(0, 10)
+    if (returnDate < todayISO) {
+      return errorRedirect(back, 'past_return_date')
     }
   }
   const composedWa = normalizePhone(`${region}${phone}`).slice(0, 40)
@@ -226,6 +267,91 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       ? String((ferry as any).scheduleTimeLabel).slice(0, 100)
       : null
 
+  // ── Phase 4.67.2e — Return ferry verify + recompute (round-trip only) ──
+  // Semua snapshot ambil dari CMS (never trust hidden input price/class
+  // dari client). Sanity check reverse route: return origin == outbound
+  // destination, dan sebaliknya. Pola mirror outbound guard 4.66.4.
+  const locationId = (rel: unknown): number | null => {
+    if (typeof rel === 'number') return rel
+    if (rel && typeof rel === 'object' && typeof (rel as any).id === 'number') return (rel as any).id
+    return null
+  }
+  let returnFerry: any = null
+  let returnUnitPrice: number | null = null
+  let returnChildUnit = 0
+  let returnTotalEstimate = 0
+  let returnOriginName: string | null = null
+  let returnDestinationName: string | null = null
+  let returnScheduleTimeLabel: string | null = null
+  let returnClassName: string | null = null
+  let returnClassType: string | null = null
+  const returnFerryIdRaw = String(form.get('returnFerryTicketId') ?? '').trim()
+  const returnTicketSlug = String(form.get('returnTicketSlug') ?? '').trim()
+  const requestedReturnClassType = String(form.get('returnFerryClassType') ?? '').trim().slice(0, 30)
+
+  if (isRoundTrip) {
+    const returnFerryId = Number(returnFerryIdRaw)
+    if (!returnFerryIdRaw || !Number.isFinite(returnFerryId) || returnFerryId <= 0) {
+      return errorRedirect(back, 'invalid_return_ferry')
+    }
+    returnFerry = await getFerryForCheckout(returnFerryId)
+    if (!returnFerry || (returnFerry as any).status && (returnFerry as any).status !== 'published') {
+      return errorRedirect(back, 'return_ferry_not_found')
+    }
+    // Slug match (attacker swap id-only). Compare only kalau slug dikirim.
+    if (returnTicketSlug && typeof (returnFerry as any).slug === 'string' && (returnFerry as any).slug !== returnTicketSlug) {
+      return errorRedirect(back, 'return_ferry_slug_mismatch')
+    }
+    const returnClassesRaw = Array.isArray((returnFerry as any).ferryClasses) ? (returnFerry as any).ferryClasses : []
+    if (returnClassesRaw.length === 0) {
+      return errorRedirect(back, 'return_ferry_no_class')
+    }
+    const returnSorted = returnClassesRaw
+      .slice()
+      .sort((a: any, b: any) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
+    const rCls = returnSorted.find((c: any) => c.classType === requestedReturnClassType) ?? returnSorted[0]
+    if (!rCls || typeof rCls.adultPrice !== 'number' || rCls.adultPrice < 0) {
+      return errorRedirect(back, 'return_ferry_no_price')
+    }
+
+    // Sanity check reverse route — pakai location.id perbandingan.
+    // Skip kalau salah satu location null (legacy data tanpa relationship).
+    const outboundOriginId = locationId((ferry as any).originLocation)
+    const outboundDestId   = locationId((ferry as any).arrivalLocation)
+    const returnOriginId   = locationId((returnFerry as any).originLocation)
+    const returnDestId     = locationId((returnFerry as any).arrivalLocation)
+    if (outboundOriginId != null && outboundDestId != null && returnOriginId != null && returnDestId != null) {
+      if (returnOriginId !== outboundDestId || returnDestId !== outboundOriginId) {
+        return errorRedirect(back, 'return_route_mismatch')
+      }
+    }
+
+    returnUnitPrice = rCls.adultPrice
+    returnChildUnit =
+      typeof rCls.childPrice === 'number' && rCls.childPrice >= 0
+        ? rCls.childPrice
+        : Math.round(returnUnitPrice! / 2)
+    // Guard beda currency outbound vs return (audit §11): reject.
+    const rCurrency: string = (typeof rCls.currency === 'string' ? rCls.currency : 'IDR').slice(0, 8)
+    if (rCurrency !== currency) {
+      return errorRedirect(back, 'return_currency_mismatch')
+    }
+    returnTotalEstimate = returnUnitPrice! * adults + returnChildUnit * children
+    returnOriginName =
+      resolveLocation((returnFerry as any).originLocation, (returnFerry as any).origin)?.name ?? null
+    returnDestinationName =
+      resolveLocation((returnFerry as any).arrivalLocation, (returnFerry as any).arrival)?.name ?? null
+    returnScheduleTimeLabel =
+      typeof (returnFerry as any).scheduleTimeLabel === 'string' && (returnFerry as any).scheduleTimeLabel.trim()
+        ? String((returnFerry as any).scheduleTimeLabel).slice(0, 100)
+        : null
+    returnClassName = typeof rCls.name === 'string' ? rCls.name.slice(0, 100) : null
+    returnClassType = typeof rCls.classType === 'string' ? rCls.classType : null
+  }
+
+  // Grand total = outbound + return (0 kalau one-way).
+  const grandTotal = totalEstimate + returnTotalEstimate
+
   const bookingRef = generateBookingRef('FT')
   const accessToken = generateAccessToken()
 
@@ -252,7 +378,18 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     ferryClassType: typeof cls.classType === 'string' ? cls.classType : null,
     unitPrice,
     currency,
-    totalEstimate,
+    totalEstimate: grandTotal,
+    // Phase 4.67.2e — Round-trip persistence (null kalau one-way).
+    tripType: isRoundTrip ? 'round-trip' : 'one-way',
+    returnDate: isRoundTrip ? returnDate : null,
+    returnFerryTicket: isRoundTrip && returnFerry ? ((returnFerry as any).id as number) : null,
+    returnOriginLocation: returnOriginName,
+    returnDestinationLocation: returnDestinationName,
+    returnScheduleTimeLabel,
+    returnFerryClassName: returnClassName,
+    returnFerryClassType: returnClassType,
+    returnUnitPrice,
+    returnTotalEstimate: isRoundTrip ? returnTotalEstimate : null,
     status: 'pending',
     channel: 'manual_wa',
     channelData: null,

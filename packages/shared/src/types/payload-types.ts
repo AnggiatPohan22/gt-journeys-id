@@ -29778,6 +29778,10 @@ export interface Booking {
    */
   serviceType: 'ferry-ticket';
   /**
+   * Round Trip = 2 leg (outbound + return). Isi "Return trip" di bawah.
+   */
+  tripType: 'one-way' | 'round-trip';
+  /**
    * Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.
    */
   ferryTicket?: (number | null) | FerryTicket;
@@ -29855,12 +29859,48 @@ export interface Booking {
    */
   ferryClassType?: string | null;
   /**
+   * Harus >= departureDate.
+   */
+  returnDate?: string | null;
+  /**
+   * Rujukan ferry leg return. Bisa beda ferry dari outbound.
+   */
+  returnFerryTicket?: (number | null) | FerryTicket;
+  /**
+   * Snapshot origin leg return (= destination outbound).
+   */
+  returnOriginLocation?: string | null;
+  /**
+   * Snapshot destination leg return (= origin outbound).
+   */
+  returnDestinationLocation?: string | null;
+  /**
+   * Snapshot jadwal leg return (mis. "17:30 → 18:45").
+   */
+  returnScheduleTimeLabel?: string | null;
+  /**
+   * Snapshot nama kelas leg return.
+   */
+  returnFerryClassName?: string | null;
+  /**
+   * Snapshot classType leg return (ekonomi/emerald/…).
+   */
+  returnFerryClassType?: string | null;
+  /**
+   * Harga adult leg return (snapshot).
+   */
+  returnUnitPrice?: number | null;
+  /**
+   * Total leg return (adults×unitPrice + children×childPrice).
+   */
+  returnTotalEstimate?: number | null;
+  /**
    * Harga per adult saat booking dibuat.
    */
   unitPrice?: number | null;
   currency?: string | null;
   /**
-   * Estimasi total = adults*unitPrice + children*childPrice.
+   * Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.
    */
   totalEstimate?: number | null;
   status: 'pending' | 'awaiting_payment' | 'confirmed' | 'cancelled' | 'expired';
@@ -44362,6 +44402,7 @@ export interface BookingsSelect<T extends boolean = true> {
   bookingRef?: T;
   accessToken?: T;
   serviceType?: T;
+  tripType?: T;
   ferryTicket?: T;
   customerName?: T;
   customerEmail?: T;
@@ -44394,6 +44435,15 @@ export interface BookingsSelect<T extends boolean = true> {
   scheduleTimeLabel?: T;
   ferryClassName?: T;
   ferryClassType?: T;
+  returnDate?: T;
+  returnFerryTicket?: T;
+  returnOriginLocation?: T;
+  returnDestinationLocation?: T;
+  returnScheduleTimeLabel?: T;
+  returnFerryClassName?: T;
+  returnFerryClassType?: T;
+  returnUnitPrice?: T;
+  returnTotalEstimate?: T;
   unitPrice?: T;
   currency?: T;
   totalEstimate?: T;

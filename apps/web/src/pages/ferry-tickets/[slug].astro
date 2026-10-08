@@ -36,6 +36,9 @@ if (!item) return Astro.redirect('/404')
 const checkoutErr = new URL(Astro.request.url).searchParams.get('err') ?? ''
 const checkoutNotice: Record<string, string> = {
   needs_date: 'Please pick a departure date first before continuing to checkout.',
+  needs_return_ferry: 'Please pick a return ferry before continuing to checkout.',
+  return_ferry_not_found: 'The return ferry is no longer available. Please pick another.',
+  return_ferry_mismatch: 'Return ferry data mismatch. Please reload the page and try again.',
 }
 const checkoutNoticeMsg = checkoutErr ? checkoutNotice[checkoutErr] ?? '' : ''
 
@@ -152,6 +155,60 @@ const waLink = generateWhatsAppLink(
 // Phase 4.62 — Reserve/Book Now menuju halaman checkout (bukan wa.me).
 // "Contact Concierge" tetap wa.me (kontak manual, di luar flow booking).
 const checkoutHref = `/checkout/ferry-tickets/${slug}`
+
+// ── Phase 4.67.2b — Round-trip mode detection ────────────────────────
+// Widget `ServiceListingTicketSearch` (Phase 4.64) passes `?trip=round-trip`
+// + `?return=YYYY-MM-DD` ke URL ketika visitor memilih Round Trip.
+// Round-trip mode: sidebar CTA berubah dari "Reserve Now" (langsung checkout)
+// → "Continue to pick return" (redirect ke listing dgn reverse route, return
+// date pre-fill, outbound metadata di URL). Per-class "Book Now" juga ikut.
+// Pola 2-step wizard — lihat phase-4.67.2-roundtrip-booking-audit.md §5.
+const _urlState = new URL(Astro.request.url)
+const qTrip = _urlState.searchParams.get('trip') ?? ''
+const isRoundTrip = qTrip === 'round-trip'
+const qReturnRaw = _urlState.searchParams.get('return') ?? ''
+const qReturn = /^\d{4}-\d{2}-\d{2}$/.test(qReturnRaw) ? qReturnRaw : ''
+const qDateRaw = _urlState.searchParams.get('date') ?? ''
+const qDate = /^\d{4}-\d{2}-\d{2}$/.test(qDateRaw) ? qDateRaw : ''
+const qAdults = Math.max(1, Math.min(10, Number(_urlState.searchParams.get('adults')) || 1))
+const qChildren = Math.max(0, Math.min(6, Number(_urlState.searchParams.get('children')) || 0))
+
+// Location slugs untuk reverse-route listing filter saat round-trip.
+// Kontrak URL listing (ServiceListingTicketSearch Phase 4.64): `?from=<slug>&to=<slug>`.
+// Alpine state `fromSlug`/`toSlug` init dari URL dan dipakai `matchesFilter()`.
+// Fallback kalau relationship belum resolve (depth=0) atau legacy enum string.
+const _locSlug = (rel: unknown, legacy?: unknown): string => {
+  if (rel && typeof rel === 'object' && typeof (rel as any).slug === 'string') return (rel as any).slug
+  if (typeof legacy === 'string') return legacy
+  return ''
+}
+const originLocSlug = _locSlug((item as any).originLocation, (item as any).origin)
+const destinationLocSlug = _locSlug((item as any).arrivalLocation, (item as any).arrival)
+
+// Default class fallback saat round-trip user tidak pilih kelas spesifik
+// via per-class card — pakai cheapest, konsisten dgn display sidebar.
+const defaultOutboundClass = cheapestClass?.classType ?? ''
+
+// Compose href untuk per-class card CTA di round-trip mode. Return null
+// kalau prasyarat (qDate + qReturn) belum ada — card CTA jadi anchor
+// scroll ke sidebar form sebagai hint "pick dates first".
+function roundtripListingHref(outboundClass: string): string | null {
+  if (!qDate || !qReturn) return null
+  const p = new URLSearchParams({
+    trip: 'round-trip',
+    outbound: String(item.id),
+    outboundSlug: slug,
+    outboundClass,
+    date: qReturn,            // listing filter date = return date (return-pick mode)
+    return: qReturn,          // kept for parity dgn widget URL contract
+    departure: qDate,          // outbound date carried-through
+    adults: String(qAdults),
+    children: String(qChildren),
+    ...(destinationLocSlug ? { from: destinationLocSlug } : {}),
+    ...(originLocSlug      ? { to:   originLocSlug      } : {}),
+  })
+  return `/ferry-tickets?${p.toString()}`
+}
 
 // Phase 4.17 — Related Services cascade (Individual > ServiceType > Global)
 const svcType = await getServiceTypeByKey('ferry-tickets').catch(() => null)
@@ -344,6 +401,24 @@ const itemSchema = serviceItemSchema({
             {ferryClasses.map((c) => {
               const firstImg = Array.isArray(c.images) && c.images[0] && typeof c.images[0].image === 'object' ? c.images[0].image : null
               const imgUrl = firstImg?.sizes?.card?.url ?? firstImg?.url ?? ''
+              // Phase 4.67.2b — CTA conditional per trip mode.
+              // One-way → langsung checkout. Round-trip + dates ready → listing
+              // reverse-route (step 2). Round-trip tanpa dates → anchor ke
+              // sidebar sebagai hint pilih tanggal dulu.
+              const classLabel = classTypeLabel[c.classType] ?? c.classType
+              let cardCta: { href: string; label: string; dimmed: boolean }
+              if (!isRoundTrip) {
+                cardCta = {
+                  href: `${checkoutHref}?class=${encodeURIComponent(c.classType)}`,
+                  label: 'Book Now',
+                  dimmed: false,
+                }
+              } else {
+                const rtHref = roundtripListingHref(c.classType)
+                cardCta = rtHref
+                  ? { href: rtHref, label: `Pick Return · ${classLabel}`, dimmed: false }
+                  : { href: '#reserve-form', label: `Choose ${classLabel}`, dimmed: true }
+              }
               return (
                 <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 flex flex-wrap md:flex-nowrap items-start gap-5 md:gap-6">
                   {imgUrl && (
@@ -354,7 +429,7 @@ const itemSchema = serviceItemSchema({
                   <div class="flex-1 min-w-0">
                     <div class="flex flex-wrap items-center gap-2 mb-2">
                       <h3 class="font-display text-lg text-ocean">{c.name}</h3>
-                      <span class="px-2.5 py-0.5 bg-ocean/10 text-ocean rounded-full text-[10px] uppercase tracking-wider font-bold">{classTypeLabel[c.classType] ?? c.classType}</span>
+                      <span class="px-2.5 py-0.5 bg-ocean/10 text-ocean rounded-full text-[10px] uppercase tracking-wider font-bold">{classLabel}</span>
                     </div>
                     {c.description && <p class="text-sm text-stone mb-3">{c.description}</p>}
                     <div class="flex flex-wrap gap-4 text-sm">
@@ -370,8 +445,12 @@ const itemSchema = serviceItemSchema({
                       )}
                     </div>
                   </div>
-                  <a href={`${checkoutHref}?class=${encodeURIComponent(c.classType)}`} class="shrink-0 self-center bg-coral hover:bg-coral-dark text-white px-5 py-2.5 rounded-lg font-semibold text-xs uppercase tracking-wider transition-colors no-underline">
-                    Book Now
+                  <a
+                    href={cardCta.href}
+                    class={`shrink-0 self-center text-white px-5 py-2.5 rounded-lg font-semibold text-xs uppercase tracking-wider transition-colors no-underline whitespace-nowrap ${cardCta.dimmed ? 'bg-coral/60 hover:bg-coral/70' : 'bg-coral hover:bg-coral-dark'}`}
+                    title={cardCta.dimmed ? 'Pick departure & return dates in the sidebar first' : undefined}
+                  >
+                    {cardCta.label}
                   </a>
                 </div>
               )
@@ -430,40 +509,112 @@ const itemSchema = serviceItemSchema({
           </div>
         )}
         {/* Phase 4.62 — form submit ke halaman checkout (GET) supaya
-            date/adults/children pre-fill di checkout form. */}
-        <form method="GET" action={checkoutHref} class="space-y-4">
-          <div class="grid grid-cols-2 gap-3">
+            date/adults/children pre-fill di checkout form.
+            Phase 4.67.2b — Round-trip branch: form POST ke listing
+            `/ferry-tickets` dgn reverse route + outbound metadata di
+            URL; listing 4.67.2c akan render return-pick mode. */}
+        {isRoundTrip ? (
+          <form id="reserve-form" method="GET" action="/ferry-tickets" class="space-y-4">
+            <div class="rounded-lg bg-ocean/5 border border-ocean/20 px-3 py-2 flex items-center gap-2">
+              <Icon name="swap_horiz" class="w-4 h-4 text-ocean shrink-0" />
+              <p class="text-[11px] text-stone leading-snug">
+                <strong class="text-ocean">Round trip</strong> — Step 1 of 2: confirm dates, then pick your return ferry.
+              </p>
+            </div>
+            {/* Hidden metadata — reverse route + outbound carry-through */}
+            <input type="hidden" name="trip" value="round-trip" />
+            <input type="hidden" name="outbound" value={item.id} />
+            <input type="hidden" name="outboundSlug" value={slug} />
+            <input type="hidden" name="outboundClass" value={defaultOutboundClass} />
+            {destinationLocSlug && <input type="hidden" name="from" value={destinationLocSlug} />}
+            {originLocSlug      && <input type="hidden" name="to"   value={originLocSlug} />}
+
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Ferry Schedule Date</span>
+              <span class="block text-xs font-semibold text-stone mb-1">Departure Date</span>
               <div class="relative">
-                <input type="date" name="date" required min={todayLocalISO()} class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
+                <input type="date" name="departure" value={qDate} required min={todayLocalISO()} class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
                 <Icon name="calendar_today" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
               </div>
             </label>
             <label class="block">
-              <span class="block text-xs font-semibold text-stone mb-1">Adults</span>
+              <span class="block text-xs font-semibold text-stone mb-1">Return Date</span>
               <div class="relative">
-                <select name="adults" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option value={n}>{n}</option>)}
+                <input
+                  type="date"
+                  name="date"
+                  value={qReturn}
+                  required
+                  min={qDate || todayLocalISO()}
+                  class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors"
+                />
+                <Icon name="event_repeat" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              </div>
+              <input type="hidden" name="return" value={qReturn} />
+            </label>
+
+            <div class="grid grid-cols-2 gap-3">
+              <label class="block">
+                <span class="block text-xs font-semibold text-stone mb-1">Adults</span>
+                <div class="relative">
+                  <select name="adults" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option value={n} selected={n === qAdults}>{n}</option>)}
+                  </select>
+                  <Icon name="group" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                  <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                </div>
+              </label>
+              <label class="block">
+                <span class="block text-xs font-semibold text-stone mb-1">Children</span>
+                <div class="relative">
+                  <select name="children" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                    {Array.from({ length: 6 }, (_, i) => i).map((n) => <option value={n} selected={n === qChildren}>{n} {n === 1 ? 'child' : 'children'}</option>)}
+                  </select>
+                  <Icon name="sentiment_satisfied" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                  <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                </div>
+              </label>
+            </div>
+
+            <button type="submit" class="block w-full bg-coral hover:bg-coral-dark text-white text-center py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md hover:shadow-lg">
+              Continue to pick return →
+            </button>
+            <p class="text-[11px] text-stone-light text-center">You'll choose the return ferry on the next page.</p>
+          </form>
+        ) : (
+          <form id="reserve-form" method="GET" action={checkoutHref} class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+              <label class="block">
+                <span class="block text-xs font-semibold text-stone mb-1">Ferry Schedule Date</span>
+                <div class="relative">
+                  <input type="date" name="date" required min={todayLocalISO()} class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
+                  <Icon name="calendar_today" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                </div>
+              </label>
+              <label class="block">
+                <span class="block text-xs font-semibold text-stone mb-1">Adults</span>
+                <div class="relative">
+                  <select name="adults" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option value={n}>{n}</option>)}
+                  </select>
+                  <Icon name="group" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                  <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                </div>
+              </label>
+            </div>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Children</span>
+              <div class="relative">
+                <select name="children" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                  {Array.from({ length: 6 }, (_, i) => i).map((n) => <option value={n}>{n} {n === 1 ? 'child' : 'children'}{childPrice ? ` (+${formatPrice(childPrice, currency)})` : ''}</option>)}
                 </select>
-                <Icon name="group" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+                <Icon name="sentiment_satisfied" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
                 <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
               </div>
             </label>
-          </div>
-          <label class="block">
-            <span class="block text-xs font-semibold text-stone mb-1">Children</span>
-            <div class="relative">
-              <select name="children" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
-                {Array.from({ length: 6 }, (_, i) => i).map((n) => <option value={n}>{n} {n === 1 ? 'child' : 'children'}{childPrice ? ` (+${formatPrice(childPrice, currency)})` : ''}</option>)}
-              </select>
-              <Icon name="sentiment_satisfied" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
-              <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
-            </div>
-          </label>
 
-          <button type="submit" class="block w-full bg-coral hover:bg-coral-dark text-white text-center py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md hover:shadow-lg">Reserve Now</button>
-        </form>
+            <button type="submit" class="block w-full bg-coral hover:bg-coral-dark text-white text-center py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors shadow-md hover:shadow-lg">Reserve Now</button>
+          </form>
+        )}
 
         {(item.duration || departureTime || arrivalTime) && (
           <div class="mt-6 pt-6 border-t border-sand-dark/30 grid grid-cols-3 gap-3 text-center">
