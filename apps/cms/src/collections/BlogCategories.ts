@@ -21,7 +21,7 @@ export const BlogCategories: CollectionConfig = {
   slug: 'blog-categories',
   admin: {
     useAsTitle: 'name',
-    group: 'Posts',
+    group: 'Blog',
     defaultColumns: ['name', 'slug', 'status', 'updatedAtRelative'],
     listSearchableFields: ['name', 'slug'],
   },

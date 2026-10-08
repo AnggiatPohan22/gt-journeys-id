@@ -15,7 +15,7 @@ export const Testimonials: CollectionConfig = {
   labels: { singular: 'Testimonial', plural: 'Testimonials' },
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Content & Pages',
     defaultColumns: ['name', 'location', 'rating', 'isFeatured', 'status', 'updatedAtRelative'],
   },
   access: {

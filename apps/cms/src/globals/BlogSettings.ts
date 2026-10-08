@@ -42,7 +42,7 @@ export const BlogSettings: GlobalConfig = {
   slug: 'blog-settings',
   label: 'Blog Settings',
   admin: {
-    group: 'Settings',
+    group: 'Blog',
     description: 'Editorial defaults untuk blog: Related Posts section + Sidebar widgets. Per-post override tersedia di sidebar Posts.',
     hidden: ({ user }) => user?.role === 'editor',
   },

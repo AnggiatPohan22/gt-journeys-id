@@ -155,7 +155,7 @@ export const SiteFeatures: GlobalConfig = {
   slug: 'site-features',
   label: 'Pengaturan Fitur',
   admin: {
-    group: 'Settings',
+    group: 'System',
     description: 'Enable/disable modul layanan, section halaman, dan fitur opsional. Hanya Super Admin.',
     hidden: ({ user }) => user?.role !== 'super-admin',
   },

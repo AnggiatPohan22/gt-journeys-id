@@ -17,7 +17,7 @@ export const Menus: CollectionConfig = {
   slug: 'menus',
   admin: {
     useAsTitle: 'name',
-    group: 'Site Builder',
+    group: 'Content & Pages',
     defaultColumns: ['name', 'slug', 'status', 'updatedAtRelative'],
     hidden: ({ user }) => user?.role === 'editor',
   },

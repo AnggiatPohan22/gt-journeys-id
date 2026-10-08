@@ -19,7 +19,7 @@ export const NewsletterSubscribers: CollectionConfig = {
   labels: { singular: 'Newsletter Subscriber', plural: 'Newsletter Subscribers' },
   admin: {
     useAsTitle: 'email',
-    group: 'Administration',
+    group: 'Marketing',
     defaultColumns: ['email', 'status', 'source', 'createdAt'],
     description: 'Emails collected via the site Newsletter Signup form. Read-only for editors.',
     hidden: ({ user }) => !user || user.role === 'editor',

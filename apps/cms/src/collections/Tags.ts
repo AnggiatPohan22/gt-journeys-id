@@ -18,7 +18,7 @@ export const Tags: CollectionConfig = {
   slug: 'tags',
   admin: {
     useAsTitle: 'name',
-    group: 'Posts',
+    group: 'Blog',
     defaultColumns: ['name', 'slug', 'status', 'updatedAtRelative'],
     listSearchableFields: ['name', 'slug'],
   },

@@ -32,7 +32,7 @@ export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
   label: 'Site Settings',
   admin: {
-    group: 'Settings',
+    group: 'System',
     hidden: ({ user }) => user?.role === 'editor',
   },
   access: { read: () => true, update: isAdmin },

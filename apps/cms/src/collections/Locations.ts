@@ -20,7 +20,7 @@ export const Locations: CollectionConfig = {
   labels: { singular: 'Location', plural: 'Locations' },
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Destinations',
     defaultColumns: ['name', 'terminalName', 'country', 'code', 'sortOrder'],
     defaultSort: 'sortOrder',
     description: 'Reusable locations / ports (e.g. Batam, Singapore). Used as Origin/Arrival on Ferry Tickets. Add new locations here — they show up automatically as options.',

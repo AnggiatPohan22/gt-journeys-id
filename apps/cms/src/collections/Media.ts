@@ -41,7 +41,7 @@ export const Media: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'alt',
-    group: 'Site Builder',
+    group: 'Content & Pages',
     // Phase 4.59 — minimal defaults. `thumbnail` (UI field below, Cell =
     // MediaThumbnailCell) selalu paling depan supaya S/M/L grid CSS punya
     // hook konsisten. Sub-field imageSizes.* di-hide dari picker via

@@ -22,7 +22,7 @@ export const Pages: CollectionConfig = {
   slug: 'pages',
   admin: {
     useAsTitle: 'title',
-    group: 'Content',
+    group: 'Content & Pages',
     // Phase 4.12 — enrich list view. Order: title / status chip /
     // template chip / slug / block count / relative timestamp.
     defaultColumns: ['title', 'status', 'template', 'slug', 'blockCount', 'updatedAtRelative'],
