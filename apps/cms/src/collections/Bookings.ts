@@ -22,7 +22,7 @@ export const Bookings: CollectionConfig = {
   labels: { singular: 'Booking', plural: 'Bookings' },
   admin: {
     useAsTitle: 'bookingRef',
-    group: 'Administration',
+    group: 'Bookings',
     defaultColumns: ['bookingRef', 'serviceType', 'status', 'channel', 'customerName', 'departureDate', 'createdAt'],
     defaultSort: '-createdAt',
     description: 'Data booking dari frontend. Ferry Ticket sekarang; siap untuk gateway (Xendit/Midtrans) nanti.',
@@ -76,6 +76,36 @@ export const Bookings: CollectionConfig = {
         // baru (Payload select enum). Nilai baru → migrate.
       ],
       admin: { description: 'Jenis layanan yang di-booking.' },
+    },
+    // Phase 4.67.2a — tripType membedakan one-way vs round-trip. Default
+    // `one-way` supaya semua booking existing (1-leg) tetap valid tanpa
+    // backfill. Field "Return trip" di bawah hanya tampil & diisi saat
+    // round-trip (admin.condition).
+    //
+    // ── Migration path ke MULTI-CITY (future) ────────────────
+    // Kalau nanti support 3+ leg, kita migrate ke `legs: array`:
+    //   legs[0] ← outbound (departureDate, ferryTicket, scheduleTimeLabel,
+    //                       ferryClassName, ferryClassType, unitPrice,
+    //                       originLocation, destinationLocation, totalEstimate)
+    //   legs[1] ← return   (returnDate, returnFerryTicket, returnScheduleTimeLabel,
+    //                       returnFerryClassName, returnFerryClassType,
+    //                       returnUnitPrice, returnOriginLocation,
+    //                       returnDestinationLocation, returnTotalEstimate)
+    // Nama field STRICT PARALLEL supaya backfill script tinggal copy +
+    // rename. Lihat dok phase-4.67.2 untuk detail.
+    {
+      name: 'tripType',
+      type: 'select',
+      required: true,
+      defaultValue: 'one-way',
+      options: [
+        { label: 'One Way',    value: 'one-way' },
+        { label: 'Round Trip', value: 'round-trip' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'Round Trip = 2 leg (outbound + return). Isi "Return trip" di bawah.',
+      },
     },
 
     // ── Relationship + snapshot (Ferry Ticket) ───────────────
@@ -247,13 +277,67 @@ export const Bookings: CollectionConfig = {
       admin: { description: 'Snapshot classType (ekonomi/emerald).' },
     },
 
+    // ── Return trip snapshot (Phase 4.67.2a) ─────────────────
+    // Semua field opsional — hanya diisi saat tripType=round-trip.
+    // Nama strict-parallel ke outbound (lihat komentar `tripType` di atas
+    // untuk migration path ke multi-city `legs[]`).
+    {
+      type: 'collapsible',
+      label: 'Return Trip',
+      admin: {
+        condition: (data) => data?.tripType === 'round-trip',
+        initCollapsed: false,
+        description: 'Snapshot leg kedua (pulang). Diisi otomatis oleh endpoint checkout saat round-trip.',
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            { name: 'returnDate', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayOnly' }, description: 'Harus >= departureDate.' } },
+            {
+              name: 'returnFerryTicket',
+              type: 'relationship',
+              relationTo: 'ferry-tickets',
+              admin: { width: '50%', description: 'Rujukan ferry leg return. Bisa beda ferry dari outbound.' },
+            },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'returnOriginLocation',      type: 'text', admin: { width: '50%', description: 'Snapshot origin leg return (= destination outbound).' } },
+            { name: 'returnDestinationLocation', type: 'text', admin: { width: '50%', description: 'Snapshot destination leg return (= origin outbound).' } },
+          ],
+        },
+        {
+          name: 'returnScheduleTimeLabel',
+          type: 'text',
+          admin: { description: 'Snapshot jadwal leg return (mis. "17:30 → 18:45").' },
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'returnFerryClassName', type: 'text', admin: { width: '50%', description: 'Snapshot nama kelas leg return.' } },
+            { name: 'returnFerryClassType', type: 'text', admin: { width: '50%', description: 'Snapshot classType leg return (ekonomi/emerald/…).' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'returnUnitPrice',     type: 'number', admin: { width: '50%', description: 'Harga adult leg return (snapshot).' } },
+            { name: 'returnTotalEstimate', type: 'number', admin: { width: '50%', description: 'Total leg return (adults×unitPrice + children×childPrice).' } },
+          ],
+        },
+      ],
+    },
+
     // ── Pricing (snapshot) ───────────────────────────────────
     {
       type: 'row',
       fields: [
         { name: 'unitPrice',     type: 'number', admin: { width: '33%', description: 'Harga per adult saat booking dibuat.' } },
         { name: 'currency',      type: 'text',   defaultValue: 'IDR', admin: { width: '33%' } },
-        { name: 'totalEstimate', type: 'number', admin: { width: '33%', description: 'Estimasi total = adults*unitPrice + children*childPrice.' } },
+        { name: 'totalEstimate', type: 'number', admin: { width: '33%', description: 'Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.' } },
       ],
     },
 

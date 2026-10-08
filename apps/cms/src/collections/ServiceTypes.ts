@@ -31,7 +31,7 @@ export const ServiceTypes: CollectionConfig = {
   labels: { singular: 'Service Type', plural: 'Service Types' },
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Destinations',
     defaultColumns: ['name', 'key', 'order', 'status', 'updatedAtRelative'],
     defaultSort: 'order',
     description: 'Metadata untuk kategori layanan (label, ikon, hero, SEO, WhatsApp). Listing/produk tetap di collection masing-masing.',

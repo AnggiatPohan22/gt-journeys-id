@@ -80,7 +80,7 @@ const valueBadges: Array<{ label: string; color: BadgeColor }> = (rawBadges ?? d
     color: (['leaf', 'ocean', 'coral', 'amber'].includes(v.color) ? v.color : 'leaf') as BadgeColor,
   }))
 
-const url = new URL(Astro.request.url)
+const url = Astro.url
 const q = url.searchParams
 const qFrom = q.get('from') || ''
 const qTo = q.get('to') || ''
@@ -94,6 +94,22 @@ const qTrip = q.get('trip') === 'round-trip' ? 'round-trip' : 'one-way'
 // share tidak bocorkan orphan return date ke one-way state.
 const qReturnDate = qTrip === 'round-trip' ? qReturnDateRaw : ''
 const qSort = q.get('sort') || defaultSort
+
+// Phase 4.67.3 — Wizard mode (Outbound-Pick Step 1 / Return-Pick Step 2)
+// deteksinya CLIENT-SIDE di Alpine (`_detectWizardMode()`), karena
+// catchall `[...slug].astro` di-prerender static → query string tidak
+// sampai ke SSR. Markup banner + card badge selalu di-render; Alpine
+// `x-show + x-cloak` yang control visibility. Click dispatch via
+// `_handleCardClick()`. Lihat Phase 4.67.3 doc untuk arsitektur.
+
+const _humanDate = (iso: string): string => {
+  if (!iso) return ''
+  const d = new Date(iso + 'T00:00:00')
+  if (isNaN(d.getTime())) return iso
+  return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+}
+const _titleCaseSlug = (s: string): string =>
+  s.split('-').filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 
 const limit = b.limit ?? 24
 let items: any[] = []
@@ -352,6 +368,16 @@ const xDataState = {
   sortKey: initialSort,
   sortOpen: false,
   sortRefreshing: false,
+  // Phase 4.67.3 — Round-trip wizard mode (client-side only karena
+  // page [...slug] di-prerender static, query string tidak sampai SSR).
+  // `_detectWizardMode()` dipanggil x-init → set state ini dari
+  // window.location.search. Default false → zero mode saat first paint.
+  _isOutboundMode: false,
+  _isReturnMode: false,
+  _wOutbound: '', _wOutboundSlug: '', _wOutboundClass: '',
+  _wDeparture: '', _wReturn: '',
+  _wFrom: '', _wTo: '',
+  _wAdults: 2, _wChildren: 0, _wInfants: 0,
 }
 // Combine data + methods. Methods are appended as raw JS (Alpine parses).
 const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
@@ -393,13 +419,34 @@ const xDataMethods = "inc(k,max){if(this[k]<max)this[k]++}," +
   // OK → lanjut ke checkout, Cancel → batal. Kalau data sudah lengkap →
   // langsung navigate tanpa popup.
   "async onBookClick(e,slug){e.preventDefault();e.stopPropagation();const missingLoc=!this.fromSlug||!this.toSlug;const missingDate=!this.date;const needsConfirm=missingLoc||missingDate;const iso=this.date||this.todayISO;const buildAndGo=()=>{const p=new URLSearchParams();p.set('date',iso);p.set('adults',String(this.adults));if(this.children)p.set('children',String(this.children));if(this.enableInfant&&this.infants)p.set('infants',String(this.infants));if(this.trip==='round-trip'){p.set('trip','round-trip');if(this.returnDate)p.set('return',this.returnDate)}window.location.href='/checkout/ferry-tickets/'+slug+'?'+p.toString()};if(!needsConfirm){buildAndGo();return}const d=new Date(iso+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'});const msg='Departure date: '+d+'\\nPassengers: '+this.passengerSummary()+'\\n\\nContinue to checkout?';const api=(window.dnjPopup&&typeof window.dnjPopup.confirm==='function')?window.dnjPopup:null;const ok=api?await api.confirm({title:'Confirm Ticket Booking',message:msg,icon:'confirmation_number',confirmLabel:'Continue',cancelLabel:'Cancel'}):window.confirm(msg);if(ok)buildAndGo()},"+
-  "applyFilter(){this.syncReturn();const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);if(this.trip==='round-trip'&&this.returnDate)p.set('return',this.returnDate);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}"
+  "applyFilter(){this.syncReturn();const p=new URLSearchParams();if(this.fromSlug)p.set('from',this.fromSlug);if(this.toSlug)p.set('to',this.toSlug);if(this.date)p.set('date',this.date);p.set('adults',this.adults);if(this.children)p.set('children',this.children);if(this.infants)p.set('infants',this.infants);p.set('trip',this.trip);if(this.trip==='round-trip'&&this.returnDate)p.set('return',this.returnDate);const qs=p.toString();history.replaceState(null,'',location.pathname+(qs?'?'+qs:''));this._detectWizardMode();const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.fromOpen=false;this.toOpen=false;this.passengerOpen=false;requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)})}," +
+  // Phase 4.67.3 — Wizard mode detection + helpers (client-side).
+  "_detectWizardMode(){const q=new URLSearchParams(location.search);const trip=q.get('trip');this._wOutbound=q.get('outbound')||'';this._wOutboundSlug=q.get('outboundSlug')||'';this._wOutboundClass=q.get('outboundClass')||'';const dep=q.get('departure')||'';this._wDeparture=/^\\d{4}-\\d{2}-\\d{2}$/.test(dep)?dep:'';this._wReturn=trip==='round-trip'?(q.get('return')||''):'';this._wFrom=q.get('from')||'';this._wTo=q.get('to')||'';this._wAdults=Math.max(1,Number(q.get('adults'))||2);this._wChildren=Math.max(0,Number(q.get('children'))||0);this._wInfants=Math.max(0,Number(q.get('infants'))||0);this._isReturnMode=trip==='round-trip'&&!!this._wOutbound&&!!this._wOutboundSlug&&!!this._wDeparture;this._isOutboundMode=trip==='round-trip'&&!this._isReturnMode&&!!this._wReturn;" +
+  // Sync widget state dari URL (SSR prerender strip query → state wajib di-hydrate client-side).
+  "const qDate=q.get('date')||'';if(/^\\d{4}-\\d{2}-\\d{2}$/.test(qDate)){this.date=qDate}const qTrip=trip==='round-trip'?'round-trip':'one-way';this.trip=qTrip;if(qTrip==='round-trip'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(this._wReturn)){this.returnDate=this._wReturn}this.adults=this._wAdults;this.children=this._wChildren;if(this.enableInfant)this.infants=this._wInfants;if(this._wFrom){const lf=this.locations.find(l=>l.slug===this._wFrom);if(lf){this.fromSlug=lf.slug;this.fromQ=this.labelOf(lf);this.fromSub=lf.country||''}}if(this._wTo){const lt=this.locations.find(l=>l.slug===this._wTo);if(lt){this.toSlug=lt.slug;this.toQ=this.labelOf(lt);this.toSub=lt.country||''}}" +
+  // Sync card dates juga (SSR render today; Alpine override ke URL date).
+  "const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});" +
+  "}," +
+  "_humanDate(iso){if(!iso)return '';const d=new Date(iso+'T00:00:00');if(isNaN(d.getTime()))return iso;return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}," +
+  "_titleCaseSlug(s){return (s||'').split('-').filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}," +
+  "_wizardSubtitle(mode){if(mode==='outbound'){const parts=['Departure '+this._humanDate(this.date||this._wDeparture||'')];if(this._wReturn)parts.push('Return '+this._humanDate(this._wReturn));parts.push(this._wAdults+' Adult'+(this._wAdults>1?'s':''));if(this._wChildren>0)parts.push(this._wChildren+' Child');return parts.join(' · ')}else{const parts=['Outbound '+this._titleCaseSlug(this._wOutboundSlug),'Departure '+this._humanDate(this._wDeparture)];if(this._wReturn)parts.push('Return '+this._humanDate(this._wReturn));return parts.join(' · ')}}," +
+  "_changeOutboundHref(){const p=new URLSearchParams({trip:'round-trip'});if(this._wTo)p.set('from',this._wTo);if(this._wFrom)p.set('to',this._wFrom);if(this._wDeparture)p.set('date',this._wDeparture);if(this._wReturn)p.set('return',this._wReturn);p.set('adults',String(this._wAdults));if(this._wChildren>0)p.set('children',String(this._wChildren));if(this._wInfants>0)p.set('infants',String(this._wInfants));return '/ferry-tickets?'+p.toString()}," +
+  // Card click dispatcher: route berdasarkan mode wizard.
+  "_handleCardClick($event,slug,id,cheapestClass){if(this._isReturnMode){if($event.target.closest('a:not(.tkc__btn--book)')){return}$event.preventDefault();$event.stopPropagation();const p=new URLSearchParams({trip:'round-trip',date:this._wDeparture,return:this._wReturn||'',adults:String(this._wAdults),children:String(this._wChildren)});if(this._wInfants>0)p.set('infants',String(this._wInfants));if(this._wOutboundClass)p.set('class',this._wOutboundClass);p.set('returnFerryId',String(id));p.set('returnTicketSlug',String(slug));window.location.href='/checkout/ferry-tickets/'+this._wOutboundSlug+'?'+p.toString();return}" +
+  // Phase 4.67.3 polish — Outbound-pick transition NO-RELOAD (SPA-like):
+  // swap route (fromSlug↔toSlug), set wizard state, update URL via pushState,
+  // sort refresh animation + scroll to #tsh-listing. Card filter kebalikan
+  // via existing matchesFilter(). Return state → checkout tetap full nav.
+  "if(this._isOutboundMode){if($event.target.closest('a:not(.tkc__btn--book)')){return}$event.preventDefault();$event.stopPropagation();const outboundDate=this.date||this._wDeparture||'';const prevFrom=this.fromSlug,prevTo=this.toSlug;this._wOutbound=String(id);this._wOutboundSlug=String(slug);this._wOutboundClass=cheapestClass||'ekonomi';this._wDeparture=outboundDate;this._wFrom=prevFrom;this._wTo=prevTo;this.fromSlug=prevTo;this.toSlug=prevFrom;const prevFromQ=this.fromQ,prevFromSub=this.fromSub;this.fromQ=this.toQ;this.fromSub=this.toSub;this.toQ=prevFromQ;this.toSub=prevFromSub;if(this._wReturn)this.date=this._wReturn;this._isOutboundMode=false;this._isReturnMode=true;const p=new URLSearchParams({trip:'round-trip',from:this.fromSlug||'',to:this.toSlug||'',date:this.date||'',return:this._wReturn||'',adults:String(this._wAdults)});if(this._wChildren>0)p.set('children',String(this._wChildren));if(this._wInfants>0)p.set('infants',String(this._wInfants));p.set('outbound',this._wOutbound);p.set('outboundSlug',this._wOutboundSlug);p.set('outboundClass',this._wOutboundClass);p.set('departure',outboundDate);history.pushState({wizard:'return'},'',location.pathname+'?'+p.toString());const cd=this.cardDate();document.querySelectorAll('.tkc__date').forEach(el=>{el.textContent=cd});this.sortRefreshing=true;setTimeout(()=>{this.sortRefreshing=false},420);requestAnimationFrame(()=>{const t=document.getElementById('tsh-listing');if(!t)return;const offset=window.matchMedia('(min-width:768px)').matches?96:80;const targetY=window.scrollY+t.getBoundingClientRect().top-offset;const prefersReduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;if(prefersReduce){window.scrollTo(0,targetY);return}this.smoothScrollTo(targetY,600)});return}" +
+  "if($event.target.closest('.tkc__btn--book')){this.onBookClick($event,slug)}}," +
+  // Phase 4.67.3 polish — handle back-nav from pushState Step 2 → Step 1.
+  "_handlePopState(){this._detectWizardMode()}"
 // Emit: `{ locations: [...], fromQ: "..", ..., inc(){...} }`
 const stateEntries = Object.entries(xDataState).map(([k, v]) => k + ':' + JSON.stringify(v)).join(',')
 const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMethods + '}'
 ---
 
-<section class="relative bg-sand" data-animate={entry.dataAnimate} style={entry.style || undefined} x-data={xDataAttr}>
+<section class="relative bg-sand" data-animate={entry.dataAnimate} style={entry.style || undefined} x-data={xDataAttr} x-init="_detectWizardMode(); window.addEventListener('popstate', () => _handlePopState())">
   {/* Hero — Round 6: mirror ServiceListingHeroImmersive (media layer +
       overlay). Applies to all breakpoints (mobile + tablet + desktop). */}
   <div class:list={['relative w-full overflow-hidden', heroMinHeightClass[heroMinHeight]]}>
@@ -473,7 +520,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       max-w-5xl, membuat cell md+ terjepit hingga label truncate). Wrapper full
       width + form dipaksa `md:max-w-6xl lg:max-w-[1360px]` supaya 4 cell + swap
       punya ruang lega. Mobile tetap `max-w-lg` centered. */}
-  <div class="relative z-20 mx-auto px-4 -mt-14 md:-mt-16 w-full">
+  <div class="relative z-20 mx-auto px-4 -mt-14 md:-mt-16 pb-10 md:pb-14 w-full">
     <form method="get" class="tsh-form mx-auto" @submit.prevent="applyFilter()">
 
       {/* ═══════════════════════════════════════════════════════════
@@ -503,15 +550,16 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
 
       {/* Route section — stacked cards + floating swap button */}
       <div class="relative space-y-2.5 mb-3">
-        {/* Origin card */}
-        <div class="group relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all"
-             @click.outside="fromOpen = false">
+        {/* Origin card — label pindah ke LUAR card (di atas) biar jelas
+            label untuk field pin ini, bukan "text di atas pin icon". */}
+        <div @click.outside="fromOpen = false">
+          <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase mb-1 ml-3" for="from-input-m">{startingLabel}</label>
+          <div class="group relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-full bg-coral/10 text-coral flex items-center justify-center shrink-0">
               <Icon name="location_on" class="w-4 h-4" />
             </div>
             <div class="flex-1 min-w-0">
-              <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase" for="from-input-m">{startingLabel}</label>
               <input id="from-input-m" type="text" autocomplete="off" spellcheck="false"
                      x-model="fromQ"
                      @focus="fromOpen = true"
@@ -540,6 +588,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             </template>
             <li x-show="filtered(fromQ,toSlug).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
           </ul>
+          </div>
         </div>
 
         {/* Swap button — absolute, positioned between the two cards */}
@@ -551,15 +600,15 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
           </button>
         </div>
 
-        {/* Destination card */}
-        <div class="group relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all"
-             @click.outside="toOpen = false">
+        {/* Destination card — label di LUAR (konsisten dgn Origin). */}
+        <div @click.outside="toOpen = false">
+          <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase mb-1 ml-3" for="to-input-m">{destLabel}</label>
+          <div class="group relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral focus-within:ring-2 focus-within:ring-coral/10 transition-all">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-full bg-leaf/10 text-leaf flex items-center justify-center shrink-0">
               <Icon name="location_on" class="w-4 h-4" />
             </div>
             <div class="flex-1 min-w-0">
-              <label class="block text-[10px] font-bold tracking-wider text-stone-light uppercase" for="to-input-m">{destLabel}</label>
               <input id="to-input-m" type="text" autocomplete="off" spellcheck="false"
                      x-model="toQ"
                      @focus="toOpen = true"
@@ -588,11 +637,13 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             </template>
             <li x-show="filtered(toQ,fromSlug).length === 0" class="px-4 py-3 text-sm text-stone-light text-center">No matches</li>
           </ul>
+          </div>
         </div>
       </div>
 
       {/* Date card */}
       <div class="space-y-2 mb-3">
+        <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase mb-1 ml-3">Departure Date</span>
         <div class="relative rounded-2xl border border-sand-dark/30 p-3 bg-white focus-within:border-coral transition-all cursor-pointer">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -600,7 +651,6 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                 <Icon name="calendar_today" class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
-                <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Departure Date</span>
                 <span class="text-sm font-bold text-ocean truncate block" x-text="humanDate()"></span>
               </div>
             </div>
@@ -631,6 +681,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       {/* Phase 4.64 — Return Date card (mobile). Only when Round Trip. */}
       {enableRoundTrip && (
       <div x-show="trip === 'round-trip'" x-cloak x-transition class="space-y-2 mb-3">
+        <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase mb-1 ml-3">Return Date</span>
         <div class="relative rounded-2xl border border-leaf/40 p-3 bg-leaf/[0.04] focus-within:border-leaf transition-all cursor-pointer">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -638,7 +689,6 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
                 <Icon name="calendar_today" class="w-4 h-4" />
               </div>
               <div class="min-w-0 flex-1">
-                <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Return Date</span>
                 <span class="text-sm font-bold text-ocean truncate block" x-text="humanReturnDate()"></span>
               </div>
             </div>
@@ -674,8 +724,9 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
       )}
 
       {/* Passenger card — expand in-place on mobile */}
-      <div class="rounded-2xl border border-sand-dark/30 bg-white mb-4 transition-all"
-           @click.outside="passengerOpen = false">
+      <div class="mb-4" @click.outside="passengerOpen = false">
+        <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase mb-1 ml-3">Passenger</span>
+        <div class="rounded-2xl border border-sand-dark/30 bg-white transition-all">
         <button type="button" @click.prevent="passengerOpen = !passengerOpen"
                 class="w-full p-3 flex items-center justify-between text-left focus:outline-none">
           <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -683,7 +734,6 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
               <Icon name="group" class="w-4 h-4" />
             </div>
             <div class="min-w-0 flex-1">
-              <span class="block text-[10px] font-bold tracking-wider text-stone-light uppercase">Passenger</span>
               <span class="text-sm font-bold text-ocean tracking-tight" x-text="passengerSummary()"></span>
             </div>
           </div>
@@ -733,6 +783,7 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             </div>
           )}
           <button type="button" @click.prevent="passengerOpen = false" class="mt-3 w-full py-2 rounded-lg bg-sand hover:bg-sand-dark/20 text-stone text-xs font-semibold transition-colors">Done</button>
+        </div>
         </div>
       </div>
 
@@ -1058,6 +1109,45 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
     </form>
   </div>
 
+  {/* Phase 4.67.3 — Wizard banners (Step 1 outbound / Step 2 return).
+      Catch-all `[...slug].astro` di-prerender static, jadi query string
+      TIDAK sampai ke SSR. Semua mode detection pindah ke Alpine (reads
+      `window.location.search` di `x-init` → set `_isOutboundMode` /
+      `_isReturnMode`). Banner markup selalu di-render, `x-show + x-cloak`
+      control visibility. */}
+  <div x-show="_isOutboundMode" x-cloak class:list={['relative z-30 mx-auto px-4 mt-6 md:mt-8', containerClass]}>
+    <div class="rounded-xl bg-coral text-white shadow-md p-4 md:p-5 flex flex-wrap items-center gap-4">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center">
+        <Icon name="flight_takeoff" class="w-5 h-5" />
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[10px] uppercase tracking-widest text-white/80 font-semibold">Round trip · Step 1 of 2</p>
+        <p class="font-semibold text-base md:text-lg">Choose your outbound ferry</p>
+        <p class="text-xs text-white/90 truncate" x-text="_wizardSubtitle('outbound')"></p>
+      </div>
+      <span class="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/10 text-white/90 rounded-lg font-semibold text-[11px] uppercase tracking-wider">
+        <Icon name="touch_app" class="w-3.5 h-3.5" /> Tap a ferry below
+      </span>
+    </div>
+  </div>
+
+  <div x-show="_isReturnMode" x-cloak class:list={['relative z-30 mx-auto px-4 mt-6 md:mt-8', containerClass]}>
+    <div class="rounded-xl bg-ocean text-white shadow-md p-4 md:p-5 flex flex-wrap items-center gap-4">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-white/15 flex items-center justify-center">
+        <Icon name="swap_horiz" class="w-5 h-5" />
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[10px] uppercase tracking-widest text-white/70 font-semibold">Round trip · Step 2 of 2</p>
+        <p class="font-semibold text-base md:text-lg">Choose your return ferry</p>
+        <p class="text-xs text-white/80 truncate" x-text="_wizardSubtitle('return')"></p>
+      </div>
+      <a x-bind:href="_changeOutboundHref()"
+         class="ml-auto inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold text-xs uppercase tracking-wider no-underline transition-colors">
+        <Icon name="arrow_back" class="w-3.5 h-3.5" /> Change outbound
+      </a>
+    </div>
+  </div>
+
   {/* Listing header + sort. id="tsh-listing" dipakai applyFilter() untuk
       smooth-scroll ke listing setelah Find Tickets ditekan.
       Phase 4.61.11 — Sort dropdown di-refresh: pure Alpine (no-reload),
@@ -1153,9 +1243,49 @@ const xDataAttr = '{locations:' + locJson + ',' + stateEntries + ',' + xDataMeth
             // Kalau location / date belum di-set, `onBookClick` menampilkan
             // confirm popup dulu.
             const bookClickAttr = "if($event.target.closest('.tkc__btn--book')){onBookClick($event," + JSON.stringify(item.slug) + ")}"
+
+            // Phase 4.67.3 — Wizard mode click handling is CLIENT-SIDE
+            // only (page is prerendered static → query stripped at SSR).
+            // Compute per-item cheapest class server-side (zero cost) and
+            // pass to Alpine `_handleCardClick` which routes based on mode:
+            //   - normal: delegate to onBookClick (existing one-way flow)
+            //   - outbound-pick (Step 1): redirect to listing step 2
+            //   - return-pick (Step 2): redirect to checkout
+            const classes = Array.isArray(item.ferryClasses) ? item.ferryClasses : []
+            const cheapestCls = classes
+              .filter((c: any) => typeof c?.adultPrice === 'number' && c.adultPrice > 0)
+              .sort((a: any, b: any) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))[0] ?? null
+            const defaultClassType = (cheapestCls?.classType as string) || 'ekonomi'
+            const cardClickAttr =
+              "_handleCardClick($event," + JSON.stringify(String(item.slug)) +
+              "," + JSON.stringify(String(item.id)) +
+              "," + JSON.stringify(defaultClassType) + ")"
+
             return (
-              <div x-show={showAttr} x-bind:style={orderStyle} class="tsh-card-wrap" x-on:click.capture={bookClickAttr}>
+              <div x-show={showAttr} x-bind:style={orderStyle}
+                   class="tsh-card-wrap relative rounded-2xl transition-all"
+                   x-bind:class="(_isReturnMode||_isOutboundMode)
+                     ? 'cursor-pointer pt-7 sm:pt-8 ring-1 ' + (_isReturnMode ? 'ring-coral/40 hover:ring-coral/70 hover:shadow-lg hover:shadow-coral/15' : 'ring-ocean/40 hover:ring-ocean/70 hover:shadow-lg hover:shadow-ocean/15')
+                     : ''"
+                   x-on:click.capture={cardClickAttr}>
                 <FerryTicketsCard ferryTicket={item} hrefBase={detailBase + dateAttr} variant={cardVariant} background={cardBg} selectedDate={qDate || today} />
+                {/* Phase 4.67.3 polish-3 — picker badge jadi "action tag"
+                    kiri-atas (bukan center-float). Supaya tidak numpuk ke
+                    corner card, wrapper dapat `pt-7 sm:pt-8` saat mode
+                    picker — badge punya ruang nafas di atas card utama,
+                    ring color + hover shadow ngasih affordance "clickable". */}
+                <div x-show="_isReturnMode" x-cloak
+                     class="pointer-events-none absolute top-1 left-4 sm:left-5 inline-flex items-center gap-1.5 bg-coral text-white pl-2.5 pr-3.5 py-1 rounded-md text-[10.5px] sm:text-[11px] uppercase tracking-wider font-bold shadow-md shadow-coral/25 z-10">
+                  <Icon name="event_repeat" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span>Select Return</span>
+                  <span aria-hidden="true" class="opacity-80">→</span>
+                </div>
+                <div x-show="_isOutboundMode" x-cloak
+                     class="pointer-events-none absolute top-1 left-4 sm:left-5 inline-flex items-center gap-1.5 bg-ocean text-white pl-2.5 pr-3.5 py-1 rounded-md text-[10.5px] sm:text-[11px] uppercase tracking-wider font-bold shadow-md shadow-ocean/25 z-10">
+                  <Icon name="flight_takeoff" class="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span>Select Outbound</span>
+                  <span aria-hidden="true" class="opacity-80">→</span>
+                </div>
               </div>
             )
           })}

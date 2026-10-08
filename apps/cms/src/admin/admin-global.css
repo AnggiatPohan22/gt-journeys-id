@@ -95,6 +95,10 @@
   --dnj-ic-user-check: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='m17 11 2 2 4-4'/></svg>");
   --dnj-ic-messages: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 9h8'/><path d='M8 13h6'/><path d='M17 3H7a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h2l3 3 3-3h2a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3z'/></svg>");
   --dnj-ic-shield-alert: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-11V4l-8-2-8 2v7c0 7 8 11 8 11z'/><path d='M12 8v4'/><path d='M12 15.5v.5'/></svg>");
+  /* Phase 4.68.4 — Bookings (ticket) + Popup Settings (dialog window) + Locations (folded map). */
+  --dnj-ic-ticket: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z'/><path d='M13 7v2'/><path d='M13 13v2'/><path d='M13 17v0'/></svg>");
+  --dnj-ic-popup: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='M3 9h18'/><circle cx='6.5' cy='7' r='.5' fill='%23000'/><circle cx='8.5' cy='7' r='.5' fill='%23000'/></svg>");
+  --dnj-ic-map: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2z'/><path d='M9 3v16'/><path d='M15 5v16'/></svg>");
 }
 
 /* Dark: aksen mint (kontras tinggi di sidebar hitam); tint & hover lebih terang. */
@@ -193,6 +197,11 @@ html[data-theme='dark'] .template-default__nav {
 .nav__link[href$='/collections/chat-visitors']      { --i: var(--dnj-ic-user-check); }
 .nav__link[href$='/collections/chat-messages']      { --i: var(--dnj-ic-messages); }
 .nav__link[href$='/collections/chat-blocked-events'] { --i: var(--dnj-ic-shield-alert); }
+/* Phase 4.68.4 — Bookings (own group now) + Popup Settings (moved to Marketing)
+   + Locations (Destinations group, previously default circle). */
+.nav__link[href$='/collections/bookings'] { --i: var(--dnj-ic-ticket); }
+.nav__link[href$='/globals/popup-settings'] { --i: var(--dnj-ic-popup); }
+.nav__link[href$='/collections/locations'] { --i: var(--dnj-ic-map); }
 
 /* Quick-add "+ Add X" link (Phase 4.35.3) — smaller, indented, subdued.
    Injected by NavAccordion.tsx below the list-view link of select

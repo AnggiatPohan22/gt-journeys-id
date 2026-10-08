@@ -64,6 +64,10 @@ const routeLabel = routeLabelFrom(
 )
 const originLoc = resolveLocation((item as any).originLocation, (item as any).origin)?.name ?? ''
 const destinationLoc = resolveLocation((item as any).arrivalLocation, (item as any).arrival)?.name ?? ''
+// Phase 4.67.3 polish — slug origin/destination untuk link "Change trip"
+// kembali ke listing step 1 (bukan ke detail page).
+const outboundFromSlug = typeof (item as any).originLocation === 'object' ? ((item as any).originLocation?.slug ?? '') : ''
+const outboundToSlug = typeof (item as any).arrivalLocation === 'object' ? ((item as any).arrivalLocation?.slug ?? '') : ''
 
 const currency = preselected?.currency ?? 'IDR'
 const unitPrice = preselected?.adultPrice ?? null
@@ -92,6 +96,15 @@ const errorMessages: Record<string, string> = {
   ferry_slug_mismatch: 'Ferry data mismatch. Please reload the page and try again.',
   ferry_no_class: 'This ferry has no class configured. Please contact us on WhatsApp.',
   ferry_no_price: 'This ferry class has no price configured. Please contact us on WhatsApp.',
+  // Phase 4.67.2e — Return ferry verification failures (round-trip 2-leg).
+  past_return_date: 'Return date has already passed. Please pick a future date.',
+  invalid_return_ferry: 'Selected return ferry is invalid. Please reload and pick again.',
+  return_ferry_not_found: 'The return ferry is no longer available. Please pick another.',
+  return_ferry_slug_mismatch: 'Return ferry data mismatch. Please reload the page.',
+  return_ferry_no_class: 'The return ferry has no class configured. Please contact us on WhatsApp.',
+  return_ferry_no_price: 'The return ferry class has no price configured. Please contact us on WhatsApp.',
+  return_route_mismatch: 'Return route must be the reverse of your outbound (origin ↔ destination). Please pick a matching return ferry.',
+  return_currency_mismatch: 'Return ferry uses a different currency than outbound. Please pick a ferry with the same currency.',
 }
 const errorMsg = errCode ? errorMessages[errCode] ?? 'Something went wrong. Please try again.' : ''
 
@@ -139,7 +152,82 @@ const ticketFare = adultLineTotal + childLineTotal
 const serviceFee = 0
 const discount = 0
 const subtotalDeparture = ticketFare + serviceFee - discount
-const totalPrice = subtotalDeparture
+
+// ── Phase 4.67.2d — Round-trip 2-leg render ──────────────────────────
+// URL dari listing return-pick (4.67.2c) membawa `trip=round-trip` +
+// `return=<returnDate>` + `returnFerryId=<id>` + `returnTicketSlug=<slug>`
+// + optional `returnClass=<classType>`. Kalau prasyarat lengkap, kita
+// fetch return ferry dari CMS, hitung pricing leg return, dan render
+// 2 trip strip + 2 price breakdown row di sidebar.
+//
+// Guard SSR: `trip=round-trip` tapi `returnTicketSlug` kosong atau
+// ferry return tidak ketemu → redirect ke detail outbound dgn err.
+const qTrip = url.searchParams.get('trip') ?? ''
+const qReturnDateRaw = url.searchParams.get('return') ?? ''
+const qReturnDate = /^\d{4}-\d{2}-\d{2}$/.test(qReturnDateRaw) ? qReturnDateRaw : ''
+const qReturnFerryId = url.searchParams.get('returnFerryId') ?? ''
+const qReturnTicketSlug = url.searchParams.get('returnTicketSlug') ?? ''
+const qReturnClass = url.searchParams.get('returnClass') ?? ''
+const isRoundTrip = qTrip === 'round-trip'
+
+if (isRoundTrip && (!qReturnDate || !qReturnTicketSlug)) {
+  return Astro.redirect(`${detailUrl}?err=needs_return_ferry`)
+}
+
+let returnItem: typeof item | null = null
+let returnPreselected: FerryClass | null = null
+let returnRouteLabel = ''
+let returnOriginLoc = ''
+let returnDestinationLoc = ''
+let returnUnitPrice: number | null = null
+let returnChildUnitPrice = 0
+let returnAdultLineTotal = 0
+let returnChildLineTotal = 0
+let returnTicketFare = 0
+let returnSubtotal = 0
+let returnDepDateFmt = ''
+let returnHeroImg: Media | null = null
+let returnHeroUrl = ''
+
+if (isRoundTrip && qReturnTicketSlug) {
+  returnItem = await getFerryTicketsBySlug(qReturnTicketSlug)
+  if (!returnItem) {
+    return Astro.redirect(`${detailUrl}?err=return_ferry_not_found`)
+  }
+  // Verify id match (defense-in-depth — URL carries both slug & id).
+  if (qReturnFerryId && String((returnItem as any).id) !== qReturnFerryId) {
+    return Astro.redirect(`${detailUrl}?err=return_ferry_mismatch`)
+  }
+  const returnFerryClasses = (((returnItem as any).ferryClasses) ?? []) as FerryClass[]
+  const returnSorted = returnFerryClasses.slice().sort((a, b) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
+  returnPreselected = returnSorted.find((c) => c.classType === qReturnClass) ?? returnSorted[0] ?? null
+  returnRouteLabel = routeLabelFrom(
+    (returnItem as any).originLocation,
+    (returnItem as any).arrivalLocation,
+    (returnItem as any).origin,
+    (returnItem as any).arrival,
+  ) ?? ''
+  returnOriginLoc = resolveLocation((returnItem as any).originLocation, (returnItem as any).origin)?.name ?? ''
+  returnDestinationLoc = resolveLocation((returnItem as any).arrivalLocation, (returnItem as any).arrival)?.name ?? ''
+  returnUnitPrice = returnPreselected?.adultPrice ?? null
+  returnChildUnitPrice =
+    returnPreselected?.childPrice != null && returnPreselected.childPrice > 0
+      ? returnPreselected.childPrice
+      : (returnUnitPrice != null ? Math.round(returnUnitPrice / 2) : 0)
+  returnAdultLineTotal = (returnUnitPrice ?? 0) * qAdults
+  returnChildLineTotal = returnChildUnitPrice * qChildren
+  returnTicketFare = returnAdultLineTotal + returnChildLineTotal
+  returnSubtotal = returnTicketFare
+  try {
+    returnDepDateFmt = new Date(qReturnDate).toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    })
+  } catch { returnDepDateFmt = qReturnDate }
+  returnHeroImg = asMedia((returnItem as any).featuredImage)
+  returnHeroUrl = returnHeroImg?.sizes?.card?.url ?? returnHeroImg?.url ?? ''
+}
+
+const totalPrice = subtotalDeparture + returnSubtotal
 
 const priceFmt = (n: number) => formatPrice(n, currency)
 const totalPax = qAdults + qChildren
@@ -221,34 +309,99 @@ const totalPax = qAdults + qChildren
           </div>
         )}
 
-        {/* Trip strip */}
-        <div class="bg-sand/60 border border-sand-dark/30 rounded-full px-5 py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs md:text-sm text-stone shadow-sm">
-          <div class="flex flex-wrap items-center gap-4 md:gap-5 min-w-0">
-            <span class="flex items-center gap-1.5 font-semibold text-ocean">
-              <Icon name="ship" class="w-4 h-4 text-coral shrink-0" />
-              <span class="truncate max-w-[10rem]">{item.title}</span>
-            </span>
-            {routeLabel && (
-              <span class="flex items-center gap-1.5 text-ocean">
-                <Icon name="location_on" class="w-4 h-4 text-coral shrink-0" />
-                <span>{routeLabel}</span>
+        {/* Trip strip(s) — Phase 4.67.2d: outbound + optional return */}
+        <div class="space-y-2">
+          {/* Outbound */}
+          <div class="bg-sand/60 border border-sand-dark/30 rounded-2xl px-5 py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs md:text-sm text-stone shadow-sm">
+            <div class="flex flex-wrap items-center gap-4 md:gap-5 min-w-0">
+              {isRoundTrip && (
+                <span class="bg-ocean text-white text-[10px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0">Outbound</span>
+              )}
+              <span class="flex items-center gap-1.5 font-semibold text-ocean">
+                <Icon name="ship" class="w-4 h-4 text-coral shrink-0" />
+                <span class="truncate max-w-[10rem]">{item.title}</span>
               </span>
-            )}
-            <span class="flex items-center gap-1.5 text-ocean">
-              <Icon name="calendar_today" class="w-4 h-4 text-coral shrink-0" />
-              <span>{depDateFmt}</span>
-            </span>
-            <span class="flex items-center gap-1.5 text-ocean">
-              <Icon name="group" class="w-4 h-4 text-coral shrink-0" />
-              <span>{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
-            </span>
-            {preselected && (
-              <span class="bg-ocean/10 text-ocean px-2.5 py-0.5 rounded-full text-xs font-semibold">{preselected.name}</span>
-            )}
+              {routeLabel && (
+                <span class="flex items-center gap-1.5 text-ocean">
+                  <Icon name="location_on" class="w-4 h-4 text-coral shrink-0" />
+                  <span>{routeLabel}</span>
+                </span>
+              )}
+              <span class="flex items-center gap-1.5 text-ocean">
+                <Icon name="calendar_today" class="w-4 h-4 text-coral shrink-0" />
+                <span>{depDateFmt}</span>
+              </span>
+              <span class="flex items-center gap-1.5 text-ocean">
+                <Icon name="group" class="w-4 h-4 text-coral shrink-0" />
+                <span>{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
+              </span>
+              {preselected && (
+                <span class="bg-ocean/10 text-ocean px-2.5 py-0.5 rounded-full text-xs font-semibold">{preselected.name}</span>
+              )}
+            </div>
+            {/* Phase 4.67.3 polish — "Change trip" sekarang kembali ke listing
+                step 1 (bukan ke detail page) supaya customer bisa langsung
+                ganti outbound tanpa bingung mendarat di halaman tiket spesifik. */}
+            <a href={isRoundTrip
+                 ? `/ferry-tickets?${new URLSearchParams({
+                     trip: 'round-trip',
+                     ...(outboundFromSlug ? { from: outboundFromSlug } : {}),
+                     ...(outboundToSlug ? { to: outboundToSlug } : {}),
+                     date: qDate,
+                     return: qReturnDate,
+                     adults: String(qAdults),
+                     ...(qChildren ? { children: String(qChildren) } : {}),
+                   }).toString()}`
+                 : detailUrl}
+               class="text-coral hover:text-coral-dark hover:underline font-semibold text-xs md:text-sm shrink-0 transition">
+              Change trip →
+            </a>
           </div>
-          <a href={detailUrl} class="text-coral hover:text-coral-dark hover:underline font-semibold text-xs md:text-sm shrink-0 transition">
-            Change trip →
-          </a>
+
+          {/* Return (round-trip only) */}
+          {isRoundTrip && returnItem && (
+            <div class="bg-leaf/10 border border-leaf/30 rounded-2xl px-5 py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs md:text-sm text-stone shadow-sm">
+              <div class="flex flex-wrap items-center gap-4 md:gap-5 min-w-0">
+                <span class="bg-leaf-dark text-white text-[10px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0">Return</span>
+                <span class="flex items-center gap-1.5 font-semibold text-ocean">
+                  <Icon name="ship" class="w-4 h-4 text-leaf-dark shrink-0" />
+                  <span class="truncate max-w-[10rem]">{returnItem.title}</span>
+                </span>
+                {returnRouteLabel && (
+                  <span class="flex items-center gap-1.5 text-ocean">
+                    <Icon name="location_on" class="w-4 h-4 text-leaf-dark shrink-0" />
+                    <span>{returnRouteLabel}</span>
+                  </span>
+                )}
+                <span class="flex items-center gap-1.5 text-ocean">
+                  <Icon name="event_repeat" class="w-4 h-4 text-leaf-dark shrink-0" />
+                  <span>{returnDepDateFmt}</span>
+                </span>
+                {returnPreselected && (
+                  <span class="bg-leaf/20 text-ocean px-2.5 py-0.5 rounded-full text-xs font-semibold">{returnPreselected.name}</span>
+                )}
+              </div>
+              {/* Phase 4.67.3 polish — "Change return" ke listing step 2 (reverse
+                  route + outbound metadata preserved) supaya customer bisa pick
+                  ferry return berbeda tanpa kehilangan outbound selection. */}
+              <a href={`/ferry-tickets?${new URLSearchParams({
+                   trip: 'round-trip',
+                   ...(outboundToSlug ? { from: outboundToSlug } : {}),      // reverse: return origin = outbound dest
+                   ...(outboundFromSlug ? { to: outboundFromSlug } : {}),   // reverse: return dest = outbound origin
+                   date: qReturnDate,
+                   return: qReturnDate,
+                   outbound: String(item.id),
+                   outboundSlug: slug,
+                   outboundClass: preselected?.classType ?? '',
+                   departure: qDate,
+                   adults: String(qAdults),
+                   ...(qChildren ? { children: String(qChildren) } : {}),
+                 }).toString()}`}
+                 class="text-leaf-dark hover:text-leaf-dark/80 hover:underline font-semibold text-xs md:text-sm shrink-0 transition">
+                Change return →
+              </a>
+            </div>
+          )}
         </div>
 
         {/* ─── Form ─── */}
@@ -257,7 +410,34 @@ const totalPax = qAdults + qChildren
           action="/api/bookings/create"
           class="space-y-6"
           id="checkout-form"
+          novalidate
         >
+          {/* Phase 4.67.3 polish — Alert banner untuk field passenger yg
+              belum terisi. Dikontrol oleh script submit handler di bawah
+              (scan passenger first/last name, expand accordion yg invalid,
+              scroll ke sana, dan tampilkan daftar passenger yg kurang). */}
+          <div
+            id="checkoutValidationAlert"
+            class="hidden rounded-2xl border-2 border-coral/40 bg-coral/5 p-4 sm:p-5 shadow-sm"
+            role="alert"
+            aria-live="polite"
+          >
+            <div class="flex items-start gap-3">
+              <div class="p-2 rounded-xl bg-coral/15 text-coral shrink-0">
+                <Icon name="info" class="w-5 h-5" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-bold text-coral-dark leading-snug">Please complete the required fields</h3>
+                <p id="checkoutValidationList" class="text-xs text-stone mt-1 leading-relaxed">
+                  Some mandatory information is missing. The first incomplete field has been highlighted and focused.
+                </p>
+              </div>
+              <button type="button" id="checkoutValidationClose" aria-label="Dismiss alert"
+                      class="text-stone-light hover:text-stone shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-coral/10 transition">
+                <span class="text-lg leading-none">×</span>
+              </button>
+            </div>
+          </div>
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="ferryTicketId" value={String(item.id)} />
           <input type="hidden" name="originLocation" value={originLoc} />
@@ -272,6 +452,21 @@ const totalPax = qAdults + qChildren
               <input type="hidden" name="ferryClassName" value={preselected.name} />
               <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
               <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
+            </>
+          )}
+          {/* Phase 4.67.2d — Round-trip metadata (empty for one-way). */}
+          <input type="hidden" name="tripType" value={isRoundTrip ? 'round-trip' : 'one-way'} />
+          {isRoundTrip && returnItem && (
+            <>
+              <input type="hidden" name="returnDate" value={qReturnDate} />
+              <input type="hidden" name="returnFerryTicketId" value={String((returnItem as any).id)} />
+              <input type="hidden" name="returnTicketSlug" value={qReturnTicketSlug} />
+              {returnPreselected && (
+                <>
+                  <input type="hidden" name="returnFerryClassType" value={returnPreselected.classType} />
+                  <input type="hidden" name="returnFerryClassName" value={returnPreselected.name} />
+                </>
+              )}
             </>
           )}
           <div class="hidden" aria-hidden="true">
@@ -543,122 +738,222 @@ const totalPax = qAdults + qChildren
       <aside class="lg:col-span-4">
         <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-md overflow-hidden border border-sand-dark/10">
 
-          {/* Dark navy header banner */}
-          <div class="bg-ocean px-5 py-3 flex items-center justify-between text-white">
-            <span class="text-xs font-bold tracking-wide flex items-center gap-2 text-white">
-              <span class="w-2 h-2 rounded-full bg-emerald-300 shrink-0"></span>
-              <span>Booking Summary</span>
+          {/* Dark navy header banner — Phase 4.67.3 polish-2 disamakan dgn
+              style section "Contact Information" / "Passenger Information"
+              (ocean bg + icon ring + title besar + badge trip) biar selaras
+              dgn section lain di form. */}
+          <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                <Icon name="receipt_long" class="w-5 h-5" />
+              </span>
+              <div class="min-w-0">
+                <h2 class="text-base font-bold tracking-wide text-white">Booking Summary</h2>
+                <p class="text-xs text-white/85 mt-0.5">{isRoundTrip ? 'Round-trip estimate · 2 legs' : 'One-way estimate'}</p>
+              </div>
+            </div>
+            <span class="hidden sm:inline-block bg-emerald-400/20 text-emerald-100 text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap ring-1 ring-emerald-300/30">
+              {isRoundTrip ? 'Round Trip' : 'One Way'}
             </span>
-            <span class="text-[10px] font-semibold tracking-wider uppercase text-white/85">One Way</span>
+          </div>
+
+          {/* ── Session timer strip (Phase 4.67.1) ── */}
+          <div
+            id="sessionTimerStrip"
+            class="bg-amber-50 border-b border-amber-200/60 px-5 py-2.5 flex items-center justify-between gap-2 text-xs"
+            data-timer-seconds="900"
+          >
+            <span class="flex items-center gap-1.5 font-semibold text-amber-900">
+              <Icon name="info" class="w-3.5 h-3.5" />
+              <span>Session expires in</span>
+            </span>
+            <span
+              id="sessionTimerValue"
+              class="font-mono font-bold tabular-nums text-amber-900 text-sm"
+              aria-live="polite"
+              aria-atomic="true"
+            >15:00</span>
           </div>
 
           {/* Body — reduced padding & type sizes */}
           <div class="px-5 pt-4 pb-5 space-y-4">
 
-            {/* Hero + title (compact) */}
-            {heroUrl && (
-              <div class="flex gap-3 pb-4 border-b border-sand-dark/15">
-                <div class="w-12 h-12 rounded-lg overflow-hidden bg-sand shrink-0">
-                  <img src={heroUrl} alt={item.title} class="w-full h-full object-cover" loading="lazy" />
-                </div>
-                <div class="min-w-0">
-                  <h2 class="font-display text-sm text-ocean line-clamp-2 leading-snug">{item.title}</h2>
-                  {preselected && (
-                    <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{preselected.name}</span></p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Departure header + Show Details toggle */}
-            <div>
+            {/* Phase 4.67.3 polish-2 — Ringkasan atas: route singkat +
+                tanggal + pax strip + toggle "Show Details". Detail per-leg
+                di-collapse by default supaya sidebar tidak terlalu panjang
+                saat pertama muncul. Grand Total tetap selalu visible. */}
+            <div class="space-y-3">
               <div class="flex items-start justify-between gap-3">
-                <h3 class="text-sm font-bold text-ocean leading-snug">
-                  Departure <span class="font-normal text-stone-light mx-0.5">—</span> <span class="text-ocean">{depDateFmt}</span>
-                </h3>
+                <div class="min-w-0">
+                  <p class="text-[10px] font-bold uppercase tracking-widest text-stone-light">Trip</p>
+                  <p class="text-sm font-bold text-ocean leading-snug mt-0.5">
+                    {routeLabel || item.title}
+                  </p>
+                  <p class="text-[11px] text-stone-light mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span class="inline-flex items-center gap-1">
+                      <Icon name="calendar_today" class="w-3 h-3 text-coral" />
+                      <span class="font-semibold text-ocean">{depDateFmt}</span>
+                    </span>
+                    {isRoundTrip && returnDepDateFmt && (
+                      <>
+                        <span class="text-sand-dark">·</span>
+                        <span class="inline-flex items-center gap-1">
+                          <Icon name="event_repeat" class="w-3 h-3 text-leaf-dark" />
+                          <span class="font-semibold text-ocean">{returnDepDateFmt}</span>
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </div>
                 <button
-                  id="toggleSummaryDetails"
+                  id="bsDetailsToggle"
                   type="button"
                   aria-expanded="false"
-                  aria-controls="collapsibleDetails"
+                  aria-controls="bsCollapsibleBody"
                   class="inline-flex items-center text-[11px] font-semibold text-coral hover:text-coral-dark transition-colors cursor-pointer select-none shrink-0"
                 >
-                  <span id="toggleDetailsText">Show Details</span>
-                  <svg id="toggleDetailsIcon" class="w-3 h-3 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span id="bsDetailsLabel">Show Details</span>
+                  <svg id="bsDetailsIcon" class="w-3 h-3 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
                   </svg>
                 </button>
               </div>
 
-              {routeLabel && (
-                <p class="text-xs font-medium text-stone mt-1.5 leading-relaxed">
-                  {routeLabel}
-                </p>
-              )}
+              {/* Pax strip (ringkas, always visible) */}
+              <div class="flex items-center gap-2 text-[11px] text-stone-light">
+                <Icon name="group" class="w-3.5 h-3.5 text-stone-light shrink-0" />
+                <span>{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
+              </div>
             </div>
 
-            {/* Collapsible details */}
-            <div id="collapsibleDetails" class="hidden space-y-4 transition-all duration-200">
+            {/* ─── Collapsible details: 2 BOX breakdown + fees ─── */}
+            <div id="bsCollapsibleBody" class="hidden space-y-4 transition-all duration-200">
 
-              <div class="pt-4 border-t border-sand-dark/15 space-y-2 text-xs">
-                <div class="flex justify-between items-center">
-                  <span class="text-stone-light">Ferry</span>
-                  <span class="font-semibold text-ocean text-right truncate max-w-[60%]">{item.title}</span>
-                </div>
-                {preselected && (
-                  <div class="flex justify-between items-center">
-                    <span class="text-stone-light">Class</span>
-                    <span class="font-semibold text-ocean">{preselected.name}</span>
-                  </div>
-                )}
-                <div class="flex justify-between items-center">
-                  <span class="text-stone-light">Passengers</span>
-                  <span class="font-semibold text-ocean">
-                    {qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}
+            {/* ─── OUTBOUND BOX ─── */}
+            <div class="rounded-xl border border-ocean/30 bg-ocean/[0.04] p-4 space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="bg-ocean text-white text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0">
+                    {isRoundTrip ? 'Outbound' : 'Departure'}
                   </span>
+                  <span class="text-xs font-semibold text-ocean truncate">{depDateFmt}</span>
                 </div>
               </div>
 
-              <div class="pt-4 border-t border-sand-dark/15 space-y-2">
-                <p class="text-[10px] font-bold uppercase tracking-wider text-stone-light">Price Breakdown</p>
+              {heroUrl && (
+                <div class="flex gap-2.5">
+                  <div class="w-11 h-11 rounded-lg overflow-hidden bg-sand shrink-0">
+                    <img src={heroUrl} alt={item.title} class="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-display text-sm text-ocean line-clamp-2 leading-snug">{item.title}</p>
+                    {preselected && (
+                      <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{preselected.name}</span></p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {routeLabel && (
+                <p class="text-xs font-medium text-stone leading-relaxed flex items-start gap-1.5">
+                  <Icon name="location_on" class="w-3.5 h-3.5 text-coral shrink-0 mt-0.5" />
+                  <span>{routeLabel}</span>
+                </p>
+              )}
+
+              <div class="pt-2 border-t border-ocean/15 space-y-1">
                 {unitPrice != null && (
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="text-stone">Adult <span class="text-stone-light">({qAdults} × {priceFmt(unitPrice)})</span></span>
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-stone-light">Adult × {qAdults}</span>
                     <span class="font-semibold text-ocean tabular-nums">{priceFmt(adultLineTotal)}</span>
                   </div>
                 )}
                 {qChildren > 0 && (
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="text-stone">Child <span class="text-stone-light">({qChildren} × {priceFmt(childUnitPrice)})</span></span>
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-stone-light">Child × {qChildren}</span>
                     <span class="font-semibold text-ocean tabular-nums">{priceFmt(childLineTotal)}</span>
                   </div>
                 )}
-                <div class="flex justify-between items-center text-xs">
-                  <span class="text-stone">Ticket fare</span>
-                  <span class="font-semibold text-ocean tabular-nums">{priceFmt(ticketFare)}</span>
-                </div>
-                {serviceFee > 0 && (
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="text-stone">Service fee</span>
-                    <span class="font-medium text-ocean tabular-nums">{priceFmt(serviceFee)}</span>
-                  </div>
-                )}
-                {discount > 0 && (
-                  <div class="flex justify-between items-center text-xs">
-                    <span class="text-stone">Discount</span>
-                    <span class="font-medium text-leaf tabular-nums">− {priceFmt(discount)}</span>
-                  </div>
-                )}
-                <div class="pt-2 border-t border-sand-dark/15 flex justify-between items-center text-xs">
-                  <span class="text-stone font-semibold">Subtotal <span class="font-normal text-stone-light">(Departure)</span></span>
-                  <span class="font-bold text-ocean tabular-nums">{priceFmt(subtotalDeparture)}</span>
+                <div class="pt-1.5 mt-1 border-t border-ocean/15 flex justify-between items-center">
+                  <span class="text-xs font-bold text-ocean">Subtotal</span>
+                  <span class="font-bold text-sm text-ocean tabular-nums">{priceFmt(subtotalDeparture)}</span>
                 </div>
               </div>
             </div>
 
-            {/* TOTAL (always visible) — reduced font size */}
-            <div class="pt-3 border-t border-sand-dark/25 flex items-baseline justify-between">
-              <span class="text-sm font-bold text-ocean">Total price</span>
+            {/* ─── RETURN BOX (round-trip only) ─── */}
+            {isRoundTrip && returnItem && (
+              <div class="rounded-xl border border-leaf/40 bg-leaf/[0.06] p-4 space-y-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="bg-leaf-dark text-white text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0 flex items-center gap-1">
+                      <Icon name="event_repeat" class="w-2.5 h-2.5" /> Return
+                    </span>
+                    <span class="text-xs font-semibold text-ocean truncate">{returnDepDateFmt}</span>
+                  </div>
+                </div>
+
+                <div class="flex gap-2.5">
+                  <div class="w-11 h-11 rounded-lg overflow-hidden bg-leaf/15 shrink-0 flex items-center justify-center">
+                    <Icon name="ship" class="w-5 h-5 text-leaf-dark" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-display text-sm text-ocean line-clamp-2 leading-snug">{returnItem.title}</p>
+                    {returnPreselected && (
+                      <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{returnPreselected.name}</span></p>
+                    )}
+                  </div>
+                </div>
+
+                {returnRouteLabel && (
+                  <p class="text-xs font-medium text-stone leading-relaxed flex items-start gap-1.5">
+                    <Icon name="location_on" class="w-3.5 h-3.5 text-leaf-dark shrink-0 mt-0.5" />
+                    <span>{returnRouteLabel}</span>
+                  </p>
+                )}
+
+                <div class="pt-2 border-t border-leaf/25 space-y-1">
+                  {returnUnitPrice != null && (
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="text-stone-light">Adult × {qAdults}</span>
+                      <span class="font-semibold text-ocean tabular-nums">{priceFmt(returnAdultLineTotal)}</span>
+                    </div>
+                  )}
+                  {qChildren > 0 && (
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="text-stone-light">Child × {qChildren}</span>
+                      <span class="font-semibold text-ocean tabular-nums">{priceFmt(returnChildLineTotal)}</span>
+                    </div>
+                  )}
+                  <div class="pt-1.5 mt-1 border-t border-leaf/25 flex justify-between items-center">
+                    <span class="text-xs font-bold text-ocean">Subtotal</span>
+                    <span class="font-bold text-sm text-ocean tabular-nums">{priceFmt(returnSubtotal)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {serviceFee > 0 && (
+              <div class="flex justify-between items-center text-xs px-1">
+                <span class="text-stone-light">Service fee</span>
+                <span class="font-medium text-ocean tabular-nums">{priceFmt(serviceFee)}</span>
+              </div>
+            )}
+            {discount > 0 && (
+              <div class="flex justify-between items-center text-xs px-1">
+                <span class="text-stone-light">Discount</span>
+                <span class="font-medium text-leaf tabular-nums">− {priceFmt(discount)}</span>
+              </div>
+            )}
+
+            </div>{/* /#bsCollapsibleBody */}
+
+            {/* ─── GRAND TOTAL ─── */}
+            <div class="rounded-xl bg-gradient-to-br from-coral/10 to-coral/5 border-2 border-coral/30 px-4 py-3 flex items-baseline justify-between gap-3">
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase tracking-widest font-bold text-coral/90">Total price</span>
+                <span class="text-[10px] text-stone-light">{isRoundTrip ? 'Outbound + Return' : 'Departure'}</span>
+              </div>
               <span class="font-display text-xl sm:text-2xl font-bold text-coral tabular-nums leading-none">
                 {priceFmt(totalPrice)}
               </span>
@@ -694,6 +989,41 @@ const totalPax = qAdults + qChildren
       </aside>
     </div>
   </section>
+
+  {/* ── Session Expired modal (Phase 4.67.1) ── */}
+  <div
+    id="sessionExpiredModal"
+    class="hidden fixed inset-0 z-[100] items-center justify-center bg-ocean/70 backdrop-blur-sm px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sessionExpiredTitle"
+    aria-describedby="sessionExpiredDesc"
+  >
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-sand-dark/10">
+      <div class="bg-coral px-6 py-4 flex items-center gap-3 text-white">
+        <span class="w-10 h-10 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0">
+          <Icon name="info" class="w-5 h-5" />
+        </span>
+        <h2 id="sessionExpiredTitle" class="text-base font-bold tracking-wide">Session Expired</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <p id="sessionExpiredDesc" class="text-sm text-stone leading-relaxed">
+          You have exceeded the time limit to complete your booking. For security and seat-availability reasons, this booking session is no longer valid and <span class="font-semibold">has not been recorded</span>.
+          <br /><br />
+          Please go back to the ferry details page and start a new booking.
+        </p>
+        <button
+          type="button"
+          id="sessionExpiredOk"
+          data-return-url={detailUrl}
+          class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-coral/20 transition text-sm uppercase tracking-wider"
+          autofocus
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
 </PageLayout>
 
 <script>
@@ -749,24 +1079,182 @@ const totalPax = qAdults + qChildren
       el.addEventListener('input', () => updatePreview(i))
     })
 
-    // (3) Sidebar details toggle
-    const toggle = document.getElementById('toggleSummaryDetails')
-    const collapsible = document.getElementById('collapsibleDetails')
-    const txt = document.getElementById('toggleDetailsText')
-    const icon = document.getElementById('toggleDetailsIcon')
-    if (toggle && collapsible && txt && icon) {
-      toggle.addEventListener('click', () => {
-        const willShow = collapsible.classList.contains('hidden')
+    // (3b) Session countdown timer (Phase 4.67.1)
+    //   - 15 min client-side countdown (server stamp TTL is 30 min).
+    //   - At <= 120s: coral + pulse warning.
+    //   - At 0: disable submit button, show blocking modal; OK → return to detail page.
+    const strip = document.getElementById('sessionTimerStrip')
+    const valueEl = document.getElementById('sessionTimerValue')
+    const modal = document.getElementById('sessionExpiredModal')
+    const okBtn = document.getElementById('sessionExpiredOk') as HTMLButtonElement | null
+    const form = document.getElementById('checkout-form') as HTMLFormElement | null
+    if (strip && valueEl && modal && okBtn && form) {
+      const total = Number(strip.dataset.timerSeconds ?? '900')
+      let remaining = Number.isFinite(total) && total > 0 ? total : 900
+      let expired = false
+
+      const fmt = (s: number) => {
+        const m = Math.floor(s / 60)
+        const r = s % 60
+        return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`
+      }
+
+      const render = () => {
+        valueEl.textContent = fmt(remaining)
+        if (remaining <= 120 && remaining > 0) {
+          strip.classList.remove('bg-amber-50', 'border-amber-200/60')
+          strip.classList.add('bg-coral/10', 'border-coral/40')
+          valueEl.classList.remove('text-amber-900')
+          valueEl.classList.add('text-coral', 'animate-pulse')
+          strip.querySelector('span.flex')?.classList.remove('text-amber-900')
+          strip.querySelector('span.flex')?.classList.add('text-coral')
+        }
+      }
+
+      const expire = () => {
+        if (expired) return
+        expired = true
+        remaining = 0
+        render()
+        // Disable form & submit — guarantees no POST reaches /api/bookings/create.
+        const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+        if (submitBtn) {
+          submitBtn.disabled = true
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed')
+        }
+        form.addEventListener('submit', (e) => e.preventDefault(), { capture: true })
+        // Show modal.
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        // Prevent background scroll.
+        document.body.style.overflow = 'hidden'
+        // Focus OK.
+        setTimeout(() => okBtn.focus(), 0)
+      }
+
+      render()
+      const tick = setInterval(() => {
+        remaining -= 1
+        if (remaining <= 0) {
+          clearInterval(tick)
+          expire()
+          return
+        }
+        render()
+      }, 1000)
+
+      okBtn.addEventListener('click', () => {
+        const url = okBtn.dataset.returnUrl || '/ferry-tickets'
+        window.location.href = url
+      })
+      // Also respond to Enter key when modal open (OK has autofocus).
+      modal.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          okBtn.click()
+        }
+      })
+    }
+
+    // (3) Sidebar Booking Summary — collapsible "Show Details" (Phase 4.67.3 polish-2).
+    //     Default collapsed: hanya tampilan ringkas trip + grand total.
+    //     Expand: tampilkan OUTBOUND BOX, RETURN BOX, breakdown, service fee, dll.
+    const bsToggle = document.getElementById('bsDetailsToggle')
+    const bsCollapsible = document.getElementById('bsCollapsibleBody')
+    const bsLabel = document.getElementById('bsDetailsLabel')
+    const bsIcon = document.getElementById('bsDetailsIcon')
+    if (bsToggle && bsCollapsible && bsLabel && bsIcon) {
+      bsToggle.addEventListener('click', () => {
+        const willShow = bsCollapsible.classList.contains('hidden')
         if (willShow) {
-          collapsible.classList.remove('hidden')
-          txt.textContent = 'Hide Details'
-          icon.classList.add('rotate-180')
-          toggle.setAttribute('aria-expanded', 'true')
+          bsCollapsible.classList.remove('hidden')
+          bsLabel.textContent = 'Hide Details'
+          bsIcon.classList.add('rotate-180')
+          bsToggle.setAttribute('aria-expanded', 'true')
         } else {
-          collapsible.classList.add('hidden')
-          txt.textContent = 'Show Details'
-          icon.classList.remove('rotate-180')
-          toggle.setAttribute('aria-expanded', 'false')
+          bsCollapsible.classList.add('hidden')
+          bsLabel.textContent = 'Show Details'
+          bsIcon.classList.remove('rotate-180')
+          bsToggle.setAttribute('aria-expanded', 'false')
+        }
+      })
+    }
+
+    // (4) Submit validation (Phase 4.67.3 polish-2) — custom validator yg
+    //     scan passenger first/last + contact fields. Kalau ada yg kurang:
+    //       - prevent submit
+    //       - auto-expand accordion passenger yg invalid
+    //       - scroll ke field pertama yg invalid + focus
+    //       - tampilkan banner #checkoutValidationAlert dgn ringkasan.
+    const checkoutFormEl = document.getElementById('checkout-form') as HTMLFormElement | null
+    const alertEl = document.getElementById('checkoutValidationAlert')
+    const alertList = document.getElementById('checkoutValidationList')
+    const alertClose = document.getElementById('checkoutValidationClose')
+    const hideAlert = () => alertEl?.classList.add('hidden')
+    alertClose?.addEventListener('click', hideAlert)
+    const expandPassenger = (idx: number) => {
+      const btn = document.querySelector<HTMLButtonElement>(`[data-accordion-target="pax-body-${idx}"]`)
+      const body = document.getElementById(`pax-body-${idx}`)
+      const chev = document.querySelector<HTMLElement>(`[data-accordion-chevron="pax-icon-${idx}"]`)
+      if (body && body.classList.contains('hidden')) {
+        body.classList.remove('hidden')
+        chev?.classList.add('rotate-180')
+        btn?.setAttribute('aria-expanded', 'true')
+      }
+    }
+    if (checkoutFormEl && alertEl && alertList) {
+      checkoutFormEl.addEventListener('submit', (e) => {
+        const issues: string[] = []
+        let firstInvalid: HTMLElement | null = null
+
+        // Contact fields.
+        const contactChecks: Array<{ name: string; label: string }> = [
+          { name: 'customerName', label: 'Full Name (Contact)' },
+          { name: 'customerEmail', label: 'Email (Contact)' },
+          { name: 'contactPhone', label: 'WhatsApp / Phone Number (Contact)' },
+        ]
+        for (const c of contactChecks) {
+          const el = checkoutFormEl.querySelector<HTMLInputElement>(`[name="${c.name}"]`)
+          if (el && !el.value.trim()) {
+            issues.push(c.label)
+            if (!firstInvalid) firstInvalid = el
+          }
+        }
+
+        // Passenger first & last name per index (required).
+        const passengerItems = checkoutFormEl.querySelectorAll<HTMLElement>('.passenger-item')
+        passengerItems.forEach((item) => {
+          const idx = Number(item.dataset.index ?? '-1')
+          if (idx < 0) return
+          const first = item.querySelector<HTMLInputElement>(`[name="passengers[${idx}][firstName]"]`)
+          const last = item.querySelector<HTMLInputElement>(`[name="passengers[${idx}][lastName]"]`)
+          const missing: string[] = []
+          if (first && !first.value.trim()) missing.push('first name')
+          if (last && !last.value.trim()) missing.push('last name')
+          if (missing.length) {
+            issues.push(`Passenger ${idx + 1} — ${missing.join(' & ')}`)
+            expandPassenger(idx)
+            if (!firstInvalid) firstInvalid = (first && !first.value.trim() ? first : last)
+          }
+        })
+
+        if (issues.length === 0) {
+          hideAlert()
+          return // allow native submit
+        }
+
+        e.preventDefault()
+        alertList.innerHTML =
+          `<strong>${issues.length} field${issues.length > 1 ? 's' : ''} need${issues.length > 1 ? '' : 's'} your attention:</strong><br/>` +
+          issues.map((s) => `• ${s}`).join('<br/>')
+        alertEl.classList.remove('hidden')
+        alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (firstInvalid) {
+          const el = firstInvalid as HTMLElement
+          setTimeout(() => {
+            el.focus({ preventScroll: true })
+            el.classList.add('ring-2', 'ring-coral')
+            setTimeout(() => el.classList.remove('ring-2', 'ring-coral'), 2200)
+          }, 420)
         }
       })
     }

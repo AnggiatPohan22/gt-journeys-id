@@ -31,7 +31,7 @@ export const Posts: CollectionConfig = {
   hooks: { afterChange: [assignMediaFolder('posts')] },
   admin: {
     useAsTitle: 'title',
-    group: 'Posts',
+    group: 'Blog',
     defaultColumns: ['title', 'category', 'author', 'status', 'isFeatured', 'publishedAt', 'updatedAtRelative'],
     listSearchableFields: ['title', 'slug', 'excerpt'],
     preview: makePreview('/blog'),

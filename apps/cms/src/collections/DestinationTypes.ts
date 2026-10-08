@@ -39,7 +39,7 @@ export const DestinationTypes: CollectionConfig = {
   labels: { singular: 'Destination Type', plural: 'Destination Types' },
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Destinations',
     defaultColumns: ['name', 'slug', 'isActive', 'sortOrder'],
     defaultSort: 'sortOrder',
     description: 'Tipe destinasi (mis. Island, Mainland). Taksonomi internal — dipakai di collection Destinations, tidak tampil di frontend.',

@@ -22,7 +22,7 @@ export const PopupSettings: GlobalConfig = {
   slug: 'popup-settings',
   label: 'Popup',
   admin: {
-    group: 'Settings',
+    group: 'Marketing',
     description:
       'Default popup frame (title, icon, buttons, colors) used by every popup trigger on the frontend. Body copy is passed per-context by the trigger.',
     hidden: ({ user }) => user?.role !== 'super-admin',

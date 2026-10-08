@@ -31,7 +31,7 @@ export const Users: CollectionConfig = {
   auth: { useAPIKey: true },
   admin: {
     useAsTitle: 'name',
-    group: 'Administration',
+    group: 'System',
     hidden: ({ user }) => user?.role !== 'super-admin',
     defaultColumns: ['avatar', 'name', 'email', 'role', 'updatedAtRelative'],
     listSearchableFields: ['name', 'email'],

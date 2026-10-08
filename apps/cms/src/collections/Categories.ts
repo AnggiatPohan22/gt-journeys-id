@@ -8,7 +8,7 @@ export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Content & Pages',
     defaultColumns: ['name', 'module', 'status', 'updatedAtRelative'],
   },
   access: {

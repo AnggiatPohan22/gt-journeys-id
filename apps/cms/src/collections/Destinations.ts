@@ -12,7 +12,7 @@ export const Destinations: CollectionConfig = {
   slug: 'destinations',
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
+    group: 'Destinations',
     defaultColumns: ['name', 'type', 'status', 'sortOrder', 'updatedAtRelative'],
   },
   access: {

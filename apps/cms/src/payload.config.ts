@@ -171,20 +171,13 @@ export default buildConfig({
   // ── Collections ─────────────────────────────
   // Order determines admin sidebar accordion sequence (Payload groups
   // by admin.group; first-appearance sets group position).
+  // Phase 4.68.3 — reordered to match sidebar blueprint:
+  // Bookings → Services → Destinations → Content & Pages → Blog
+  // → Chat & Messaging → Marketing → System.
+  // Appearance group (globals only) is appended at the end via globals[].
   collections: [
-    // ── CONTENT group ───────────────────────────
-    Pages,
-    ServiceTypes,
-    Destinations,
-    DestinationTypes,
-    Categories,        // cross-module (tours/villa/…) — stays in Content
-    Locations,         // reusable lokasi/pelabuhan (Phase 4.61) — Origin/Arrival Ferry
-    Testimonials,
-    Authors,
-    // ── POSTS group (Phase 4.35.3) ──────────────
-    Posts,
-    BlogCategories,
-    Tags,
+    // ── BOOKINGS group ──────────────────────────
+    Bookings,
     // ── SERVICES group ──────────────────────────
     Tours,
     Accommodations,
@@ -195,20 +188,53 @@ export default buildConfig({
     Rentals,
     Spa,
     FerryTickets,
-    // Site Builder
-    Menus,
+    // ── DESTINATIONS group ──────────────────────
+    Destinations,
+    DestinationTypes,
+    Locations,
+    ServiceTypes,
+    // ── CONTENT & PAGES group ───────────────────
+    Pages,
+    Testimonials,
+    Categories,        // cross-module taxonomy
     Media,
-    // Administration
-    Users,
-    NewsletterSubscribers,
+    Menus,
+    // ── BLOG group ──────────────────────────────
+    Posts,
+    Authors,
+    BlogCategories,
+    Tags,
+    // ── CHAT & MESSAGING group ──────────────────
     ChatVisitors,
     ChatMessages,
     ChatBlockedEvents,
-    Bookings,
+    // ── MARKETING group ─────────────────────────
+    NewsletterSubscribers,
+    // ── SYSTEM group ────────────────────────────
+    Users,
   ],
 
-  // ── Globals (Settings) ─────────────────────
-  globals: [SiteSettings, HeaderSettings, FooterSettings, HomepageContent, SiteFeatures, AnnouncementBar, PromoBanner, BlogSettings, ChatWidgetSettings, PopupSettings],
+  // ── Globals ─────────────────────────────────
+  // Phase 4.68.3 — ordered to append each global into its existing
+  // (collection-anchored) group, then introduce Appearance last.
+  globals: [
+    // Content & Pages (append)
+    HomepageContent,
+    // Blog (append)
+    BlogSettings,
+    // Chat & Messaging (append)
+    ChatWidgetSettings,
+    // Marketing (append)
+    AnnouncementBar,
+    PromoBanner,
+    PopupSettings,
+    // Appearance (new group — globals only)
+    HeaderSettings,
+    FooterSettings,
+    // System (append)
+    SiteSettings,
+    SiteFeatures,
+  ],
 
   // ── Admin ───────────────────────────────────
   admin: {
