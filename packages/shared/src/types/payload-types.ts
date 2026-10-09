@@ -345,7 +345,19 @@ export interface Booking {
    * Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.
    */
   totalEstimate?: number | null;
-  status: 'pending' | 'awaiting_payment' | 'confirmed' | 'cancelled' | 'expired';
+  /**
+   * Flow: awaiting_review → awaiting_payment → confirmed. Lihat phase 4.69.5 untuk state machine.
+   */
+  status:
+    | 'awaiting_review'
+    | 'awaiting_payment'
+    | 'payment_review'
+    | 'confirmed'
+    | 'reschedule_request'
+    | 'cancel_request'
+    | 'cancelled'
+    | 'expired'
+    | 'pending';
   /**
    * Channel checkout yang dipakai. Manual WA = konfirmasi lewat WhatsApp (fallback).
    */
@@ -366,6 +378,30 @@ export interface Booking {
    * Auto-expire booking pending setelah waktu ini. Nullable.
    */
   expiresAt?: string | null;
+  /**
+   * Di-set saat booking dibuat dengan email verified token valid (Phase 4.69.3).
+   */
+  emailVerifiedAt?: string | null;
+  /**
+   * Reserved — Phase 4.69.11 (WA OTP future).
+   */
+  whatsappVerifiedAt?: string | null;
+  /**
+   * Di-set oleh admin "Send Payment Instructions" (Phase 4.69.7).
+   */
+  sentPaymentAt?: string | null;
+  /**
+   * Admin yang klik Send Payment.
+   */
+  sentPaymentBy?: (number | null) | User;
+  /**
+   * Di-set oleh admin "Confirm Payment & Send Ticket" (Phase 4.69.7).
+   */
+  sentTicketAt?: string | null;
+  /**
+   * Admin yang kirim e-ticket.
+   */
+  sentTicketBy?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
 }
@@ -26827,6 +26863,59 @@ export interface Location {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  /**
+   * Only super-admin can change roles.
+   */
+  role: 'editor' | 'admin' | 'super-admin';
+  /**
+   * Uncheck to soft-disable an account without deleting it. Currently used as an audit signal — active enforcement of login lockout should be wired via a beforeLogin hook when required.
+   */
+  enabled?: boolean | null;
+  /**
+   * Profile picture. Falls back to initials if empty.
+   */
+  avatar?: (number | null) | Media;
+  name: string;
+  /**
+   * Contact number (WhatsApp-compatible). Format: +62 812 xxxx-xxxx.
+   */
+  phone?: string | null;
+  /**
+   * Full address (optional). Max 500 characters.
+   */
+  address?: string | null;
+  /**
+   * Set automatically after each successful login.
+   */
+  lastLoginAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
  * Ephemeral OTP records (email/WA). Semua nilai sensitif di-hash. Auto-cleanup via cron.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -29917,59 +30006,6 @@ export interface NewsletterSubscriber {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number;
-  /**
-   * Only super-admin can change roles.
-   */
-  role: 'editor' | 'admin' | 'super-admin';
-  /**
-   * Uncheck to soft-disable an account without deleting it. Currently used as an audit signal — active enforcement of login lockout should be wired via a beforeLogin hook when required.
-   */
-  enabled?: boolean | null;
-  /**
-   * Profile picture. Falls back to initials if empty.
-   */
-  avatar?: (number | null) | Media;
-  name: string;
-  /**
-   * Contact number (WhatsApp-compatible). Format: +62 812 xxxx-xxxx.
-   */
-  phone?: string | null;
-  /**
-   * Full address (optional). Max 500 characters.
-   */
-  address?: string | null;
-  /**
-   * Set automatically after each successful login.
-   */
-  lastLoginAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  enableAPIKey?: boolean | null;
-  apiKey?: string | null;
-  apiKeyIndex?: string | null;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -30211,6 +30247,12 @@ export interface BookingsSelect<T extends boolean = true> {
   channel?: T;
   channelData?: T;
   expiresAt?: T;
+  emailVerifiedAt?: T;
+  whatsappVerifiedAt?: T;
+  sentPaymentAt?: T;
+  sentPaymentBy?: T;
+  sentTicketAt?: T;
+  sentTicketBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }

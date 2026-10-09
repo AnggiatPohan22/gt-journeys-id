@@ -342,19 +342,37 @@ export const Bookings: CollectionConfig = {
     },
 
     // ── Status + channel ─────────────────────────────────────
+    // ── Status (Phase 4.69.5 — expanded enum untuk admin-handoff flow) ──
+    // Flow baru (default `awaiting_review`):
+    //   awaiting_review   → admin verify tanggal/kuota (default booking baru)
+    //   awaiting_payment  → setelah admin klik "Send Payment Instructions"
+    //   payment_review    → customer kirim bukti bayar, admin verify
+    //   confirmed         → payment verified, e-ticket terkirim
+    //   reschedule_request → customer minta reschedule
+    //   cancel_request    → customer minta cancel
+    //   cancelled         → final cancel
+    //   expired           → auto-expired (admin tidak respond dalam window)
+    //
+    // Legacy value `pending` + `awaiting_payment` tetap valid untuk
+    // backward compat booking existing — tidak di-remove.
     {
       name: 'status',
       type: 'select',
       required: true,
-      defaultValue: 'pending',
+      defaultValue: 'awaiting_review',
       options: [
-        { label: 'Pending',           value: 'pending' },
-        { label: 'Awaiting payment',  value: 'awaiting_payment' },
-        { label: 'Confirmed',         value: 'confirmed' },
-        { label: 'Cancelled',         value: 'cancelled' },
-        { label: 'Expired',           value: 'expired' },
+        { label: 'Awaiting review',       value: 'awaiting_review' },
+        { label: 'Awaiting payment',      value: 'awaiting_payment' },
+        { label: 'Payment review',        value: 'payment_review' },
+        { label: 'Confirmed',             value: 'confirmed' },
+        { label: 'Reschedule request',    value: 'reschedule_request' },
+        { label: 'Cancel request',        value: 'cancel_request' },
+        { label: 'Cancelled',             value: 'cancelled' },
+        { label: 'Expired',               value: 'expired' },
+        // Legacy (Phase 4.62) — biarkan supaya booking lama tetap valid.
+        { label: 'Pending (legacy)',      value: 'pending' },
       ],
-      admin: { position: 'sidebar' },
+      admin: { position: 'sidebar', description: 'Flow: awaiting_review → awaiting_payment → confirmed. Lihat phase 4.69.5 untuk state machine.' },
     },
     {
       name: 'channel',
@@ -385,6 +403,40 @@ export const Bookings: CollectionConfig = {
         date: { pickerAppearance: 'dayAndTime' },
         description: 'Auto-expire booking pending setelah waktu ini. Nullable.',
       },
+    },
+
+    // ── Admin-handoff audit (Phase 4.69.5) ─────────────
+    // Semua field read-only di UI — otomatis diisi oleh endpoint
+    // relevant (/api/bookings/create set emailVerifiedAt; admin
+    // button "Send Payment" di Phase 4.69.7 set sentPayment*; dst).
+    // Super-admin masih bisa edit manual untuk koreksi.
+    {
+      type: 'collapsible',
+      label: 'Admin Handoff Audit',
+      admin: { initCollapsed: true, description: 'Timestamp + user yang trigger tiap transisi. Auto-filled oleh endpoint.' },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            { name: 'emailVerifiedAt', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, readOnly: true, description: 'Di-set saat booking dibuat dengan email verified token valid (Phase 4.69.3).' } },
+            { name: 'whatsappVerifiedAt', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, readOnly: true, description: 'Reserved — Phase 4.69.11 (WA OTP future).' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'sentPaymentAt', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, readOnly: true, description: 'Di-set oleh admin "Send Payment Instructions" (Phase 4.69.7).' } },
+            { name: 'sentPaymentBy', type: 'relationship', relationTo: 'users', admin: { width: '50%', readOnly: true, description: 'Admin yang klik Send Payment.' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            { name: 'sentTicketAt', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, readOnly: true, description: 'Di-set oleh admin "Confirm Payment & Send Ticket" (Phase 4.69.7).' } },
+            { name: 'sentTicketBy', type: 'relationship', relationTo: 'users', admin: { width: '50%', readOnly: true, description: 'Admin yang kirim e-ticket.' } },
+          ],
+        },
+      ],
     },
   ],
 }

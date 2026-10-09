@@ -424,11 +424,17 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     returnFerryClassType: returnClassType,
     returnUnitPrice,
     returnTotalEstimate: isRoundTrip ? returnTotalEstimate : null,
-    status: 'pending',
+    // Phase 4.69.5 — default booking baru = awaiting_review (admin verify tanggal/kuota
+    // sebelum kirim invoice ke customer via Phase 4.69.7).
+    status: 'awaiting_review',
     channel: 'manual_wa',
     channelData: null,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     passengers,
+    // Phase 4.69.3 + 4.69.5 — emailVerifiedToken sudah diverifikasi di guard
+    // di atas (stamp + token + targetHash match customerEmail). Simpan
+    // timestamp verifikasi untuk audit trail.
+    emailVerifiedAt: new Date().toISOString(),
   } as any)
 
   if (!result.ok) {
