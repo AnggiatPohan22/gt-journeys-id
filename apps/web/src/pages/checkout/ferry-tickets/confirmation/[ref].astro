@@ -489,6 +489,95 @@ const crumbs = [
           </div>
         </div>
 
+        {/* ─── Phase 4.69.9 — Request Reschedule / Cancel ─── */}
+        {(() => {
+          const ACTIVE = new Set(['awaiting_review', 'awaiting_payment', 'payment_review', 'confirmed', 'pending'])
+          const PENDING_REQ = new Set(['reschedule_request', 'cancel_request'])
+          const status = String((booking as any).status ?? '')
+          const canRequest = ACTIVE.has(status)
+          const alreadyRequested = PENDING_REQ.has(status)
+          const requestKind = String((booking as any).customerRequestKind ?? '')
+          const requestReason = String((booking as any).customerRequestReason ?? '')
+          return (
+            <div
+              class="rounded-2xl bg-white border border-sand-dark/15 p-5 sm:p-6 shadow-sm"
+              data-request-change
+              data-booking-ref={booking.bookingRef}
+              data-access-token={token}
+            >
+              <h3 class="font-display text-base sm:text-lg text-ocean mb-1 flex items-center gap-2">
+                <Icon name="edit_note" class="w-5 h-5 text-ocean" />
+                Need to change your booking?
+              </h3>
+              <p class="text-xs sm:text-sm text-stone leading-relaxed mb-4">
+                If your plan changed, you can request a reschedule or cancellation. Our admin will reply by email with the next steps.
+              </p>
+
+              {alreadyRequested && (
+                <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 mb-3" role="status">
+                  <strong>Request submitted:</strong> {requestKind === 'cancel' ? 'Cancellation' : 'Reschedule'}.
+                  Our admin will contact you shortly. You can reply by email once we respond.
+                  {requestReason && (
+                    <p class="mt-2 text-amber-800/90 italic">"{requestReason}"</p>
+                  )}
+                </div>
+              )}
+
+              {canRequest && (
+                <div class="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    data-request-btn="reschedule"
+                    class="inline-flex items-center justify-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+                  >
+                    <Icon name="autorenew" class="w-4 h-4" />
+                    Request Reschedule
+                  </button>
+                  <button
+                    type="button"
+                    data-request-btn="cancel"
+                    class="inline-flex items-center justify-center gap-2 bg-coral-50 hover:bg-coral-100 text-coral-900 border border-coral-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+                  >
+                    <Icon name="close" class="w-4 h-4" />
+                    Request Cancellation
+                  </button>
+                </div>
+              )}
+
+              {!canRequest && !alreadyRequested && (
+                <p class="text-xs text-stone-light italic">
+                  This booking is {status} — change requests are no longer available.
+                </p>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* Modal (hidden by default) */}
+        <div data-request-modal class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="req-modal-title">
+          <div class="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl">
+            <h3 id="req-modal-title" class="font-display text-lg text-ocean mb-2" data-request-modal-title>Request Reschedule</h3>
+            <p class="text-xs text-stone mb-4" data-request-modal-desc>
+              Please briefly describe your reason. Our admin will reply by email.
+            </p>
+            <label class="block text-xs font-semibold text-stone mb-1" for="req-reason">Reason (10–500 characters)</label>
+            <textarea
+              id="req-reason"
+              data-request-reason
+              rows="4"
+              maxlength="500"
+              class="w-full border border-sand-dark/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean/40"
+              placeholder="e.g. my flight was delayed, I'd like to shift to the next day..."
+            ></textarea>
+            <p class="text-[11px] text-stone-light mt-1" data-request-char-count>0 / 500</p>
+            <div data-request-error class="hidden mt-2 rounded bg-coral-50 border border-coral-200 text-coral-900 text-xs p-2" role="alert"></div>
+            <div class="mt-4 flex gap-2 justify-end">
+              <button type="button" data-request-cancel class="px-4 py-2 rounded-lg border border-sand-dark/40 text-sm text-stone hover:bg-sand/40">Cancel</button>
+              <button type="button" data-request-submit class="px-4 py-2 rounded-lg bg-ocean text-white text-sm font-semibold hover:bg-ocean-dark disabled:opacity-60 disabled:cursor-not-allowed">Submit Request</button>
+            </div>
+          </div>
+        </div>
+
         {/* Back link */}
         <div class="pt-2 flex items-center justify-between gap-4">
           <a href={detailUrl} class="inline-flex items-center gap-1.5 text-sm font-semibold text-stone hover:text-ocean transition">
@@ -807,6 +896,92 @@ const crumbs = [
             sel?.removeAllRanges()
             sel?.addRange(range)
           }
+        }
+      })
+    }
+
+    // (4) Phase 4.69.9 — Request Reschedule/Cancel modal flow.
+    const wrap = document.querySelector<HTMLElement>('[data-request-change]')
+    const modal = document.querySelector<HTMLElement>('[data-request-modal]')
+    const modalTitle = document.querySelector<HTMLElement>('[data-request-modal-title]')
+    const reasonEl = document.querySelector<HTMLTextAreaElement>('[data-request-reason]')
+    const charCount = document.querySelector<HTMLElement>('[data-request-char-count]')
+    const errBox = document.querySelector<HTMLElement>('[data-request-error]')
+    const cancelBtn = document.querySelector<HTMLButtonElement>('[data-request-cancel]')
+    const submitBtn = document.querySelector<HTMLButtonElement>('[data-request-submit]')
+
+    if (wrap && modal && reasonEl && submitBtn && cancelBtn && modalTitle && errBox && charCount) {
+      let currentAction: 'reschedule' | 'cancel' = 'reschedule'
+
+      const showError = (msg: string) => {
+        errBox.textContent = msg
+        errBox.classList.remove('hidden')
+      }
+      const hideError = () => {
+        errBox.classList.add('hidden')
+        errBox.textContent = ''
+      }
+      const openModal = (action: 'reschedule' | 'cancel') => {
+        currentAction = action
+        modalTitle.textContent = action === 'reschedule' ? 'Request Reschedule' : 'Request Cancellation'
+        reasonEl.value = ''
+        charCount.textContent = '0 / 500'
+        hideError()
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        setTimeout(() => reasonEl.focus(), 50)
+      }
+      const closeModal = () => {
+        modal.classList.add('hidden')
+        modal.classList.remove('flex')
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('[data-request-btn]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const kind = btn.getAttribute('data-request-btn') as 'reschedule' | 'cancel'
+          openModal(kind)
+        })
+      })
+      cancelBtn.addEventListener('click', closeModal)
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal() })
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal()
+      })
+      reasonEl.addEventListener('input', () => {
+        charCount.textContent = `${reasonEl.value.length} / 500`
+      })
+
+      submitBtn.addEventListener('click', async () => {
+        hideError()
+        const reason = reasonEl.value.trim()
+        if (reason.length < 10) {
+          showError('Please enter at least 10 characters so we can help you better.')
+          return
+        }
+        submitBtn.disabled = true
+        submitBtn.textContent = 'Submitting…'
+        try {
+          const bookingRef = wrap.getAttribute('data-booking-ref') ?? ''
+          const accessToken = wrap.getAttribute('data-access-token') ?? ''
+          const res = await fetch('/api/bookings/request-change', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingRef, accessToken, action: currentAction, reason }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (!res.ok || !data.ok) {
+            showError(data.message ?? data.error ?? `Request failed (HTTP ${res.status}).`)
+            submitBtn.disabled = false
+            submitBtn.textContent = 'Submit Request'
+            return
+          }
+          // Success → reload page supaya SSR tampilkan status baru.
+          submitBtn.textContent = 'Submitted ✓'
+          setTimeout(() => window.location.reload(), 600)
+        } catch (e: any) {
+          showError(e?.message ?? 'Network error.')
+          submitBtn.disabled = false
+          submitBtn.textContent = 'Submit Request'
         }
       })
     }

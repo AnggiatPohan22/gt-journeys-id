@@ -216,6 +216,250 @@ const sendPaymentEndpoint: Endpoint = {
   },
 }
 
+/**
+ * Phase 4.69.9 — Shared handler untuk 2 admin "Send Response" endpoints
+ * (reschedule, cancel). Template keys berbeda, status transition berbeda.
+ */
+interface ResponseConfig {
+  templateSubjectKey: string
+  templateEmailBodyKey: string
+  templateWaBodyKey: string
+  fromStatuses: string[]
+  toStatus: string | null // null = tetap di status yg sama (reschedule — admin lanjut manual)
+  idempotencyPrefix: string
+}
+
+async function handleSendResponse(
+  req: Parameters<Endpoint['handler']>[0],
+  config: ResponseConfig,
+): Promise<Response> {
+  const forbid = requireAdmin(req)
+  if (forbid) return forbid
+  const id = parseIntId(req)
+  if (!id) return Response.json({ ok: false, error: 'bad_id' }, { status: 400 })
+  const body = await readBody(req)
+  const previewOnly = body.previewOnly === true
+
+  try {
+    const booking = (await req.payload.findByID({
+      collection: 'bookings',
+      id,
+      overrideAccess: true,
+      depth: 0,
+    })) as Record<string, unknown>
+
+    if (!previewOnly) {
+      const status = booking.status as string | undefined
+      if (!status || !config.fromStatuses.includes(status)) {
+        return Response.json(
+          {
+            ok: false,
+            errors: [
+              `Booking status "${status}" tidak valid untuk endpoint ini. Harus salah satu: ${config.fromStatuses.join(', ')}.`,
+            ],
+          },
+          { status: 409 },
+        )
+      }
+    }
+
+    const tpl = await readTemplates(req)
+    const adminName = (tpl.adminName as string | undefined) ?? 'GtJourneysID Team'
+    const adminWhatsapp = (tpl.adminWhatsapp as string | undefined) ?? ''
+
+    const siteUrl = process.env.SITE_URL ?? 'http://localhost:4321'
+    const confirmationUrl =
+      booking.bookingRef && booking.accessToken
+        ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
+        : null
+
+    const ctx = buildContext(booking as any, {
+      passengerList: formatPassengerList((booking.passengers as any) ?? []),
+      adminName,
+      adminWhatsapp,
+      confirmationUrl: confirmationUrl ?? undefined,
+    })
+
+    const subjectR = renderTemplate(String(tpl[config.templateSubjectKey] ?? ''), ctx)
+    const emailBodyR = renderTemplate(String(tpl[config.templateEmailBodyKey] ?? ''), ctx)
+    const waBodyR = renderTemplate(String(tpl[config.templateWaBodyKey] ?? ''), ctx)
+
+    const errors = [
+      ...subjectR.errors.map((e) => `[Email Subject] ${e}`),
+      ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
+      ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
+    ]
+    if (errors.length > 0) {
+      return Response.json(
+        { ok: false, previewOnly, errors } satisfies HandoffResponse,
+        { status: 400 },
+      )
+    }
+
+    const waUrl = buildWaLink(booking.customerWhatsapp as string | undefined, waBodyR.rendered)
+
+    if (previewOnly) {
+      return Response.json({
+        ok: true,
+        previewOnly: true,
+        emailSubject: subjectR.rendered,
+        emailBody: emailBodyR.rendered,
+        whatsappBody: waBodyR.rendered,
+        waUrl,
+      } satisfies HandoffResponse)
+    }
+
+    const to = booking.customerEmail as string | undefined
+    if (!to) {
+      return Response.json(
+        { ok: false, errors: ['Customer email kosong — tidak bisa kirim response.'] },
+        { status: 400 },
+      )
+    }
+
+    const sent = await sendEmail({
+      to,
+      subject: subjectR.rendered,
+      text: emailBodyR.rendered,
+      idempotencyKey: `${config.idempotencyPrefix}:${booking.bookingRef}:${req.user!.id}`,
+    })
+    if (!sent.ok) {
+      return Response.json(
+        { ok: false, errors: [`Email gagal terkirim: ${sent.error ?? 'unknown'}`] },
+        { status: 502 },
+      )
+    }
+
+    if (config.toStatus !== null) {
+      await req.payload.update({
+        collection: 'bookings',
+        id,
+        data: { status: config.toStatus },
+        overrideAccess: true,
+      })
+    }
+
+    return Response.json({
+      ok: true,
+      previewOnly: false,
+      emailSubject: subjectR.rendered,
+      emailBody: emailBodyR.rendered,
+      whatsappBody: waBodyR.rendered,
+      waUrl,
+      sentEmailId: sent.id,
+      newStatus: config.toStatus ?? (booking.status as string),
+    } satisfies HandoffResponse)
+  } catch (e) {
+    return Response.json(
+      { ok: false, errors: [(e as Error).message] },
+      { status: 500 },
+    )
+  }
+}
+
+/**
+ * Phase 4.69.9 — Customer-triggered request (reschedule/cancel).
+ * Called by web endpoint (API-key auth = role admin). Payload REST PATCH
+ * generic failure → custom endpoint pakai Local API.
+ */
+const customerRequestEndpoint: Endpoint = {
+  path: '/:id/customer-request',
+  method: 'post',
+  handler: async (req) => {
+    const forbid = requireAdmin(req)
+    if (forbid) return forbid
+    const id = parseIntId(req)
+    if (!id) return Response.json({ ok: false, error: 'bad_id' }, { status: 400 })
+
+    const body = await readBody(req) as { kind?: string; reason?: string }
+    const kind = body.kind
+    const reason = (body.reason ?? '').trim()
+    if (kind !== 'reschedule' && kind !== 'cancel') {
+      return Response.json({ ok: false, error: 'bad_kind' }, { status: 400 })
+    }
+    if (reason.length < 10 || reason.length > 500) {
+      return Response.json({ ok: false, error: 'reason_length' }, { status: 400 })
+    }
+
+    try {
+      const booking = (await req.payload.findByID({
+        collection: 'bookings',
+        id,
+        overrideAccess: true,
+        depth: 0,
+      })) as Record<string, unknown>
+
+      const status = booking.status as string
+      // Hanya status "aktif" yang bisa request change.
+      const activeStatuses = [
+        'awaiting_review',
+        'awaiting_payment',
+        'payment_review',
+        'confirmed',
+        'pending',
+      ]
+      if (!activeStatuses.includes(status)) {
+        return Response.json(
+          {
+            ok: false,
+            error: 'status_locked',
+            message: `Booking status "${status}" tidak bisa di-request change.`,
+          },
+          { status: 409 },
+        )
+      }
+
+      const newStatus = kind === 'reschedule' ? 'reschedule_request' : 'cancel_request'
+      await req.payload.update({
+        collection: 'bookings',
+        id,
+        data: {
+          status: newStatus,
+          customerRequestKind: kind,
+          customerRequestReason: reason,
+          customerRequestedAt: new Date().toISOString(),
+        },
+        overrideAccess: true,
+      })
+
+      return Response.json({ ok: true, newStatus, kind })
+    } catch (e) {
+      return Response.json(
+        { ok: false, error: 'server_error', message: (e as Error).message },
+        { status: 500 },
+      )
+    }
+  },
+}
+
+const sendRescheduleResponseEndpoint: Endpoint = {
+  path: '/:id/send-reschedule-response',
+  method: 'post',
+  handler: (req) =>
+    handleSendResponse(req, {
+      templateSubjectKey: 'rescheduleEmailSubject',
+      templateEmailBodyKey: 'rescheduleEmailBody',
+      templateWaBodyKey: 'rescheduleWhatsappBody',
+      fromStatuses: ['reschedule_request'],
+      toStatus: null, // Admin lanjut update detail reschedule manually
+      idempotencyPrefix: 'reschedule',
+    }),
+}
+
+const sendCancelResponseEndpoint: Endpoint = {
+  path: '/:id/send-cancel-response',
+  method: 'post',
+  handler: (req) =>
+    handleSendResponse(req, {
+      templateSubjectKey: 'cancelEmailSubject',
+      templateEmailBodyKey: 'cancelEmailBody',
+      templateWaBodyKey: 'cancelWhatsappBody',
+      fromStatuses: ['cancel_request'],
+      toStatus: 'cancelled',
+      idempotencyPrefix: 'cancel',
+    }),
+}
+
 const sendTicketEndpoint: Endpoint = {
   path: '/:id/send-ticket',
   method: 'post',
@@ -385,7 +629,7 @@ export const Bookings: CollectionConfig = {
     update: isAdmin,
     delete: isSuperAdmin,
   },
-  endpoints: [sendPaymentEndpoint, sendTicketEndpoint],
+  endpoints: [sendPaymentEndpoint, sendTicketEndpoint, sendRescheduleResponseEndpoint, sendCancelResponseEndpoint, customerRequestEndpoint],
   fields: [
     // ── Admin Actions (Phase 4.69.7) ─────────────────────────
     // UI field — tombol "Send Payment Instructions" & "Confirm Payment &
@@ -770,6 +1014,60 @@ export const Bookings: CollectionConfig = {
         date: { pickerAppearance: 'dayAndTime' },
         description: 'Auto-expire booking pending setelah waktu ini. Nullable.',
       },
+    },
+
+    // ── Customer Request (Phase 4.69.9) — reschedule/cancel ─────────────
+    // Field diisi oleh endpoint web `/api/bookings/request-change` saat
+    // customer klik tombol "Request Reschedule" / "Request Cancel" di
+    // confirmation page. Admin lihat alasan + timestamp lalu respond via
+    // tombol "Send Reschedule Response" / "Send Cancel Response" di
+    // Admin Actions section (reuse BookingAdminActions).
+    {
+      type: 'collapsible',
+      label: 'Customer Request',
+      admin: {
+        initCollapsed: true,
+        description: 'Terisi otomatis saat customer klik Request Reschedule / Cancel. Admin baca di sini lalu kirim respond via Admin Actions.',
+        condition: (data) =>
+          data?.status === 'reschedule_request' ||
+          data?.status === 'cancel_request' ||
+          !!data?.customerRequestReason,
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'customerRequestKind',
+              type: 'select',
+              options: [
+                { label: 'Reschedule', value: 'reschedule' },
+                { label: 'Cancel', value: 'cancel' },
+              ],
+              admin: { width: '30%', readOnly: true, description: 'Jenis request terakhir.' },
+            },
+            {
+              name: 'customerRequestedAt',
+              type: 'date',
+              admin: {
+                width: '70%',
+                date: { pickerAppearance: 'dayAndTime' },
+                readOnly: true,
+                description: 'Timestamp request dari customer.',
+              },
+            },
+          ],
+        },
+        {
+          name: 'customerRequestReason',
+          type: 'textarea',
+          admin: {
+            readOnly: true,
+            rows: 4,
+            description: 'Alasan dari customer. Baca sebelum response.',
+          },
+        },
+      ],
     },
 
     // ── Admin-handoff audit (Phase 4.69.5) ─────────────

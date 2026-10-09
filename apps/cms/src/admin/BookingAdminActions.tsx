@@ -18,7 +18,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAllFormFields, useDocumentInfo } from '@payloadcms/ui'
 
-type ActionKind = 'payment' | 'ticket'
+type ActionKind = 'payment' | 'ticket' | 'reschedule' | 'cancel'
 
 interface PreviewResult {
   ok: boolean
@@ -35,7 +35,36 @@ interface PreviewResult {
 function statusToKind(status: string | undefined): ActionKind | null {
   if (status === 'awaiting_review' || status === 'pending') return 'payment'
   if (status === 'payment_review' || status === 'awaiting_payment') return 'ticket'
+  if (status === 'reschedule_request') return 'reschedule'
+  if (status === 'cancel_request') return 'cancel'
   return null
+}
+
+function kindToPath(kind: ActionKind): string {
+  switch (kind) {
+    case 'payment':    return 'send-payment'
+    case 'ticket':     return 'send-ticket'
+    case 'reschedule': return 'send-reschedule-response'
+    case 'cancel':     return 'send-cancel-response'
+  }
+}
+
+function kindToLabel(kind: ActionKind): string {
+  switch (kind) {
+    case 'payment':    return 'Send Payment Instructions'
+    case 'ticket':     return 'Confirm Payment & Send Ticket'
+    case 'reschedule': return 'Send Reschedule Response'
+    case 'cancel':     return 'Send Cancel Response (status → cancelled)'
+  }
+}
+
+function kindToEmoji(kind: ActionKind): string {
+  switch (kind) {
+    case 'payment':    return '📧'
+    case 'ticket':     return '🎫'
+    case 'reschedule': return '🔁'
+    case 'cancel':     return '❌'
+  }
 }
 
 const BookingAdminActions: React.FC = () => {
@@ -52,8 +81,7 @@ const BookingAdminActions: React.FC = () => {
   const [sent, setSent] = useState<PreviewResult | null>(null)
   const dialogRef = useRef<HTMLDivElement | null>(null)
 
-  const endpointPath = (k: ActionKind) =>
-    k === 'payment' ? `/api/bookings/${id}/send-payment` : `/api/bookings/${id}/send-ticket`
+  const endpointPath = (k: ActionKind) => `/api/bookings/${id}/${kindToPath(k)}`
 
   const fetchPreview = useCallback(
     async (k: ActionKind) => {
@@ -145,12 +173,7 @@ const BookingAdminActions: React.FC = () => {
     )
   }
 
-  const btnLabel =
-    kind === 'payment'
-      ? 'Send Payment Instructions'
-      : kind === 'ticket'
-        ? 'Confirm Payment & Send Ticket'
-        : null
+  const btnLabel = kind ? kindToLabel(kind) : null
 
   return (
     <div className="bk-admin-actions">
@@ -170,7 +193,7 @@ const BookingAdminActions: React.FC = () => {
               className={`bk-admin-actions__btn bk-admin-actions__btn--${kind}`}
               onClick={() => openModal(kind)}
             >
-              {kind === 'payment' ? '📧' : '🎫'} {btnLabel}
+              {kindToEmoji(kind)} {btnLabel}
             </button>
             <span className="bk-admin-actions__hint">
               Preview email + WA message akan ditampilkan sebelum kirim.
@@ -304,8 +327,10 @@ const css = `
   border-radius: 6px;
   cursor: pointer;
 }
-.bk-admin-actions__btn--payment { background: #1B3A4B; }
-.bk-admin-actions__btn--ticket  { background: #6B9080; }
+.bk-admin-actions__btn--payment    { background: #1B3A4B; }
+.bk-admin-actions__btn--ticket     { background: #6B9080; }
+.bk-admin-actions__btn--reschedule { background: #d9a441; }
+.bk-admin-actions__btn--cancel     { background: #e07a5f; }
 .bk-admin-actions__btn:hover { opacity: 0.9; }
 .bk-admin-actions__hint, .bk-admin-actions__caption {
   font-size: 0.85rem;

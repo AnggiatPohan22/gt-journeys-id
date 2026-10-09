@@ -381,6 +381,18 @@ export interface Booking {
    */
   expiresAt?: string | null;
   /**
+   * Jenis request terakhir.
+   */
+  customerRequestKind?: ('reschedule' | 'cancel') | null;
+  /**
+   * Timestamp request dari customer.
+   */
+  customerRequestedAt?: string | null;
+  /**
+   * Alasan dari customer. Baca sebelum response.
+   */
+  customerRequestReason?: string | null;
+  /**
    * Di-set saat booking dibuat dengan email verified token valid (Phase 4.69.3).
    */
   emailVerifiedAt?: string | null;
@@ -30249,6 +30261,9 @@ export interface BookingsSelect<T extends boolean = true> {
   channel?: T;
   channelData?: T;
   expiresAt?: T;
+  customerRequestKind?: T;
+  customerRequestedAt?: T;
+  customerRequestReason?: T;
   emailVerifiedAt?: T;
   whatsappVerifiedAt?: T;
   sentPaymentAt?: T;
