@@ -42,6 +42,7 @@ import * as migration_20260930_081508 from './20260930_081508';
 import * as migration_20260930_120000_popup_settings_en_defaults from './20260930_120000_popup_settings_en_defaults';
 import * as migration_20260930_231200_phase_4_66_5_booking_access_token from './20260930_231200_phase_4_66_5_booking_access_token';
 import * as migration_20261007_061355_phase_4_67_2a_bookings_roundtrip from './20261007_061355_phase_4_67_2a_bookings_roundtrip';
+import * as migration_20261009_094925_phase_4_69_2_otp_verifications from './20261009_094925_phase_4_69_2_otp_verifications';
 
 export const migrations = [
   {
@@ -263,5 +264,10 @@ export const migrations = [
     up: migration_20261007_061355_phase_4_67_2a_bookings_roundtrip.up,
     down: migration_20261007_061355_phase_4_67_2a_bookings_roundtrip.down,
     name: '20261007_061355_phase_4_67_2a_bookings_roundtrip'
+  },
+  {
+    up: migration_20261009_094925_phase_4_69_2_otp_verifications.up,
+    down: migration_20261009_094925_phase_4_69_2_otp_verifications.down,
+    name: '20261009_094925_phase_4_69_2_otp_verifications',
   },
 ];

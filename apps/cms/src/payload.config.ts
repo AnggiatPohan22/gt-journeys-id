@@ -47,6 +47,7 @@ import { ChatVisitors } from './collections/ChatVisitors'
 import { ChatMessages } from './collections/ChatMessages'
 import { ChatBlockedEvents } from './collections/ChatBlockedEvents'
 import { Bookings } from './collections/Bookings'
+import { OtpVerifications } from './collections/OtpVerifications'
 
 // Globals
 import { SiteSettings } from './globals/SiteSettings'
@@ -178,6 +179,7 @@ export default buildConfig({
   collections: [
     // ── BOOKINGS group ──────────────────────────
     Bookings,
+    OtpVerifications,
     // ── SERVICES group ──────────────────────────
     Tours,
     Accommodations,

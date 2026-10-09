@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     bookings: Booking;
+    'otp-verifications': OtpVerification;
     tours: Tour;
     accommodations: Accommodation;
     'water-activities': WaterActivity;
@@ -108,6 +109,7 @@ export interface Config {
   };
   collectionsSelect: {
     bookings: BookingsSelect<false> | BookingsSelect<true>;
+    'otp-verifications': OtpVerificationsSelect<false> | OtpVerificationsSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
     accommodations: AccommodationsSelect<false> | AccommodationsSelect<true>;
     'water-activities': WaterActivitiesSelect<false> | WaterActivitiesSelect<true>;
@@ -26825,6 +26827,45 @@ export interface Location {
   createdAt: string;
 }
 /**
+ * Ephemeral OTP records (email/WA). Semua nilai sensitif di-hash. Auto-cleanup via cron.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "otp-verifications".
+ */
+export interface OtpVerification {
+  id: number;
+  /**
+   * Jenis target yang diverifikasi.
+   */
+  kind: 'email' | 'whatsapp';
+  /**
+   * SHA-256(email_or_waNumber || OTP_SALT). Jangan pernah simpan raw.
+   */
+  targetHash: string;
+  /**
+   * SHA-256(otp || OTP_SALT). 6-digit OTP di-hash dengan salt sama.
+   */
+  otpHash: string;
+  /**
+   * Jumlah percobaan check. >= 5 → invalid tanpa perlu TTL habis.
+   */
+  attempts?: number | null;
+  /**
+   * OTP_TTL_MINUTES setelah createdAt. Setelah ini → invalid.
+   */
+  expiresAt: string;
+  /**
+   * Diisi saat OTP sukses diverifikasi. Record single-use setelah ini.
+   */
+  verifiedAt?: string | null;
+  /**
+   * Hash IP pengirim untuk rate-limit audit (jangan pernah raw IP).
+   */
+  ipHash?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Metadata untuk kategori layanan (label, ikon, hero, SEO, WhatsApp). Listing/produk tetap di collection masing-masing.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -29956,6 +29997,10 @@ export interface PayloadLockedDocument {
         value: number | Booking;
       } | null)
     | ({
+        relationTo: 'otp-verifications';
+        value: number | OtpVerification;
+      } | null)
+    | ({
         relationTo: 'tours';
         value: number | Tour;
       } | null)
@@ -30166,6 +30211,21 @@ export interface BookingsSelect<T extends boolean = true> {
   channel?: T;
   channelData?: T;
   expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "otp-verifications_select".
+ */
+export interface OtpVerificationsSelect<T extends boolean = true> {
+  kind?: T;
+  targetHash?: T;
+  otpHash?: T;
+  attempts?: T;
+  expiresAt?: T;
+  verifiedAt?: T;
+  ipHash?: T;
   updatedAt?: T;
   createdAt?: T;
 }
