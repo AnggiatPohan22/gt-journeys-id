@@ -44,6 +44,7 @@ import * as migration_20260930_231200_phase_4_66_5_booking_access_token from './
 import * as migration_20261007_061355_phase_4_67_2a_bookings_roundtrip from './20261007_061355_phase_4_67_2a_bookings_roundtrip';
 import * as migration_20261009_094925_phase_4_69_2_otp_verifications from './20261009_094925_phase_4_69_2_otp_verifications';
 import * as migration_20261009_115958_phase_4_69_5_bookings_admin_handoff from './20261009_115958_phase_4_69_5_bookings_admin_handoff';
+import * as migration_20261009_121202_phase_4_69_6_booking_templates from './20261009_121202_phase_4_69_6_booking_templates';
 
 export const migrations = [
   {
@@ -275,5 +276,10 @@ export const migrations = [
     up: migration_20261009_115958_phase_4_69_5_bookings_admin_handoff.up,
     down: migration_20261009_115958_phase_4_69_5_bookings_admin_handoff.down,
     name: '20261009_115958_phase_4_69_5_bookings_admin_handoff',
+  },
+  {
+    up: migration_20261009_121202_phase_4_69_6_booking_templates.up,
+    down: migration_20261009_121202_phase_4_69_6_booking_templates.down,
+    name: '20261009_121202_phase_4_69_6_booking_templates',
   },
 ];

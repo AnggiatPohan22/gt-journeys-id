@@ -148,6 +148,7 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
+    'booking-templates': BookingTemplate;
     'homepage-content': HomepageContent;
     'blog-settings': BlogSetting;
     'chat-widget': ChatWidget;
@@ -160,6 +161,7 @@ export interface Config {
     'site-features': SiteFeature;
   };
   globalsSelect: {
+    'booking-templates': BookingTemplatesSelect<false> | BookingTemplatesSelect<true>;
     'homepage-content': HomepageContentSelect<false> | HomepageContentSelect<true>;
     'blog-settings': BlogSettingsSelect<false> | BlogSettingsSelect<true>;
     'chat-widget': ChatWidgetSelect<false> | ChatWidgetSelect<true>;
@@ -44609,6 +44611,79 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * Template pesan untuk invoice, konfirmasi, reschedule, cancel. Variables: {{bookingRef}}, {{customerName}}, {{totalEstimate}}, dst. Super-admin only untuk edit.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "booking-templates".
+ */
+export interface BookingTemplate {
+  id: number;
+  /**
+   * Boleh pakai variable di subject.
+   */
+  paymentEmailSubject: string;
+  /**
+   * HTML/plain text. Variables: lihat tab Variables Reference.
+   */
+  paymentEmailBody: string;
+  /**
+   * Pesan WA — plain text, emoji OK. Max ~1500 char.
+   */
+  paymentWhatsappBody: string;
+  ticketEmailSubject: string;
+  ticketEmailBody: string;
+  ticketWhatsappBody: string;
+  rescheduleEmailSubject?: string | null;
+  /**
+   * Template singkat — admin tambah detail per-kasus sebelum kirim.
+   */
+  rescheduleEmailBody?: string | null;
+  rescheduleWhatsappBody?: string | null;
+  cancelEmailSubject?: string | null;
+  cancelEmailBody?: string | null;
+  cancelWhatsappBody?: string | null;
+  /**
+   * Harus mengandung {{otp}} supaya kode tampil di subject.
+   */
+  otpEmailSubject: string;
+  /**
+   * Harus mengandung {{otp}}.
+   */
+  otpEmailBody: string;
+  /**
+   * Satu rekening per baris. Format tampil: "Bank — nama holder — rekening".
+   */
+  bankAccounts?:
+    | {
+        /**
+         * Contoh: BCA, Mandiri, OCBC.
+         */
+        bankName: string;
+        accountNumber: string;
+        accountHolder: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Nomor WA admin untuk kirim bukti bayar (format +62…). Opsional — fallback ke SiteSettings.whatsapp.
+   */
+  adminWhatsapp?: string | null;
+  /**
+   * Nama/signature untuk {{adminName}}.
+   */
+  adminName?: string | null;
+  /**
+   * Window pembayaran dalam JAM. Default 24. Dipakai menghitung {{paymentDeadline}}.
+   */
+  paymentDeadlineHours?: number | null;
+  /**
+   * Read-only — list variabel yang di-support engine. Variable yang tidak ter-whitelist akan error saat kirim.
+   */
+  variablesReferenceDoc?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Copy fallback untuk homepage. Kalau Page(slug=home) ada, semua field di sini diabaikan.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -46351,6 +46426,41 @@ export interface SiteFeature {
   };
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "booking-templates_select".
+ */
+export interface BookingTemplatesSelect<T extends boolean = true> {
+  paymentEmailSubject?: T;
+  paymentEmailBody?: T;
+  paymentWhatsappBody?: T;
+  ticketEmailSubject?: T;
+  ticketEmailBody?: T;
+  ticketWhatsappBody?: T;
+  rescheduleEmailSubject?: T;
+  rescheduleEmailBody?: T;
+  rescheduleWhatsappBody?: T;
+  cancelEmailSubject?: T;
+  cancelEmailBody?: T;
+  cancelWhatsappBody?: T;
+  otpEmailSubject?: T;
+  otpEmailBody?: T;
+  bankAccounts?:
+    | T
+    | {
+        bankName?: T;
+        accountNumber?: T;
+        accountHolder?: T;
+        id?: T;
+      };
+  adminWhatsapp?: T;
+  adminName?: T;
+  paymentDeadlineHours?: T;
+  variablesReferenceDoc?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

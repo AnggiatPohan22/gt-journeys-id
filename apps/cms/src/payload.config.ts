@@ -55,6 +55,7 @@ import { HeaderSettings } from './globals/HeaderSettings'
 import { FooterSettings } from './globals/FooterSettings'
 import { SiteFeatures } from './globals/SiteFeatures'
 import { HomepageContent } from './globals/HomepageContent'
+import { BookingTemplates } from './globals/BookingTemplates'
 import { AnnouncementBar } from './globals/AnnouncementBar'
 import { PromoBanner } from './globals/PromoBanner'
 import { BlogSettings } from './globals/BlogSettings'
@@ -220,6 +221,8 @@ export default buildConfig({
   // Phase 4.68.3 — ordered to append each global into its existing
   // (collection-anchored) group, then introduce Appearance last.
   globals: [
+    // Bookings (Phase 4.69.6)
+    BookingTemplates,
     // Content & Pages (append)
     HomepageContent,
     // Blog (append)

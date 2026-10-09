@@ -1,0 +1,233 @@
+import type { GlobalConfig } from 'payload'
+import { isAdmin, superAdminFieldAccess } from '../access/roles'
+
+/**
+ * Booking Templates — Phase 4.69.6.
+ *
+ * Template editable untuk pesan email + WhatsApp yang dikirim admin
+ * saat flow handoff booking:
+ *   - Payment Instructions (saat `awaiting_review` → `awaiting_payment`)
+ *   - Confirmation / E-Ticket (saat `payment_review` → `confirmed`)
+ *   - Reschedule Response
+ *   - Cancellation Response
+ *   - OTP Email (Phase 4.69.2 — reserved untuk saat admin ingin kustomisasi)
+ *
+ * + Bank accounts array (snapshot ke pesan payment)
+ *
+ * Variable substitution: `{{varname}}` di body → di-replace oleh engine
+ * (lihat `apps/web/src/lib/checkout/templateRenderer.ts`). Whitelist
+ * strict + D10=ERROR saat variable tidak ter-resolve.
+ *
+ * Access:
+ * - read:   isAdmin (semua admin+ bisa preview + lihat variable info)
+ * - update: isSuperAdmin (SUPER-ADMIN ONLY — D7 approval)
+ */
+export const BookingTemplates: GlobalConfig = {
+  slug: 'booking-templates',
+  label: 'Booking Templates',
+  admin: {
+    group: 'Bookings',
+    description: 'Template pesan untuk invoice, konfirmasi, reschedule, cancel. Variables: {{bookingRef}}, {{customerName}}, {{totalEstimate}}, dst. Super-admin only untuk edit.',
+    hidden: ({ user }) => !user || user.role === 'editor',
+  },
+  access: {
+    read: isAdmin,
+    update: ({ req }) => req.user?.role === 'super-admin',
+  },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Payment Instructions',
+          description: 'Dikirim saat admin klik "Send Payment Instructions" (Phase 4.69.7).',
+          fields: [
+            {
+              name: 'paymentEmailSubject',
+              type: 'text',
+              required: true,
+              defaultValue: 'Payment Instructions for Booking {{bookingRef}}',
+              admin: { description: 'Boleh pakai variable di subject.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'paymentEmailBody',
+              type: 'textarea',
+              required: true,
+              defaultValue: 'Hi {{customerName}},\n\nTerima kasih sudah booking dengan GtJourneysID.\n\n*Booking Reference:* {{bookingRef}}\n*Route:* {{originLocation}} → {{destinationLocation}}\n*Date:* {{departureDate}}\n*Passengers:* {{adults}} adult(s) + {{children}} child(ren)\n*Total:* {{currency}} {{totalEstimate}}\n\nSilakan transfer ke salah satu rekening berikut:\n{{bankAccountsBlock}}\n\nSetelah transfer, kirim bukti pembayaran ke {{adminWhatsapp}}.\n\nBatas waktu pembayaran: {{paymentDeadline}}.\n\nTerima kasih,\nGtJourneysID',
+              admin: { description: 'HTML/plain text. Variables: lihat tab Variables Reference.', rows: 15 },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'paymentWhatsappBody',
+              type: 'textarea',
+              required: true,
+              defaultValue: 'Halo {{customerName}}! 👋\n\nBooking kamu di GtJourneysID sudah kami review ✅\n\n🔖 Ref: {{bookingRef}}\n📍 Rute: {{originLocation}} → {{destinationLocation}}\n📅 Tanggal: {{departureDate}}\n👥 Pax: {{adults}} dewasa + {{children}} anak\n💰 Total: {{currency}} {{totalEstimate}}\n\nSilakan transfer ke:\n{{bankAccountsBlock}}\n\nKirim bukti transfer balas pesan ini ya. Batas waktu: {{paymentDeadline}}.',
+              admin: { description: 'Pesan WA — plain text, emoji OK. Max ~1500 char.', rows: 12 },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
+          label: 'Confirmation / E-Ticket',
+          description: 'Dikirim saat admin klik "Confirm Payment & Send Ticket".',
+          fields: [
+            {
+              name: 'ticketEmailSubject',
+              type: 'text',
+              required: true,
+              defaultValue: 'Your Ferry Ticket — Booking {{bookingRef}} Confirmed',
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'ticketEmailBody',
+              type: 'textarea',
+              required: true,
+              defaultValue: 'Hi {{customerName}},\n\nPembayaran kamu sudah kami terima — booking {{bookingRef}} CONFIRMED.\n\n*Detail Perjalanan:*\n*Route:* {{originLocation}} → {{destinationLocation}}\n*Date:* {{departureDate}}\n*Class:* {{ferryClassName}}\n*Passengers:* {{adults}} adult(s) + {{children}} child(ren)\n\n{{passengerList}}\n\nMohon tiba di terminal 60 menit sebelum keberangkatan. Siapkan passport fisik untuk check-in.\n\nTerima kasih,\nGtJourneysID',
+              admin: { rows: 15 },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'ticketWhatsappBody',
+              type: 'textarea',
+              required: true,
+              defaultValue: '✅ *Booking Confirmed!*\n\n🔖 Ref: {{bookingRef}}\n📍 Rute: {{originLocation}} → {{destinationLocation}}\n📅 Tanggal: {{departureDate}}\n🎫 Kelas: {{ferryClassName}}\n👥 Pax: {{adults}} dewasa + {{children}} anak\n\nTiba di terminal 60 menit sebelum berangkat. Jangan lupa bawa passport fisik ya!',
+              admin: { rows: 10 },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
+          label: 'Reschedule Response',
+          description: 'Dikirim saat admin respond ke customer yang minta reschedule.',
+          fields: [
+            {
+              name: 'rescheduleEmailSubject',
+              type: 'text',
+              defaultValue: 'Reschedule Request — Booking {{bookingRef}}',
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'rescheduleEmailBody',
+              type: 'textarea',
+              defaultValue: 'Hi {{customerName}},\n\nPermintaan reschedule untuk booking {{bookingRef}} sudah kami review.\n\n[Admin — isi detail reschedule di sini sebelum kirim]\n\nTerima kasih,\nGtJourneysID',
+              admin: { rows: 10, description: 'Template singkat — admin tambah detail per-kasus sebelum kirim.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'rescheduleWhatsappBody',
+              type: 'textarea',
+              defaultValue: 'Halo {{customerName}}, permintaan reschedule booking {{bookingRef}} sudah kami review.\n\n[Admin tambah detail di sini]',
+              admin: { rows: 6 },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
+          label: 'Cancellation Response',
+          description: 'Dikirim saat admin respond ke customer yang minta cancel.',
+          fields: [
+            {
+              name: 'cancelEmailSubject',
+              type: 'text',
+              defaultValue: 'Cancellation — Booking {{bookingRef}}',
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'cancelEmailBody',
+              type: 'textarea',
+              defaultValue: 'Hi {{customerName}},\n\nBooking {{bookingRef}} sudah dibatalkan sesuai permintaan.\n\n[Admin — isi detail refund policy di sini]\n\nTerima kasih,\nGtJourneysID',
+              admin: { rows: 10 },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'cancelWhatsappBody',
+              type: 'textarea',
+              defaultValue: 'Halo {{customerName}}, booking {{bookingRef}} sudah dibatalkan.\n\n[Admin tambah detail refund]',
+              admin: { rows: 6 },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
+          label: 'OTP Email',
+          description: 'Template email OTP verifikasi (Phase 4.69.2). Variabel wajib: {{otp}}.',
+          fields: [
+            {
+              name: 'otpEmailSubject',
+              type: 'text',
+              required: true,
+              defaultValue: 'Your GtJourneysID verification code: {{otp}}',
+              admin: { description: 'Harus mengandung {{otp}} supaya kode tampil di subject.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'otpEmailBody',
+              type: 'textarea',
+              required: true,
+              defaultValue: 'Halo,\n\nKode verifikasi GtJourneysID kamu: {{otp}}\n\nKode berlaku selama {{otpTtlMinutes}} menit. Jangan bagikan ke siapapun.\n\nKalau kamu tidak meminta kode ini, abaikan email ini.\n\n— GtJourneysID',
+              admin: { rows: 10, description: 'Harus mengandung {{otp}}.' },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
+          label: 'Bank Accounts',
+          description: 'Daftar rekening yang di-render ke {{bankAccountsBlock}}.',
+          fields: [
+            {
+              name: 'bankAccounts',
+              type: 'array',
+              label: 'Bank Accounts',
+              admin: { description: 'Satu rekening per baris. Format tampil: "Bank — nama holder — rekening".' },
+              fields: [
+                { name: 'bankName', type: 'text', required: true, admin: { description: 'Contoh: BCA, Mandiri, OCBC.' } },
+                { name: 'accountNumber', type: 'text', required: true },
+                { name: 'accountHolder', type: 'text', required: true },
+              ],
+            },
+            {
+              name: 'adminWhatsapp',
+              type: 'text',
+              defaultValue: '',
+              admin: { description: 'Nomor WA admin untuk kirim bukti bayar (format +62…). Opsional — fallback ke SiteSettings.whatsapp.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'adminName',
+              type: 'text',
+              defaultValue: 'GtJourneysID Team',
+              admin: { description: 'Nama/signature untuk {{adminName}}.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'paymentDeadlineHours',
+              type: 'number',
+              defaultValue: 24,
+              min: 1,
+              max: 168,
+              admin: { description: 'Window pembayaran dalam JAM. Default 24. Dipakai menghitung {{paymentDeadline}}.' },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
+          label: 'Variables Reference',
+          description: 'Daftar lengkap variable yang bisa dipakai di template body/subject.',
+          fields: [
+            {
+              name: 'variablesReferenceDoc',
+              type: 'textarea',
+              admin: {
+                readOnly: true,
+                rows: 20,
+                description: 'Read-only — list variabel yang di-support engine. Variable yang tidak ter-whitelist akan error saat kirim.',
+              },
+              defaultValue: 'VARIABEL YANG TERSEDIA (D10 ERROR saat missing):\n\n— Booking —\n{{bookingRef}}         Ref booking (contoh: FT-20261009-A1B2C3)\n{{accessToken}}        Token akses halaman konfirmasi\n{{confirmationUrl}}    URL confirmation page lengkap dgn token\n\n— Customer —\n{{customerName}}       Nama pemesan\n{{customerEmail}}      Email pemesan\n{{customerWhatsapp}}   WA pemesan (snapshot composed)\n{{customerCountry}}    Negara asal\n\n— Trip —\n{{tripType}}           "one-way" / "round-trip"\n{{departureDate}}      Format YYYY-MM-DD\n{{returnDate}}         Hanya kalau round-trip, kalau tidak kosong\n{{originLocation}}     Nama kota asal\n{{destinationLocation}} Nama kota tujuan\n{{ferryClassName}}     Nama kelas (contoh: Emerald)\n{{adults}}, {{children}} Jumlah penumpang\n{{passengerList}}      Multi-line: tiap passenger 1 baris\n\n— Pricing —\n{{unitPrice}}, {{totalEstimate}}, {{currency}}\n\n— Payment —\n{{bankAccountsBlock}}  Formatted bank list dari tab Bank Accounts\n{{paymentDeadline}}    Datetime deadline = now + paymentDeadlineHours jam\n\n— Admin —\n{{adminName}}, {{adminWhatsapp}}\n\n— OTP (hanya untuk template OTP Email) —\n{{otp}}                6-digit OTP\n{{otpTtlMinutes}}      TTL dalam menit (dari env OTP_TTL_MINUTES)\n',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
