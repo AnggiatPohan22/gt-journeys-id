@@ -60,6 +60,76 @@ const incrementAttemptEndpoint: Endpoint = {
 }
 
 /**
+ * Phase 4.69.10 — Cleanup OTP records lama (expired + grace window).
+ *
+ * Body: { graceDays?: number } (default 7). Hanya record dengan
+ * `expiresAt < now - graceDays * 24h` dihapus. Grace window supaya
+ * audit admin masih punya window baca record setelah expired.
+ *
+ * Return: { ok, deleted, scanned, cutoffISO }
+ *
+ * Auth: admin role (via API-Key). Dipanggil oleh web endpoint
+ * `/api/cron/cleanup-otp` yang disetup external cron.
+ */
+const cleanupEndpoint: Endpoint = {
+  path: '/cleanup',
+  method: 'post',
+  handler: async (req) => {
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super-admin')) {
+      return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+    }
+    let body: { graceDays?: number } = {}
+    try {
+      body = (await (req as any).json?.()) ?? {}
+    } catch {}
+
+    const graceDays = Math.max(0, Math.min(90, body.graceDays ?? 7))
+    const cutoff = new Date(Date.now() - graceDays * 24 * 60 * 60 * 1000)
+    const cutoffISO = cutoff.toISOString()
+
+    try {
+      // Find expired records yang lebih tua dari cutoff.
+      const result = await req.payload.find({
+        collection: 'otp-verifications',
+        where: {
+          expiresAt: { less_than: cutoffISO },
+        },
+        limit: 1000, // Batasi per-batch supaya tidak OOM.
+        depth: 0,
+        overrideAccess: true,
+      })
+
+      let deleted = 0
+      for (const doc of result.docs) {
+        try {
+          await req.payload.delete({
+            collection: 'otp-verifications',
+            id: doc.id,
+            overrideAccess: true,
+          })
+          deleted++
+        } catch {
+          // Skip errors — mungkin sudah terhapus concurrent.
+        }
+      }
+
+      return Response.json({
+        ok: true,
+        deleted,
+        scanned: result.docs.length,
+        cutoffISO,
+        hasMore: result.hasNextPage ?? false,
+      })
+    } catch (e) {
+      return Response.json(
+        { ok: false, error: (e as Error).message },
+        { status: 500 },
+      )
+    }
+  },
+}
+
+/**
  * OtpVerifications — Phase 4.69.2.
  *
  * One-time passcode records untuk verifikasi email (dan nanti WhatsApp
@@ -151,6 +221,6 @@ export const OtpVerifications: CollectionConfig = {
       admin: { description: 'Hash IP pengirim untuk rate-limit audit (jangan pernah raw IP).' },
     },
   ],
-  endpoints: [markVerifiedEndpoint, incrementAttemptEndpoint],
+  endpoints: [markVerifiedEndpoint, incrementAttemptEndpoint, cleanupEndpoint],
   timestamps: true, // createdAt + updatedAt
 }
