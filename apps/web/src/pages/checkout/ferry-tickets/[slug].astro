@@ -1585,6 +1585,25 @@ const totalPax = qAdults + qChildren
         }
       }
 
+      // 5. Phase 4.59.2 (bug fix) — Expiry MUST be >= departureDate + 6 months.
+      // Dulu rule ini cuma di server → kalau gagal, server redirect
+      // dgn ?err=invalid_passport_expiry → page reload, form data + OTP token
+      // hilang. Sekarang client-side block sebelum submit → tidak pernah
+      // sampai server.
+      if (expiry?.value) {
+        const dep = getDeparture()
+        if (dep) {
+          const minExpiry = new Date(dep)
+          minExpiry.setMonth(minExpiry.getMonth() + 6)
+          const eT = new Date(expiry.value).getTime()
+          if (!isNaN(eT) && eT < minExpiry.getTime()) {
+            const label = minExpiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            msgs.push(`Masa berlaku passport harus minimal 6 bulan setelah tanggal keberangkatan (minimal ${label}).`)
+            expiry.classList.add('ring-2', 'ring-coral')
+          }
+        }
+      }
+
       return msgs
     }
 
@@ -1731,6 +1750,10 @@ const totalPax = qAdults + qChildren
 
         if (issues.length === 0) {
           hideAlert()
+          // Phase 4.59.2 (bug fix) — Disable beforeunload warning saat
+          // legitimate submit supaya redirect ke confirmation page tidak
+          // kena prompt browser.
+          ;(window as any).__checkoutSubmitting = true
           return // allow native submit
         }
 
@@ -1750,5 +1773,30 @@ const totalPax = qAdults + qChildren
         }
       })
     }
+
+    // Phase 4.59.2 (bug fix) — Prevent accidental refresh/close.
+    //
+    // Konteks: halaman checkout menyimpan OTP token (hasil verify email,
+    // 30 menit TTL) + semua data penumpang di memory state. Kalau user
+    // refresh → semua reset → user perlu kirim OTP ulang → berisiko kena
+    // rate-limit spam (3 send/15 menit).
+    //
+    // Solusi: beforeunload prompt kalau user sudah mulai interact dgn form.
+    // Browser modern hanya kasih prompt kalau user "engaged" (ada input
+    // event dulu). Clear flag saat legitimate submit (lihat submit handler
+    // di atas yang set `__checkoutSubmitting = true`).
+    let formDirty = false
+    const markDirty = () => { formDirty = true }
+    if (checkoutFormEl) {
+      checkoutFormEl.addEventListener('input', markDirty, { capture: true })
+      checkoutFormEl.addEventListener('change', markDirty, { capture: true })
+    }
+    window.addEventListener('beforeunload', (e) => {
+      if ((window as any).__checkoutSubmitting) return // allow legit submit
+      if (!formDirty) return // user belum interact → tidak prompt
+      // Modern browsers ignore custom message; cukup set returnValue untuk trigger native prompt.
+      e.preventDefault()
+      e.returnValue = ''
+    })
   })
 </script>
