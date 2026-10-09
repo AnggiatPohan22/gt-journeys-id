@@ -42,6 +42,8 @@ import { createBooking, generateBookingRef, generateAccessToken, getFerryForChec
 import { verifyFormStamp } from '@lib/checkout/signedToken'
 import { checkBookingRateLimit, getClientIp, hashIp } from '@lib/checkout/rateLimit'
 import { resolveLocation } from '@lib/location'
+import { verifyEmailVerifiedToken } from '@lib/checkout/emailVerifiedToken'
+import { hashWithSalt } from '@lib/checkout/otp'
 
 // Phase 4.66.9 — rate-limit key = salted-hash IP (bukan raw IP) supaya
 // map key tidak bocor identitas visitor. Salt di-baca dari env; fall
@@ -182,6 +184,22 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const children = Math.max(0, Math.min(6, Number(form.get('children') ?? 0) || 0))
   if (!slug || !name || name.length < 2 || !region || !phone || !departureDate || !email || !isEmail(email)) {
     return errorRedirect(back, 'invalid_fields')
+  }
+
+  // Phase 4.69.3 — Email verification wall. Reject kalau token tidak ada,
+  // signature invalid, expired, atau targetHash tidak match customerEmail
+  // (customer edit email setelah verify → UI reset tapi defense-in-depth).
+  const emailToken = String(form.get('emailVerifiedToken') ?? '').trim()
+  if (!emailToken) {
+    return errorRedirect(back, 'email_not_verified')
+  }
+  const tokenCheck = await verifyEmailVerifiedToken(emailToken)
+  if (!tokenCheck.ok) {
+    return errorRedirect(back, tokenCheck.reason === 'expired' ? 'email_verification_expired' : 'email_not_verified')
+  }
+  const emailTargetHash = await hashWithSalt(email)
+  if (emailTargetHash !== tokenCheck.targetHash) {
+    return errorRedirect(back, 'email_mismatch')
   }
   // Phase 4.61.7 — defense-in-depth: reject past departure date. Client
   // date input already has `min={today}`, but a bypass would land here.

@@ -105,6 +105,10 @@ const errorMessages: Record<string, string> = {
   return_ferry_no_price: 'The return ferry class has no price configured. Please contact us on WhatsApp.',
   return_route_mismatch: 'Return route must be the reverse of your outbound (origin ↔ destination). Please pick a matching return ferry.',
   return_currency_mismatch: 'Return ferry uses a different currency than outbound. Please pick a ferry with the same currency.',
+  // Phase 4.69.3 — Email verification failures (OTP wall).
+  email_not_verified: 'Please verify your email first (click "Verify" next to the email field).',
+  email_verification_expired: 'Email verification expired. Please verify again.',
+  email_mismatch: 'The email you entered differs from the verified one. Verify the current email or revert.',
 }
 const errorMsg = errCode ? errorMessages[errCode] ?? 'Something went wrong. Please try again.' : ''
 
@@ -497,12 +501,56 @@ const totalPax = qAdults + qChildren
                   <input type="text" name="customerName" required minlength="2" maxlength="200" placeholder="e.g. Anggi Pohan"
                     class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
                 </div>
-                <div>
+                {/* Phase 4.69.3 — Email with OTP verification wall.
+                    State machine: idle → sending → otp-input → verifying → verified.
+                    Submit disabled sampai verified (hidden input emailVerifiedToken terisi). */}
+                <div data-email-verify-root>
                   <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
                     Email Address <span class="text-coral">*</span>
+                    <span data-email-badge class="ml-2 hidden items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-leaf-dark bg-leaf/15 px-2 py-0.5 rounded-full">
+                      <Icon name="check_circle" class="w-3 h-3" /> Verified
+                    </span>
                   </label>
-                  <input type="email" name="customerEmail" required maxlength="200" placeholder="you@example.com"
-                    class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                  <div class="flex gap-2">
+                    <input type="email" name="customerEmail" required maxlength="200" placeholder="you@example.com"
+                      data-email-input
+                      class="flex-1 min-w-0 bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                    <button type="button" data-email-verify-btn
+                      class="shrink-0 inline-flex items-center justify-center gap-1 px-4 py-3 bg-ocean hover:bg-ocean-dark active:scale-[0.99] text-white font-bold rounded-xl text-xs uppercase tracking-wider transition disabled:bg-stone-light disabled:cursor-not-allowed">
+                      <span data-email-verify-label>Verify</span>
+                    </button>
+                  </div>
+
+                  {/* OTP input panel — hidden sampai send sukses */}
+                  <div data-email-otp-panel class="hidden mt-3 bg-sand/60 rounded-xl p-3 space-y-2">
+                    <p class="text-xs font-semibold text-ocean leading-relaxed">
+                      <Icon name="mail" class="w-3.5 h-3.5 inline -mt-0.5" />
+                      Kode 6 digit dikirim ke email kamu. Berlaku <span data-otp-countdown class="font-bold text-coral">10:00</span>.
+                    </p>
+                    <div class="flex gap-2">
+                      <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"
+                        placeholder="123456"
+                        data-email-otp-input
+                        class="flex-1 min-w-0 bg-white rounded-lg px-3 py-2.5 text-sm font-bold tracking-[0.3em] text-center text-ocean shadow-inner focus:outline-none focus:ring-2 focus:ring-leaf transition" />
+                      <button type="button" data-email-otp-submit
+                        class="shrink-0 inline-flex items-center justify-center gap-1 px-4 py-2.5 bg-leaf-dark hover:bg-leaf text-white font-bold rounded-lg text-xs uppercase tracking-wider transition disabled:bg-stone-light disabled:cursor-not-allowed">
+                        Check
+                      </button>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px]">
+                      <button type="button" data-email-resend
+                        class="font-semibold text-stone hover:text-ocean underline underline-offset-2 disabled:text-stone-light disabled:no-underline disabled:cursor-not-allowed">
+                        Kirim ulang kode
+                      </button>
+                      <span data-email-attempts class="text-stone-light"></span>
+                    </div>
+                  </div>
+
+                  {/* Error line */}
+                  <p data-email-error class="hidden mt-2 text-xs font-semibold text-coral"></p>
+
+                  {/* Hidden token input dikirim bersama form submit */}
+                  <input type="hidden" name="emailVerifiedToken" value="" data-email-token />
                 </div>
                 <div>
                   <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
@@ -1201,10 +1249,227 @@ const totalPax = qAdults + qChildren
         btn?.setAttribute('aria-expanded', 'true')
       }
     }
+    // (5) Phase 4.69.3 — Email verification wall (OTP).
+    //     State machine: idle → sending → otp-input → verifying → verified.
+    //     Email change setelah verified → reset ke idle (invalidate token).
+    const emailRoot = document.querySelector<HTMLElement>('[data-email-verify-root]')
+    if (emailRoot) {
+      const emailInput = emailRoot.querySelector<HTMLInputElement>('[data-email-input]')!
+      const verifyBtn = emailRoot.querySelector<HTMLButtonElement>('[data-email-verify-btn]')!
+      const verifyLabel = emailRoot.querySelector<HTMLElement>('[data-email-verify-label]')!
+      const otpPanel = emailRoot.querySelector<HTMLElement>('[data-email-otp-panel]')!
+      const otpInput = emailRoot.querySelector<HTMLInputElement>('[data-email-otp-input]')!
+      const otpSubmit = emailRoot.querySelector<HTMLButtonElement>('[data-email-otp-submit]')!
+      const resendBtn = emailRoot.querySelector<HTMLButtonElement>('[data-email-resend]')!
+      const attemptsHint = emailRoot.querySelector<HTMLElement>('[data-email-attempts]')!
+      const countdownEl = emailRoot.querySelector<HTMLElement>('[data-otp-countdown]')!
+      const errLine = emailRoot.querySelector<HTMLElement>('[data-email-error]')!
+      const badge = emailRoot.querySelector<HTMLElement>('[data-email-badge]')!
+      const tokenInput = emailRoot.querySelector<HTMLInputElement>('[data-email-token]')!
+
+      let countdownTimer: number | null = null
+      let verifiedEmail = ''  // email yang sudah ter-verify — invalidate kalau user edit email
+
+      const emailLooksValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())
+
+      const showErr = (msg: string) => {
+        errLine.textContent = msg
+        errLine.classList.remove('hidden')
+      }
+      const clearErr = () => {
+        errLine.textContent = ''
+        errLine.classList.add('hidden')
+      }
+
+      const setVerified = (email: string, token: string) => {
+        verifiedEmail = email
+        tokenInput.value = token
+        badge.classList.remove('hidden')
+        badge.classList.add('inline-flex')
+        verifyLabel.textContent = 'Verified'
+        verifyBtn.disabled = true
+        emailInput.readOnly = true
+        emailInput.classList.add('bg-leaf/5', 'text-stone')
+        otpPanel.classList.add('hidden')
+        if (countdownTimer) {
+          clearInterval(countdownTimer)
+          countdownTimer = null
+        }
+        clearErr()
+      }
+
+      const resetToIdle = () => {
+        verifiedEmail = ''
+        tokenInput.value = ''
+        badge.classList.add('hidden')
+        badge.classList.remove('inline-flex')
+        verifyBtn.disabled = false
+        verifyLabel.textContent = 'Verify'
+        emailInput.readOnly = false
+        emailInput.classList.remove('bg-leaf/5', 'text-stone')
+        otpPanel.classList.add('hidden')
+        otpInput.value = ''
+        if (countdownTimer) {
+          clearInterval(countdownTimer)
+          countdownTimer = null
+        }
+      }
+
+      const startCountdown = (ttlSeconds: number) => {
+        let remaining = ttlSeconds
+        const render = () => {
+          const m = String(Math.floor(remaining / 60)).padStart(2, '0')
+          const s = String(remaining % 60).padStart(2, '0')
+          countdownEl.textContent = `${m}:${s}`
+          if (remaining <= 60) countdownEl.classList.add('text-coral', 'animate-pulse')
+        }
+        if (countdownTimer) clearInterval(countdownTimer)
+        render()
+        countdownTimer = window.setInterval(() => {
+          remaining -= 1
+          if (remaining <= 0) {
+            clearInterval(countdownTimer!)
+            countdownTimer = null
+            otpSubmit.disabled = true
+            showErr('Kode OTP kadaluarsa. Klik "Kirim ulang kode" untuk minta baru.')
+            return
+          }
+          render()
+        }, 1000)
+      }
+
+      const callSend = async () => {
+        clearErr()
+        const email = emailInput.value.trim()
+        if (!emailLooksValid()) {
+          showErr('Format email tidak valid.')
+          emailInput.focus()
+          return
+        }
+        verifyBtn.disabled = true
+        verifyLabel.textContent = 'Sending...'
+        try {
+          const res = await fetch('/api/checkout/verify/email-send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          })
+          const data = (await res.json().catch(() => ({}))) as {
+            ok?: boolean
+            error?: string
+            ttlSeconds?: number
+            retryAfterSeconds?: number
+          }
+          if (data.ok) {
+            otpPanel.classList.remove('hidden')
+            otpInput.value = ''
+            otpSubmit.disabled = false
+            attemptsHint.textContent = ''
+            countdownEl.classList.remove('text-coral', 'animate-pulse')
+            startCountdown(data.ttlSeconds ?? 600)
+            verifyLabel.textContent = 'Sent'
+            verifyBtn.disabled = true
+            setTimeout(() => otpInput.focus(), 50)
+            return
+          }
+          if (data.error === 'rate_limited') {
+            const mins = Math.ceil((data.retryAfterSeconds ?? 900) / 60)
+            showErr(`Terlalu banyak permintaan. Coba lagi dalam ${mins} menit.`)
+          } else if (data.error === 'invalid_email') {
+            showErr('Format email tidak valid.')
+          } else if (data.error === 'send_failed') {
+            showErr('Gagal mengirim email verifikasi. Coba lagi atau gunakan email lain.')
+          } else {
+            showErr('Layanan verifikasi tidak tersedia. Hubungi admin via WhatsApp.')
+          }
+          verifyLabel.textContent = 'Verify'
+          verifyBtn.disabled = false
+        } catch {
+          showErr('Gangguan jaringan. Coba lagi.')
+          verifyLabel.textContent = 'Verify'
+          verifyBtn.disabled = false
+        }
+      }
+
+      const callCheck = async () => {
+        clearErr()
+        const otp = otpInput.value.trim()
+        const email = emailInput.value.trim()
+        if (!/^\d{6}$/.test(otp)) {
+          showErr('Masukkan 6 digit kode OTP.')
+          otpInput.focus()
+          return
+        }
+        otpSubmit.disabled = true
+        try {
+          const res = await fetch('/api/checkout/verify/email-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp }),
+          })
+          const data = (await res.json().catch(() => ({}))) as {
+            ok?: boolean
+            error?: string
+            token?: string
+            attemptsLeft?: number
+          }
+          if (data.ok && data.token) {
+            setVerified(email, data.token)
+            return
+          }
+          if (data.error === 'otp_mismatch') {
+            const left = data.attemptsLeft ?? 0
+            showErr(`Kode salah. Sisa percobaan: ${left}.`)
+            attemptsHint.textContent = `${left} percobaan tersisa`
+            otpInput.value = ''
+            otpInput.focus()
+            otpSubmit.disabled = false
+          } else if (data.error === 'too_many_attempts') {
+            showErr('Terlalu banyak percobaan salah. Klik "Kirim ulang kode" untuk minta OTP baru.')
+            otpSubmit.disabled = true
+          } else if (data.error === 'no_active_otp') {
+            showErr('Kode tidak ditemukan atau sudah kadaluarsa. Klik "Kirim ulang kode".')
+            otpSubmit.disabled = true
+          } else {
+            showErr('Verifikasi gagal. Coba lagi.')
+            otpSubmit.disabled = false
+          }
+        } catch {
+          showErr('Gangguan jaringan. Coba lagi.')
+          otpSubmit.disabled = false
+        }
+      }
+
+      verifyBtn.addEventListener('click', callSend)
+      resendBtn.addEventListener('click', callSend)
+      otpSubmit.addEventListener('click', callCheck)
+      otpInput.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          e.preventDefault()
+          callCheck()
+        }
+      })
+
+      // Email change setelah verified → invalidate token (user harus verify ulang).
+      emailInput.addEventListener('input', () => {
+        if (verifiedEmail && emailInput.value.trim().toLowerCase() !== verifiedEmail.toLowerCase()) {
+          resetToIdle()
+        }
+      })
+    }
+
     if (checkoutFormEl && alertEl && alertList) {
       checkoutFormEl.addEventListener('submit', (e) => {
         const issues: string[] = []
         let firstInvalid: HTMLElement | null = null
+
+        // Phase 4.69.3 — Guard: email harus ter-verify.
+        const tokenEl = checkoutFormEl.querySelector<HTMLInputElement>('[data-email-token]')
+        if (tokenEl && !tokenEl.value) {
+          issues.push('Email verification (klik tombol "Verify" di sebelah email)')
+          const emailField = checkoutFormEl.querySelector<HTMLInputElement>('[data-email-input]')
+          if (emailField && !firstInvalid) firstInvalid = emailField
+        }
 
         // Contact fields.
         const contactChecks: Array<{ name: string; label: string }> = [
