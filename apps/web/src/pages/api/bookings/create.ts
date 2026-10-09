@@ -44,6 +44,7 @@ import { checkBookingRateLimit, getClientIp, hashIp } from '@lib/checkout/rateLi
 import { resolveLocation } from '@lib/location'
 import { verifyEmailVerifiedToken } from '@lib/checkout/emailVerifiedToken'
 import { hashWithSalt } from '@lib/checkout/otp'
+import { validatePassenger, detectDuplicatePassports } from '@lib/checkout/passengerValidation'
 
 // Phase 4.66.9 — rate-limit key = salted-hash IP (bukan raw IP) supaya
 // map key tidak bocor identitas visitor. Salt di-baca dari env; fall
@@ -235,6 +236,21 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   }
   if (!passportExpiryOk(passengers, departureDate)) {
     return errorRedirect(back, 'invalid_passport_expiry')
+  }
+
+  // Phase 4.69.4 — passenger inline validation (passport format, DOB vs
+  // passenger type, issue vs today/dob, expiry > issue, duplicate passport).
+  const inlineIssues = passengers.flatMap((p, i) =>
+    validatePassenger(p, i, departureDate),
+  )
+  const dupIssues = detectDuplicatePassports(passengers)
+  const allIssues = [...inlineIssues, ...dupIssues]
+  if (allIssues.length > 0) {
+    // Encode kode issue pertama supaya UI bisa menunjukkan field spesifik.
+    // (UI utama tetap melakukan client-side validation yang menampilkan
+    // seluruh daftar issue — ini guard SSOT kalau client di-bypass.)
+    const first = allIssues[0]
+    return errorRedirect(back, `passenger_${first.code}`)
   }
 
   // ── Phase 4.66.4 — verifikasi ferry + recompute pricing dari CMS ─────

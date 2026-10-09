@@ -109,6 +109,16 @@ const errorMessages: Record<string, string> = {
   email_not_verified: 'Please verify your email first (click "Verify" next to the email field).',
   email_verification_expired: 'Email verification expired. Please verify again.',
   email_mismatch: 'The email you entered differs from the verified one. Verify the current email or revert.',
+  // Phase 4.69.4 — Passenger inline validation (server guard mirrors UI validator).
+  passenger_passport_format: 'A passport number does not match the expected format for its nationality. Check the passenger section.',
+  passenger_passport_duplicate: 'Two or more passengers share the same passport number. Each passenger must have a unique passport.',
+  passenger_dob_invalid: 'A passenger\'s date of birth is invalid. Please re-check.',
+  passenger_dob_adult_too_young: 'An Adult passenger is under 12 years old at departure. Switch to Child or adjust the DOB.',
+  passenger_dob_child_out_of_range: 'A Child passenger is outside 2–11 years at departure. Switch category or adjust the DOB.',
+  passenger_issue_invalid: 'A passport issue date is invalid.',
+  passenger_issue_future: 'A passport issue date is in the future.',
+  passenger_issue_before_dob: 'A passport issue date is earlier than the passenger\'s date of birth.',
+  passenger_expiry_before_issue: 'A passport expiry date is before its issue date.',
 }
 const errorMsg = errCode ? errorMessages[errCode] ?? 'Something went wrong. Please try again.' : ''
 
@@ -696,7 +706,7 @@ const totalPax = qAdults + qChildren
                       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                           <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Date of Birth</label>
-                          <input type="date" name={`passengers[${i}][dateOfBirth]`}
+                          <input type="date" name={`passengers[${i}][dateOfBirth]`} data-pax-dob={String(i)}
                             class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
                         </div>
                         <div>
@@ -710,7 +720,7 @@ const totalPax = qAdults + qChildren
                         </div>
                         <div>
                           <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Nationality</label>
-                          <select name={`passengers[${i}][nationality]`}
+                          <select name={`passengers[${i}][nationality]`} data-pax-nationality={String(i)}
                             class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
                             <option value="">Select…</option>
                             {nationalityOptions.map((n) => <option value={n.value}>{n.label}</option>)}
@@ -726,15 +736,20 @@ const totalPax = qAdults + qChildren
                         </div>
                         <div>
                           <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Issue Date</label>
-                          <input type="date" name={`passengers[${i}][passportIssueDate]`}
+                          <input type="date" name={`passengers[${i}][passportIssueDate]`} data-pax-issue={String(i)}
                             class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
                         </div>
                         <div>
                           <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Expiry Date</label>
-                          <input type="date" name={`passengers[${i}][passportExpiryDate]`}
+                          <input type="date" name={`passengers[${i}][passportExpiryDate]`} data-pax-expiry={String(i)}
                             class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
                         </div>
                       </div>
+
+                      {/* Phase 4.69.4 — Inline passenger validation errors.
+                          Diisi oleh client script di akhir file saat user blur
+                          /change field passport/DOB/issue/expiry. */}
+                      <ul data-pax-errors={String(i)} class="hidden mt-1 space-y-1 text-xs font-semibold text-coral list-disc list-inside"></ul>
                     </div>
                   </div>
                 )
@@ -1458,6 +1473,199 @@ const totalPax = qAdults + qChildren
       })
     }
 
+    // (6) Phase 4.69.4 — Passenger inline validation (passport format,
+    //     DOB vs type, issue/expiry logic, duplicate passport). Mirror
+    //     dari `@lib/checkout/passengerValidation.ts` — client+server
+    //     share rule set. Dijalankan on blur/change tiap field, + full
+    //     pass di submit.
+    const ADULT_MIN = 12, CHILD_MIN = 2, CHILD_MAX = 11
+    const PASSPORT_SPECS: Record<string, { re: RegExp; hint: string }> = {
+      Indonesia:   { re: /^[A-Z]{1,2}\d{7}$/,    hint: '1-2 huruf + 7 digit' },
+      Singapore:   { re: /^[A-Z]\d{7}[A-Z]$/,    hint: '1 huruf + 7 digit + 1 huruf' },
+      Malaysia:    { re: /^[A-Z]\d{8}$/,         hint: '1 huruf + 8 digit' },
+      Philippines: { re: /^[A-Z]\d{7}[A-Z]?$/,   hint: '1 huruf + 7 digit (opsional huruf akhir)' },
+      Thailand:    { re: /^[A-Z]{1,2}\d{7}$/,    hint: '1-2 huruf + 7 digit' },
+      Vietnam:     { re: /^[A-Z]\d{7}$/,         hint: '1 huruf + 7 digit' },
+      'United States':  { re: /^\d{9}$/,         hint: '9 digit' },
+      'United Kingdom': { re: /^\d{9}$/,         hint: '9 digit' },
+      Australia:   { re: /^[A-Z]\d{7}$/,         hint: '1 huruf + 7 digit' },
+      Japan:       { re: /^[A-Z]{2}\d{7}$/,      hint: '2 huruf + 7 digit' },
+    }
+    const GENERIC_PP = /^[A-Z0-9]{6,12}$/
+    const normalizePP = (v: string) => v.replace(/[\s-]/g, '').toUpperCase()
+    const ageAt = (dobIso: string, refIso: string): number | null => {
+      const d = new Date(dobIso), r = new Date(refIso)
+      if (isNaN(d.getTime()) || isNaN(r.getTime())) return null
+      let a = r.getFullYear() - d.getFullYear()
+      const m = r.getMonth() - d.getMonth()
+      if (m < 0 || (m === 0 && r.getDate() < d.getDate())) a -= 1
+      return a
+    }
+    const todayISO = () => new Date().toISOString().slice(0, 10)
+
+    const departureDateInput = document.querySelector<HTMLInputElement>('[name="departureDate"]')
+    const getDeparture = () => (departureDateInput?.value ?? todayISO()).slice(0, 10)
+
+    const paxValidate = (idx: number): string[] => {
+      const item = document.querySelector<HTMLElement>(`.passenger-item[data-index="${idx}"]`)
+      if (!item) return []
+      const typeInput = item.querySelector<HTMLInputElement>(`[name="passengers[${idx}][passengerType]"]`)
+      const type = (typeInput?.value as 'adult' | 'child') ?? 'adult'
+      const pp = item.querySelector<HTMLInputElement>(`[data-pax-passport="${idx}"]`)
+      const dob = item.querySelector<HTMLInputElement>(`[data-pax-dob="${idx}"]`)
+      const issue = item.querySelector<HTMLInputElement>(`[data-pax-issue="${idx}"]`)
+      const expiry = item.querySelector<HTMLInputElement>(`[data-pax-expiry="${idx}"]`)
+      const nat = item.querySelector<HTMLSelectElement>(`[data-pax-nationality="${idx}"]`)
+      const msgs: string[] = []
+
+      // Clear previous ring highlights.
+      ;[pp, dob, issue, expiry].forEach((el) => el?.classList.remove('ring-2', 'ring-coral'))
+
+      // 1. Passport format.
+      if (pp?.value.trim()) {
+        const normalized = normalizePP(pp.value)
+        const natVal = (nat?.value ?? '').trim()
+        const spec = natVal && PASSPORT_SPECS[natVal] ? PASSPORT_SPECS[natVal] : null
+        const re = spec?.re ?? GENERIC_PP
+        const hint = spec?.hint ?? '6–12 huruf besar / angka'
+        if (!re.test(normalized)) {
+          msgs.push(`Format passport tidak sesuai (${hint}).`)
+          pp.classList.add('ring-2', 'ring-coral')
+        }
+      }
+
+      const dep = getDeparture()
+      // 2. DOB sanity.
+      if (dob?.value) {
+        const age = ageAt(dob.value, dep)
+        if (age === null || age < 0) {
+          msgs.push('Tanggal lahir tidak valid.')
+          dob.classList.add('ring-2', 'ring-coral')
+        } else {
+          if (type === 'adult' && age < ADULT_MIN) {
+            msgs.push(`Penumpang Adult harus berumur ≥ ${ADULT_MIN} tahun saat departure (ini ${age} tahun).`)
+            dob.classList.add('ring-2', 'ring-coral')
+          }
+          if (type === 'child' && (age < CHILD_MIN || age > CHILD_MAX)) {
+            msgs.push(`Penumpang Child harus berumur ${CHILD_MIN}–${CHILD_MAX} tahun saat departure (ini ${age} tahun).`)
+            dob.classList.add('ring-2', 'ring-coral')
+          }
+        }
+      }
+
+      // 3. Issue date <= today AND >= DOB.
+      if (issue?.value) {
+        const iT = new Date(issue.value).getTime()
+        const tT = new Date(todayISO()).getTime()
+        if (isNaN(iT)) {
+          msgs.push('Tanggal terbit passport tidak valid.')
+          issue.classList.add('ring-2', 'ring-coral')
+        } else {
+          if (iT > tT) {
+            msgs.push('Tanggal terbit passport tidak boleh di masa depan.')
+            issue.classList.add('ring-2', 'ring-coral')
+          }
+          if (dob?.value) {
+            const dT = new Date(dob.value).getTime()
+            if (!isNaN(dT) && iT < dT) {
+              msgs.push('Tanggal terbit passport tidak boleh sebelum tanggal lahir.')
+              issue.classList.add('ring-2', 'ring-coral')
+            }
+          }
+        }
+      }
+
+      // 4. Expiry > Issue.
+      if (issue?.value && expiry?.value) {
+        const iT = new Date(issue.value).getTime()
+        const eT = new Date(expiry.value).getTime()
+        if (!isNaN(iT) && !isNaN(eT) && eT <= iT) {
+          msgs.push('Masa berlaku passport harus setelah tanggal terbit.')
+          expiry.classList.add('ring-2', 'ring-coral')
+        }
+      }
+
+      return msgs
+    }
+
+    const paxRenderErrors = (idx: number, msgs: string[]) => {
+      const ul = document.querySelector<HTMLUListElement>(`[data-pax-errors="${idx}"]`)
+      if (!ul) return
+      if (msgs.length === 0) {
+        ul.classList.add('hidden')
+        ul.innerHTML = ''
+      } else {
+        ul.classList.remove('hidden')
+        ul.innerHTML = msgs.map((m) => `<li>${m.replace(/</g, '&lt;')}</li>`).join('')
+      }
+    }
+
+    const paxCheckDuplicatesAcrossAll = (): Map<number, string[]> => {
+      const seen = new Map<string, number[]>()
+      const result = new Map<number, string[]>()
+      document.querySelectorAll<HTMLElement>('.passenger-item').forEach((item) => {
+        const idx = Number(item.dataset.index ?? '-1')
+        if (idx < 0) return
+        const pp = item.querySelector<HTMLInputElement>(`[data-pax-passport="${idx}"]`)
+        const val = pp?.value?.trim()
+        if (!val) return
+        const n = normalizePP(val)
+        const arr = seen.get(n) ?? []
+        arr.push(idx)
+        seen.set(n, arr)
+      })
+      for (const [, indices] of seen) {
+        if (indices.length < 2) continue
+        for (const i of indices) {
+          const others = indices.filter((x) => x !== i).map((x) => x + 1).join(', ')
+          const list = result.get(i) ?? []
+          list.push(`Nomor passport sama dengan Penumpang ${others}.`)
+          result.set(i, list)
+          const pp = document.querySelector<HTMLInputElement>(`[data-pax-passport="${i}"]`)
+          pp?.classList.add('ring-2', 'ring-coral')
+        }
+      }
+      return result
+    }
+
+    const paxValidateAll = (): number /* total issues */ => {
+      let total = 0
+      const dupMap = paxCheckDuplicatesAcrossAll()
+      document.querySelectorAll<HTMLElement>('.passenger-item').forEach((item) => {
+        const idx = Number(item.dataset.index ?? '-1')
+        if (idx < 0) return
+        const msgs = paxValidate(idx)
+        const dup = dupMap.get(idx) ?? []
+        const all = [...msgs, ...dup]
+        paxRenderErrors(idx, all)
+        total += all.length
+      })
+      return total
+    }
+
+    // Bind on blur / change for all passenger fields.
+    document.querySelectorAll<HTMLElement>('.passenger-item').forEach((item) => {
+      const idx = Number(item.dataset.index ?? '-1')
+      if (idx < 0) return
+      const fields = ['passport', 'dob', 'issue', 'expiry', 'nationality'] as const
+      for (const kind of fields) {
+        const el = item.querySelector<HTMLInputElement>(`[data-pax-${kind}="${idx}"]`)
+        if (!el) continue
+        const handler = () => {
+          // Normalize passport input to uppercase.
+          if (kind === 'passport' && el.value) {
+            const upper = el.value.toUpperCase()
+            if (upper !== el.value) {
+              el.value = upper
+            }
+          }
+          paxValidateAll()
+        }
+        el.addEventListener('blur', handler)
+        el.addEventListener('change', handler)
+      }
+    })
+
     if (checkoutFormEl && alertEl && alertList) {
       checkoutFormEl.addEventListener('submit', (e) => {
         const issues: string[] = []
@@ -1469,6 +1677,25 @@ const totalPax = qAdults + qChildren
           issues.push('Email verification (klik tombol "Verify" di sebelah email)')
           const emailField = checkoutFormEl.querySelector<HTMLInputElement>('[data-email-input]')
           if (emailField && !firstInvalid) firstInvalid = emailField
+        }
+
+        // Phase 4.69.4 — Passenger inline validation. Pre-scan + aggregate.
+        const paxErrorCount = paxValidateAll()
+        if (paxErrorCount > 0) {
+          const perPaxErrors: string[] = []
+          document.querySelectorAll<HTMLUListElement>('[data-pax-errors]').forEach((ul) => {
+            if (ul.classList.contains('hidden')) return
+            const idx = Number(ul.getAttribute('data-pax-errors') ?? '-1')
+            const liTexts = Array.from(ul.querySelectorAll('li')).map((li) => li.textContent ?? '')
+            for (const t of liTexts) {
+              perPaxErrors.push(`Penumpang ${idx + 1} — ${t}`)
+            }
+            if (!firstInvalid) {
+              firstInvalid = document.querySelector<HTMLElement>(`.passenger-item[data-index="${idx}"] input, .passenger-item[data-index="${idx}"] select`)
+              expandPassenger(idx)
+            }
+          })
+          issues.push(...perPaxErrors)
         }
 
         // Contact fields.
