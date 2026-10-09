@@ -1,5 +1,351 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Endpoint } from 'payload'
 import { isAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
+import {
+  buildContext,
+  buildWaLink,
+  computePaymentDeadline,
+  formatBankAccountsBlock,
+  formatPassengerList,
+  renderTemplate,
+} from '../lib/templateRenderer'
+import { sendEmail } from '../lib/sendEmail'
+
+/**
+ * Admin handoff endpoints — Phase 4.69.7.
+ *
+ * Dua custom endpoint untuk tombol admin "Send Payment Instructions" dan
+ * "Confirm Payment & Send Ticket" di edit view Booking.
+ *
+ * Flow umum:
+ *   1. Load booking + global `booking-templates`.
+ *   2. Build context (passengerList, bankAccountsBlock, paymentDeadline, ...).
+ *   3. Render subject + body email + body WA. Kalau error → 400 agregat.
+ *   4. (Kalau previewOnly=false) Send email via Resend. Kalau gagal → 500,
+ *      booking TIDAK diupdate (rollback-safe).
+ *   5. (Kalau sukses) Update booking: status + sent*At/By timestamp.
+ *   6. Return rendered content + wa.me deep-link (admin klik manual).
+ *
+ * Semua endpoint auth via `req.user` (session Payload admin). Role gate:
+ * admin+ (super-admin inklusif).
+ */
+
+interface HandoffBody {
+  previewOnly?: boolean
+}
+
+interface HandoffResponse {
+  ok: boolean
+  previewOnly: boolean
+  emailSubject?: string
+  emailBody?: string
+  whatsappBody?: string
+  waUrl?: string | null
+  sentEmailId?: string
+  newStatus?: string
+  errors?: string[]
+}
+
+async function readTemplates(req: Parameters<Endpoint['handler']>[0]) {
+  return req.payload.findGlobal({
+    slug: 'booking-templates',
+    overrideAccess: true,
+  }) as Promise<Record<string, unknown>>
+}
+
+function requireAdmin(req: Parameters<Endpoint['handler']>[0]): Response | null {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super-admin')) {
+    return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  }
+  return null
+}
+
+function parseIntId(req: Parameters<Endpoint['handler']>[0]): number | null {
+  const idRaw = (req.routeParams as { id?: string })?.id
+  const id = Number(idRaw)
+  return Number.isFinite(id) && id > 0 ? id : null
+}
+
+async function readBody(req: Parameters<Endpoint['handler']>[0]): Promise<HandoffBody> {
+  try {
+    // Payload v3: req.json() tersedia saat Content-Type application/json.
+    const body = (await (req as any).json?.()) ?? {}
+    return body as HandoffBody
+  } catch {
+    return {}
+  }
+}
+
+const sendPaymentEndpoint: Endpoint = {
+  path: '/:id/send-payment',
+  method: 'post',
+  handler: async (req) => {
+    const forbid = requireAdmin(req)
+    if (forbid) return forbid
+    const id = parseIntId(req)
+    if (!id) return Response.json({ ok: false, error: 'bad_id' }, { status: 400 })
+    const body = await readBody(req)
+    const previewOnly = body.previewOnly === true
+
+    try {
+      const booking = (await req.payload.findByID({
+        collection: 'bookings',
+        id,
+        overrideAccess: true,
+        depth: 0,
+      })) as Record<string, unknown>
+
+      // Status gate — hanya awaiting_review yang bisa transition ke awaiting_payment.
+      // Preview mode diizinkan untuk semua status supaya admin bisa cek template.
+      if (!previewOnly) {
+        const status = booking.status as string | undefined
+        if (status !== 'awaiting_review' && status !== 'pending') {
+          return Response.json(
+            {
+              ok: false,
+              errors: [
+                `Booking status "${status}" tidak valid untuk Send Payment. Harus "awaiting_review".`,
+              ],
+            },
+            { status: 409 },
+          )
+        }
+      }
+
+      const tpl = await readTemplates(req)
+      const banks = Array.isArray(tpl.bankAccounts)
+        ? (tpl.bankAccounts as Array<{ bankName?: string; accountHolder?: string; accountNumber?: string }>)
+        : []
+      const hours = typeof tpl.paymentDeadlineHours === 'number' ? tpl.paymentDeadlineHours : 24
+      const adminName = (tpl.adminName as string | undefined) ?? 'GtJourneysID Team'
+      const adminWhatsapp = (tpl.adminWhatsapp as string | undefined) ?? ''
+
+      const siteUrl = process.env.SITE_URL ?? 'http://localhost:4321'
+      const confirmationUrl =
+        booking.bookingRef && booking.accessToken
+          ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
+          : null
+
+      const ctx = buildContext(booking as any, {
+        bankAccountsBlock: formatBankAccountsBlock(banks),
+        paymentDeadline: computePaymentDeadline(hours),
+        adminName,
+        adminWhatsapp,
+        confirmationUrl: confirmationUrl ?? undefined,
+      })
+
+      const emailSubjectR = renderTemplate(String(tpl.paymentEmailSubject ?? ''), ctx)
+      const emailBodyR = renderTemplate(String(tpl.paymentEmailBody ?? ''), ctx)
+      const waBodyR = renderTemplate(String(tpl.paymentWhatsappBody ?? ''), ctx)
+
+      const errors = [
+        ...emailSubjectR.errors.map((e) => `[Email Subject] ${e}`),
+        ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
+        ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
+      ]
+      if (errors.length > 0) {
+        return Response.json(
+          { ok: false, previewOnly, errors } satisfies HandoffResponse,
+          { status: 400 },
+        )
+      }
+
+      const waUrl = buildWaLink(booking.customerWhatsapp as string | undefined, waBodyR.rendered)
+
+      if (previewOnly) {
+        return Response.json({
+          ok: true,
+          previewOnly: true,
+          emailSubject: emailSubjectR.rendered,
+          emailBody: emailBodyR.rendered,
+          whatsappBody: waBodyR.rendered,
+          waUrl,
+        } satisfies HandoffResponse)
+      }
+
+      const to = booking.customerEmail as string | undefined
+      if (!to) {
+        return Response.json(
+          {
+            ok: false,
+            errors: ['Customer email kosong di booking — tidak bisa kirim email payment.'],
+          },
+          { status: 400 },
+        )
+      }
+
+      const sent = await sendEmail({
+        to,
+        subject: emailSubjectR.rendered,
+        text: emailBodyR.rendered,
+        idempotencyKey: `payment:${booking.bookingRef}:${req.user!.id}`,
+      })
+      if (!sent.ok) {
+        return Response.json(
+          { ok: false, errors: [`Email gagal terkirim: ${sent.error ?? 'unknown'}`] },
+          { status: 502 },
+        )
+      }
+
+      await req.payload.update({
+        collection: 'bookings',
+        id,
+        data: {
+          status: 'awaiting_payment',
+          sentPaymentAt: new Date().toISOString(),
+          sentPaymentBy: req.user!.id,
+        },
+        overrideAccess: true,
+      })
+
+      return Response.json({
+        ok: true,
+        previewOnly: false,
+        emailSubject: emailSubjectR.rendered,
+        emailBody: emailBodyR.rendered,
+        whatsappBody: waBodyR.rendered,
+        waUrl,
+        sentEmailId: sent.id,
+        newStatus: 'awaiting_payment',
+      } satisfies HandoffResponse)
+    } catch (e) {
+      return Response.json(
+        { ok: false, errors: [(e as Error).message] },
+        { status: 500 },
+      )
+    }
+  },
+}
+
+const sendTicketEndpoint: Endpoint = {
+  path: '/:id/send-ticket',
+  method: 'post',
+  handler: async (req) => {
+    const forbid = requireAdmin(req)
+    if (forbid) return forbid
+    const id = parseIntId(req)
+    if (!id) return Response.json({ ok: false, error: 'bad_id' }, { status: 400 })
+    const body = await readBody(req)
+    const previewOnly = body.previewOnly === true
+
+    try {
+      const booking = (await req.payload.findByID({
+        collection: 'bookings',
+        id,
+        overrideAccess: true,
+        depth: 0,
+      })) as Record<string, unknown>
+
+      if (!previewOnly) {
+        const status = booking.status as string | undefined
+        if (status !== 'payment_review' && status !== 'awaiting_payment') {
+          return Response.json(
+            {
+              ok: false,
+              errors: [
+                `Booking status "${status}" tidak valid untuk Send Ticket. Harus "payment_review" (atau "awaiting_payment" sebagai shortcut).`,
+              ],
+            },
+            { status: 409 },
+          )
+        }
+      }
+
+      const tpl = await readTemplates(req)
+      const adminName = (tpl.adminName as string | undefined) ?? 'GtJourneysID Team'
+      const adminWhatsapp = (tpl.adminWhatsapp as string | undefined) ?? ''
+
+      const siteUrl = process.env.SITE_URL ?? 'http://localhost:4321'
+      const confirmationUrl =
+        booking.bookingRef && booking.accessToken
+          ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
+          : null
+
+      const ctx = buildContext(booking as any, {
+        passengerList: formatPassengerList((booking.passengers as any) ?? []),
+        adminName,
+        adminWhatsapp,
+        confirmationUrl: confirmationUrl ?? undefined,
+      })
+
+      const emailSubjectR = renderTemplate(String(tpl.ticketEmailSubject ?? ''), ctx)
+      const emailBodyR = renderTemplate(String(tpl.ticketEmailBody ?? ''), ctx)
+      const waBodyR = renderTemplate(String(tpl.ticketWhatsappBody ?? ''), ctx)
+
+      const errors = [
+        ...emailSubjectR.errors.map((e) => `[Email Subject] ${e}`),
+        ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
+        ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
+      ]
+      if (errors.length > 0) {
+        return Response.json(
+          { ok: false, previewOnly, errors } satisfies HandoffResponse,
+          { status: 400 },
+        )
+      }
+
+      const waUrl = buildWaLink(booking.customerWhatsapp as string | undefined, waBodyR.rendered)
+
+      if (previewOnly) {
+        return Response.json({
+          ok: true,
+          previewOnly: true,
+          emailSubject: emailSubjectR.rendered,
+          emailBody: emailBodyR.rendered,
+          whatsappBody: waBodyR.rendered,
+          waUrl,
+        } satisfies HandoffResponse)
+      }
+
+      const to = booking.customerEmail as string | undefined
+      if (!to) {
+        return Response.json(
+          { ok: false, errors: ['Customer email kosong — tidak bisa kirim e-ticket.'] },
+          { status: 400 },
+        )
+      }
+
+      const sent = await sendEmail({
+        to,
+        subject: emailSubjectR.rendered,
+        text: emailBodyR.rendered,
+        idempotencyKey: `ticket:${booking.bookingRef}:${req.user!.id}`,
+      })
+      if (!sent.ok) {
+        return Response.json(
+          { ok: false, errors: [`Email gagal terkirim: ${sent.error ?? 'unknown'}`] },
+          { status: 502 },
+        )
+      }
+
+      await req.payload.update({
+        collection: 'bookings',
+        id,
+        data: {
+          status: 'confirmed',
+          sentTicketAt: new Date().toISOString(),
+          sentTicketBy: req.user!.id,
+        },
+        overrideAccess: true,
+      })
+
+      return Response.json({
+        ok: true,
+        previewOnly: false,
+        emailSubject: emailSubjectR.rendered,
+        emailBody: emailBodyR.rendered,
+        whatsappBody: waBodyR.rendered,
+        waUrl,
+        sentEmailId: sent.id,
+        newStatus: 'confirmed',
+      } satisfies HandoffResponse)
+    } catch (e) {
+      return Response.json(
+        { ok: false, errors: [(e as Error).message] },
+        { status: 500 },
+      )
+    }
+  },
+}
 
 /**
  * Bookings — Phase 4.62.
@@ -34,7 +380,23 @@ export const Bookings: CollectionConfig = {
     update: isAdmin,
     delete: isSuperAdmin,
   },
+  endpoints: [sendPaymentEndpoint, sendTicketEndpoint],
   fields: [
+    // ── Admin Actions (Phase 4.69.7) ─────────────────────────
+    // UI field — tombol "Send Payment Instructions" & "Confirm Payment &
+    // Send Ticket" dengan modal preview. Komponen client-side ambil
+    // state booking dari form context + call custom endpoints di atas.
+    {
+      name: 'adminActions',
+      type: 'ui',
+      admin: {
+        condition: (_data, _siblingData, { user }) =>
+          !!user && (user.role === 'admin' || user.role === 'super-admin'),
+        components: {
+          Field: '/admin/BookingAdminActions#default',
+        },
+      },
+    },
     {
       name: 'bookingRef',
       type: 'text',

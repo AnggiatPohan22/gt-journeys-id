@@ -1,3 +1,4 @@
+import { default as default_c886095dba6d6143039705c2acf0c68c } from '../../../admin/BookingAdminActions'
 import { default as default_71206546ade6f3e51000b567a053879f } from '../../../admin/SidebarTabs'
 import { default as default_51a6c3a6d17463139b3a0c8a76281abf } from '../../../admin/cells/StatusCell'
 import { default as default_646f34edcebed27cce5af4613beb5f20 } from '../../../admin/cells/RelativeDateCell'
@@ -66,6 +67,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/admin/BookingAdminActions#default": default_c886095dba6d6143039705c2acf0c68c,
   "/admin/SidebarTabs#default": default_71206546ade6f3e51000b567a053879f,
   "/admin/cells/StatusCell#default": default_51a6c3a6d17463139b3a0c8a76281abf,
   "/admin/cells/RelativeDateCell#default": default_646f34edcebed27cce5af4613beb5f20,
