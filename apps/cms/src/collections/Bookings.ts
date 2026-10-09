@@ -373,6 +373,11 @@ export const Bookings: CollectionConfig = {
     defaultSort: '-createdAt',
     description: 'Data booking dari frontend. Ferry Ticket sekarang; siap untuk gateway (Xendit/Midtrans) nanti.',
     hidden: ({ user }) => !user || user.role === 'editor',
+    // Phase 4.69.8 — Chip filter bar di atas list table dengan live count
+    // per status. Prioritaskan "needs action" (awaiting_review, payment_review).
+    components: {
+      beforeListTable: ['/admin/BookingStatusFilterBar#default'],
+    },
   },
   access: {
     create: isAdmin,
