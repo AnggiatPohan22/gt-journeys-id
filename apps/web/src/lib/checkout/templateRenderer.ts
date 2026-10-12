@@ -59,6 +59,28 @@ export const KNOWN_VARIABLES = new Set<string>([
   // OTP (template-specific)
   'otp',
   'otpTtlMinutes',
+  // Phase 4.70.2 — Brand + per-template fields (sync dgn CMS SSOT).
+  'brandHeaderHtml',
+  'brandAccentColor',
+  'brandCompanyName',
+  'supportEmail',
+  'footerDisclaimer',
+  'otpHeroHeadline',
+  'otpHeroSubtext',
+  'otpSecurityNote',
+  'paymentHeroHeadline',
+  'paymentHeroSubtext',
+  'paymentSecurityNote',
+  'ticketHeroHeadline',
+  'ticketHeroSubtext',
+  'ticketChecklistTitle',
+  'rescheduleHeroHeadline',
+  'rescheduleHeroSubtext',
+  'rescheduleEmailBody',
+  'cancelHeroHeadline',
+  'cancelHeroSubtext',
+  'cancelEmailBody',
+  'customerRequestReason',
 ])
 
 /**
@@ -66,12 +88,20 @@ export const KNOWN_VARIABLES = new Set<string>([
  * Semua variable lain yang terpakai di template harus ada nilainya.
  */
 export const OPTIONAL_VARIABLES = new Set<string>([
-  'returnDate',          // one-way booking tidak punya ini
-  'customerCountry',     // opsional di form
-  'customerEmail',       // template WA mungkin tidak butuh
-  'customerWhatsapp',    // template email mungkin tidak butuh
-  'confirmationUrl',     // mungkin tidak dipakai di semua template
-  'accessToken',         // ditto
+  'returnDate',
+  'customerCountry',
+  'customerEmail',
+  'customerWhatsapp',
+  'confirmationUrl',
+  'accessToken',
+  // Phase 4.70.2 — Brand + per-template fields OPTIONAL.
+  'brandHeaderHtml', 'brandAccentColor', 'brandCompanyName', 'supportEmail', 'footerDisclaimer',
+  'otpHeroHeadline', 'otpHeroSubtext', 'otpSecurityNote',
+  'paymentHeroHeadline', 'paymentHeroSubtext', 'paymentSecurityNote',
+  'ticketHeroHeadline', 'ticketHeroSubtext', 'ticketChecklistTitle',
+  'rescheduleHeroHeadline', 'rescheduleHeroSubtext', 'rescheduleEmailBody',
+  'cancelHeroHeadline', 'cancelHeroSubtext', 'cancelEmailBody',
+  'customerRequestReason',
 ])
 
 export interface RenderResult {
@@ -114,6 +144,8 @@ function escapeHtml(s: string): string {
 
 export interface RenderOptions {
   escapeHtml?: boolean
+  /** Phase 4.70.2 — Set nama var yg nilai-nya trusted HTML (jangan escape). */
+  rawVars?: Set<string>
 }
 
 export function renderTemplate(template: string, ctx: TemplateContext, opts: RenderOptions = {}): RenderResult {
@@ -141,7 +173,8 @@ export function renderTemplate(template: string, ctx: TemplateContext, opts: Ren
     const v = ctx[name]
     if (v === null || v === undefined) return ''
     const str = String(v)
-    return opts.escapeHtml ? escapeHtml(str) : str
+    if (opts.escapeHtml && !opts.rawVars?.has(name)) return escapeHtml(str)
+    return str
   })
 
   return { ok: true, rendered, errors: [] }

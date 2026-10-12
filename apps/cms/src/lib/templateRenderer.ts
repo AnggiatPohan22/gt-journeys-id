@@ -44,6 +44,30 @@ export const KNOWN_VARIABLES = new Set<string>([
   // OTP (template-specific)
   'otp',
   'otpTtlMinutes',
+  // Phase 4.70.2 — Brand (shared across all templates)
+  'brandHeaderHtml',
+  'brandAccentColor',
+  'brandCompanyName',
+  'supportEmail',
+  'footerDisclaimer',
+  // Per-template hero/section fields
+  'otpHeroHeadline',
+  'otpHeroSubtext',
+  'otpSecurityNote',
+  'paymentHeroHeadline',
+  'paymentHeroSubtext',
+  'paymentSecurityNote',
+  'ticketHeroHeadline',
+  'ticketHeroSubtext',
+  'ticketChecklistTitle',
+  'rescheduleHeroHeadline',
+  'rescheduleHeroSubtext',
+  'rescheduleEmailBody',
+  'cancelHeroHeadline',
+  'cancelHeroSubtext',
+  'cancelEmailBody',
+  // Customer request audit (dari Phase 4.69.9) — tampil di reschedule/cancel HTML
+  'customerRequestReason',
 ])
 
 export const OPTIONAL_VARIABLES = new Set<string>([
@@ -53,6 +77,30 @@ export const OPTIONAL_VARIABLES = new Set<string>([
   'customerWhatsapp',
   'confirmationUrl',
   'accessToken',
+  // Phase 4.70.2 — Brand + per-template fields semua OPTIONAL (template
+  // non-HTML tidak mereferensi; HTML default pakai). Kalau admin kosongkan,
+  // render string kosong (fallback-safe).
+  'brandHeaderHtml',
+  'brandAccentColor',
+  'brandCompanyName',
+  'supportEmail',
+  'footerDisclaimer',
+  'otpHeroHeadline',
+  'otpHeroSubtext',
+  'otpSecurityNote',
+  'paymentHeroHeadline',
+  'paymentHeroSubtext',
+  'paymentSecurityNote',
+  'ticketHeroHeadline',
+  'ticketHeroSubtext',
+  'ticketChecklistTitle',
+  'rescheduleHeroHeadline',
+  'rescheduleHeroSubtext',
+  'rescheduleEmailBody',
+  'cancelHeroHeadline',
+  'cancelHeroSubtext',
+  'cancelEmailBody',
+  'customerRequestReason',
 ])
 
 export interface RenderResult {
@@ -89,6 +137,9 @@ function escapeHtml(s: string): string {
 export interface RenderOptions {
   /** Escape HTML chars pada nilai saat substitusi. WAJIB `true` untuk HTML template. */
   escapeHtml?: boolean
+  /** Set nama variable yang NILAInya adalah TRUSTED HTML (jangan escape).
+   *  Phase 4.70.2 — brandHeaderHtml yang dibangun server-side perlu raw. */
+  rawVars?: Set<string>
 }
 
 export function renderTemplate(template: string, ctx: TemplateContext, opts: RenderOptions = {}): RenderResult {
@@ -115,7 +166,8 @@ export function renderTemplate(template: string, ctx: TemplateContext, opts: Ren
     const v = ctx[name]
     if (v === null || v === undefined) return ''
     const str = String(v)
-    return opts.escapeHtml ? escapeHtml(str) : str
+    if (opts.escapeHtml && !opts.rawVars?.has(name)) return escapeHtml(str)
+    return str
   })
 
   return { ok: true, rendered, errors: [] }

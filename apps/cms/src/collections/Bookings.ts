@@ -13,7 +13,52 @@ import {
   DEFAULT_OTP_EMAIL_BODY_HTML,
   DEFAULT_PAYMENT_EMAIL_BODY_HTML,
   DEFAULT_TICKET_EMAIL_BODY_HTML,
+  DEFAULT_RESCHEDULE_EMAIL_BODY_HTML,
+  DEFAULT_CANCEL_EMAIL_BODY_HTML,
+  defaultFieldValues as D,
 } from '../globals/bookingTemplatesDefaults'
+
+/**
+ * Phase 4.70.2 — Build brand context dari global fields.
+ * Resolve logo URL (relationship ke Media; perlu depth>=1 saat fetch).
+ * Fallback semua ke sensible default kalau admin belum isi.
+ */
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function buildBrandContext(tpl: Record<string, unknown>): Record<string, string> {
+  const logo = tpl.brandLogo as { url?: string; alt?: string } | number | null | undefined
+  const logoUrl = typeof logo === 'object' && logo?.url ? logo.url : ''
+  const logoAlt = typeof logo === 'object' && logo?.alt ? logo.alt : 'Brand logo'
+  const brandName = (tpl.brandCompanyName as string)?.trim() || 'GtJourneysID'
+  const brandNameShort = brandName.length > 24 ? 'GtJourneysID' : brandName
+
+  const brandHeaderHtml = logoUrl
+    ? `<img src="${escapeAttr(logoUrl)}" alt="${escapeAttr(logoAlt)}" style="height:36px;max-width:200px;vertical-align:middle;">`
+    : `<div style="display:inline-block;width:36px;height:36px;background:#0F172A;color:#fff;border-radius:8px;text-align:center;line-height:36px;font-weight:700;font-size:14px;letter-spacing:0.5px;vertical-align:middle;">GT</div><span style="margin-left:10px;font-size:16px;font-weight:700;color:#0F172A;vertical-align:middle;">${escapeAttr(brandNameShort)}</span>`
+
+  return {
+    brandHeaderHtml,
+    brandAccentColor: (tpl.brandAccentColor as string) || '#0EA5E9',
+    brandCompanyName: brandName,
+    supportEmail: (tpl.supportEmail as string) || 'billing@gtjourneys.id',
+    footerDisclaimer: (tpl.footerDisclaimer as string) || D.footerDisclaimer,
+  }
+}
+
+/** Pull per-template editable fields from global, fallback ke D defaults. */
+function pickTemplateFields(tpl: Record<string, unknown>, keys: readonly string[]): Record<string, string> {
+  const out: Record<string, string> = {}
+  for (const k of keys) {
+    const v = tpl[k]
+    out[k] = (typeof v === 'string' && v.trim()) ? v : ((D as any)[k] ?? '')
+  }
+  return out
+}
+
+/** rawVars set yang value-nya trusted HTML (jangan escape saat render). */
+const RAW_VARS = new Set(['brandHeaderHtml'])
 
 /**
  * Phase 4.70.1 fix — Resolve HTML template dari global dgn fallback ke
@@ -70,6 +115,7 @@ async function readTemplates(req: Parameters<Endpoint['handler']>[0]) {
   return req.payload.findGlobal({
     slug: 'booking-templates',
     overrideAccess: true,
+    depth: 1, // Phase 4.70.2 — resolve brandLogo relationship ke Media object (butuh .url)
   }) as Promise<Record<string, unknown>>
 }
 
@@ -152,12 +198,15 @@ const sendPaymentEndpoint: Endpoint = {
         adminName,
         adminWhatsapp,
         confirmationUrl: confirmationUrl ?? undefined,
+        // Phase 4.70.2 — brand + per-template editable fields
+        ...buildBrandContext(tpl),
+        ...pickTemplateFields(tpl, ['paymentHeroHeadline', 'paymentHeroSubtext', 'paymentSecurityNote']),
       })
 
       const emailSubjectR = renderTemplate(String(tpl.paymentEmailSubject ?? ''), ctx)
       const emailBodyR = renderTemplate(String(tpl.paymentEmailBody ?? ''), ctx)
       const paymentHtml = resolveHtmlTemplate(tpl.paymentEmailBodyHtml, DEFAULT_PAYMENT_EMAIL_BODY_HTML)
-      const emailBodyHtmlR = renderTemplate(paymentHtml, ctx, { escapeHtml: true })
+      const emailBodyHtmlR = renderTemplate(paymentHtml, ctx, { escapeHtml: true, rawVars: RAW_VARS })
       const waBodyR = renderTemplate(String(tpl.paymentWhatsappBody ?? ''), ctx)
 
       const errors = [
@@ -249,9 +298,13 @@ const sendPaymentEndpoint: Endpoint = {
 interface ResponseConfig {
   templateSubjectKey: string
   templateEmailBodyKey: string
+  templateHtmlKey: string
+  defaultHtml: string
   templateWaBodyKey: string
+  extraCtxKeys: readonly string[]
+  bodyCtxKey: string // key untuk inject rendered body text ke html template (misal rescheduleEmailBody)
   fromStatuses: string[]
-  toStatus: string | null // null = tetap di status yg sama (reschedule — admin lanjut manual)
+  toStatus: string | null
   idempotencyPrefix: string
 }
 
@@ -304,15 +357,29 @@ async function handleSendResponse(
       adminName,
       adminWhatsapp,
       confirmationUrl: confirmationUrl ?? undefined,
+      // Phase 4.70.2 — brand + per-template fields + customer request reason (audit)
+      ...buildBrandContext(tpl),
+      ...pickTemplateFields(tpl, config.extraCtxKeys),
+      customerRequestReason: (booking.customerRequestReason as string) || '(tidak disebutkan)',
     })
 
     const subjectR = renderTemplate(String(tpl[config.templateSubjectKey] ?? ''), ctx)
     const emailBodyR = renderTemplate(String(tpl[config.templateEmailBodyKey] ?? ''), ctx)
     const waBodyR = renderTemplate(String(tpl[config.templateWaBodyKey] ?? ''), ctx)
 
+    // Phase 4.70.2 — Render HTML dgn body text injected sebagai var (misal
+    // {{rescheduleEmailBody}} = rendered admin text). Body SUDAH escaped
+    // oleh render pertama (ctx has escape via renderTemplate pass later),
+    // tapi karena ini injected ke HTML slot, kita escape manual sekali
+    // supaya safe.
+    const htmlTemplate = resolveHtmlTemplate(tpl[config.templateHtmlKey], config.defaultHtml)
+    const ctxWithBody = { ...ctx, [config.bodyCtxKey]: emailBodyR.rendered }
+    const emailBodyHtmlR = renderTemplate(htmlTemplate, ctxWithBody, { escapeHtml: true, rawVars: RAW_VARS })
+
     const errors = [
       ...subjectR.errors.map((e) => `[Email Subject] ${e}`),
       ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
+      ...emailBodyHtmlR.errors.map((e) => `[Email HTML] ${e}`),
       ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
     ]
     if (errors.length > 0) {
@@ -330,6 +397,7 @@ async function handleSendResponse(
         previewOnly: true,
         emailSubject: subjectR.rendered,
         emailBody: emailBodyR.rendered,
+        emailBodyHtml: emailBodyHtmlR.rendered,
         whatsappBody: waBodyR.rendered,
         waUrl,
       } satisfies HandoffResponse)
@@ -347,6 +415,7 @@ async function handleSendResponse(
       to,
       subject: subjectR.rendered,
       text: emailBodyR.rendered,
+      html: emailBodyHtmlR.rendered,
       idempotencyKey: `${config.idempotencyPrefix}:${booking.bookingRef}:${req.user!.id}`,
     })
     if (!sent.ok) {
@@ -465,9 +534,13 @@ const sendRescheduleResponseEndpoint: Endpoint = {
     handleSendResponse(req, {
       templateSubjectKey: 'rescheduleEmailSubject',
       templateEmailBodyKey: 'rescheduleEmailBody',
+      templateHtmlKey: 'rescheduleEmailBodyHtml',
+      defaultHtml: DEFAULT_RESCHEDULE_EMAIL_BODY_HTML,
       templateWaBodyKey: 'rescheduleWhatsappBody',
+      extraCtxKeys: ['rescheduleHeroHeadline', 'rescheduleHeroSubtext'],
+      bodyCtxKey: 'rescheduleEmailBody',
       fromStatuses: ['reschedule_request'],
-      toStatus: null, // Admin lanjut update detail reschedule manually
+      toStatus: null,
       idempotencyPrefix: 'reschedule',
     }),
 }
@@ -479,7 +552,11 @@ const sendCancelResponseEndpoint: Endpoint = {
     handleSendResponse(req, {
       templateSubjectKey: 'cancelEmailSubject',
       templateEmailBodyKey: 'cancelEmailBody',
+      templateHtmlKey: 'cancelEmailBodyHtml',
+      defaultHtml: DEFAULT_CANCEL_EMAIL_BODY_HTML,
       templateWaBodyKey: 'cancelWhatsappBody',
+      extraCtxKeys: ['cancelHeroHeadline', 'cancelHeroSubtext'],
+      bodyCtxKey: 'cancelEmailBody',
       fromStatuses: ['cancel_request'],
       toStatus: 'cancelled',
       idempotencyPrefix: 'cancel',
@@ -535,12 +612,15 @@ const sendTicketEndpoint: Endpoint = {
         adminName,
         adminWhatsapp,
         confirmationUrl: confirmationUrl ?? undefined,
+        // Phase 4.70.2
+        ...buildBrandContext(tpl),
+        ...pickTemplateFields(tpl, ['ticketHeroHeadline', 'ticketHeroSubtext', 'ticketChecklistTitle']),
       })
 
       const emailSubjectR = renderTemplate(String(tpl.ticketEmailSubject ?? ''), ctx)
       const emailBodyR = renderTemplate(String(tpl.ticketEmailBody ?? ''), ctx)
       const ticketHtml = resolveHtmlTemplate(tpl.ticketEmailBodyHtml, DEFAULT_TICKET_EMAIL_BODY_HTML)
-      const emailBodyHtmlR = renderTemplate(ticketHtml, ctx, { escapeHtml: true })
+      const emailBodyHtmlR = renderTemplate(ticketHtml, ctx, { escapeHtml: true, rawVars: RAW_VARS })
       const waBodyR = renderTemplate(String(tpl.ticketWhatsappBody ?? ''), ctx)
 
       const errors = [

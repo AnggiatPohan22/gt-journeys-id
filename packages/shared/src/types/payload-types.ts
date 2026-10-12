@@ -44634,6 +44634,38 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface BookingTemplate {
   id: number;
   /**
+   * Logo header di semua email. Pakai PNG 400×100 transparent bg. Kalau kosong, fallback ke "GT" text badge.
+   */
+  brandLogo?: (number | null) | Media;
+  /**
+   * Warna accent (hero gradient start, link, button). Hex format. Default: #0EA5E9 (ocean cyan).
+   */
+  brandAccentColor?: string | null;
+  /**
+   * Nama perusahaan di footer email.
+   */
+  brandCompanyName?: string | null;
+  /**
+   * Email contact di footer email semua template.
+   */
+  supportEmail?: string | null;
+  /**
+   * Tagline singkat di footer email.
+   */
+  footerDisclaimer?: string | null;
+  /**
+   * Headline besar di hero section.
+   */
+  paymentHeroHeadline?: string | null;
+  /**
+   * Sub-text di hero. Variables: {{paymentDeadline}}.
+   */
+  paymentHeroSubtext?: string | null;
+  /**
+   * Security notice box bawah email.
+   */
+  paymentSecurityNote?: string | null;
+  /**
    * Boleh pakai variable di subject.
    */
   paymentEmailSubject: string;
@@ -44642,29 +44674,53 @@ export interface BookingTemplate {
    */
   paymentEmailBody: string;
   /**
-   * HTML version — di-render oleh email client yang support HTML. Kalau diisi, akan dikirim bersama text body (fallback). Variables sama dgn plain text. Phase 4.70.1.
+   * [Advanced/dev-only] Raw HTML override. Default auto-populate dari code SSOT kalau kosong.
    */
   paymentEmailBodyHtml?: string | null;
   /**
    * Pesan WA — plain text, emoji OK. Max ~1500 char.
    */
   paymentWhatsappBody: string;
+  ticketHeroHeadline?: string | null;
+  ticketHeroSubtext?: string | null;
+  /**
+   * Judul section checklist check-in.
+   */
+  ticketChecklistTitle?: string | null;
   ticketEmailSubject: string;
   ticketEmailBody: string;
   /**
-   * HTML version untuk ticket confirmation. Phase 4.70.1.
+   * [Advanced/dev-only] Raw HTML override.
    */
   ticketEmailBodyHtml?: string | null;
   ticketWhatsappBody: string;
+  rescheduleHeroHeadline?: string | null;
+  rescheduleHeroSubtext?: string | null;
+  /**
+   * [Advanced/dev-only] Raw HTML override.
+   */
+  rescheduleEmailBodyHtml?: string | null;
   rescheduleEmailSubject?: string | null;
   /**
    * Template singkat — admin tambah detail per-kasus sebelum kirim.
    */
   rescheduleEmailBody?: string | null;
   rescheduleWhatsappBody?: string | null;
+  cancelHeroHeadline?: string | null;
+  cancelHeroSubtext?: string | null;
+  /**
+   * [Advanced/dev-only] Raw HTML override.
+   */
+  cancelEmailBodyHtml?: string | null;
   cancelEmailSubject?: string | null;
   cancelEmailBody?: string | null;
   cancelWhatsappBody?: string | null;
+  otpHeroHeadline?: string | null;
+  otpHeroSubtext?: string | null;
+  /**
+   * Catatan keamanan/anti-phishing di bawah kode OTP.
+   */
+  otpSecurityNote?: string | null;
   /**
    * Harus mengandung {{otp}} supaya kode tampil di subject.
    */
@@ -44674,7 +44730,7 @@ export interface BookingTemplate {
    */
   otpEmailBody: string;
   /**
-   * HTML version untuk OTP email. Dikirim bersama text body (fallback). Phase 4.70.1.
+   * [Advanced/dev-only] Raw HTML override.
    */
   otpEmailBodyHtml?: string | null;
   /**
@@ -46459,20 +46515,40 @@ export interface SiteFeature {
  * via the `definition` "booking-templates_select".
  */
 export interface BookingTemplatesSelect<T extends boolean = true> {
+  brandLogo?: T;
+  brandAccentColor?: T;
+  brandCompanyName?: T;
+  supportEmail?: T;
+  footerDisclaimer?: T;
+  paymentHeroHeadline?: T;
+  paymentHeroSubtext?: T;
+  paymentSecurityNote?: T;
   paymentEmailSubject?: T;
   paymentEmailBody?: T;
   paymentEmailBodyHtml?: T;
   paymentWhatsappBody?: T;
+  ticketHeroHeadline?: T;
+  ticketHeroSubtext?: T;
+  ticketChecklistTitle?: T;
   ticketEmailSubject?: T;
   ticketEmailBody?: T;
   ticketEmailBodyHtml?: T;
   ticketWhatsappBody?: T;
+  rescheduleHeroHeadline?: T;
+  rescheduleHeroSubtext?: T;
+  rescheduleEmailBodyHtml?: T;
   rescheduleEmailSubject?: T;
   rescheduleEmailBody?: T;
   rescheduleWhatsappBody?: T;
+  cancelHeroHeadline?: T;
+  cancelHeroSubtext?: T;
+  cancelEmailBodyHtml?: T;
   cancelEmailSubject?: T;
   cancelEmailBody?: T;
   cancelWhatsappBody?: T;
+  otpHeroHeadline?: T;
+  otpHeroSubtext?: T;
+  otpSecurityNote?: T;
   otpEmailSubject?: T;
   otpEmailBody?: T;
   otpEmailBodyHtml?: T;

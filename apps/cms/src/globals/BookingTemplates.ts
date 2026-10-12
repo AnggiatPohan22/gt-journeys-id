@@ -4,6 +4,9 @@ import {
   DEFAULT_OTP_EMAIL_BODY_HTML,
   DEFAULT_PAYMENT_EMAIL_BODY_HTML,
   DEFAULT_TICKET_EMAIL_BODY_HTML,
+  DEFAULT_RESCHEDULE_EMAIL_BODY_HTML,
+  DEFAULT_CANCEL_EMAIL_BODY_HTML,
+  defaultFieldValues as D,
 } from './bookingTemplatesDefaults'
 
 /**
@@ -44,9 +47,80 @@ export const BookingTemplates: GlobalConfig = {
       type: 'tabs',
       tabs: [
         {
+          label: 'Brand',
+          description: 'Phase 4.70.2 — Shared brand elements. Apply ke SEMUA 5 template email (OTP, Payment, Confirmation, Reschedule, Cancel).',
+          fields: [
+            {
+              name: 'brandLogo',
+              type: 'upload',
+              relationTo: 'media',
+              admin: {
+                description: 'Logo header di semua email. Pakai PNG 400×100 transparent bg. Kalau kosong, fallback ke "GT" text badge.',
+              },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'brandAccentColor',
+              type: 'text',
+              defaultValue: '#0EA5E9',
+              admin: {
+                description: 'Warna accent (hero gradient start, link, button). Hex format. Default: #0EA5E9 (ocean cyan).',
+              },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'brandCompanyName',
+              type: 'text',
+              defaultValue: 'PT GtJourneys Nusantara Indonesia',
+              admin: { description: 'Nama perusahaan di footer email.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'supportEmail',
+              type: 'text',
+              defaultValue: 'billing@gtjourneys.id',
+              admin: { description: 'Email contact di footer email semua template.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'footerDisclaimer',
+              type: 'textarea',
+              defaultValue: D.footerDisclaimer,
+              admin: { rows: 2, description: 'Tagline singkat di footer email.' },
+              access: { update: superAdminFieldAccess },
+            },
+          ],
+        },
+        {
           label: 'Payment Instructions',
           description: 'Dikirim saat admin klik "Send Payment Instructions" (Phase 4.69.7).',
           fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'paymentHeroHeadline',
+                  type: 'text',
+                  defaultValue: D.paymentHeroHeadline,
+                  admin: { width: '50%', description: 'Headline besar di hero section.' },
+                  access: { update: superAdminFieldAccess },
+                },
+                {
+                  name: 'paymentHeroSubtext',
+                  type: 'textarea',
+                  defaultValue: D.paymentHeroSubtext,
+                  admin: { width: '50%', rows: 2, description: 'Sub-text di hero. Variables: {{paymentDeadline}}.' },
+                  access: { update: superAdminFieldAccess },
+                },
+              ],
+            },
+            {
+              name: 'paymentSecurityNote',
+              type: 'textarea',
+              defaultValue: D.paymentSecurityNote,
+              admin: { rows: 2, description: 'Security notice box bawah email.' },
+              access: { update: superAdminFieldAccess },
+            },
             {
               name: 'paymentEmailSubject',
               type: 'text',
@@ -94,6 +168,32 @@ export const BookingTemplates: GlobalConfig = {
           description: 'Dikirim saat admin klik "Confirm Payment & Send Ticket".',
           fields: [
             {
+              type: 'row',
+              fields: [
+                {
+                  name: 'ticketHeroHeadline',
+                  type: 'text',
+                  defaultValue: D.ticketHeroHeadline,
+                  admin: { width: '50%' },
+                  access: { update: superAdminFieldAccess },
+                },
+                {
+                  name: 'ticketHeroSubtext',
+                  type: 'textarea',
+                  defaultValue: D.ticketHeroSubtext,
+                  admin: { width: '50%', rows: 2 },
+                  access: { update: superAdminFieldAccess },
+                },
+              ],
+            },
+            {
+              name: 'ticketChecklistTitle',
+              type: 'text',
+              defaultValue: D.ticketChecklistTitle,
+              admin: { description: 'Judul section checklist check-in.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
               name: 'ticketEmailSubject',
               type: 'text',
               required: true,
@@ -131,8 +231,34 @@ export const BookingTemplates: GlobalConfig = {
         },
         {
           label: 'Reschedule Response',
-          description: 'Dikirim saat admin respond ke customer yang minta reschedule.',
+          description: 'Dikirim saat admin respond ke customer yang minta reschedule. HTML template auto-tampilkan alasan customer dari customerRequestReason.',
           fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'rescheduleHeroHeadline',
+                  type: 'text',
+                  defaultValue: D.rescheduleHeroHeadline,
+                  admin: { width: '50%' },
+                  access: { update: superAdminFieldAccess },
+                },
+                {
+                  name: 'rescheduleHeroSubtext',
+                  type: 'textarea',
+                  defaultValue: D.rescheduleHeroSubtext,
+                  admin: { width: '50%', rows: 2 },
+                  access: { update: superAdminFieldAccess },
+                },
+              ],
+            },
+            {
+              name: 'rescheduleEmailBodyHtml',
+              type: 'textarea',
+              defaultValue: DEFAULT_RESCHEDULE_EMAIL_BODY_HTML,
+              admin: { hidden: true, rows: 20, description: '[Advanced/dev-only] Raw HTML override.' },
+              access: { update: superAdminFieldAccess },
+            },
             {
               name: 'rescheduleEmailSubject',
               type: 'text',
@@ -157,8 +283,34 @@ export const BookingTemplates: GlobalConfig = {
         },
         {
           label: 'Cancellation Response',
-          description: 'Dikirim saat admin respond ke customer yang minta cancel.',
+          description: 'Dikirim saat admin respond ke customer yang minta cancel. HTML template auto-tampilkan alasan customer.',
           fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'cancelHeroHeadline',
+                  type: 'text',
+                  defaultValue: D.cancelHeroHeadline,
+                  admin: { width: '50%' },
+                  access: { update: superAdminFieldAccess },
+                },
+                {
+                  name: 'cancelHeroSubtext',
+                  type: 'textarea',
+                  defaultValue: D.cancelHeroSubtext,
+                  admin: { width: '50%', rows: 2 },
+                  access: { update: superAdminFieldAccess },
+                },
+              ],
+            },
+            {
+              name: 'cancelEmailBodyHtml',
+              type: 'textarea',
+              defaultValue: DEFAULT_CANCEL_EMAIL_BODY_HTML,
+              admin: { hidden: true, rows: 20, description: '[Advanced/dev-only] Raw HTML override.' },
+              access: { update: superAdminFieldAccess },
+            },
             {
               name: 'cancelEmailSubject',
               type: 'text',
@@ -185,6 +337,32 @@ export const BookingTemplates: GlobalConfig = {
           label: 'OTP Email',
           description: 'Template email OTP verifikasi (Phase 4.69.2). Variabel wajib: {{otp}}.',
           fields: [
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'otpHeroHeadline',
+                  type: 'text',
+                  defaultValue: D.otpHeroHeadline,
+                  admin: { width: '50%' },
+                  access: { update: superAdminFieldAccess },
+                },
+                {
+                  name: 'otpHeroSubtext',
+                  type: 'textarea',
+                  defaultValue: D.otpHeroSubtext,
+                  admin: { width: '50%', rows: 2 },
+                  access: { update: superAdminFieldAccess },
+                },
+              ],
+            },
+            {
+              name: 'otpSecurityNote',
+              type: 'textarea',
+              defaultValue: D.otpSecurityNote,
+              admin: { rows: 3, description: 'Catatan keamanan/anti-phishing di bawah kode OTP.' },
+              access: { update: superAdminFieldAccess },
+            },
             {
               name: 'otpEmailSubject',
               type: 'text',
