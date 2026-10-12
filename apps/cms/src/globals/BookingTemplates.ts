@@ -68,8 +68,14 @@ export const BookingTemplates: GlobalConfig = {
               type: 'textarea',
               defaultValue: DEFAULT_PAYMENT_EMAIL_BODY_HTML,
               admin: {
+                // Phase 4.70.1 fix — hide dari UI: raw HTML tidak user-friendly.
+                // Default compose di `bookingTemplatesDefaults.ts` (SSOT).
+                // Advanced override masih bisa via direct DB write atau un-hide
+                // sementara untuk developer. Phase 4.70.2 akan tambah structured
+                // fields (logo, warna, teks) untuk edit UX yang friendly.
+                hidden: true,
                 rows: 20,
-                description: 'HTML version — di-render oleh email client yang support HTML. Kalau diisi, akan dikirim bersama text body (fallback). Variables sama dgn plain text. Phase 4.70.1.',
+                description: '[Advanced/dev-only] Raw HTML override. Default auto-populate dari code SSOT kalau kosong.',
               },
               access: { update: superAdminFieldAccess },
             },
@@ -107,8 +113,9 @@ export const BookingTemplates: GlobalConfig = {
               type: 'textarea',
               defaultValue: DEFAULT_TICKET_EMAIL_BODY_HTML,
               admin: {
+                hidden: true,
                 rows: 20,
-                description: 'HTML version untuk ticket confirmation. Phase 4.70.1.',
+                description: '[Advanced/dev-only] Raw HTML override.',
               },
               access: { update: superAdminFieldAccess },
             },
@@ -199,8 +206,9 @@ export const BookingTemplates: GlobalConfig = {
               type: 'textarea',
               defaultValue: DEFAULT_OTP_EMAIL_BODY_HTML,
               admin: {
+                hidden: true,
                 rows: 20,
-                description: 'HTML version untuk OTP email. Dikirim bersama text body (fallback). Phase 4.70.1.',
+                description: '[Advanced/dev-only] Raw HTML override.',
               },
               access: { update: superAdminFieldAccess },
             },
