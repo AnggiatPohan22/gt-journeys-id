@@ -9,6 +9,26 @@ import {
   renderTemplate,
 } from '../lib/templateRenderer'
 import { sendEmail } from '../lib/sendEmail'
+import {
+  DEFAULT_OTP_EMAIL_BODY_HTML,
+  DEFAULT_PAYMENT_EMAIL_BODY_HTML,
+  DEFAULT_TICKET_EMAIL_BODY_HTML,
+} from '../globals/bookingTemplatesDefaults'
+
+/**
+ * Phase 4.70.1 fix — Resolve HTML template dari global dgn fallback ke
+ * import default. Global row existing (sebelum migration 4.70.1) punya
+ * NULL di kolom HTML; Payload tidak backfill `defaultValue` retroaktif.
+ * Fallback memastikan customer selalu dapat email branded tanpa butuh
+ * admin manual save.
+ */
+function resolveHtmlTemplate(
+  tplValue: unknown,
+  fallback: string,
+): string {
+  if (typeof tplValue === 'string' && tplValue.trim().length > 0) return tplValue
+  return fallback
+}
 
 /**
  * Admin handoff endpoints — Phase 4.69.7.
@@ -136,15 +156,14 @@ const sendPaymentEndpoint: Endpoint = {
 
       const emailSubjectR = renderTemplate(String(tpl.paymentEmailSubject ?? ''), ctx)
       const emailBodyR = renderTemplate(String(tpl.paymentEmailBody ?? ''), ctx)
-      const emailBodyHtmlR = tpl.paymentEmailBodyHtml
-        ? renderTemplate(String(tpl.paymentEmailBodyHtml), ctx, { escapeHtml: true })
-        : null
+      const paymentHtml = resolveHtmlTemplate(tpl.paymentEmailBodyHtml, DEFAULT_PAYMENT_EMAIL_BODY_HTML)
+      const emailBodyHtmlR = renderTemplate(paymentHtml, ctx, { escapeHtml: true })
       const waBodyR = renderTemplate(String(tpl.paymentWhatsappBody ?? ''), ctx)
 
       const errors = [
         ...emailSubjectR.errors.map((e) => `[Email Subject] ${e}`),
         ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
-        ...(emailBodyHtmlR?.errors.map((e) => `[Email HTML] ${e}`) ?? []),
+        ...emailBodyHtmlR.errors.map((e) => `[Email HTML] ${e}`),
         ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
       ]
       if (errors.length > 0) {
@@ -162,7 +181,7 @@ const sendPaymentEndpoint: Endpoint = {
           previewOnly: true,
           emailSubject: emailSubjectR.rendered,
           emailBody: emailBodyR.rendered,
-          emailBodyHtml: emailBodyHtmlR?.rendered,
+          emailBodyHtml: emailBodyHtmlR.rendered,
           whatsappBody: waBodyR.rendered,
           waUrl,
         } satisfies HandoffResponse)
@@ -183,7 +202,7 @@ const sendPaymentEndpoint: Endpoint = {
         to,
         subject: emailSubjectR.rendered,
         text: emailBodyR.rendered,
-        html: emailBodyHtmlR?.rendered,
+        html: emailBodyHtmlR.rendered,
         idempotencyKey: `payment:${booking.bookingRef}:${req.user!.id}`,
       })
       if (!sent.ok) {
@@ -520,15 +539,14 @@ const sendTicketEndpoint: Endpoint = {
 
       const emailSubjectR = renderTemplate(String(tpl.ticketEmailSubject ?? ''), ctx)
       const emailBodyR = renderTemplate(String(tpl.ticketEmailBody ?? ''), ctx)
-      const emailBodyHtmlR = tpl.ticketEmailBodyHtml
-        ? renderTemplate(String(tpl.ticketEmailBodyHtml), ctx, { escapeHtml: true })
-        : null
+      const ticketHtml = resolveHtmlTemplate(tpl.ticketEmailBodyHtml, DEFAULT_TICKET_EMAIL_BODY_HTML)
+      const emailBodyHtmlR = renderTemplate(ticketHtml, ctx, { escapeHtml: true })
       const waBodyR = renderTemplate(String(tpl.ticketWhatsappBody ?? ''), ctx)
 
       const errors = [
         ...emailSubjectR.errors.map((e) => `[Email Subject] ${e}`),
         ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
-        ...(emailBodyHtmlR?.errors.map((e) => `[Email HTML] ${e}`) ?? []),
+        ...emailBodyHtmlR.errors.map((e) => `[Email HTML] ${e}`),
         ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
       ]
       if (errors.length > 0) {
@@ -546,7 +564,7 @@ const sendTicketEndpoint: Endpoint = {
           previewOnly: true,
           emailSubject: emailSubjectR.rendered,
           emailBody: emailBodyR.rendered,
-          emailBodyHtml: emailBodyHtmlR?.rendered,
+          emailBodyHtml: emailBodyHtmlR.rendered,
           whatsappBody: waBodyR.rendered,
           waUrl,
         } satisfies HandoffResponse)
@@ -564,7 +582,7 @@ const sendTicketEndpoint: Endpoint = {
         to,
         subject: emailSubjectR.rendered,
         text: emailBodyR.rendered,
-        html: emailBodyHtmlR?.rendered,
+        html: emailBodyHtmlR.rendered,
         idempotencyKey: `ticket:${booking.bookingRef}:${req.user!.id}`,
       })
       if (!sent.ok) {

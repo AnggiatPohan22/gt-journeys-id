@@ -32,6 +32,13 @@ import { getClientIp, hashIp } from '@lib/checkout/rateLimit'
 import { renderTemplate } from '@lib/checkout/templateRenderer'
 import { IS_PROD } from '@lib/env'
 
+/**
+ * Default OTP HTML — fallback kalau CMS global `otpEmailBodyHtml` kosong.
+ * MIRROR dari `apps/cms/src/globals/bookingTemplatesDefaults.ts` SSOT —
+ * update dua-duanya kalau design berubah. Phase 4.70.1.
+ */
+const DEFAULT_OTP_EMAIL_BODY_HTML = `<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><title>GtJourneysID</title></head><body style="margin:0;padding:0;background:#F0F9FF;font-family:'Plus Jakarta Sans',Arial,sans-serif;color:#0F172A;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F0F9FF;padding:24px 12px;"><tr><td align="center"><table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px -2px rgba(15,23,42,0.06);border:1px solid #E2E8F0;"><tr><td style="padding:20px 28px;border-bottom:1px solid #E2E8F0;"><div style="display:inline-block;width:36px;height:36px;background:#0F172A;color:#fff;border-radius:8px;text-align:center;line-height:36px;font-weight:700;font-size:14px;">GT</div><span style="margin-left:10px;font-size:16px;font-weight:700;color:#0F172A;vertical-align:middle;">GtJourneysID</span></td></tr><tr><td style="padding:0;"><div style="background:#0EA5E9;color:#fff;padding:32px 28px;"><h1 style="margin:0;font-size:22px;font-weight:700;line-height:28px;">Email Verification Code</h1><p style="margin:6px 0 0;font-size:13px;opacity:0.9;">Confirming your email for a GtJourneysID booking.</p></div><div style="padding:28px;"><p style="margin:0 0 16px;font-size:14px;color:#0F172A;line-height:22px;">Halo,</p><p style="margin:0 0 20px;font-size:14px;color:#0F172A;line-height:22px;">Berikut kode verifikasi untuk menyelesaikan proses booking kamu di GtJourneysID:</p><div style="background:#F8FAFC;border:1.5px solid #0EA5E9;border-radius:12px;padding:24px;text-align:center;margin:20px 0;"><div style="font-family:'Inter','SF Mono',Consolas,monospace;font-size:36px;font-weight:700;letter-spacing:8px;color:#0F172A;">{{otp}}</div><div style="margin-top:10px;font-size:12px;color:#475569;">Berlaku {{otpTtlMinutes}} menit · hanya untuk 1x pakai</div></div><p style="margin:16px 0 0;font-size:13px;color:#475569;line-height:20px;">Jika kamu <strong>tidak</strong> meminta kode ini, abaikan email ini — kode akan kedaluwarsa otomatis. Jangan pernah bagikan kode ini ke siapapun, termasuk staf GtJourneysID.</p><p style="margin:24px 0 0;font-size:13px;color:#64748B;line-height:20px;">Terima kasih,<br><strong style="color:#0F172A;">Tim GtJourneysID</strong></p></div></td></tr><tr><td style="padding:20px 28px;border-top:1px solid #E2E8F0;background:#F8FAFC;"><p style="margin:0 0 8px;font-size:12px;color:#475569;line-height:18px;"><strong style="color:#0F172A;">PT GtJourneys Nusantara Indonesia</strong><br>Secure booking · verified operator · Indonesian archipelago travel</p><p style="margin:0 0 8px;font-size:11px;color:#64748B;line-height:16px;">Need help? Email <a href="mailto:billing@gtjourneys.id" style="color:#0EA5E9;text-decoration:none;">billing@gtjourneys.id</a></p><p style="margin:12px 0 0;padding-top:12px;border-top:1px solid #E2E8F0;font-size:11px;color:#64748B;line-height:16px;">This verification email was requested from the checkout page. GtJourneysID never asks for your passwords, OTPs, or payments to personal accounts.</p></td></tr></table><p style="margin:16px auto 0;max-width:640px;font-size:11px;color:#64748B;text-align:center;line-height:16px;">© 2026 PT GtJourneys Nusantara Indonesia. All rights reserved.</p></td></tr></table></body></html>`
+
 const RL_SALT = import.meta.env.BOOKING_RL_SALT || 'dnj-booking-rl-salt'
 const CMS_URL = import.meta.env.CMS_URL || 'http://localhost:3030'
 const API_KEY = import.meta.env.PAYLOAD_API_KEY || ''
@@ -144,11 +151,15 @@ export const POST: APIRoute = async ({ request }) => {
     const textR = renderTemplate(tpl.text, ctx)
     if (subjR.ok) subject = subjR.rendered
     if (textR.ok) text = textR.rendered
-    if (tpl.html) {
-      const htmlR = renderTemplate(tpl.html, ctx, { escapeHtml: true })
-      if (htmlR.ok) html = htmlR.rendered
-    }
   }
+
+  // Phase 4.70.1 fix — HTML selalu ter-render dgn fallback ke inline
+  // default. CMS value (kalau diisi) menang; kalau NULL/empty pakai
+  // default supaya customer selalu dapat email branded.
+  const htmlTemplate =
+    tpl?.html && tpl.html.trim().length > 0 ? tpl.html : DEFAULT_OTP_EMAIL_BODY_HTML
+  const htmlR = renderTemplate(htmlTemplate, ctx, { escapeHtml: true })
+  if (htmlR.ok) html = htmlR.rendered
 
   // Kirim email. Idempotency-key = otp record id supaya retry tidak kirim dua.
   const emailRes = await sendEmail({
