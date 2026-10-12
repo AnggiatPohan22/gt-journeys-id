@@ -25,6 +25,7 @@ interface PreviewResult {
   previewOnly: boolean
   emailSubject?: string
   emailBody?: string
+  emailBodyHtml?: string
   whatsappBody?: string
   waUrl?: string | null
   sentEmailId?: string
@@ -244,10 +245,26 @@ const BookingAdminActions: React.FC = () => {
                       <label>Subject</label>
                       <div className="bk-modal__value">{preview.emailSubject}</div>
                     </div>
-                    <div className="bk-modal__field">
-                      <label>Body (plain text)</label>
-                      <pre className="bk-modal__pre">{preview.emailBody}</pre>
-                    </div>
+                    {preview.emailBodyHtml ? (
+                      <div className="bk-modal__field">
+                        <label>HTML preview (what customer sees)</label>
+                        <iframe
+                          title="Email HTML preview"
+                          srcDoc={preview.emailBodyHtml}
+                          sandbox=""
+                          className="bk-modal__iframe"
+                        />
+                        <details className="bk-modal__details">
+                          <summary>Plain-text fallback</summary>
+                          <pre className="bk-modal__pre">{preview.emailBody}</pre>
+                        </details>
+                      </div>
+                    ) : (
+                      <div className="bk-modal__field">
+                        <label>Body (plain text)</label>
+                        <pre className="bk-modal__pre">{preview.emailBody}</pre>
+                      </div>
+                    )}
                   </section>
 
                   <section className="bk-modal__section">
@@ -408,6 +425,22 @@ const css = `
   padding: 0.4rem 0.6rem;
   background: var(--theme-elevation-50, #f8f8f8);
   border-radius: 4px;
+}
+.bk-modal__iframe {
+  width: 100%;
+  min-height: 500px;
+  border: 1px solid var(--theme-elevation-100, #e5e7eb);
+  border-radius: 6px;
+  background: #fff;
+}
+.bk-modal__details {
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.bk-modal__details summary {
+  cursor: pointer;
+  color: var(--theme-text-dim, #666);
+  padding: 4px 0;
 }
 .bk-modal__pre {
   background: var(--theme-elevation-50, #f8f8f8);

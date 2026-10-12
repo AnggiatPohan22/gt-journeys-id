@@ -46,6 +46,7 @@ import * as migration_20261009_094925_phase_4_69_2_otp_verifications from './202
 import * as migration_20261009_115958_phase_4_69_5_bookings_admin_handoff from './20261009_115958_phase_4_69_5_bookings_admin_handoff';
 import * as migration_20261009_121202_phase_4_69_6_booking_templates from './20261009_121202_phase_4_69_6_booking_templates';
 import * as migration_20261009_130000_phase_4_69_9_bookings_customer_request from './20261009_130000_phase_4_69_9_bookings_customer_request';
+import * as migration_20261012_140000_phase_4_70_1_html_templates from './20261012_140000_phase_4_70_1_html_templates';
 
 export const migrations = [
   {
@@ -287,5 +288,10 @@ export const migrations = [
     up: migration_20261009_130000_phase_4_69_9_bookings_customer_request.up,
     down: migration_20261009_130000_phase_4_69_9_bookings_customer_request.down,
     name: '20261009_130000_phase_4_69_9_bookings_customer_request',
+  },
+  {
+    up: migration_20261012_140000_phase_4_70_1_html_templates.up,
+    down: migration_20261012_140000_phase_4_70_1_html_templates.down,
+    name: '20261012_140000_phase_4_70_1_html_templates',
   },
 ];

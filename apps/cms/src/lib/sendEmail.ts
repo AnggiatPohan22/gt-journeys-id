@@ -16,6 +16,8 @@ export interface SendEmailInput {
   to: string
   subject: string
   text: string
+  /** Optional HTML version (Phase 4.70.1). Resend auto-fallback ke text kalau client tidak render HTML. */
+  html?: string
   idempotencyKey?: string
 }
 
@@ -48,6 +50,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     subject: input.subject,
     text: input.text,
   }
+  if (input.html) body.html = input.html
   if (replyTo) body.reply_to = replyTo
 
   const controller = new AbortController()

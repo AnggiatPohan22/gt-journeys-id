@@ -44642,11 +44642,19 @@ export interface BookingTemplate {
    */
   paymentEmailBody: string;
   /**
+   * HTML version — di-render oleh email client yang support HTML. Kalau diisi, akan dikirim bersama text body (fallback). Variables sama dgn plain text. Phase 4.70.1.
+   */
+  paymentEmailBodyHtml?: string | null;
+  /**
    * Pesan WA — plain text, emoji OK. Max ~1500 char.
    */
   paymentWhatsappBody: string;
   ticketEmailSubject: string;
   ticketEmailBody: string;
+  /**
+   * HTML version untuk ticket confirmation. Phase 4.70.1.
+   */
+  ticketEmailBodyHtml?: string | null;
   ticketWhatsappBody: string;
   rescheduleEmailSubject?: string | null;
   /**
@@ -44662,9 +44670,13 @@ export interface BookingTemplate {
    */
   otpEmailSubject: string;
   /**
-   * Harus mengandung {{otp}}.
+   * Plain text fallback. Harus mengandung {{otp}}.
    */
   otpEmailBody: string;
+  /**
+   * HTML version untuk OTP email. Dikirim bersama text body (fallback). Phase 4.70.1.
+   */
+  otpEmailBodyHtml?: string | null;
   /**
    * Satu rekening per baris. Format tampil: "Bank — nama holder — rekening".
    */
@@ -46449,9 +46461,11 @@ export interface SiteFeature {
 export interface BookingTemplatesSelect<T extends boolean = true> {
   paymentEmailSubject?: T;
   paymentEmailBody?: T;
+  paymentEmailBodyHtml?: T;
   paymentWhatsappBody?: T;
   ticketEmailSubject?: T;
   ticketEmailBody?: T;
+  ticketEmailBodyHtml?: T;
   ticketWhatsappBody?: T;
   rescheduleEmailSubject?: T;
   rescheduleEmailBody?: T;
@@ -46461,6 +46475,7 @@ export interface BookingTemplatesSelect<T extends boolean = true> {
   cancelWhatsappBody?: T;
   otpEmailSubject?: T;
   otpEmailBody?: T;
+  otpEmailBodyHtml?: T;
   bankAccounts?:
     | T
     | {

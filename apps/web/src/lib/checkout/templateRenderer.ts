@@ -99,7 +99,24 @@ export function extractVariables(template: string): string[] {
  * Render template dengan context. Return render result + daftar error
  * kalau ada variable unknown / missing.
  */
-export function renderTemplate(template: string, ctx: TemplateContext): RenderResult {
+/**
+ * Escape HTML special chars untuk mitigate XSS saat substitusi di HTML
+ * template (Phase 4.70.1).
+ */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+export interface RenderOptions {
+  escapeHtml?: boolean
+}
+
+export function renderTemplate(template: string, ctx: TemplateContext, opts: RenderOptions = {}): RenderResult {
   const errors: string[] = []
   const used = extractVariables(template)
 
@@ -123,7 +140,8 @@ export function renderTemplate(template: string, ctx: TemplateContext): RenderRe
   const rendered = template.replace(VAR_RE, (_, name: string) => {
     const v = ctx[name]
     if (v === null || v === undefined) return ''
-    return String(v)
+    const str = String(v)
+    return opts.escapeHtml ? escapeHtml(str) : str
   })
 
   return { ok: true, rendered, errors: [] }

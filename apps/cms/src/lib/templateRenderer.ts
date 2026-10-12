@@ -73,7 +73,25 @@ export function extractVariables(template: string): string[] {
   return [...names]
 }
 
-export function renderTemplate(template: string, ctx: TemplateContext): RenderResult {
+/**
+ * Escape HTML special chars untuk mitigate XSS saat substitusi di dalam
+ * HTML template. Dipakai saat `escapeHtml: true` (Phase 4.70.1).
+ */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+export interface RenderOptions {
+  /** Escape HTML chars pada nilai saat substitusi. WAJIB `true` untuk HTML template. */
+  escapeHtml?: boolean
+}
+
+export function renderTemplate(template: string, ctx: TemplateContext, opts: RenderOptions = {}): RenderResult {
   const errors: string[] = []
   const used = extractVariables(template)
 
@@ -96,7 +114,8 @@ export function renderTemplate(template: string, ctx: TemplateContext): RenderRe
   const rendered = template.replace(VAR_RE, (_, name: string) => {
     const v = ctx[name]
     if (v === null || v === undefined) return ''
-    return String(v)
+    const str = String(v)
+    return opts.escapeHtml ? escapeHtml(str) : str
   })
 
   return { ok: true, rendered, errors: [] }

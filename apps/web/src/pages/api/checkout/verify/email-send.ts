@@ -29,9 +29,40 @@ import { generateOtp, hashOtp, hashWithSalt, expiresAtIso, isValidEmail, OTP_CON
 import { createOtp } from '@lib/checkout/otpStore'
 import { checkOtpSendRateLimit, OTP_RATE_CONFIG } from '@lib/checkout/otpRateLimit'
 import { getClientIp, hashIp } from '@lib/checkout/rateLimit'
+import { renderTemplate } from '@lib/checkout/templateRenderer'
 import { IS_PROD } from '@lib/env'
 
 const RL_SALT = import.meta.env.BOOKING_RL_SALT || 'dnj-booking-rl-salt'
+const CMS_URL = import.meta.env.CMS_URL || 'http://localhost:3030'
+const API_KEY = import.meta.env.PAYLOAD_API_KEY || ''
+
+/** Fetch booking-templates global dari CMS. Non-fatal — fallback ke
+ * default inline kalau gagal (dev tanpa CMS running). */
+async function fetchOtpTemplate(): Promise<{
+  subject: string
+  text: string
+  html: string | null
+} | null> {
+  if (!CMS_URL || !API_KEY) return null
+  try {
+    const res = await fetch(`${CMS_URL.replace(/\/$/, '')}/api/globals/booking-templates`, {
+      headers: { Authorization: `users API-Key ${API_KEY}` },
+    })
+    if (!res.ok) return null
+    const data = (await res.json().catch(() => ({}))) as {
+      otpEmailSubject?: string
+      otpEmailBody?: string
+      otpEmailBodyHtml?: string | null
+    }
+    return {
+      subject: data.otpEmailSubject ?? 'GtJourneysID verification code: {{otp}}',
+      text: data.otpEmailBody ?? '',
+      html: data.otpEmailBodyHtml ?? null,
+    }
+  } catch {
+    return null
+  }
+}
 
 export const prerender = false
 
@@ -99,13 +130,34 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonResponse({ ok: false, error: 'send_failed', detail: 'storage' }, 500)
   }
 
+  // Phase 4.70.1 — Fetch template dari CMS global; fallback ke default
+  // inline kalau CMS unreachable (dev tanpa CMS).
+  const tpl = await fetchOtpTemplate()
+  const ctx = { otp, otpTtlMinutes: OTP_CONFIG.ttlMinutes }
+
+  let subject = `GtJourneysID verification code: ${otp}`
+  let text = buildOtpText(otp)
+  let html: string | undefined
+
+  if (tpl) {
+    const subjR = renderTemplate(tpl.subject, ctx)
+    const textR = renderTemplate(tpl.text, ctx)
+    if (subjR.ok) subject = subjR.rendered
+    if (textR.ok) text = textR.rendered
+    if (tpl.html) {
+      const htmlR = renderTemplate(tpl.html, ctx, { escapeHtml: true })
+      if (htmlR.ok) html = htmlR.rendered
+    }
+  }
+
   // Kirim email. Idempotency-key = otp record id supaya retry tidak kirim dua.
   const emailRes = await sendEmail({
     to: emailRaw,
-    subject: `GtJourneysID verification code: ${otp}`,
-    text: buildOtpText(otp),
+    subject,
+    text,
+    html,
     idempotencyKey: `otp-${String(store.data.id)}`,
-    tags: { phase: '4-69-2', kind: 'email-otp' },
+    tags: { phase: '4-70-1', kind: 'email-otp' },
   })
 
   if (!emailRes.ok) {

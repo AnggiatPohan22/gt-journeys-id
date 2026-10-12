@@ -38,6 +38,7 @@ interface HandoffResponse {
   previewOnly: boolean
   emailSubject?: string
   emailBody?: string
+  emailBodyHtml?: string
   whatsappBody?: string
   waUrl?: string | null
   sentEmailId?: string
@@ -135,11 +136,15 @@ const sendPaymentEndpoint: Endpoint = {
 
       const emailSubjectR = renderTemplate(String(tpl.paymentEmailSubject ?? ''), ctx)
       const emailBodyR = renderTemplate(String(tpl.paymentEmailBody ?? ''), ctx)
+      const emailBodyHtmlR = tpl.paymentEmailBodyHtml
+        ? renderTemplate(String(tpl.paymentEmailBodyHtml), ctx, { escapeHtml: true })
+        : null
       const waBodyR = renderTemplate(String(tpl.paymentWhatsappBody ?? ''), ctx)
 
       const errors = [
         ...emailSubjectR.errors.map((e) => `[Email Subject] ${e}`),
         ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
+        ...(emailBodyHtmlR?.errors.map((e) => `[Email HTML] ${e}`) ?? []),
         ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
       ]
       if (errors.length > 0) {
@@ -157,6 +162,7 @@ const sendPaymentEndpoint: Endpoint = {
           previewOnly: true,
           emailSubject: emailSubjectR.rendered,
           emailBody: emailBodyR.rendered,
+          emailBodyHtml: emailBodyHtmlR?.rendered,
           whatsappBody: waBodyR.rendered,
           waUrl,
         } satisfies HandoffResponse)
@@ -177,6 +183,7 @@ const sendPaymentEndpoint: Endpoint = {
         to,
         subject: emailSubjectR.rendered,
         text: emailBodyR.rendered,
+        html: emailBodyHtmlR?.rendered,
         idempotencyKey: `payment:${booking.bookingRef}:${req.user!.id}`,
       })
       if (!sent.ok) {
@@ -513,11 +520,15 @@ const sendTicketEndpoint: Endpoint = {
 
       const emailSubjectR = renderTemplate(String(tpl.ticketEmailSubject ?? ''), ctx)
       const emailBodyR = renderTemplate(String(tpl.ticketEmailBody ?? ''), ctx)
+      const emailBodyHtmlR = tpl.ticketEmailBodyHtml
+        ? renderTemplate(String(tpl.ticketEmailBodyHtml), ctx, { escapeHtml: true })
+        : null
       const waBodyR = renderTemplate(String(tpl.ticketWhatsappBody ?? ''), ctx)
 
       const errors = [
         ...emailSubjectR.errors.map((e) => `[Email Subject] ${e}`),
         ...emailBodyR.errors.map((e) => `[Email Body] ${e}`),
+        ...(emailBodyHtmlR?.errors.map((e) => `[Email HTML] ${e}`) ?? []),
         ...waBodyR.errors.map((e) => `[WhatsApp Body] ${e}`),
       ]
       if (errors.length > 0) {
@@ -535,6 +546,7 @@ const sendTicketEndpoint: Endpoint = {
           previewOnly: true,
           emailSubject: emailSubjectR.rendered,
           emailBody: emailBodyR.rendered,
+          emailBodyHtml: emailBodyHtmlR?.rendered,
           whatsappBody: waBodyR.rendered,
           waUrl,
         } satisfies HandoffResponse)
@@ -552,6 +564,7 @@ const sendTicketEndpoint: Endpoint = {
         to,
         subject: emailSubjectR.rendered,
         text: emailBodyR.rendered,
+        html: emailBodyHtmlR?.rendered,
         idempotencyKey: `ticket:${booking.bookingRef}:${req.user!.id}`,
       })
       if (!sent.ok) {

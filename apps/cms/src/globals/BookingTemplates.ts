@@ -1,5 +1,10 @@
 import type { GlobalConfig } from 'payload'
 import { isAdmin, superAdminFieldAccess } from '../access/roles'
+import {
+  DEFAULT_OTP_EMAIL_BODY_HTML,
+  DEFAULT_PAYMENT_EMAIL_BODY_HTML,
+  DEFAULT_TICKET_EMAIL_BODY_HTML,
+} from './bookingTemplatesDefaults'
 
 /**
  * Booking Templates — Phase 4.69.6.
@@ -59,6 +64,16 @@ export const BookingTemplates: GlobalConfig = {
               access: { update: superAdminFieldAccess },
             },
             {
+              name: 'paymentEmailBodyHtml',
+              type: 'textarea',
+              defaultValue: DEFAULT_PAYMENT_EMAIL_BODY_HTML,
+              admin: {
+                rows: 20,
+                description: 'HTML version — di-render oleh email client yang support HTML. Kalau diisi, akan dikirim bersama text body (fallback). Variables sama dgn plain text. Phase 4.70.1.',
+              },
+              access: { update: superAdminFieldAccess },
+            },
+            {
               name: 'paymentWhatsappBody',
               type: 'textarea',
               required: true,
@@ -85,6 +100,16 @@ export const BookingTemplates: GlobalConfig = {
               required: true,
               defaultValue: 'Hi {{customerName}},\n\nPembayaran kamu sudah kami terima — booking {{bookingRef}} CONFIRMED.\n\n*Detail Perjalanan:*\n*Route:* {{originLocation}} → {{destinationLocation}}\n*Date:* {{departureDate}}\n*Class:* {{ferryClassName}}\n*Passengers:* {{adults}} adult(s) + {{children}} child(ren)\n\n{{passengerList}}\n\nMohon tiba di terminal 60 menit sebelum keberangkatan. Siapkan passport fisik untuk check-in.\n\nTerima kasih,\nGtJourneysID',
               admin: { rows: 15 },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'ticketEmailBodyHtml',
+              type: 'textarea',
+              defaultValue: DEFAULT_TICKET_EMAIL_BODY_HTML,
+              admin: {
+                rows: 20,
+                description: 'HTML version untuk ticket confirmation. Phase 4.70.1.',
+              },
               access: { update: superAdminFieldAccess },
             },
             {
@@ -166,7 +191,17 @@ export const BookingTemplates: GlobalConfig = {
               type: 'textarea',
               required: true,
               defaultValue: 'Halo,\n\nKode verifikasi GtJourneysID kamu: {{otp}}\n\nKode berlaku selama {{otpTtlMinutes}} menit. Jangan bagikan ke siapapun.\n\nKalau kamu tidak meminta kode ini, abaikan email ini.\n\n— GtJourneysID',
-              admin: { rows: 10, description: 'Harus mengandung {{otp}}.' },
+              admin: { rows: 10, description: 'Plain text fallback. Harus mengandung {{otp}}.' },
+              access: { update: superAdminFieldAccess },
+            },
+            {
+              name: 'otpEmailBodyHtml',
+              type: 'textarea',
+              defaultValue: DEFAULT_OTP_EMAIL_BODY_HTML,
+              admin: {
+                rows: 20,
+                description: 'HTML version untuk OTP email. Dikirim bersama text body (fallback). Phase 4.70.1.',
+              },
               access: { update: superAdminFieldAccess },
             },
           ],
