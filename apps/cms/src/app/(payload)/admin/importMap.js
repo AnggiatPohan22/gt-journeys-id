@@ -1,3 +1,4 @@
+import { default as default_fc6d56327bdeaacca57c2d3b4a2fac23 } from '../../../admin/BookingRequestAlert'
 import { default as default_c886095dba6d6143039705c2acf0c68c } from '../../../admin/BookingAdminActions'
 import { default as default_1cc38f346512d4f7f75add2738bb7fb4 } from '../../../admin/BookingStatusFilterBar'
 import { default as default_71206546ade6f3e51000b567a053879f } from '../../../admin/SidebarTabs'
@@ -68,6 +69,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/admin/BookingRequestAlert#default": default_fc6d56327bdeaacca57c2d3b4a2fac23,
   "/admin/BookingAdminActions#default": default_c886095dba6d6143039705c2acf0c68c,
   "/admin/BookingStatusFilterBar#default": default_1cc38f346512d4f7f75add2738bb7fb4,
   "/admin/SidebarTabs#default": default_71206546ade6f3e51000b567a053879f,

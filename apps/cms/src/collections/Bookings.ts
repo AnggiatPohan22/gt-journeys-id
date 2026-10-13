@@ -744,6 +744,20 @@ export const Bookings: CollectionConfig = {
   },
   endpoints: [sendPaymentEndpoint, sendTicketEndpoint, sendRescheduleResponseEndpoint, sendCancelResponseEndpoint, customerRequestEndpoint],
   fields: [
+    // ── Customer Request Alert (Phase 4.70.2.2) ──────────────
+    // Banner prominent di PALING ATAS saat booking punya pending request
+    // (reschedule_request / cancel_request). Replace collapsible lama
+    // yang terlalu tersembunyi — admin sering lewatkan.
+    {
+      name: 'requestAlert',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/admin/BookingRequestAlert#default',
+        },
+      },
+    },
+
     // ── Admin Actions (Phase 4.69.7) ─────────────────────────
     // UI field — tombol "Send Payment Instructions" & "Confirm Payment &
     // Send Ticket" dengan modal preview. Komponen client-side ambil
@@ -1129,58 +1143,37 @@ export const Bookings: CollectionConfig = {
       },
     },
 
-    // ── Customer Request (Phase 4.69.9) — reschedule/cancel ─────────────
-    // Field diisi oleh endpoint web `/api/bookings/request-change` saat
-    // customer klik tombol "Request Reschedule" / "Request Cancel" di
-    // confirmation page. Admin lihat alasan + timestamp lalu respond via
-    // tombol "Send Reschedule Response" / "Send Cancel Response" di
-    // Admin Actions section (reuse BookingAdminActions).
+    // ── Customer Request fields (Phase 4.69.9, hidden Phase 4.70.2.2) ──
+    // Fields disimpan di DB untuk audit + banner alert (BookingRequestAlert
+    // reads via form context). UI hidden karena banner di atas sudah
+    // nampilkan info ini dengan presentasi yang lebih user-friendly.
+    // Super-admin bisa un-hide sementara kalau butuh edit manual.
     {
-      type: 'collapsible',
-      label: 'Customer Request',
-      admin: {
-        initCollapsed: true,
-        description: 'Terisi otomatis saat customer klik Request Reschedule / Cancel. Admin baca di sini lalu kirim respond via Admin Actions.',
-        condition: (data) =>
-          data?.status === 'reschedule_request' ||
-          data?.status === 'cancel_request' ||
-          !!data?.customerRequestReason,
-      },
-      fields: [
-        {
-          type: 'row',
-          fields: [
-            {
-              name: 'customerRequestKind',
-              type: 'select',
-              options: [
-                { label: 'Reschedule', value: 'reschedule' },
-                { label: 'Cancel', value: 'cancel' },
-              ],
-              admin: { width: '30%', readOnly: true, description: 'Jenis request terakhir.' },
-            },
-            {
-              name: 'customerRequestedAt',
-              type: 'date',
-              admin: {
-                width: '70%',
-                date: { pickerAppearance: 'dayAndTime' },
-                readOnly: true,
-                description: 'Timestamp request dari customer.',
-              },
-            },
-          ],
-        },
-        {
-          name: 'customerRequestReason',
-          type: 'textarea',
-          admin: {
-            readOnly: true,
-            rows: 4,
-            description: 'Alasan dari customer. Baca sebelum response.',
-          },
-        },
+      name: 'customerRequestKind',
+      type: 'select',
+      options: [
+        { label: 'Reschedule', value: 'reschedule' },
+        { label: 'Cancel', value: 'cancel' },
       ],
+      admin: { hidden: true, readOnly: true, description: 'Dibaca oleh BookingRequestAlert banner.' },
+    },
+    {
+      name: 'customerRequestedAt',
+      type: 'date',
+      admin: {
+        hidden: true,
+        date: { pickerAppearance: 'dayAndTime' },
+        readOnly: true,
+      },
+    },
+    {
+      name: 'customerRequestReason',
+      type: 'textarea',
+      admin: {
+        hidden: true,
+        readOnly: true,
+        rows: 4,
+      },
     },
 
     // ── Admin-handoff audit (Phase 4.69.5) ─────────────
