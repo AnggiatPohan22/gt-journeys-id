@@ -491,7 +491,10 @@ const crumbs = [
 
         {/* ─── Phase 4.69.9 — Request Reschedule / Cancel ─── */}
         {(() => {
-          const ACTIVE = new Set(['awaiting_review', 'awaiting_payment', 'payment_review', 'confirmed', 'pending'])
+          // Phase 4.70.2.1 — `confirmed` DIKELUARKAN dari active:
+          // setelah payment done + e-ticket terkirim, booking locked.
+          // Admin masih bisa cancel via CMS kalau exceptional case.
+          const ACTIVE = new Set(['awaiting_review', 'awaiting_payment', 'payment_review', 'pending'])
           const PENDING_REQ = new Set(['reschedule_request', 'cancel_request'])
           const status = String((booking as any).status ?? '')
           const canRequest = ACTIVE.has(status)

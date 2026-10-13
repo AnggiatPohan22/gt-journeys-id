@@ -208,6 +208,25 @@ export const DEFAULT_PAYMENT_EMAIL_BODY_HTML = shell(
     <p style="margin:12px 0 0;font-size:11px;color:${b.textFaint};">WhatsApp verifikasi: <strong>{{adminWhatsapp}}</strong></p>
   </div>
 
+  <!-- Change plan — reschedule / cancel (visible SEBELUM payment) -->
+  <div style="padding:0 28px 20px;">
+    <div style="background:${b.surfaceAlt};border:1px dashed ${b.border};border-radius:12px;padding:16px 20px;">
+      <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:${b.text};">
+        🔁 Berubah pikiran?
+      </h3>
+      <p style="margin:0 0 12px;font-size:13px;color:${b.textMuted};line-height:20px;">
+        Kamu bisa <strong>reschedule</strong> atau <strong>cancel</strong> booking ini
+        <strong>sebelum pembayaran</strong>. Klik tombol di bawah untuk buka halaman booking kamu.
+      </p>
+      <a href="{{confirmationUrl}}" style="display:inline-block;background:${b.surface};border:1px solid {{brandAccentColor}};color:{{brandAccentColor}};padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+        Kelola booking →
+      </a>
+      <p style="margin:10px 0 0;font-size:11px;color:${b.textFaint};line-height:16px;">
+        Simpan link ini — kamu bisa akses booking kapan saja selama belum di-cancel/expired.
+      </p>
+    </div>
+  </div>
+
   <div style="padding:0 28px 24px;">
     <div style="background:${b.warnBg};border-left:3px solid ${b.warn};padding:14px 16px;border-radius:4px;">
       <div style="font-size:12px;font-weight:600;color:${b.warnText};margin-bottom:4px;">🛡 Security Notice</div>
@@ -233,9 +252,8 @@ export const DEFAULT_TICKET_EMAIL_BODY_HTML = shell(
     <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:20px;">
       <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:${b.textMuted};font-weight:600;">Booking Reference</div>
       <div style="margin-top:4px;font-family:${monoStack};font-size:22px;font-weight:700;color:${b.success};letter-spacing:1px;">{{bookingRef}}</div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed ${b.border};">
-        <div style="font-size:12px;color:${b.textMuted};margin-bottom:4px;">Confirmation URL (bookmark this):</div>
-        <a href="{{confirmationUrl}}" style="font-size:12px;color:{{brandAccentColor}};word-break:break-all;text-decoration:none;">{{confirmationUrl}}</a>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed ${b.border};font-size:12px;color:${b.textMuted};line-height:18px;">
+        Tunjukkan reference ini saat check-in di terminal — baik via email ini atau screenshot.
       </div>
     </div>
   </div>

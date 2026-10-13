@@ -486,11 +486,13 @@ const customerRequestEndpoint: Endpoint = {
 
       const status = booking.status as string
       // Hanya status "aktif" yang bisa request change.
+      // Phase 4.70.2.1 — `confirmed` DIKELUARKAN: setelah payment +
+      // e-ticket terkirim, booking locked. Customer harus kontak admin
+      // langsung untuk exceptional case (admin override via CMS).
       const activeStatuses = [
         'awaiting_review',
         'awaiting_payment',
         'payment_review',
-        'confirmed',
         'pending',
       ]
       if (!activeStatuses.includes(status)) {
