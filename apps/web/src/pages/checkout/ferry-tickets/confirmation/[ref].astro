@@ -491,14 +491,22 @@ const crumbs = [
 
         {/* ─── Phase 4.69.9 — Request Reschedule / Cancel ─── */}
         {(() => {
-          // Phase 4.70.2.1 — `confirmed` DIKELUARKAN dari active:
-          // setelah payment done + e-ticket terkirim, booking locked.
-          // Admin masih bisa cancel via CMS kalau exceptional case.
+          // Phase 4.70.2.4 + 4.70.2.9 — Semua customer-triggered change
+          // request HANYA pre-payment (reschedule & cancel sama-sama).
+          // Setelah e-ticket terkirim (`confirmed`), customer kontak admin
+          // langsung via WhatsApp — mencegah refund loop & operator reissue
+          // overhead.
+          // Phase 4.70.2.7 — One-shot: `hasRequestedChange === true` →
+          // button HILANG permanen (prevent spam).
           const ACTIVE = new Set(['awaiting_review', 'awaiting_payment', 'payment_review', 'pending'])
           const PENDING_REQ = new Set(['reschedule_request', 'cancel_request'])
           const status = String((booking as any).status ?? '')
-          const canRequest = ACTIVE.has(status)
+          const hasRequestedChange = Boolean((booking as any).hasRequestedChange)
+          const canReschedule = !hasRequestedChange && ACTIVE.has(status)
+          const canCancel = !hasRequestedChange && ACTIVE.has(status)
+          const canRequest = canReschedule || canCancel
           const alreadyRequested = PENDING_REQ.has(status)
+          const isConfirmed = status === 'confirmed'
           const requestKind = String((booking as any).customerRequestKind ?? '')
           const requestReason = String((booking as any).customerRequestReason ?? '')
           return (
@@ -513,7 +521,9 @@ const crumbs = [
                 Need to change your booking?
               </h3>
               <p class="text-xs sm:text-sm text-stone leading-relaxed mb-4">
-                If your plan changed, you can request a reschedule or cancellation. Our admin will reply by email with the next steps.
+                {isConfirmed
+                  ? 'Your ticket is already issued. Reschedule or cancellation is no longer available online — please contact admin directly via WhatsApp for exceptional cases.'
+                  : 'If your plan changed, you can request a reschedule or cancellation. Our admin will reply by email with the next steps.'}
               </p>
 
               {alreadyRequested && (
@@ -528,28 +538,40 @@ const crumbs = [
 
               {canRequest && (
                 <div class="flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    data-request-btn="reschedule"
-                    class="inline-flex items-center justify-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
-                  >
-                    <Icon name="autorenew" class="w-4 h-4" />
-                    Request Reschedule
-                  </button>
-                  <button
-                    type="button"
-                    data-request-btn="cancel"
-                    class="inline-flex items-center justify-center gap-2 bg-coral-50 hover:bg-coral-100 text-coral-900 border border-coral-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
-                  >
-                    <Icon name="close" class="w-4 h-4" />
-                    Request Cancellation
-                  </button>
+                  {canReschedule && (
+                    <button
+                      type="button"
+                      data-request-btn="reschedule"
+                      class="inline-flex items-center justify-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+                    >
+                      <Icon name="autorenew" class="w-4 h-4" />
+                      Request Reschedule
+                    </button>
+                  )}
+                  {canCancel && (
+                    <button
+                      type="button"
+                      data-request-btn="cancel"
+                      class="inline-flex items-center justify-center gap-2 bg-coral-50 hover:bg-coral-100 text-coral-900 border border-coral-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+                    >
+                      <Icon name="close" class="w-4 h-4" />
+                      Request Cancellation
+                    </button>
+                  )}
                 </div>
+              )}
+
+              {isConfirmed && (
+                <p class="text-[11px] text-stone-light italic mt-3">
+                  Note: After the ticket has been issued, both reschedule and cancellation require admin assistance. Please contact admin via WhatsApp for exceptional cases.
+                </p>
               )}
 
               {!canRequest && !alreadyRequested && (
                 <p class="text-xs text-stone-light italic">
-                  This booking is {status} — change requests are no longer available.
+                  {hasRequestedChange
+                    ? 'A change request has already been submitted and processed for this booking. For further assistance, please contact admin via WhatsApp.'
+                    : `This booking is ${status} — change requests are no longer available.`}
                 </p>
               )}
             </div>

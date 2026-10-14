@@ -1,24 +1,31 @@
 'use client'
 /**
- * BookingAdminActions — Phase 4.69.7.
+ * BookingAdminActions — Phase 4.69.7 (+ 4.70.2.6 split reschedule).
  *
- * Tombol-tombol admin di edit view Booking:
- *   - "Send Payment Instructions" (visible saat status = awaiting_review)
- *   - "Confirm Payment & Send Ticket" (visible saat status = payment_review)
+ * Admin button sesuai status booking:
+ *   - awaiting_review/pending       → Send Payment Instructions
+ *   - payment_review/awaiting_payment → Confirm Payment & Send Ticket
+ *   - reschedule_request            → Confirm Reschedule + Decline Reschedule
+ *   - cancel_request                → Send Cancel Response
  *
  * Flow click:
- *   1. Open modal.
- *   2. Fetch preview via `POST /:id/send-{payment|ticket} { previewOnly: true }`.
- *   3. Render preview (email subject + email body + WA body).
- *   4. Admin klik "Send" → POST ulang tanpa previewOnly.
- *   5. On success: show success + wa.me link (new-tab).
- *   6. User re-save form → status + sent*At terupdate dari server.
+ *   1. Open modal, textarea adminNote (opsional/wajib tergantung kind).
+ *   2. Admin isi note → klik "Preview" → fetch POST { previewOnly: true, adminNote }.
+ *   3. Render preview (subject + HTML/text + WA body).
+ *   4. Admin klik "Confirm & Send" → POST ulang tanpa previewOnly.
+ *   5. On success: show success + wa.me link → close reload form.
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAllFormFields, useDocumentInfo } from '@payloadcms/ui'
 
-type ActionKind = 'payment' | 'ticket' | 'reschedule' | 'cancel'
+type ActionKind =
+  | 'payment'
+  | 'ticket'
+  | 'rescheduleConfirm'
+  | 'rescheduleDecline'
+  | 'cancelConfirm'
+  | 'cancelDecline'
 
 interface PreviewResult {
   ok: boolean
@@ -33,39 +40,77 @@ interface PreviewResult {
   errors?: string[]
 }
 
-function statusToKind(status: string | undefined): ActionKind | null {
-  if (status === 'awaiting_review' || status === 'pending') return 'payment'
-  if (status === 'payment_review' || status === 'awaiting_payment') return 'ticket'
-  if (status === 'reschedule_request') return 'reschedule'
-  if (status === 'cancel_request') return 'cancel'
-  return null
+function statusToKinds(status: string | undefined): ActionKind[] {
+  if (status === 'awaiting_review' || status === 'pending') return ['payment']
+  if (status === 'payment_review' || status === 'awaiting_payment') return ['ticket']
+  if (status === 'reschedule_request') return ['rescheduleConfirm', 'rescheduleDecline']
+  if (status === 'cancel_request') return ['cancelConfirm', 'cancelDecline']
+  return []
 }
 
 function kindToPath(kind: ActionKind): string {
   switch (kind) {
-    case 'payment':    return 'send-payment'
-    case 'ticket':     return 'send-ticket'
-    case 'reschedule': return 'send-reschedule-response'
-    case 'cancel':     return 'send-cancel-response'
+    case 'payment':           return 'send-payment'
+    case 'ticket':            return 'send-ticket'
+    case 'rescheduleConfirm': return 'confirm-reschedule'
+    case 'rescheduleDecline': return 'decline-reschedule'
+    case 'cancelConfirm':     return 'confirm-cancel'
+    case 'cancelDecline':     return 'decline-cancel'
   }
 }
 
 function kindToLabel(kind: ActionKind): string {
   switch (kind) {
-    case 'payment':    return 'Send Payment Instructions'
-    case 'ticket':     return 'Confirm Payment & Send Ticket'
-    case 'reschedule': return 'Send Reschedule Response'
-    case 'cancel':     return 'Send Cancel Response (status → cancelled)'
+    case 'payment':           return 'Send Payment Instructions'
+    case 'ticket':            return 'Confirm Payment & Send Ticket'
+    case 'rescheduleConfirm': return 'Confirm Reschedule'
+    case 'rescheduleDecline': return 'Decline Reschedule'
+    case 'cancelConfirm':     return 'Confirm Cancellation (status → cancelled)'
+    case 'cancelDecline':     return 'Decline Cancellation'
   }
 }
 
 function kindToEmoji(kind: ActionKind): string {
   switch (kind) {
-    case 'payment':    return '📧'
-    case 'ticket':     return '🎫'
-    case 'reschedule': return '🔁'
-    case 'cancel':     return '❌'
+    case 'payment':           return '📧'
+    case 'ticket':            return '🎫'
+    case 'rescheduleConfirm': return '✅'
+    case 'rescheduleDecline': return '❌'
+    case 'cancelConfirm':     return '🗑'
+    case 'cancelDecline':     return '⚠'
   }
+}
+
+function kindNeedsNote(kind: ActionKind): 'optional' | 'required' | 'none' {
+  if (kind === 'rescheduleConfirm') return 'optional'
+  if (kind === 'rescheduleDecline') return 'required'
+  if (kind === 'cancelConfirm') return 'optional'
+  if (kind === 'cancelDecline') return 'required'
+  return 'none'
+}
+
+function kindNoteLabel(kind: ActionKind): string {
+  if (kind === 'rescheduleConfirm')
+    return 'Catatan untuk customer (opsional — misal info biaya tambahan, kursi, atau ketentuan reschedule)'
+  if (kind === 'rescheduleDecline')
+    return 'Alasan DECLINE (WAJIB, min 10 karakter — misal "slot tanggal diminta sudah penuh")'
+  if (kind === 'cancelConfirm')
+    return 'Catatan untuk customer (opsional — misal info refund, kebijakan, atau next step)'
+  if (kind === 'cancelDecline')
+    return 'Alasan DECLINE (WAJIB, min 10 karakter — misal "sudah dekat tanggal keberangkatan, kebijakan tidak membolehkan cancel")'
+  return ''
+}
+
+function kindNoteWarning(kind: ActionKind): string | null {
+  if (kind === 'rescheduleConfirm')
+    return '⚠ Pastikan Departure Date sudah di-update di form sebelum klik Preview.'
+  if (kind === 'rescheduleDecline')
+    return 'ℹ Jangan ubah Departure Date — booking akan tetap pakai jadwal semula.'
+  if (kind === 'cancelConfirm')
+    return '⚠ Setelah send, status booking jadi "cancelled" (final, tidak bisa di-undo via UI).'
+  if (kind === 'cancelDecline')
+    return 'ℹ Booking tetap berlaku jadwal semula. Status kembali ke status pre-request (misal awaiting_payment).'
+  return null
 }
 
 const BookingAdminActions: React.FC = () => {
@@ -73,9 +118,11 @@ const BookingAdminActions: React.FC = () => {
   const [fields] = useAllFormFields()
   const status =
     (typeof fields?.status?.value === 'string' && fields.status.value) || ''
-  const kind = statusToKind(status)
+  const kinds = statusToKinds(status)
 
   const [open, setOpen] = useState(false)
+  const [activeKind, setActiveKind] = useState<ActionKind | null>(null)
+  const [adminNote, setAdminNote] = useState('')
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState<PreviewResult | null>(null)
   const [error, setError] = useState<string[] | null>(null)
@@ -85,7 +132,7 @@ const BookingAdminActions: React.FC = () => {
   const endpointPath = (k: ActionKind) => `/api/bookings/${id}/${kindToPath(k)}`
 
   const fetchPreview = useCallback(
-    async (k: ActionKind) => {
+    async (k: ActionKind, note: string) => {
       setLoading(true)
       setError(null)
       setPreview(null)
@@ -95,7 +142,7 @@ const BookingAdminActions: React.FC = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ previewOnly: true }),
+          body: JSON.stringify({ previewOnly: true, adminNote: note }),
         })
         const data = (await res.json()) as PreviewResult
         if (!res.ok || !data.ok) {
@@ -113,20 +160,38 @@ const BookingAdminActions: React.FC = () => {
   )
 
   const openModal = (k: ActionKind) => {
+    setActiveKind(k)
+    setAdminNote('')
+    setPreview(null)
+    setError(null)
+    setSent(null)
     setOpen(true)
-    fetchPreview(k)
+    // Auto-fetch preview untuk kind yang tidak butuh note.
+    if (kindNeedsNote(k) === 'none') {
+      fetchPreview(k, '')
+    }
+  }
+
+  const refreshPreview = () => {
+    if (!activeKind) return
+    const noteKind = kindNeedsNote(activeKind)
+    if (noteKind === 'required' && adminNote.trim().length < 10) {
+      setError(['Alasan minimal 10 karakter.'])
+      return
+    }
+    fetchPreview(activeKind, adminNote)
   }
 
   const confirmSend = useCallback(async () => {
-    if (!kind) return
+    if (!activeKind) return
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(endpointPath(kind), {
+      const res = await fetch(endpointPath(activeKind), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ previewOnly: false }),
+        body: JSON.stringify({ previewOnly: false, adminNote }),
       })
       const data = (await res.json()) as PreviewResult
       if (!res.ok || !data.ok) {
@@ -134,27 +199,26 @@ const BookingAdminActions: React.FC = () => {
         return
       }
       setSent(data)
-      // Preview = sent (konten identik)
       setPreview(data)
     } catch (e: any) {
       setError([e?.message ?? 'Network error'])
     } finally {
       setLoading(false)
     }
-  }, [kind, id])
+  }, [activeKind, adminNote, id])
 
   const close = () => {
     setOpen(false)
     setPreview(null)
     setError(null)
-    // Kalau sudah sent, reload supaya status + sent*At ter-sync dari server.
+    setActiveKind(null)
+    setAdminNote('')
     if (sent) {
       window.setTimeout(() => window.location.reload(), 200)
     }
     setSent(null)
   }
 
-  // Esc untuk tutup
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -162,6 +226,7 @@ const BookingAdminActions: React.FC = () => {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, sent])
 
   if (!id) {
@@ -174,36 +239,40 @@ const BookingAdminActions: React.FC = () => {
     )
   }
 
-  const btnLabel = kind ? kindToLabel(kind) : null
+  const noteMode = activeKind ? kindNeedsNote(activeKind) : 'none'
+  const noteWarning = activeKind ? kindNoteWarning(activeKind) : null
+  const previewDisabled =
+    loading ||
+    (noteMode === 'required' && adminNote.trim().length < 10)
 
   return (
     <div className="bk-admin-actions">
       <style>{css}</style>
-      {!kind && (
+      {kinds.length === 0 && (
         <p className="bk-admin-actions__caption">
           Admin actions tidak tersedia untuk status <strong>{status || 'unknown'}</strong>.
-          Transisi otomatis muncul saat booking <code>awaiting_review</code> atau <code>payment_review</code>.
         </p>
       )}
 
-      {kind && (
-        <>
-          <div className="bk-admin-actions__row">
+      {kinds.length > 0 && (
+        <div className="bk-admin-actions__row">
+          {kinds.map((k) => (
             <button
+              key={k}
               type="button"
-              className={`bk-admin-actions__btn bk-admin-actions__btn--${kind}`}
-              onClick={() => openModal(kind)}
+              className={`bk-admin-actions__btn bk-admin-actions__btn--${k}`}
+              onClick={() => openModal(k)}
             >
-              {kindToEmoji(kind)} {btnLabel}
+              {kindToEmoji(k)} {kindToLabel(k)}
             </button>
-            <span className="bk-admin-actions__hint">
-              Preview email + WA message akan ditampilkan sebelum kirim.
-            </span>
-          </div>
-        </>
+          ))}
+          <span className="bk-admin-actions__hint">
+            Preview email + WA message akan ditampilkan sebelum kirim.
+          </span>
+        </div>
       )}
 
-      {open && (
+      {open && activeKind && (
         <div className="bk-modal" role="dialog" aria-modal="true" onClick={close}>
           <div
             className="bk-modal__inner"
@@ -211,7 +280,7 @@ const BookingAdminActions: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <header className="bk-modal__header">
-              <h3>{btnLabel} — Preview</h3>
+              <h3>{kindToLabel(activeKind)}</h3>
               <button
                 type="button"
                 className="bk-modal__close"
@@ -223,17 +292,49 @@ const BookingAdminActions: React.FC = () => {
             </header>
 
             <div className="bk-modal__body">
-              {loading && <p className="bk-modal__loading">Rendering template…</p>}
+              {noteMode !== 'none' && (
+                <section className="bk-modal__section">
+                  {noteWarning && (
+                    <div className={`bk-modal__warning bk-modal__warning--${activeKind}`} role="status">
+                      {noteWarning}
+                    </div>
+                  )}
+                  <label className="bk-modal__note-label" htmlFor="bk-admin-note">
+                    {kindNoteLabel(activeKind)}
+                  </label>
+                  <textarea
+                    id="bk-admin-note"
+                    className="bk-modal__textarea"
+                    rows={4}
+                    value={adminNote}
+                    onChange={(e) => setAdminNote(e.target.value)}
+                    placeholder={noteMode === 'required' ? 'Contoh: Slot tanggal 15 Oct sudah penuh, mohon pilih tanggal lain.' : 'Opsional — kosongkan kalau tidak ada catatan.'}
+                    maxLength={500}
+                  />
+                  <div className="bk-modal__note-meta">
+                    <span>{adminNote.length} / 500</span>
+                    <button
+                      type="button"
+                      className="bk-modal__btn bk-modal__btn--primary"
+                      onClick={refreshPreview}
+                      disabled={previewDisabled}
+                    >
+                      {loading ? 'Loading…' : preview ? 'Refresh Preview' : 'Preview'}
+                    </button>
+                  </div>
+                </section>
+              )}
+
+              {loading && !preview && <p className="bk-modal__loading">Rendering template…</p>}
 
               {error && (
                 <div className="bk-modal__error" role="alert">
-                  <strong>Template errors:</strong>
+                  <strong>Errors:</strong>
                   <ul>
                     {error.map((e, i) => (
                       <li key={i}>{e}</li>
                     ))}
                   </ul>
-                  <p>Fix field yang kosong di booking atau update template di global <code>booking-templates</code>, lalu coba lagi.</p>
                 </div>
               )}
 
@@ -288,7 +389,7 @@ const BookingAdminActions: React.FC = () => {
                         </p>
                       )}
                       <p className="bk-modal__hint">
-                        Click close untuk reload form (ambil status & timestamp baru).
+                        Click close untuk reload form.
                       </p>
                     </section>
                   )}
@@ -330,7 +431,7 @@ const css = `
 }
 .bk-admin-actions__row {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
   flex-wrap: wrap;
 }
@@ -344,10 +445,12 @@ const css = `
   border-radius: 6px;
   cursor: pointer;
 }
-.bk-admin-actions__btn--payment    { background: #1B3A4B; }
-.bk-admin-actions__btn--ticket     { background: #6B9080; }
-.bk-admin-actions__btn--reschedule { background: #d9a441; }
-.bk-admin-actions__btn--cancel     { background: #e07a5f; }
+.bk-admin-actions__btn--payment            { background: #1B3A4B; }
+.bk-admin-actions__btn--ticket             { background: #6B9080; }
+.bk-admin-actions__btn--rescheduleConfirm  { background: #059669; }
+.bk-admin-actions__btn--rescheduleDecline  { background: #DC2626; }
+.bk-admin-actions__btn--cancelConfirm      { background: #991B1B; }
+.bk-admin-actions__btn--cancelDecline      { background: #D97706; }
 .bk-admin-actions__btn:hover { opacity: 0.9; }
 .bk-admin-actions__hint, .bk-admin-actions__caption {
   font-size: 0.85rem;
@@ -401,8 +504,55 @@ const css = `
   color: #641e16;
   padding: 0.75rem 1rem;
   border-radius: 6px;
+  margin-top: 0.5rem;
 }
 .bk-modal__error ul { margin: 0.4rem 0; padding-left: 1.4rem; }
+.bk-modal__warning {
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+.bk-modal__warning--rescheduleConfirm,
+.bk-modal__warning--cancelConfirm {
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  color: #713f12;
+}
+.bk-modal__warning--rescheduleDecline,
+.bk-modal__warning--cancelDecline {
+  background: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  color: #075985;
+}
+.bk-modal__note-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--theme-text, #333);
+  margin-bottom: 0.4rem;
+}
+.bk-modal__textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--theme-elevation-100, #ccc);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  background: var(--theme-bg, #fff);
+  color: var(--theme-text, #1a1a1a);
+  box-sizing: border-box;
+}
+.bk-modal__note-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--theme-text-dim, #666);
+}
 .bk-modal__section {
   margin-bottom: 1.5rem;
 }

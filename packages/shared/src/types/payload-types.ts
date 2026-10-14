@@ -381,17 +381,27 @@ export interface Booking {
    */
   expiresAt?: string | null;
   /**
-   * Jenis request terakhir.
+   * Dibaca oleh BookingRequestAlert banner.
    */
   customerRequestKind?: ('reschedule' | 'cancel') | null;
-  /**
-   * Timestamp request dari customer.
-   */
   customerRequestedAt?: string | null;
-  /**
-   * Alasan dari customer. Baca sebelum response.
-   */
   customerRequestReason?: string | null;
+  /**
+   * Snapshot departureDate sebelum reschedule — Phase 4.70.2.4.
+   */
+  originalDepartureDate?: string | null;
+  /**
+   * Snapshot scheduleTimeLabel sebelum reschedule — Phase 4.70.2.4.
+   */
+  originalScheduleTimeLabel?: string | null;
+  /**
+   * Snapshot status asli sebelum customer request change — Phase 4.70.2.6.
+   */
+  preRequestStatus?: string | null;
+  /**
+   * Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case.
+   */
+  hasRequestedChange?: boolean | null;
   /**
    * Di-set saat booking dibuat dengan email verified token valid (Phase 4.69.3).
    */
@@ -30264,6 +30274,10 @@ export interface BookingsSelect<T extends boolean = true> {
   customerRequestKind?: T;
   customerRequestedAt?: T;
   customerRequestReason?: T;
+  originalDepartureDate?: T;
+  originalScheduleTimeLabel?: T;
+  preRequestStatus?: T;
+  hasRequestedChange?: T;
   emailVerifiedAt?: T;
   whatsappVerifiedAt?: T;
   sentPaymentAt?: T;
@@ -44694,26 +44708,107 @@ export interface BookingTemplate {
    */
   ticketEmailBodyHtml?: string | null;
   ticketWhatsappBody: string;
+  /**
+   * ✅ CONFIRM — Headline email saat admin APPROVE reschedule.
+   */
+  rescheduleConfirmHeroHeadline?: string | null;
+  rescheduleConfirmHeroSubtext?: string | null;
+  rescheduleConfirmEmailSubject?: string | null;
+  /**
+   * Plain-text fallback. Variable {{rescheduleConfirmNote}} = catatan dari admin saat kirim.
+   */
+  rescheduleConfirmEmailBody?: string | null;
+  /**
+   * [Advanced/dev-only] Raw HTML override.
+   */
+  rescheduleConfirmEmailBodyHtml?: string | null;
+  rescheduleConfirmWhatsappBody?: string | null;
+  /**
+   * ❌ DECLINE — Headline email saat admin DECLINE reschedule.
+   */
+  rescheduleDeclineHeroHeadline?: string | null;
+  rescheduleDeclineHeroSubtext?: string | null;
+  rescheduleDeclineEmailSubject?: string | null;
+  /**
+   * Plain-text fallback. Variable {{rescheduleDeclineReason}} = alasan WAJIB dari admin.
+   */
+  rescheduleDeclineEmailBody?: string | null;
+  /**
+   * [Advanced/dev-only] Raw HTML override.
+   */
+  rescheduleDeclineEmailBodyHtml?: string | null;
+  rescheduleDeclineWhatsappBody?: string | null;
+  /**
+   * [Deprecated 4.70.2.6] Gunakan rescheduleConfirmHeroHeadline / rescheduleDeclineHeroHeadline.
+   */
   rescheduleHeroHeadline?: string | null;
   rescheduleHeroSubtext?: string | null;
   /**
-   * [Advanced/dev-only] Raw HTML override.
+   * [Deprecated 4.70.2.6]
    */
   rescheduleEmailBodyHtml?: string | null;
+  /**
+   * [Deprecated 4.70.2.6]
+   */
   rescheduleEmailSubject?: string | null;
   /**
-   * Template singkat — admin tambah detail per-kasus sebelum kirim.
+   * [Deprecated 4.70.2.6]
    */
   rescheduleEmailBody?: string | null;
+  /**
+   * [Deprecated 4.70.2.6]
+   */
   rescheduleWhatsappBody?: string | null;
+  /**
+   * ❌ CONFIRM — Headline saat admin APPROVE cancel.
+   */
+  cancelConfirmHeroHeadline?: string | null;
+  cancelConfirmHeroSubtext?: string | null;
+  cancelConfirmEmailSubject?: string | null;
+  /**
+   * Plain-text fallback. Variable {{cancelConfirmNote}} = catatan dari admin saat kirim.
+   */
+  cancelConfirmEmailBody?: string | null;
+  /**
+   * [Advanced/dev-only] Raw HTML override.
+   */
+  cancelConfirmEmailBodyHtml?: string | null;
+  cancelConfirmWhatsappBody?: string | null;
+  /**
+   * ⚠ DECLINE — Headline saat admin DECLINE cancel.
+   */
+  cancelDeclineHeroHeadline?: string | null;
+  cancelDeclineHeroSubtext?: string | null;
+  cancelDeclineEmailSubject?: string | null;
+  /**
+   * Plain-text fallback. Variable {{cancelDeclineReason}} = alasan WAJIB dari admin.
+   */
+  cancelDeclineEmailBody?: string | null;
+  /**
+   * [Advanced/dev-only] Raw HTML override.
+   */
+  cancelDeclineEmailBodyHtml?: string | null;
+  cancelDeclineWhatsappBody?: string | null;
+  /**
+   * [Deprecated 4.70.2.8]
+   */
   cancelHeroHeadline?: string | null;
   cancelHeroSubtext?: string | null;
   /**
-   * [Advanced/dev-only] Raw HTML override.
+   * [Deprecated 4.70.2.8]
    */
   cancelEmailBodyHtml?: string | null;
+  /**
+   * [Deprecated 4.70.2.8]
+   */
   cancelEmailSubject?: string | null;
+  /**
+   * [Deprecated 4.70.2.8]
+   */
   cancelEmailBody?: string | null;
+  /**
+   * [Deprecated 4.70.2.8]
+   */
   cancelWhatsappBody?: string | null;
   otpHeroHeadline?: string | null;
   otpHeroSubtext?: string | null;
@@ -46534,12 +46629,36 @@ export interface BookingTemplatesSelect<T extends boolean = true> {
   ticketEmailBody?: T;
   ticketEmailBodyHtml?: T;
   ticketWhatsappBody?: T;
+  rescheduleConfirmHeroHeadline?: T;
+  rescheduleConfirmHeroSubtext?: T;
+  rescheduleConfirmEmailSubject?: T;
+  rescheduleConfirmEmailBody?: T;
+  rescheduleConfirmEmailBodyHtml?: T;
+  rescheduleConfirmWhatsappBody?: T;
+  rescheduleDeclineHeroHeadline?: T;
+  rescheduleDeclineHeroSubtext?: T;
+  rescheduleDeclineEmailSubject?: T;
+  rescheduleDeclineEmailBody?: T;
+  rescheduleDeclineEmailBodyHtml?: T;
+  rescheduleDeclineWhatsappBody?: T;
   rescheduleHeroHeadline?: T;
   rescheduleHeroSubtext?: T;
   rescheduleEmailBodyHtml?: T;
   rescheduleEmailSubject?: T;
   rescheduleEmailBody?: T;
   rescheduleWhatsappBody?: T;
+  cancelConfirmHeroHeadline?: T;
+  cancelConfirmHeroSubtext?: T;
+  cancelConfirmEmailSubject?: T;
+  cancelConfirmEmailBody?: T;
+  cancelConfirmEmailBodyHtml?: T;
+  cancelConfirmWhatsappBody?: T;
+  cancelDeclineHeroHeadline?: T;
+  cancelDeclineHeroSubtext?: T;
+  cancelDeclineEmailSubject?: T;
+  cancelDeclineEmailBody?: T;
+  cancelDeclineEmailBodyHtml?: T;
+  cancelDeclineWhatsappBody?: T;
   cancelHeroHeadline?: T;
   cancelHeroSubtext?: T;
   cancelEmailBodyHtml?: T;

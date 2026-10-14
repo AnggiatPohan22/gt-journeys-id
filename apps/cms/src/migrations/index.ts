@@ -48,6 +48,10 @@ import * as migration_20261009_121202_phase_4_69_6_booking_templates from './202
 import * as migration_20261009_130000_phase_4_69_9_bookings_customer_request from './20261009_130000_phase_4_69_9_bookings_customer_request';
 import * as migration_20261012_140000_phase_4_70_1_html_templates from './20261012_140000_phase_4_70_1_html_templates';
 import * as migration_20261012_150000_phase_4_70_2_structured_brand_fields from './20261012_150000_phase_4_70_2_structured_brand_fields';
+import * as migration_20261013_120000_phase_4_70_2_4_reschedule_snapshot from './20261013_120000_phase_4_70_2_4_reschedule_snapshot';
+import * as migration_20261014_100000_phase_4_70_2_6_reschedule_confirm_decline from './20261014_100000_phase_4_70_2_6_reschedule_confirm_decline';
+import * as migration_20261014_120000_phase_4_70_2_7_one_shot_request from './20261014_120000_phase_4_70_2_7_one_shot_request';
+import * as migration_20261014_140000_phase_4_70_2_8_cancel_confirm_decline from './20261014_140000_phase_4_70_2_8_cancel_confirm_decline';
 
 export const migrations = [
   {
@@ -299,5 +303,25 @@ export const migrations = [
     up: migration_20261012_150000_phase_4_70_2_structured_brand_fields.up,
     down: migration_20261012_150000_phase_4_70_2_structured_brand_fields.down,
     name: '20261012_150000_phase_4_70_2_structured_brand_fields',
+  },
+  {
+    up: migration_20261013_120000_phase_4_70_2_4_reschedule_snapshot.up,
+    down: migration_20261013_120000_phase_4_70_2_4_reschedule_snapshot.down,
+    name: '20261013_120000_phase_4_70_2_4_reschedule_snapshot',
+  },
+  {
+    up: migration_20261014_100000_phase_4_70_2_6_reschedule_confirm_decline.up,
+    down: migration_20261014_100000_phase_4_70_2_6_reschedule_confirm_decline.down,
+    name: '20261014_100000_phase_4_70_2_6_reschedule_confirm_decline',
+  },
+  {
+    up: migration_20261014_120000_phase_4_70_2_7_one_shot_request.up,
+    down: migration_20261014_120000_phase_4_70_2_7_one_shot_request.down,
+    name: '20261014_120000_phase_4_70_2_7_one_shot_request',
+  },
+  {
+    up: migration_20261014_140000_phase_4_70_2_8_cancel_confirm_decline.up,
+    down: migration_20261014_140000_phase_4_70_2_8_cancel_confirm_decline.down,
+    name: '20261014_140000_phase_4_70_2_8_cancel_confirm_decline',
   },
 ];

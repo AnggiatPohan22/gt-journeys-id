@@ -13,8 +13,10 @@ import {
   DEFAULT_OTP_EMAIL_BODY_HTML,
   DEFAULT_PAYMENT_EMAIL_BODY_HTML,
   DEFAULT_TICKET_EMAIL_BODY_HTML,
-  DEFAULT_RESCHEDULE_EMAIL_BODY_HTML,
-  DEFAULT_CANCEL_EMAIL_BODY_HTML,
+  DEFAULT_RESCHEDULE_CONFIRM_EMAIL_BODY_HTML,
+  DEFAULT_RESCHEDULE_DECLINE_EMAIL_BODY_HTML,
+  DEFAULT_CANCEL_CONFIRM_EMAIL_BODY_HTML,
+  DEFAULT_CANCEL_DECLINE_EMAIL_BODY_HTML,
   defaultFieldValues as D,
 } from '../globals/bookingTemplatesDefaults'
 
@@ -58,7 +60,69 @@ function pickTemplateFields(tpl: Record<string, unknown>, keys: readonly string[
 }
 
 /** rawVars set yang value-nya trusted HTML (jangan escape saat render). */
-const RAW_VARS = new Set(['brandHeaderHtml'])
+const RAW_VARS = new Set(['brandHeaderHtml', 'departureBlock'])
+
+/**
+ * Phase 4.70.2.5 — Compose server-side departureBlock HTML.
+ *
+ * - Kalau snapshot `originalDepartureDate` ADA → render Previous→New dual
+ *   block (strikethrough tanggal awal + highlight tanggal baru).
+ * - Kalau snapshot KOSONG (booking legacy pre-migrasi 4.70.2.4) → render
+ *   single "New departure" card tanpa comparison. Mencegah block Previous
+ *   kosong yang bikin bingung customer.
+ *
+ * Format pakai pattern yg sama dgn email template (table-based + inline
+ * CSS supaya kompatibel dgn semua email client).
+ */
+function buildDepartureBlock(
+  booking: Record<string, unknown>,
+  brandAccentColor: string,
+): string {
+  const formatDisplay = (dateIso: unknown, time: unknown): string => {
+    if (!dateIso || typeof dateIso !== 'string') return ''
+    let dateStr = dateIso
+    try {
+      const d = new Date(dateIso)
+      if (!Number.isNaN(d.getTime())) {
+        dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+      }
+    } catch { /* ignore */ }
+    const t = typeof time === 'string' ? time.trim() : ''
+    return t ? `${dateStr} · ${t}` : dateStr
+  }
+
+  const current = formatDisplay(booking.departureDate, booking.scheduleTimeLabel)
+  const original = formatDisplay(booking.originalDepartureDate, booking.originalScheduleTimeLabel)
+
+  // No snapshot → single card.
+  if (!original) {
+    return `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="padding:14px 16px;background:#ECFDF5;border:1px solid #86EFAC;border-radius:8px;">
+      <div style="font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:#047857;font-weight:700;">New Departure</div>
+      <div style="margin-top:4px;font-size:16px;font-weight:700;color:#047857;line-height:22px;">${escapeAttr(current)}</div>
+    </td>
+  </tr>
+</table>`
+  }
+
+  // Snapshot ada → dual block Previous → New.
+  return `
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;">
+  <tr>
+    <td style="width:48%;vertical-align:top;padding:12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;">
+      <div style="font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:#991B1B;font-weight:700;">Previous</div>
+      <div style="margin-top:4px;font-size:14px;font-weight:600;color:#991B1B;text-decoration:line-through;line-height:20px;">${escapeAttr(original)}</div>
+    </td>
+    <td align="center" style="width:4%;vertical-align:middle;font-size:18px;color:${escapeAttr(brandAccentColor)};">→</td>
+    <td style="width:48%;vertical-align:top;padding:12px;background:#ECFDF5;border:1px solid #86EFAC;border-radius:8px;">
+      <div style="font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:#047857;font-weight:700;">New</div>
+      <div style="margin-top:4px;font-size:14px;font-weight:700;color:#047857;line-height:20px;">${escapeAttr(current)}</div>
+    </td>
+  </tr>
+</table>`
+}
 
 /**
  * Phase 4.70.1 fix — Resolve HTML template dari global dgn fallback ke
@@ -300,12 +364,25 @@ interface ResponseConfig {
   templateEmailBodyKey: string
   templateHtmlKey: string
   defaultHtml: string
+  /** Phase 4.70.2.6 — Fallback kalau field CMS global kosong (Payload v3 tidak
+   *  backfill defaultValue ke row existing). */
+  defaultSubject?: string
+  defaultEmailBody?: string
+  defaultWaBody?: string
   templateWaBodyKey: string
   extraCtxKeys: readonly string[]
   bodyCtxKey: string // key untuk inject rendered body text ke html template (misal rescheduleEmailBody)
   fromStatuses: string[]
   toStatus: string | null
   idempotencyPrefix: string
+  /** Phase 4.70.2.6 — Baca toStatus dari field booking (misal preRequestStatus).
+   *  Priority: `toStatusFromField` > `toStatus`. Kalau field null, fallback ke toStatus. */
+  toStatusFromField?: string
+  /** Phase 4.70.2.6 — Admin note dari request body di-inject ke ctx dgn key ini.
+   *  Kalau undefined, tidak ada note handling. */
+  adminNoteCtxKey?: string
+  /** Phase 4.70.2.6 — Kalau true, adminNote WAJIB terisi (min 10 char). */
+  adminNoteRequired?: boolean
 }
 
 async function handleSendResponse(
@@ -318,6 +395,18 @@ async function handleSendResponse(
   if (!id) return Response.json({ ok: false, error: 'bad_id' }, { status: 400 })
   const body = await readBody(req)
   const previewOnly = body.previewOnly === true
+  const adminNote = typeof body.adminNote === 'string' ? body.adminNote.trim() : ''
+
+  // Phase 4.70.2.6 — Validate adminNote kalau endpoint-nya butuh.
+  if (config.adminNoteRequired && adminNote.length < 10) {
+    return Response.json(
+      {
+        ok: false,
+        errors: ['Admin note / alasan WAJIB diisi minimal 10 karakter.'],
+      },
+      { status: 400 },
+    )
+  }
 
   try {
     const booking = (await req.payload.findByID({
@@ -352,8 +441,30 @@ async function handleSendResponse(
         ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
         : null
 
+    // Phase 4.70.2.4 — reschedule template butuh bank accounts (post-reschedule
+    // customer belum bayar). Cancel template tidak butuh.
+    const banks = Array.isArray(tpl.bankAccounts)
+      ? (tpl.bankAccounts as Array<{ bankName?: string; accountHolder?: string; accountNumber?: string }>)
+      : []
+
+    // Phase 4.70.2.5 — Compose server-side departureBlock. Kalau snapshot
+     // originalDepartureDate kosong (booking legacy pre-migrasi 4.70.2.4),
+     // render single "New departure" card tanpa Previous→New dual block.
+    const brandAccent = (tpl.brandAccentColor as string) || '#0EA5E9'
+    const departureBlock = buildDepartureBlock(booking, brandAccent)
+
+    // Phase 4.70.2.6 — Admin note untuk confirm/decline reschedule.
+    // Default kalau empty string (confirm): render placeholder supaya template
+    // tidak kosong secara visual. Decline sudah divalidasi di atas (required).
+    const adminNoteCtx: Record<string, string> = {}
+    if (config.adminNoteCtxKey) {
+      adminNoteCtx[config.adminNoteCtxKey] =
+        adminNote || 'Tidak ada catatan tambahan.'
+    }
+
     const ctx = buildContext(booking as any, {
       passengerList: formatPassengerList((booking.passengers as any) ?? []),
+      bankAccountsBlock: formatBankAccountsBlock(banks),
       adminName,
       adminWhatsapp,
       confirmationUrl: confirmationUrl ?? undefined,
@@ -361,11 +472,18 @@ async function handleSendResponse(
       ...buildBrandContext(tpl),
       ...pickTemplateFields(tpl, config.extraCtxKeys),
       customerRequestReason: (booking.customerRequestReason as string) || '(tidak disebutkan)',
+      departureBlock,
+      ...adminNoteCtx,
     })
 
-    const subjectR = renderTemplate(String(tpl[config.templateSubjectKey] ?? ''), ctx)
-    const emailBodyR = renderTemplate(String(tpl[config.templateEmailBodyKey] ?? ''), ctx)
-    const waBodyR = renderTemplate(String(tpl[config.templateWaBodyKey] ?? ''), ctx)
+    // Phase 4.70.2.6 — Fallback ke config.default* kalau field CMS kosong.
+    const resolveText = (val: unknown, fallback: string | undefined): string => {
+      if (typeof val === 'string' && val.trim()) return val
+      return fallback ?? ''
+    }
+    const subjectR = renderTemplate(resolveText(tpl[config.templateSubjectKey], config.defaultSubject), ctx)
+    const emailBodyR = renderTemplate(resolveText(tpl[config.templateEmailBodyKey], config.defaultEmailBody), ctx)
+    const waBodyR = renderTemplate(resolveText(tpl[config.templateWaBodyKey], config.defaultWaBody), ctx)
 
     // Phase 4.70.2 — Render HTML dgn body text injected sebagai var (misal
     // {{rescheduleEmailBody}} = rendered admin text). Body SUDAH escaped
@@ -425,11 +543,38 @@ async function handleSendResponse(
       )
     }
 
-    if (config.toStatus !== null) {
+    // Phase 4.70.2.6 — Resolve final toStatus:
+    // 1. Kalau config.toStatusFromField ada → baca dari booking field.
+    //    Kalau field null, fallback ke config.toStatus.
+    // 2. Kalau config.toStatusFromField tidak set → pakai config.toStatus langsung.
+    let resolvedToStatus: string | null = config.toStatus
+    if (config.toStatusFromField) {
+      const fieldVal = booking[config.toStatusFromField]
+      if (typeof fieldVal === 'string' && fieldVal) {
+        resolvedToStatus = fieldVal
+      }
+    }
+
+    if (resolvedToStatus !== null) {
+      // Phase 4.70.2.6 — Setelah confirm/decline reschedule, bersihkan
+      // field customer-request supaya banner alert hilang + snapshot
+      // original departure ter-reset (new reschedule request start clean).
+      const cleanup =
+        config.toStatusFromField === 'preRequestStatus'
+          ? {
+              customerRequestKind: null,
+              customerRequestReason: null,
+              customerRequestedAt: null,
+              originalDepartureDate: null,
+              originalScheduleTimeLabel: null,
+              preRequestStatus: null,
+            }
+          : {}
+
       await req.payload.update({
         collection: 'bookings',
         id,
-        data: { status: config.toStatus },
+        data: { status: resolvedToStatus, ...cleanup },
         overrideAccess: true,
       })
     }
@@ -442,7 +587,7 @@ async function handleSendResponse(
       whatsappBody: waBodyR.rendered,
       waUrl,
       sentEmailId: sent.id,
-      newStatus: config.toStatus ?? (booking.status as string),
+      newStatus: resolvedToStatus ?? (booking.status as string),
     } satisfies HandoffResponse)
   } catch (e) {
     return Response.json(
@@ -485,10 +630,24 @@ const customerRequestEndpoint: Endpoint = {
       })) as Record<string, unknown>
 
       const status = booking.status as string
-      // Hanya status "aktif" yang bisa request change.
-      // Phase 4.70.2.1 — `confirmed` DIKELUARKAN: setelah payment +
-      // e-ticket terkirim, booking locked. Customer harus kontak admin
-      // langsung untuk exceptional case (admin override via CMS).
+      // Phase 4.70.2.7 — One-shot: tolak kalau sudah pernah request.
+      if (booking.hasRequestedChange === true) {
+        return Response.json(
+          {
+            ok: false,
+            error: 'already_requested',
+            message:
+              'Permintaan perubahan untuk booking ini sudah pernah diajukan. Silakan kontak admin via WhatsApp untuk kebutuhan lanjutan.',
+          },
+          { status: 409 },
+        )
+      }
+      // Phase 4.70.2.4 + 4.70.2.9 — Semua customer-triggered change
+      // request hanya pre-payment:
+      // - Reschedule: tiket post-payment sudah issued → reissue kompleks.
+      // - Cancel: setelah e-ticket terkirim (confirmed), pembatalan harus
+      //   lewat admin manual (refund flow + void tiket operator). Prevent
+      //   abuse (customer booking + cancel-refund loop).
       const activeStatuses = [
         'awaiting_review',
         'awaiting_payment',
@@ -500,13 +659,33 @@ const customerRequestEndpoint: Endpoint = {
           {
             ok: false,
             error: 'status_locked',
-            message: `Booking status "${status}" tidak bisa di-request change.`,
+            message:
+              status === 'confirmed'
+                ? `${kind === 'reschedule' ? 'Reschedule' : 'Pembatalan'} tidak tersedia setelah e-ticket terkirim. Silakan kontak admin via WhatsApp untuk request khusus.`
+                : `Booking status "${status}" tidak bisa di-request change.`,
           },
           { status: 409 },
         )
       }
 
       const newStatus = kind === 'reschedule' ? 'reschedule_request' : 'cancel_request'
+      // Phase 4.70.2.4 — Snapshot original departure saat kind=reschedule
+      // supaya admin bisa lihat "Previous → New departure" di email response
+      // setelah admin ubah departureDate.
+      // Phase 4.70.2.6 — Juga snapshot preRequestStatus supaya setelah
+      // admin confirm/decline, booking bisa restore ke status lifecycle
+      // yang benar (misal awaiting_payment, payment_review).
+      const snapshotData: Record<string, unknown> =
+        kind === 'reschedule'
+          ? {
+              originalDepartureDate: booking.departureDate as string | null,
+              originalScheduleTimeLabel: booking.scheduleTimeLabel as string | null,
+              preRequestStatus: status,
+            }
+          : {
+              preRequestStatus: status,
+            }
+
       await req.payload.update({
         collection: 'bookings',
         id,
@@ -515,6 +694,8 @@ const customerRequestEndpoint: Endpoint = {
           customerRequestKind: kind,
           customerRequestReason: reason,
           customerRequestedAt: new Date().toISOString(),
+          hasRequestedChange: true, // Phase 4.70.2.7 — one-shot flag
+          ...snapshotData,
         },
         overrideAccess: true,
       })
@@ -529,39 +710,127 @@ const customerRequestEndpoint: Endpoint = {
   },
 }
 
-const sendRescheduleResponseEndpoint: Endpoint = {
-  path: '/:id/send-reschedule-response',
+/**
+ * Phase 4.70.2.6 — Admin CONFIRM reschedule.
+ * - Admin sudah update departureDate manual sebelum klik.
+ * - Email dikirim pakai template "Disetujui" (confirm variant).
+ * - adminNote OPSIONAL (misal info biaya tambahan).
+ * - Status restore ke preRequestStatus (sebelum customer request).
+ */
+const DEFAULT_RESCHEDULE_CONFIRM_SUBJECT = 'Reschedule Disetujui — Booking {{bookingRef}}'
+const DEFAULT_RESCHEDULE_CONFIRM_BODY = 'Hi {{customerName}},\n\nPermintaan reschedule untuk booking {{bookingRef}} sudah DISETUJUI.\n\nJadwal baru: {{departureDisplay}}\nRoute: {{originLocation}} → {{destinationLocation}}\n\nCatatan tambahan:\n{{rescheduleConfirmNote}}\n\nSilakan selesaikan pembayaran sebelum keberangkatan.\n\nTerima kasih,\nGtJourneysID'
+const DEFAULT_RESCHEDULE_CONFIRM_WA = '✅ Reschedule DISETUJUI untuk booking {{bookingRef}}.\n\n📅 Jadwal baru: {{departureDisplay}}\n📍 Route: {{originLocation}} → {{destinationLocation}}\n\nCatatan: {{rescheduleConfirmNote}}\n\nSelesaikan pembayaran sebelum keberangkatan ya. Terima kasih! 🙏'
+const DEFAULT_RESCHEDULE_DECLINE_SUBJECT = 'Reschedule Belum Bisa Diproses — Booking {{bookingRef}}'
+const DEFAULT_RESCHEDULE_DECLINE_BODY = 'Hi {{customerName}},\n\nMohon maaf, permintaan reschedule untuk booking {{bookingRef}} BELUM BISA kami proses.\n\nAlasan:\n{{rescheduleDeclineReason}}\n\nBooking Anda tetap berlaku sesuai jadwal semula: {{departureDisplay}}\nRoute: {{originLocation}} → {{destinationLocation}}\n\nKalau butuh diskusi alternatif, hubungi admin via WhatsApp.\n\nTerima kasih,\nGtJourneysID'
+const DEFAULT_RESCHEDULE_DECLINE_WA = '❌ Mohon maaf, reschedule booking {{bookingRef}} belum bisa diproses.\n\nAlasan: {{rescheduleDeclineReason}}\n\nBooking tetap berlaku jadwal semula: {{departureDisplay}}.\nKontak admin kalau butuh diskusi alternatif ya.'
+
+const confirmRescheduleEndpoint: Endpoint = {
+  path: '/:id/confirm-reschedule',
   method: 'post',
   handler: (req) =>
     handleSendResponse(req, {
-      templateSubjectKey: 'rescheduleEmailSubject',
-      templateEmailBodyKey: 'rescheduleEmailBody',
-      templateHtmlKey: 'rescheduleEmailBodyHtml',
-      defaultHtml: DEFAULT_RESCHEDULE_EMAIL_BODY_HTML,
-      templateWaBodyKey: 'rescheduleWhatsappBody',
-      extraCtxKeys: ['rescheduleHeroHeadline', 'rescheduleHeroSubtext'],
-      bodyCtxKey: 'rescheduleEmailBody',
+      templateSubjectKey: 'rescheduleConfirmEmailSubject',
+      templateEmailBodyKey: 'rescheduleConfirmEmailBody',
+      templateHtmlKey: 'rescheduleConfirmEmailBodyHtml',
+      defaultHtml: DEFAULT_RESCHEDULE_CONFIRM_EMAIL_BODY_HTML,
+      defaultSubject: DEFAULT_RESCHEDULE_CONFIRM_SUBJECT,
+      defaultEmailBody: DEFAULT_RESCHEDULE_CONFIRM_BODY,
+      defaultWaBody: DEFAULT_RESCHEDULE_CONFIRM_WA,
+      templateWaBodyKey: 'rescheduleConfirmWhatsappBody',
+      extraCtxKeys: ['rescheduleConfirmHeroHeadline', 'rescheduleConfirmHeroSubtext'],
+      bodyCtxKey: 'rescheduleConfirmEmailBody',
       fromStatuses: ['reschedule_request'],
-      toStatus: null,
-      idempotencyPrefix: 'reschedule',
+      toStatus: 'awaiting_payment', // fallback kalau preRequestStatus null
+      toStatusFromField: 'preRequestStatus',
+      adminNoteCtxKey: 'rescheduleConfirmNote',
+      adminNoteRequired: false,
+      idempotencyPrefix: 'reschedule-confirm',
     }),
 }
 
-const sendCancelResponseEndpoint: Endpoint = {
-  path: '/:id/send-cancel-response',
+/**
+ * Phase 4.70.2.6 — Admin DECLINE reschedule.
+ * - Jadwal TIDAK berubah; admin diingatkan jangan edit departureDate.
+ * - Email dikirim pakai template "Mohon Maaf" (decline variant).
+ * - adminNote WAJIB (alasan — min 10 char).
+ * - Status restore ke preRequestStatus.
+ */
+const declineRescheduleEndpoint: Endpoint = {
+  path: '/:id/decline-reschedule',
   method: 'post',
   handler: (req) =>
     handleSendResponse(req, {
-      templateSubjectKey: 'cancelEmailSubject',
-      templateEmailBodyKey: 'cancelEmailBody',
-      templateHtmlKey: 'cancelEmailBodyHtml',
-      defaultHtml: DEFAULT_CANCEL_EMAIL_BODY_HTML,
-      templateWaBodyKey: 'cancelWhatsappBody',
-      extraCtxKeys: ['cancelHeroHeadline', 'cancelHeroSubtext'],
-      bodyCtxKey: 'cancelEmailBody',
+      templateSubjectKey: 'rescheduleDeclineEmailSubject',
+      templateEmailBodyKey: 'rescheduleDeclineEmailBody',
+      templateHtmlKey: 'rescheduleDeclineEmailBodyHtml',
+      defaultHtml: DEFAULT_RESCHEDULE_DECLINE_EMAIL_BODY_HTML,
+      defaultSubject: DEFAULT_RESCHEDULE_DECLINE_SUBJECT,
+      defaultEmailBody: DEFAULT_RESCHEDULE_DECLINE_BODY,
+      defaultWaBody: DEFAULT_RESCHEDULE_DECLINE_WA,
+      templateWaBodyKey: 'rescheduleDeclineWhatsappBody',
+      extraCtxKeys: ['rescheduleDeclineHeroHeadline', 'rescheduleDeclineHeroSubtext'],
+      bodyCtxKey: 'rescheduleDeclineEmailBody',
+      fromStatuses: ['reschedule_request'],
+      toStatus: 'awaiting_payment',
+      toStatusFromField: 'preRequestStatus',
+      adminNoteCtxKey: 'rescheduleDeclineReason',
+      adminNoteRequired: true,
+      idempotencyPrefix: 'reschedule-decline',
+    }),
+}
+
+// Phase 4.70.2.8 — Cancel Confirm/Decline split (mirror reschedule 4.70.2.6)
+const DEFAULT_CANCEL_CONFIRM_SUBJECT = 'Pembatalan Booking {{bookingRef}} Dikonfirmasi'
+const DEFAULT_CANCEL_CONFIRM_BODY = 'Hi {{customerName}},\n\nPembatalan untuk booking {{bookingRef}} sudah DIKONFIRMASI.\n\nJadwal yang dibatalkan: {{departureDisplay}}\nRoute: {{originLocation}} → {{destinationLocation}}\n\nCatatan dari admin:\n{{cancelConfirmNote}}\n\nTerima kasih,\nGtJourneysID'
+const DEFAULT_CANCEL_CONFIRM_WA = '❌ Pembatalan DIKONFIRMASI untuk booking {{bookingRef}}.\n\n📅 Jadwal yg dibatalkan: {{departureDisplay}}\n📍 Route: {{originLocation}} → {{destinationLocation}}\n\nCatatan: {{cancelConfirmNote}}\n\nTerima kasih! 🙏'
+const DEFAULT_CANCEL_DECLINE_SUBJECT = 'Pembatalan Booking {{bookingRef}} Belum Bisa Diproses'
+const DEFAULT_CANCEL_DECLINE_BODY = 'Hi {{customerName}},\n\nMohon maaf, permintaan pembatalan untuk booking {{bookingRef}} BELUM BISA kami proses.\n\nAlasan:\n{{cancelDeclineReason}}\n\nBooking Anda tetap berlaku sesuai jadwal semula: {{departureDisplay}}\nRoute: {{originLocation}} → {{destinationLocation}}\n\nSilakan lanjut pembayaran kalau belum selesai. Kalau butuh diskusi, hubungi admin via WhatsApp.\n\nTerima kasih,\nGtJourneysID'
+const DEFAULT_CANCEL_DECLINE_WA = '⚠ Mohon maaf, pembatalan booking {{bookingRef}} belum bisa diproses.\n\nAlasan: {{cancelDeclineReason}}\n\nBooking tetap berlaku: {{departureDisplay}}.\nLanjut pembayaran atau diskusi via WA ya.'
+
+const confirmCancelEndpoint: Endpoint = {
+  path: '/:id/confirm-cancel',
+  method: 'post',
+  handler: (req) =>
+    handleSendResponse(req, {
+      templateSubjectKey: 'cancelConfirmEmailSubject',
+      templateEmailBodyKey: 'cancelConfirmEmailBody',
+      templateHtmlKey: 'cancelConfirmEmailBodyHtml',
+      defaultHtml: DEFAULT_CANCEL_CONFIRM_EMAIL_BODY_HTML,
+      defaultSubject: DEFAULT_CANCEL_CONFIRM_SUBJECT,
+      defaultEmailBody: DEFAULT_CANCEL_CONFIRM_BODY,
+      defaultWaBody: DEFAULT_CANCEL_CONFIRM_WA,
+      templateWaBodyKey: 'cancelConfirmWhatsappBody',
+      extraCtxKeys: ['cancelConfirmHeroHeadline', 'cancelConfirmHeroSubtext'],
+      bodyCtxKey: 'cancelConfirmEmailBody',
       fromStatuses: ['cancel_request'],
       toStatus: 'cancelled',
-      idempotencyPrefix: 'cancel',
+      adminNoteCtxKey: 'cancelConfirmNote',
+      adminNoteRequired: false,
+      idempotencyPrefix: 'cancel-confirm',
+    }),
+}
+
+const declineCancelEndpoint: Endpoint = {
+  path: '/:id/decline-cancel',
+  method: 'post',
+  handler: (req) =>
+    handleSendResponse(req, {
+      templateSubjectKey: 'cancelDeclineEmailSubject',
+      templateEmailBodyKey: 'cancelDeclineEmailBody',
+      templateHtmlKey: 'cancelDeclineEmailBodyHtml',
+      defaultHtml: DEFAULT_CANCEL_DECLINE_EMAIL_BODY_HTML,
+      defaultSubject: DEFAULT_CANCEL_DECLINE_SUBJECT,
+      defaultEmailBody: DEFAULT_CANCEL_DECLINE_BODY,
+      defaultWaBody: DEFAULT_CANCEL_DECLINE_WA,
+      templateWaBodyKey: 'cancelDeclineWhatsappBody',
+      extraCtxKeys: ['cancelDeclineHeroHeadline', 'cancelDeclineHeroSubtext'],
+      bodyCtxKey: 'cancelDeclineEmailBody',
+      fromStatuses: ['cancel_request'],
+      toStatus: 'awaiting_payment',
+      toStatusFromField: 'preRequestStatus',
+      adminNoteCtxKey: 'cancelDeclineReason',
+      adminNoteRequired: true,
+      idempotencyPrefix: 'cancel-decline',
     }),
 }
 
@@ -742,7 +1011,7 @@ export const Bookings: CollectionConfig = {
     update: isAdmin,
     delete: isSuperAdmin,
   },
-  endpoints: [sendPaymentEndpoint, sendTicketEndpoint, sendRescheduleResponseEndpoint, sendCancelResponseEndpoint, customerRequestEndpoint],
+  endpoints: [sendPaymentEndpoint, sendTicketEndpoint, confirmRescheduleEndpoint, declineRescheduleEndpoint, confirmCancelEndpoint, declineCancelEndpoint, customerRequestEndpoint],
   fields: [
     // ── Customer Request Alert (Phase 4.70.2.2) ──────────────
     // Banner prominent di PALING ATAS saat booking punya pending request
@@ -1173,6 +1442,53 @@ export const Bookings: CollectionConfig = {
         hidden: true,
         readOnly: true,
         rows: 4,
+      },
+    },
+    // Phase 4.70.2.4 — snapshot original departure (reschedule flow).
+    // Hidden di UI; dibaca otomatis saat send reschedule response untuk
+    // render "Previous → New departure" di email.
+    {
+      name: 'originalDepartureDate',
+      type: 'date',
+      admin: {
+        hidden: true,
+        readOnly: true,
+        date: { pickerAppearance: 'dayOnly' },
+        description: 'Snapshot departureDate sebelum reschedule — Phase 4.70.2.4.',
+      },
+    },
+    {
+      name: 'originalScheduleTimeLabel',
+      type: 'text',
+      admin: {
+        hidden: true,
+        readOnly: true,
+        description: 'Snapshot scheduleTimeLabel sebelum reschedule — Phase 4.70.2.4.',
+      },
+    },
+    // Phase 4.70.2.6 — Snapshot status asli (sebelum customer request)
+    // untuk restore setelah admin confirm/decline reschedule atau cancel.
+    {
+      name: 'preRequestStatus',
+      type: 'text',
+      admin: {
+        hidden: true,
+        readOnly: true,
+        description: 'Snapshot status asli sebelum customer request change — Phase 4.70.2.6.',
+      },
+    },
+    // Phase 4.70.2.7 — One-shot flag. Customer hanya bisa 1x request
+    // reschedule/cancel seumur hidup booking. TIDAK di-reset saat admin
+    // confirm/decline — supaya tidak jadi spam. Admin bisa un-check manual
+    // via CMS kalau exceptional case (misal customer edge case yang perlu
+    // request ulang).
+    {
+      name: 'hasRequestedChange',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        hidden: true,
+        description: 'Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case.',
       },
     },
 

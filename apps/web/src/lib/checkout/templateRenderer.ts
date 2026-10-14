@@ -77,10 +77,35 @@ export const KNOWN_VARIABLES = new Set<string>([
   'rescheduleHeroHeadline',
   'rescheduleHeroSubtext',
   'rescheduleEmailBody',
+  // Phase 4.70.2.6 — Confirm/Decline split
+  'rescheduleConfirmHeroHeadline',
+  'rescheduleConfirmHeroSubtext',
+  'rescheduleConfirmEmailBody',
+  'rescheduleConfirmNote',
+  'rescheduleDeclineHeroHeadline',
+  'rescheduleDeclineHeroSubtext',
+  'rescheduleDeclineEmailBody',
+  'rescheduleDeclineReason',
   'cancelHeroHeadline',
   'cancelHeroSubtext',
   'cancelEmailBody',
+  // Phase 4.70.2.8 — Cancel Confirm/Decline split
+  'cancelConfirmHeroHeadline',
+  'cancelConfirmHeroSubtext',
+  'cancelConfirmEmailBody',
+  'cancelConfirmNote',
+  'cancelDeclineHeroHeadline',
+  'cancelDeclineHeroSubtext',
+  'cancelDeclineEmailBody',
+  'cancelDeclineReason',
   'customerRequestReason',
+  // Phase 4.70.2.4 — Snapshot departure + schedule time (reschedule flow)
+  'scheduleTimeLabel',
+  'originalDepartureDate',
+  'originalScheduleTimeLabel',
+  'departureDisplay',
+  'originalDepartureDisplay',
+  'departureBlock',
 ])
 
 /**
@@ -100,8 +125,22 @@ export const OPTIONAL_VARIABLES = new Set<string>([
   'paymentHeroHeadline', 'paymentHeroSubtext', 'paymentSecurityNote',
   'ticketHeroHeadline', 'ticketHeroSubtext', 'ticketChecklistTitle',
   'rescheduleHeroHeadline', 'rescheduleHeroSubtext', 'rescheduleEmailBody',
+  // Phase 4.70.2.6 — Confirm/Decline split (semua OPTIONAL)
+  'rescheduleConfirmHeroHeadline', 'rescheduleConfirmHeroSubtext',
+  'rescheduleConfirmEmailBody', 'rescheduleConfirmNote',
+  'rescheduleDeclineHeroHeadline', 'rescheduleDeclineHeroSubtext',
+  'rescheduleDeclineEmailBody', 'rescheduleDeclineReason',
   'cancelHeroHeadline', 'cancelHeroSubtext', 'cancelEmailBody',
+  // Phase 4.70.2.8 — Cancel Confirm/Decline split (semua OPTIONAL)
+  'cancelConfirmHeroHeadline', 'cancelConfirmHeroSubtext',
+  'cancelConfirmEmailBody', 'cancelConfirmNote',
+  'cancelDeclineHeroHeadline', 'cancelDeclineHeroSubtext',
+  'cancelDeclineEmailBody', 'cancelDeclineReason',
   'customerRequestReason',
+  // Phase 4.70.2.4 — snapshot vars OPTIONAL
+  'scheduleTimeLabel', 'originalDepartureDate', 'originalScheduleTimeLabel',
+  'departureDisplay', 'originalDepartureDisplay',
+  'departureBlock',
 ])
 
 export interface RenderResult {
@@ -193,6 +232,9 @@ export interface BookingLike {
   customerCountry?: string | null
   tripType?: string | null
   departureDate?: string | null
+  scheduleTimeLabel?: string | null
+  originalDepartureDate?: string | null
+  originalScheduleTimeLabel?: string | null
   returnDate?: string | null
   originLocation?: string | null
   destinationLocation?: string | null
@@ -242,6 +284,27 @@ export function formatBankAccountsBlock(
 }
 
 /**
+ * Phase 4.70.2.4 — Format departure date (+ optional time) jadi string
+ * human-readable: "15 Oct 2026" atau "15 Oct 2026 · 08:30 → 09:30".
+ * Return null kalau date kosong/invalid.
+ */
+export function formatDepartureDisplay(
+  dateIso: string | null | undefined,
+  timeLabel: string | null | undefined,
+): string | null {
+  if (!dateIso) return null
+  let dateStr = dateIso
+  try {
+    const d = new Date(dateIso)
+    if (!Number.isNaN(d.getTime())) {
+      dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    }
+  } catch { /* fallback: raw string */ }
+  const time = (timeLabel ?? '').trim()
+  return time ? `${dateStr} · ${time}` : dateStr
+}
+
+/**
  * Compose context dari booking + settings + extras. Field yang undefined
  * di booking tetap bisa di-override dari extras (misal `otp`, `confirmationUrl`).
  */
@@ -264,6 +327,11 @@ export function buildContext(
     customerCountry: booking.customerCountry ?? null,
     tripType: booking.tripType ?? null,
     departureDate: booking.departureDate ?? null,
+    scheduleTimeLabel: booking.scheduleTimeLabel ?? null,
+    originalDepartureDate: booking.originalDepartureDate ?? null,
+    originalScheduleTimeLabel: booking.originalScheduleTimeLabel ?? null,
+    departureDisplay: formatDepartureDisplay(booking.departureDate, booking.scheduleTimeLabel),
+    originalDepartureDisplay: formatDepartureDisplay(booking.originalDepartureDate, booking.originalScheduleTimeLabel),
     returnDate: booking.returnDate ?? null,
     originLocation: booking.originLocation ?? null,
     destinationLocation: booking.destinationLocation ?? null,

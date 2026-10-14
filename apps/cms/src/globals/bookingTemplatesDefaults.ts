@@ -313,58 +313,158 @@ export const DEFAULT_TICKET_EMAIL_BODY_HTML = shell(
   'Tiket kamu confirmed — booking {{bookingRef}}',
 )
 
-/* ───────── Reschedule Response (BARU 4.70.2) ───────── */
-export const DEFAULT_RESCHEDULE_EMAIL_BODY_HTML = shell(
+/* ───────── Reschedule CONFIRM Response (rewrite 4.70.2.4, split 4.70.2.6) ───────── */
+export const DEFAULT_RESCHEDULE_CONFIRM_EMAIL_BODY_HTML = shell(
   `
   <div style="background:linear-gradient(135deg,${b.warn} 0%,#D97706 100%);color:#fff;padding:32px 28px;">
-    <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">🔁 Reschedule Request</div>
-    <h1 style="margin:14px 0 6px;font-size:24px;font-weight:700;line-height:30px;">{{rescheduleHeroHeadline}}</h1>
+    <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">✅ Reschedule Disetujui</div>
+    <h1 style="margin:14px 0 6px;font-size:24px;font-weight:700;line-height:30px;">{{rescheduleConfirmHeroHeadline}}</h1>
     <p style="margin:0;font-size:14px;opacity:0.92;line-height:20px;">
-      Halo <strong>{{customerName}}</strong>, {{rescheduleHeroSubtext}}
+      Halo <strong>{{customerName}}</strong>, {{rescheduleConfirmHeroSubtext}}
+    </p>
+  </div>
+
+  <!-- Previous → New departure (visual contrast) -->
+  <div style="padding:24px 28px 8px;">
+    <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:20px;">
+      <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:${b.textMuted};font-weight:600;">Booking Reference</div>
+      <div style="margin-top:4px;font-family:${monoStack};font-size:20px;font-weight:700;color:{{brandAccentColor}};letter-spacing:1px;">{{bookingRef}}</div>
+
+      {{departureBlock}}
+
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:16px;border-top:1px dashed ${b.border};padding-top:14px;">
+        <tr><td style="font-size:12px;color:${b.textMuted};">Route</td><td align="right" style="font-size:14px;color:${b.text};">{{originLocation}} → {{destinationLocation}}</td></tr>
+        <tr><td colspan="2" style="height:6px;"></td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Class</td><td align="right" style="font-size:14px;color:${b.text};">{{ferryClassName}}</td></tr>
+        <tr><td colspan="2" style="height:6px;"></td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Passengers</td><td align="right" style="font-size:14px;color:${b.text};">{{adults}} Adult · {{children}} Child</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Admin note (opsional untuk confirm — info biaya tambahan dsb.) -->
+  <div style="padding:12px 28px;">
+    <div style="background:${b.surfaceAlt};border-left:3px solid ${b.success};border-radius:4px;padding:14px 16px;font-size:14px;color:${b.text};line-height:22px;white-space:pre-wrap;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};margin-bottom:6px;">Catatan tambahan</div>
+      {{rescheduleConfirmNote}}
+    </div>
+  </div>
+
+  <!-- Payment Instructions (reschedule hanya terjadi pre-payment, jadi
+       customer PASTI belum bayar — reuse pattern Payment email) -->
+  <div style="padding:12px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${b.primary};border-radius:12px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+        </td>
+        <td align="right" style="padding:20px 24px;vertical-align:middle;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);">Status</div>
+          <div style="font-size:13px;color:#fff;font-weight:600;">Awaiting payment</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="padding:12px 28px;">
+    <h2 style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Bank Transfer</h2>
+    <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:16px 20px;font-family:${monoStack};font-size:13px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{bankAccountsBlock}}</div>
+    <p style="margin:10px 0 0;font-size:12px;color:${b.textMuted};line-height:18px;">ℹ Transfer dengan nominal <strong>tepat</strong> supaya auto-match sistem lebih cepat. Simpan bukti transfer kamu — kirim ke admin via WhatsApp untuk verifikasi.</p>
+  </div>
+
+  <div style="padding:16px 28px 24px;text-align:center;">
+    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%20GtJourneysID%2C%20saya%20sudah%20transfer%20untuk%20booking%20{{bookingRef}}%20(reschedule)" style="display:inline-block;background:#25D366;color:#fff;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;box-shadow:0 4px 12px rgba(37,211,102,0.3);">💬 Kirim Bukti via WhatsApp</a>
+    <p style="margin:12px 0 0;font-size:11px;color:${b.textFaint};">WhatsApp verifikasi: <strong>{{adminWhatsapp}}</strong></p>
+  </div>
+  `,
+  'Reschedule disetujui — booking {{bookingRef}}',
+)
+
+/* ───────── Reschedule DECLINE Response (BARU 4.70.2.6) ───────── */
+export const DEFAULT_RESCHEDULE_DECLINE_EMAIL_BODY_HTML = shell(
+  `
+  <div style="background:linear-gradient(135deg,#DC2626 0%,#991B1B 100%);color:#fff;padding:32px 28px;">
+    <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">❌ Mohon Maaf</div>
+    <h1 style="margin:14px 0 6px;font-size:24px;font-weight:700;line-height:30px;">{{rescheduleDeclineHeroHeadline}}</h1>
+    <p style="margin:0;font-size:14px;opacity:0.92;line-height:20px;">
+      Halo <strong>{{customerName}}</strong>, {{rescheduleDeclineHeroSubtext}}
     </p>
   </div>
 
   <div style="padding:24px 28px 8px;">
     <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:20px;">
       <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:${b.textMuted};font-weight:600;">Booking Reference</div>
-      <div style="margin-top:4px;font-family:${monoStack};font-size:20px;font-weight:700;color:{{brandAccentColor}};letter-spacing:1px;">{{bookingRef}}</div>
+      <div style="margin-top:4px;font-family:${monoStack};font-size:20px;font-weight:700;color:#DC2626;letter-spacing:1px;">{{bookingRef}}</div>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-top:1px dashed ${b.border};padding-top:12px;">
-        <tr><td style="font-size:12px;color:${b.textMuted};">Current departure</td><td align="right" style="font-size:14px;color:${b.text};">{{departureDate}}</td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Jadwal Anda</td><td align="right" style="font-size:14px;font-weight:600;color:${b.text};">{{departureDisplay}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>
         <tr><td style="font-size:12px;color:${b.textMuted};">Route</td><td align="right" style="font-size:14px;color:${b.text};">{{originLocation}} → {{destinationLocation}}</td></tr>
+        <tr><td colspan="2" style="height:6px;"></td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Status</td><td align="right" style="font-size:14px;font-weight:600;color:${b.success};">Tetap berlaku sesuai jadwal semula</td></tr>
       </table>
     </div>
   </div>
 
-  <!-- Audit: tampilkan alasan customer -->
+  <!-- Alasan admin tidak bisa proses reschedule (WAJIB) -->
   <div style="padding:12px 28px;">
-    <h2 style="margin:0 0 10px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Your Reason</h2>
-    <div style="background:${b.surfaceAlt};border-left:3px solid {{brandAccentColor}};border-radius:4px;padding:14px 16px;font-size:13px;color:${b.text};line-height:20px;font-style:italic;">
-      "{{customerRequestReason}}"
+    <div style="background:#FEF2F2;border-left:3px solid #DC2626;border-radius:4px;padding:14px 16px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#991B1B;margin-bottom:6px;">Alasan</div>
+      <div style="font-size:14px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{rescheduleDeclineReason}}</div>
     </div>
   </div>
 
-  <!-- Admin response body (plain text / HTML editable di booking-templates) -->
-  <div style="padding:12px 28px 16px;">
-    <h2 style="margin:0 0 10px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Our Response</h2>
-    <div style="font-size:14px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{rescheduleEmailBody}}</div>
+  <!-- Reminder booking tetap berlaku -->
+  <div style="padding:12px 28px;">
+    <div style="background:#ECFDF5;border:1px solid #86EFAC;border-radius:8px;padding:14px 16px;">
+      <p style="margin:0;font-size:13px;color:#047857;line-height:20px;">
+        ℹ Booking Anda <strong>tetap berlaku</strong> sesuai jadwal semula. Tidak ada perubahan tanggal/jam.
+        Silakan lanjut selesaikan pembayaran di bawah ini supaya tiket bisa segera di-issue.
+      </p>
+    </div>
   </div>
 
-  <div style="padding:0 28px 24px;text-align:center;">
-    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%2C%20terkait%20reschedule%20booking%20{{bookingRef}}" style="display:inline-block;background:#25D366;color:#fff;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;">💬 Lanjut diskusi via WhatsApp</a>
+  <!-- Payment Instructions (customer belum bayar — tetap perlu info transfer) -->
+  <div style="padding:12px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${b.primary};border-radius:12px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+        </td>
+        <td align="right" style="padding:20px 24px;vertical-align:middle;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);">Status</div>
+          <div style="font-size:13px;color:#fff;font-weight:600;">Awaiting payment</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="padding:12px 28px;">
+    <h2 style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Bank Transfer</h2>
+    <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:16px 20px;font-family:${monoStack};font-size:13px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{bankAccountsBlock}}</div>
+    <p style="margin:10px 0 0;font-size:12px;color:${b.textMuted};line-height:18px;">ℹ Transfer dengan nominal <strong>tepat</strong> supaya auto-match sistem lebih cepat. Simpan bukti transfer — kirim ke admin via WhatsApp untuk verifikasi.</p>
+  </div>
+
+  <div style="padding:16px 28px 24px;text-align:center;">
+    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%20GtJourneysID%2C%20saya%20sudah%20transfer%20untuk%20booking%20{{bookingRef}}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;box-shadow:0 4px 12px rgba(37,211,102,0.3);">💬 Kirim Bukti via WhatsApp</a>
+    <p style="margin:12px 0 0;font-size:11px;color:${b.textFaint};">Admin WhatsApp: <strong>{{adminWhatsapp}}</strong></p>
   </div>
   `,
-  'Respond reschedule — booking {{bookingRef}}',
+  'Reschedule belum bisa diproses — booking {{bookingRef}}',
 )
 
-/* ───────── Cancel Response (BARU 4.70.2) ───────── */
-export const DEFAULT_CANCEL_EMAIL_BODY_HTML = shell(
+/* Alias legacy — maintain export for backward compat kalau ada code yg import */
+export const DEFAULT_RESCHEDULE_EMAIL_BODY_HTML = DEFAULT_RESCHEDULE_CONFIRM_EMAIL_BODY_HTML
+
+/* ───────── Cancel CONFIRM Response (split 4.70.2.8) ───────── */
+export const DEFAULT_CANCEL_CONFIRM_EMAIL_BODY_HTML = shell(
   `
   <div style="background:linear-gradient(135deg,#DC2626 0%,#991B1B 100%);color:#fff;padding:32px 28px;">
-    <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">❌ Cancellation</div>
-    <h1 style="margin:14px 0 6px;font-size:24px;font-weight:700;line-height:30px;">{{cancelHeroHeadline}}</h1>
+    <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">❌ Pembatalan Dikonfirmasi</div>
+    <h1 style="margin:14px 0 6px;font-size:24px;font-weight:700;line-height:30px;">{{cancelConfirmHeroHeadline}}</h1>
     <p style="margin:0;font-size:14px;opacity:0.92;line-height:20px;">
-      Halo <strong>{{customerName}}</strong>, {{cancelHeroSubtext}}
+      Halo <strong>{{customerName}}</strong>, {{cancelConfirmHeroSubtext}}
     </p>
   </div>
 
@@ -373,33 +473,103 @@ export const DEFAULT_CANCEL_EMAIL_BODY_HTML = shell(
       <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:${b.textMuted};font-weight:600;">Booking Reference (cancelled)</div>
       <div style="margin-top:4px;font-family:${monoStack};font-size:20px;font-weight:700;color:#DC2626;letter-spacing:1px;text-decoration:line-through;">{{bookingRef}}</div>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-top:1px dashed ${b.border};padding-top:12px;">
-        <tr><td style="font-size:12px;color:${b.textMuted};">Original departure</td><td align="right" style="font-size:14px;color:${b.text};">{{departureDate}}</td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Original departure</td><td align="right" style="font-size:14px;color:${b.text};">{{departureDisplay}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>
         <tr><td style="font-size:12px;color:${b.textMuted};">Route</td><td align="right" style="font-size:14px;color:${b.text};">{{originLocation}} → {{destinationLocation}}</td></tr>
       </table>
     </div>
   </div>
 
-  <!-- Audit: alasan customer -->
+  <!-- Admin note (opsional untuk confirm — info refund/kebijakan) -->
   <div style="padding:12px 28px;">
-    <h2 style="margin:0 0 10px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Your Reason</h2>
-    <div style="background:${b.surfaceAlt};border-left:3px solid #DC2626;border-radius:4px;padding:14px 16px;font-size:13px;color:${b.text};line-height:20px;font-style:italic;">
-      "{{customerRequestReason}}"
+    <div style="background:${b.surfaceAlt};border-left:3px solid #DC2626;border-radius:4px;padding:14px 16px;font-size:14px;color:${b.text};line-height:22px;white-space:pre-wrap;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};margin-bottom:6px;">Catatan dari admin</div>
+      {{cancelConfirmNote}}
     </div>
   </div>
 
-  <!-- Admin response -->
-  <div style="padding:12px 28px 16px;">
-    <h2 style="margin:0 0 10px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Cancellation Details</h2>
-    <div style="font-size:14px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{cancelEmailBody}}</div>
-  </div>
-
-  <div style="padding:0 28px 24px;text-align:center;">
-    <a href="https://wa.me/{{adminWhatsapp}}" style="display:inline-block;background:${b.surface};border:1px solid ${b.border};color:${b.text};padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;">💬 Contact Admin</a>
+  <div style="padding:16px 28px 24px;text-align:center;">
+    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%20GtJourneysID%2C%20terkait%20pembatalan%20booking%20{{bookingRef}}" style="display:inline-block;background:${b.surface};border:1px solid ${b.border};color:${b.text};padding:12px 24px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;">💬 Diskusi via WhatsApp</a>
   </div>
   `,
-  'Pembatalan booking {{bookingRef}}',
+  'Pembatalan booking {{bookingRef}} dikonfirmasi',
 )
+
+/* ───────── Cancel DECLINE Response (BARU 4.70.2.8) ───────── */
+export const DEFAULT_CANCEL_DECLINE_EMAIL_BODY_HTML = shell(
+  `
+  <div style="background:linear-gradient(135deg,${b.warn} 0%,#D97706 100%);color:#fff;padding:32px 28px;">
+    <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:4px 12px;border-radius:999px;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;">⚠ Pembatalan Belum Bisa Diproses</div>
+    <h1 style="margin:14px 0 6px;font-size:24px;font-weight:700;line-height:30px;">{{cancelDeclineHeroHeadline}}</h1>
+    <p style="margin:0;font-size:14px;opacity:0.92;line-height:20px;">
+      Halo <strong>{{customerName}}</strong>, {{cancelDeclineHeroSubtext}}
+    </p>
+  </div>
+
+  <div style="padding:24px 28px 8px;">
+    <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:20px;">
+      <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:${b.textMuted};font-weight:600;">Booking Reference</div>
+      <div style="margin-top:4px;font-family:${monoStack};font-size:20px;font-weight:700;color:{{brandAccentColor}};letter-spacing:1px;">{{bookingRef}}</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-top:1px dashed ${b.border};padding-top:12px;">
+        <tr><td style="font-size:12px;color:${b.textMuted};">Jadwal</td><td align="right" style="font-size:14px;font-weight:600;color:${b.text};">{{departureDisplay}}</td></tr>
+        <tr><td colspan="2" style="height:6px;"></td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Route</td><td align="right" style="font-size:14px;color:${b.text};">{{originLocation}} → {{destinationLocation}}</td></tr>
+        <tr><td colspan="2" style="height:6px;"></td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Status</td><td align="right" style="font-size:14px;font-weight:600;color:${b.success};">Tetap berlaku</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Alasan admin WAJIB -->
+  <div style="padding:12px 28px;">
+    <div style="background:#FEF2F2;border-left:3px solid #DC2626;border-radius:4px;padding:14px 16px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#991B1B;margin-bottom:6px;">Alasan</div>
+      <div style="font-size:14px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{cancelDeclineReason}}</div>
+    </div>
+  </div>
+
+  <!-- Reminder tetap berlaku -->
+  <div style="padding:12px 28px;">
+    <div style="background:#ECFDF5;border:1px solid #86EFAC;border-radius:8px;padding:14px 16px;">
+      <p style="margin:0;font-size:13px;color:#047857;line-height:20px;">
+        ℹ Booking Anda <strong>tetap berlaku</strong> sesuai jadwal semula.
+        Kalau Anda belum menyelesaikan pembayaran, silakan lanjut transfer di bawah supaya tiket bisa segera di-issue.
+      </p>
+    </div>
+  </div>
+
+  <!-- Payment Instructions (customer belum bayar — pre-payment) -->
+  <div style="padding:12px 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${b.primary};border-radius:12px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+        </td>
+        <td align="right" style="padding:20px 24px;vertical-align:middle;">
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);">Status</div>
+          <div style="font-size:13px;color:#fff;font-weight:600;">Awaiting payment</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div style="padding:12px 28px;">
+    <h2 style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:${b.textMuted};">Bank Transfer</h2>
+    <div style="background:${b.surfaceAlt};border:1px solid ${b.border};border-radius:12px;padding:16px 20px;font-family:${monoStack};font-size:13px;color:${b.text};line-height:22px;white-space:pre-wrap;">{{bankAccountsBlock}}</div>
+    <p style="margin:10px 0 0;font-size:12px;color:${b.textMuted};line-height:18px;">ℹ Transfer dengan nominal <strong>tepat</strong> supaya auto-match sistem lebih cepat. Simpan bukti transfer — kirim ke admin via WhatsApp untuk verifikasi.</p>
+  </div>
+
+  <div style="padding:16px 28px 24px;text-align:center;">
+    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%20GtJourneysID%2C%20terkait%20booking%20{{bookingRef}}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;box-shadow:0 4px 12px rgba(37,211,102,0.3);">💬 Diskusi/Kirim Bukti via WhatsApp</a>
+    <p style="margin:12px 0 0;font-size:11px;color:${b.textFaint};">Admin WhatsApp: <strong>{{adminWhatsapp}}</strong></p>
+  </div>
+  `,
+  'Pembatalan booking {{bookingRef}} belum bisa diproses',
+)
+
+/* Alias legacy — maintain export untuk BookingTemplates.ts yang masih import */
+export const DEFAULT_CANCEL_EMAIL_BODY_HTML = DEFAULT_CANCEL_CONFIRM_EMAIL_BODY_HTML
 
 /* ─────────────────────────────────────────────────────────────────────
  * Default values untuk text/content fields.
@@ -415,8 +585,20 @@ export const defaultFieldValues = {
   ticketHeroHeadline: 'Your ferry ticket is confirmed!',
   ticketHeroSubtext: 'pembayaran kamu sudah kami terima. Berikut detail perjalanan kamu — simpan email ini untuk check-in.',
   ticketChecklistTitle: 'Check-in Checklist',
-  rescheduleHeroHeadline: 'Reschedule request diterima',
-  rescheduleHeroSubtext: 'kami sudah review permintaan reschedule kamu. Berikut tanggapan dari tim kami.',
+  // Legacy (dipakai sebagai fallback kalau endpoint lama di-call)
+  rescheduleHeroHeadline: 'Reschedule confirmed — detail tiket baru di bawah',
+  rescheduleHeroSubtext: 'tim kami sudah proses permintaan reschedule kamu. Berikut detail tiket terbaru + instruksi pembayaran.',
+  // Phase 4.70.2.6 — Confirm/Decline split
+  rescheduleConfirmHeroHeadline: 'Reschedule disetujui — detail tiket baru di bawah',
+  rescheduleConfirmHeroSubtext: 'tim kami sudah proses permintaan reschedule kamu. Berikut detail tiket terbaru + instruksi pembayaran.',
+  rescheduleDeclineHeroHeadline: 'Reschedule belum bisa diproses',
+  rescheduleDeclineHeroSubtext: 'kami sudah review permintaan reschedule kamu. Mohon maaf, perubahan jadwal belum bisa kami akomodasi — booking kamu tetap berlaku sesuai jadwal semula.',
+  // Legacy (deprecated 4.70.2.8)
   cancelHeroHeadline: 'Booking telah dibatalkan',
   cancelHeroSubtext: 'booking kamu sudah berhasil dibatalkan sesuai permintaan. Berikut detail follow-up dari tim kami.',
+  // Phase 4.70.2.8 — Cancel Confirm/Decline split
+  cancelConfirmHeroHeadline: 'Pembatalan dikonfirmasi — booking sudah dibatalkan',
+  cancelConfirmHeroSubtext: 'pembatalan booking kamu sudah kami proses. Berikut detail follow-up & refund kalau ada.',
+  cancelDeclineHeroHeadline: 'Pembatalan belum bisa diproses',
+  cancelDeclineHeroSubtext: 'kami sudah review permintaan pembatalan kamu. Mohon maaf, pembatalan belum bisa kami proses — booking kamu tetap berlaku sesuai jadwal semula.',
 }
