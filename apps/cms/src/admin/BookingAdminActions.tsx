@@ -38,6 +38,16 @@ interface PreviewResult {
   sentEmailId?: string
   newStatus?: string
   errors?: string[]
+  // Phase 4.70.3.1
+  receiptPreview?: { number: string; willAttachPdf: boolean; paymentBank: string; paymentDate: string }
+  receiptNumber?: string
+  warning?: string
+}
+
+interface BankAccount {
+  bankName?: string
+  accountNumber?: string
+  accountHolder?: string
 }
 
 function statusToKinds(status: string | undefined): ActionKind[] {
@@ -62,7 +72,7 @@ function kindToPath(kind: ActionKind): string {
 function kindToLabel(kind: ActionKind): string {
   switch (kind) {
     case 'payment':           return 'Send Payment Instructions'
-    case 'ticket':            return 'Confirm Payment & Send Ticket'
+    case 'ticket':            return 'Confirm Payment & Send Receipt'
     case 'rescheduleConfirm': return 'Confirm Reschedule'
     case 'rescheduleDecline': return 'Decline Reschedule'
     case 'cancelConfirm':     return 'Confirm Cancellation (status → cancelled)'
@@ -128,21 +138,56 @@ const BookingAdminActions: React.FC = () => {
   const [error, setError] = useState<string[] | null>(null)
   const [sent, setSent] = useState<PreviewResult | null>(null)
   const dialogRef = useRef<HTMLDivElement | null>(null)
+  // Phase 4.70.3.1 — payment info untuk ticket kind.
+  const [bankOptions, setBankOptions] = useState<BankAccount[] | null>(null)
+  const [bankOptionsError, setBankOptionsError] = useState<string | null>(null)
+  const [paymentBank, setPaymentBank] = useState('')
+  const [paymentDate, setPaymentDate] = useState('')
+  // Phase 4.70.3.1 (post-review) — in-flight guard untuk prevent double-send
+  // race ketika admin klik "Confirm & Send" cepat 2x sebelum `loading` state propagate.
+  const inflightRef = useRef<boolean>(false)
 
   const endpointPath = (k: ActionKind) => `/api/bookings/${id}/${kindToPath(k)}`
 
+  // Phase 4.70.3.1 — Fetch global booking-templates untuk ambil bankAccounts
+  // + default paymentDate (today in local).
+  const fetchBankOptions = useCallback(async () => {
+    setBankOptions(null)
+    setBankOptionsError(null)
+    try {
+      const res = await fetch('/api/globals/booking-templates?depth=0', {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = (await res.json()) as { bankAccounts?: BankAccount[] }
+      const banks = Array.isArray(data.bankAccounts) ? data.bankAccounts : []
+      setBankOptions(banks)
+      // Default first entry
+      if (banks.length > 0 && !paymentBank) {
+        setPaymentBank((banks[0].bankName ?? '').trim())
+      }
+    } catch (e: any) {
+      setBankOptionsError(e?.message ?? 'Failed to fetch bank accounts')
+    }
+  }, [paymentBank])
+
   const fetchPreview = useCallback(
-    async (k: ActionKind, note: string) => {
+    async (k: ActionKind, note: string, bank?: string, date?: string) => {
       setLoading(true)
       setError(null)
       setPreview(null)
       setSent(null)
       try {
+        const body: Record<string, unknown> = { previewOnly: true, adminNote: note }
+        if (k === 'ticket') {
+          body.paymentBank = bank ?? ''
+          body.paymentDate = date ?? ''
+        }
         const res = await fetch(endpointPath(k), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ previewOnly: true, adminNote: note }),
+          body: JSON.stringify(body),
         })
         const data = (await res.json()) as PreviewResult
         if (!res.ok || !data.ok) {
@@ -165,15 +210,31 @@ const BookingAdminActions: React.FC = () => {
     setPreview(null)
     setError(null)
     setSent(null)
+    setPaymentBank('')
+    setPaymentDate('')
     setOpen(true)
-    // Auto-fetch preview untuk kind yang tidak butuh note.
-    if (kindNeedsNote(k) === 'none') {
+    if (k === 'ticket') {
+      // Phase 4.70.3.1 — fetch bank options + default paymentDate today.
+      fetchBankOptions()
+      const today = new Date()
+      const yyyy = today.getFullYear()
+      const mm = String(today.getMonth() + 1).padStart(2, '0')
+      const dd = String(today.getDate()).padStart(2, '0')
+      setPaymentDate(`${yyyy}-${mm}-${dd}`)
+      // Don't auto-fetch preview — admin pick bank + date dulu, baru click Preview.
+    } else if (kindNeedsNote(k) === 'none') {
       fetchPreview(k, '')
     }
   }
 
   const refreshPreview = () => {
     if (!activeKind) return
+    if (activeKind === 'ticket') {
+      if (!paymentBank) { setError(['Pilih Payment Bank dulu.']); return }
+      if (!paymentDate) { setError(['Pilih Payment Date dulu.']); return }
+      fetchPreview(activeKind, '', paymentBank, paymentDate)
+      return
+    }
     const noteKind = kindNeedsNote(activeKind)
     if (noteKind === 'required' && adminNote.trim().length < 10) {
       setError(['Alasan minimal 10 karakter.'])
@@ -184,14 +245,25 @@ const BookingAdminActions: React.FC = () => {
 
   const confirmSend = useCallback(async () => {
     if (!activeKind) return
+    // Phase 4.70.3.1 (post-review) — re-entrancy guard. `loading` state propagate
+    // async; dua klik cepat sebelum setLoading(true) commit = dua request.
+    // Idempotency key kita sekarang per-attempt (Date.now()), jadi dua request
+    // = dua email terkirim. Guard via ref sinkronus.
+    if (inflightRef.current) return
+    inflightRef.current = true
     setLoading(true)
     setError(null)
     try {
+      const body: Record<string, unknown> = { previewOnly: false, adminNote }
+      if (activeKind === 'ticket') {
+        body.paymentBank = paymentBank
+        body.paymentDate = paymentDate
+      }
       const res = await fetch(endpointPath(activeKind), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ previewOnly: false, adminNote }),
+        body: JSON.stringify(body),
       })
       const data = (await res.json()) as PreviewResult
       if (!res.ok || !data.ok) {
@@ -204,8 +276,9 @@ const BookingAdminActions: React.FC = () => {
       setError([e?.message ?? 'Network error'])
     } finally {
       setLoading(false)
+      inflightRef.current = false
     }
-  }, [activeKind, adminNote, id])
+  }, [activeKind, adminNote, paymentBank, paymentDate, id])
 
   const close = () => {
     setOpen(false)
@@ -292,6 +365,74 @@ const BookingAdminActions: React.FC = () => {
             </header>
 
             <div className="bk-modal__body">
+              {activeKind === 'ticket' && (
+                <section className="bk-modal__section">
+                  {status === 'confirmed' && (
+                    <div className="bk-modal__warning bk-modal__warning--resend" role="alert">
+                      <strong>Resend mode:</strong> Booking ini sudah pernah dikonfirmasi.
+                      Submit akan mengirim <strong>receipt KEDUA</strong> ke customer dengan nomor &amp; tanggal terbit yang sama.
+                      Perubahan Payment Bank atau Payment Date akan dicatat di <code>paymentAuditLog</code> untuk audit.
+                    </div>
+                  )}
+                  <div className="bk-modal__warning bk-modal__warning--ticket" role="status">
+                    ⚠ Pastikan customer sudah transfer sebelum confirm. Pilih bank penerima + tanggal transfer di bawah.
+                  </div>
+                  {bankOptionsError && (
+                    <div className="bk-modal__error" role="alert">Failed to load bank accounts: {bankOptionsError}</div>
+                  )}
+                  {bankOptions !== null && bankOptions.length === 0 && (
+                    <div className="bk-modal__error" role="alert">
+                      Bank Accounts belum dikonfigurasi di global <strong>Booking Templates → tab Bank Accounts</strong>. Tambahkan dulu sebelum send receipt.
+                    </div>
+                  )}
+                  {bankOptions === null && !bankOptionsError && (
+                    <p className="bk-modal__loading">Loading bank options…</p>
+                  )}
+                  {bankOptions !== null && bankOptions.length > 0 && (
+                    <div className="bk-modal__payment-grid">
+                      <div className="bk-modal__field">
+                        <label htmlFor="bk-payment-bank">Payment Bank *</label>
+                        <select
+                          id="bk-payment-bank"
+                          className="bk-modal__input"
+                          value={paymentBank}
+                          onChange={(e) => setPaymentBank(e.target.value)}
+                        >
+                          <option value="">— Pilih bank —</option>
+                          {bankOptions.map((b, i) => (
+                            <option key={i} value={(b.bankName ?? '').trim()}>
+                              {b.bankName} — {b.accountHolder} ({b.accountNumber})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="bk-modal__field">
+                        <label htmlFor="bk-payment-date">Payment Date *</label>
+                        <input
+                          id="bk-payment-date"
+                          type="date"
+                          className="bk-modal__input"
+                          value={paymentDate}
+                          max={new Date().toISOString().slice(0, 10)}
+                          onChange={(e) => setPaymentDate(e.target.value)}
+                        />
+                      </div>
+                      <div className="bk-modal__note-meta" style={{ gridColumn: '1 / -1' }}>
+                        <span className="bk-modal__hint">Receipt PDF akan di-attach ke email customer.</span>
+                        <button
+                          type="button"
+                          className="bk-modal__btn bk-modal__btn--primary"
+                          onClick={refreshPreview}
+                          disabled={loading || !paymentBank || !paymentDate}
+                        >
+                          {loading ? 'Loading…' : preview ? 'Refresh Preview' : 'Preview'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </section>
+              )}
+
               {noteMode !== 'none' && (
                 <section className="bk-modal__section">
                   {noteWarning && (
@@ -373,9 +514,25 @@ const BookingAdminActions: React.FC = () => {
                     <pre className="bk-modal__pre">{preview.whatsappBody}</pre>
                   </section>
 
+                  {preview?.receiptPreview && (
+                    <section className="bk-modal__section">
+                      <h4>Receipt PDF</h4>
+                      <div className="bk-modal__field">
+                        <div className="bk-modal__value">
+                          📎 Attached: <code>{preview.receiptPreview.number}.pdf</code>
+                        </div>
+                      </div>
+                    </section>
+                  )}
                   {sent && sent.ok && (
                     <section className="bk-modal__success" role="status">
                       <p>✅ Email terkirim (id: <code>{sent.sentEmailId}</code>). Status booking → <code>{sent.newStatus}</code>.</p>
+                      {sent.receiptNumber && (
+                        <p>Receipt: <code>{sent.receiptNumber}.pdf</code></p>
+                      )}
+                      {sent.warning && (
+                        <p className="bk-modal__warning-text">⚠ {sent.warning}</p>
+                      )}
                       {sent.waUrl && (
                         <p>
                           <a
@@ -525,6 +682,48 @@ const css = `
   background: #e0f2fe;
   border: 1px solid #7dd3fc;
   color: #075985;
+}
+.bk-modal__warning--ticket {
+  background: #fef9c3;
+  border: 1px solid #fde047;
+  color: #713f12;
+}
+.bk-modal__warning--resend {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #7f1d1d;
+  margin-bottom: 0.5rem;
+}
+.bk-modal__warning--resend code {
+  font-size: 0.8rem;
+  background: rgba(0,0,0,0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.bk-modal__warning-text {
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+.bk-modal__payment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.bk-modal__input {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--theme-elevation-100, #ccc);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.9rem;
+  background: var(--theme-bg, #fff);
+  color: var(--theme-text, #1a1a1a);
+  box-sizing: border-box;
 }
 .bk-modal__note-label {
   display: block;

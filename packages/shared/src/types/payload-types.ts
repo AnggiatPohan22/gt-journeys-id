@@ -403,6 +403,22 @@ export interface Booking {
    */
   hasRequestedChange?: boolean | null;
   /**
+   * Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1.
+   */
+  receiptNumber?: string | null;
+  /**
+   * Timestamp first receipt issue (Asia/Makassar). FROZEN on first send.
+   */
+  receiptIssuedAt?: string | null;
+  /**
+   * Tanggal customer transfer (admin pick di modal Confirm Payment).
+   */
+  paymentDate?: string | null;
+  /**
+   * Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown).
+   */
+  paymentBank?: string | null;
+  /**
    * Di-set saat booking dibuat dengan email verified token valid (Phase 4.69.3).
    */
   emailVerifiedAt?: string | null;
@@ -419,13 +435,17 @@ export interface Booking {
    */
   sentPaymentBy?: (number | null) | User;
   /**
-   * Di-set oleh admin "Confirm Payment & Send Ticket" (Phase 4.69.7).
+   * Di-set oleh admin "Confirm Payment & Send Receipt" (Phase 4.69.7 + 4.70.3.1 rename). FROZEN on resend.
    */
   sentTicketAt?: string | null;
   /**
-   * Admin yang kirim e-ticket.
+   * Admin yang kirim payment receipt pertama kali. FROZEN on resend.
    */
   sentTicketBy?: (number | null) | User;
+  /**
+   * Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only.
+   */
+  paymentAuditLog?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -30278,12 +30298,17 @@ export interface BookingsSelect<T extends boolean = true> {
   originalScheduleTimeLabel?: T;
   preRequestStatus?: T;
   hasRequestedChange?: T;
+  receiptNumber?: T;
+  receiptIssuedAt?: T;
+  paymentDate?: T;
+  paymentBank?: T;
   emailVerifiedAt?: T;
   whatsappVerifiedAt?: T;
   sentPaymentAt?: T;
   sentPaymentBy?: T;
   sentTicketAt?: T;
   sentTicketBy?: T;
+  paymentAuditLog?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -44702,11 +44727,17 @@ export interface BookingTemplate {
    */
   ticketChecklistTitle?: string | null;
   ticketEmailSubject: string;
+  /**
+   * Variable {{receiptAttachedNote}} auto-switch wording success vs failed berdasarkan hasil generate PDF.
+   */
   ticketEmailBody: string;
   /**
    * [Advanced/dev-only] Raw HTML override.
    */
   ticketEmailBodyHtml?: string | null;
+  /**
+   * Variable {{receiptAttachedNote}} auto-switch wording success vs failed.
+   */
   ticketWhatsappBody: string;
   /**
    * ✅ CONFIRM — Headline email saat admin APPROVE reschedule.
@@ -44828,6 +44859,26 @@ export interface BookingTemplate {
    * [Advanced/dev-only] Raw HTML override.
    */
   otpEmailBodyHtml?: string | null;
+  /**
+   * Nama usaha yang muncul di header PDF. Jangan pakai "PT" / entitas legal selama bisnis masih personal. Fallback: "GtJourneysID" kalau kosong.
+   */
+  receiptBusinessName?: string | null;
+  /**
+   * Alamat usaha (multi-line OK). Opsional — kosong = tidak render line di PDF.
+   */
+  receiptAddress?: string | null;
+  /**
+   * ID usaha (NPWP, NIB, dsb.) kalau ada. Opsional.
+   */
+  receiptBusinessId?: string | null;
+  /**
+   * Disclaimer wajib (ID + EN). Fallback runtime ke default bilingual kalau kosong.
+   */
+  receiptDisclaimerText: string;
+  /**
+   * Catatan penutup di bawah disclaimer. Opsional.
+   */
+  receiptFooterNote?: string | null;
   /**
    * Satu rekening per baris. Format tampil: "Bank — nama holder — rekening".
    */
@@ -46671,6 +46722,11 @@ export interface BookingTemplatesSelect<T extends boolean = true> {
   otpEmailSubject?: T;
   otpEmailBody?: T;
   otpEmailBodyHtml?: T;
+  receiptBusinessName?: T;
+  receiptAddress?: T;
+  receiptBusinessId?: T;
+  receiptDisclaimerText?: T;
+  receiptFooterNote?: T;
   bankAccounts?:
     | T
     | {

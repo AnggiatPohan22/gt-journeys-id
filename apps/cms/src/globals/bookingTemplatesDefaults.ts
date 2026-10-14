@@ -582,9 +582,26 @@ export const defaultFieldValues = {
   paymentHeroHeadline: 'Please complete your payment',
   paymentHeroSubtext: 'terima kasih sudah memesan tiket di GtJourneysID. Kursi kamu sudah di-reserve sementara — lengkapi pembayaran sebelum {{paymentDeadline}}.',
   paymentSecurityNote: 'Hanya transfer ke rekening yang tertulis di email ini. GtJourneysID tidak pernah minta OTP, PIN, atau pembayaran via rekening pribadi lain.',
-  ticketHeroHeadline: 'Your ferry ticket is confirmed!',
-  ticketHeroSubtext: 'pembayaran kamu sudah kami terima. Berikut detail perjalanan kamu — simpan email ini untuk check-in.',
+  // Phase 4.70.3.1 — wording shift dari "e-ticket" ke "payment receipt".
+  // Platform tidak issue tiket resmi (hukum operator); yang dilampirkan =
+  // payment receipt PDF sebagai bukti pembayaran.
+  ticketHeroHeadline: 'Pembayaran dikonfirmasi — payment receipt terlampir',
+  ticketHeroSubtext: 'pembayaran kamu sudah kami terima. Payment receipt (PDF) terlampir sebagai bukti pembayaran. Tiket resmi akan diterbitkan oleh operator ferry saat check-in di terminal.',
   ticketChecklistTitle: 'Check-in Checklist',
+  // Phase 4.70.3.1 — Receipt tab fields
+  receiptBusinessName: 'GtJourneysID',
+  receiptAddress: '',
+  receiptBusinessId: '',
+  receiptDisclaimerText:
+    'Dokumen ini adalah bukti pembayaran, BUKAN tiket perjalanan. Tiket resmi diterbitkan oleh operator ferry saat check-in di terminal.\n\nThis document is proof of payment, NOT a travel ticket. The official ticket is issued by the ferry operator at terminal check-in.',
+  receiptFooterNote: 'Terima kasih telah mempercayakan perjalanan Anda bersama kami.',
+  // Phase 4.70.3.1 — Variable yang di-inject ke email context (bukan field CMS)
+  // Default dipakai sebagai REFERENSI untuk admin saat edit template email
+  // yang menggunakan {{receiptAttachedNote}}.
+  receiptAttachedNoteSuccess:
+    '📎 Payment receipt (PDF) terlampir pada email ini. Mohon simpan sebagai bukti pembayaran.',
+  receiptAttachedNoteFailed:
+    'Terima kasih atas pembayaran Anda. Payment receipt resmi akan dikirimkan menyusul oleh admin kami.',
   // Legacy (dipakai sebagai fallback kalau endpoint lama di-call)
   rescheduleHeroHeadline: 'Reschedule confirmed — detail tiket baru di bawah',
   rescheduleHeroSubtext: 'tim kami sudah proses permintaan reschedule kamu. Berikut detail tiket terbaru + instruksi pembayaran.',

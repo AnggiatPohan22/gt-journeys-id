@@ -60,6 +60,8 @@ export const KNOWN_VARIABLES = new Set<string>([
   'ticketHeroHeadline',
   'ticketHeroSubtext',
   'ticketChecklistTitle',
+  // Phase 4.70.3.1 — receipt attachment note (success/failed variant per-send)
+  'receiptAttachedNote',
   'rescheduleHeroHeadline',
   'rescheduleHeroSubtext',
   'rescheduleEmailBody',
@@ -119,6 +121,7 @@ export const OPTIONAL_VARIABLES = new Set<string>([
   'ticketHeroHeadline',
   'ticketHeroSubtext',
   'ticketChecklistTitle',
+  'receiptAttachedNote',
   'rescheduleHeroHeadline',
   'rescheduleHeroSubtext',
   'rescheduleEmailBody',

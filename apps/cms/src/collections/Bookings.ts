@@ -10,6 +10,11 @@ import {
 } from '../lib/templateRenderer'
 import { sendEmail } from '../lib/sendEmail'
 import {
+  generatePaymentReceipt,
+  getMakassarYYYYMMDD,
+  type ReceiptContext,
+} from '../lib/receiptPdf'
+import {
   DEFAULT_OTP_EMAIL_BODY_HTML,
   DEFAULT_PAYMENT_EMAIL_BODY_HTML,
   DEFAULT_TICKET_EMAIL_BODY_HTML,
@@ -173,6 +178,15 @@ interface HandoffResponse {
   sentEmailId?: string
   newStatus?: string
   errors?: string[]
+  // Phase 4.70.3.1 — receipt metadata di response
+  receiptNumber?: string
+  receiptPreview?: {
+    number: string
+    willAttachPdf: boolean
+    paymentBank: string
+    paymentDate: string
+  }
+  warning?: string
 }
 
 async function readTemplates(req: Parameters<Endpoint['handler']>[0]) {
@@ -844,6 +858,8 @@ const sendTicketEndpoint: Endpoint = {
     if (!id) return Response.json({ ok: false, error: 'bad_id' }, { status: 400 })
     const body = await readBody(req)
     const previewOnly = body.previewOnly === true
+    const paymentBankInput = typeof body.paymentBank === 'string' ? body.paymentBank.trim() : ''
+    const paymentDateInput = typeof body.paymentDate === 'string' ? body.paymentDate.trim() : ''
 
     try {
       const booking = (await req.payload.findByID({
@@ -853,14 +869,19 @@ const sendTicketEndpoint: Endpoint = {
         depth: 0,
       })) as Record<string, unknown>
 
+      // Phase 4.70.3.1 — Allow resend dari status `confirmed` (misal PDF
+      // gagal di first send, admin retry). Dari `payment_review`/`awaiting_payment`
+      // = first send. Dari `confirmed` = resend, reuse receiptNumber + receiptIssuedAt.
+      const bookingStatus = booking.status as string | undefined
+      const isResend = bookingStatus === 'confirmed'
       if (!previewOnly) {
-        const status = booking.status as string | undefined
-        if (status !== 'payment_review' && status !== 'awaiting_payment') {
+        const allowed = ['payment_review', 'awaiting_payment', 'confirmed']
+        if (!bookingStatus || !allowed.includes(bookingStatus)) {
           return Response.json(
             {
               ok: false,
               errors: [
-                `Booking status "${status}" tidak valid untuk Send Ticket. Harus "payment_review" (atau "awaiting_payment" sebagai shortcut).`,
+                `Booking status "${bookingStatus}" tidak valid untuk Send Receipt. Harus salah satu: ${allowed.join(', ')}.`,
               ],
             },
             { status: 409 },
@@ -872,11 +893,125 @@ const sendTicketEndpoint: Endpoint = {
       const adminName = (tpl.adminName as string | undefined) ?? 'GtJourneysID Team'
       const adminWhatsapp = (tpl.adminWhatsapp as string | undefined) ?? ''
 
+      // Phase 4.70.3.1 — Payment validation (skip untuk previewOnly supaya
+      // admin bisa cek template tanpa input bank/date lengkap).
+      const banks = Array.isArray(tpl.bankAccounts)
+        ? (tpl.bankAccounts as Array<{ bankName?: string; accountHolder?: string; accountNumber?: string }>)
+        : []
+      if (!previewOnly) {
+        if (banks.length === 0) {
+          return Response.json(
+            { ok: false, errors: ['Bank Accounts belum dikonfigurasi di global Booking Templates → tab Bank Accounts.'] },
+            { status: 400 },
+          )
+        }
+        if (!paymentBankInput) {
+          return Response.json(
+            { ok: false, errors: ['Payment Bank wajib diisi.'] },
+            { status: 400 },
+          )
+        }
+        const bankNames = banks.map((b) => (b.bankName ?? '').trim()).filter(Boolean)
+        if (!bankNames.includes(paymentBankInput)) {
+          return Response.json(
+            { ok: false, errors: [`Payment Bank "${paymentBankInput}" tidak terdaftar di bank accounts.`] },
+            { status: 400 },
+          )
+        }
+        if (!paymentDateInput) {
+          return Response.json(
+            { ok: false, errors: ['Payment Date wajib diisi.'] },
+            { status: 400 },
+          )
+        }
+        // Reject future date (Asia/Makassar comparison via YYYYMMDD).
+        const todayMakassar = getMakassarYYYYMMDD()
+        const inputYYYYMMDD = (() => {
+          try {
+            return getMakassarYYYYMMDD(new Date(paymentDateInput))
+          } catch { return '99999999' }
+        })()
+        if (inputYYYYMMDD > todayMakassar) {
+          return Response.json(
+            { ok: false, error: 'payment_date_future', errors: ['Tanggal pembayaran tidak boleh di masa depan.'] },
+            { status: 400 },
+          )
+        }
+      }
+
       const siteUrl = process.env.SITE_URL ?? 'http://localhost:4321'
       const confirmationUrl =
         booking.bookingRef && booking.accessToken
           ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
           : null
+
+      // Phase 4.70.3.1 — Receipt metadata (frozen on first-issue; reuse on resend).
+      const existingReceiptNumber = typeof booking.receiptNumber === 'string' ? booking.receiptNumber : null
+      const existingReceiptIssuedAt = typeof booking.receiptIssuedAt === 'string' ? booking.receiptIssuedAt : null
+      const issueDateObj = new Date()
+      const receiptNumber =
+        existingReceiptNumber ??
+        `RCPT-${booking.bookingRef}-${getMakassarYYYYMMDD(issueDateObj)}`
+      const receiptIssuedAt = existingReceiptIssuedAt ?? issueDateObj.toISOString()
+
+      // Phase 4.70.3.1 — Build receipt context + try generate PDF.
+      // Fallbacks runtime untuk field receipt yang kosong di CMS.
+      const receiptBusinessName =
+        (typeof tpl.receiptBusinessName === 'string' && tpl.receiptBusinessName.trim())
+          ? tpl.receiptBusinessName
+          : (D.receiptBusinessName as string)
+      const receiptDisclaimerText =
+        (typeof tpl.receiptDisclaimerText === 'string' && tpl.receiptDisclaimerText.trim())
+          ? tpl.receiptDisclaimerText
+          : (D.receiptDisclaimerText as string)
+
+      let pdfBytes: Uint8Array | null = null
+      let pdfError: string | null = null
+      if (!previewOnly) {
+        try {
+          const passengersList = Array.isArray(booking.passengers)
+            ? (booking.passengers as Array<Record<string, unknown>>)
+            : []
+          const receiptCtx: ReceiptContext = {
+            businessName: receiptBusinessName,
+            businessAddress: typeof tpl.receiptAddress === 'string' ? tpl.receiptAddress : undefined,
+            businessId: typeof tpl.receiptBusinessId === 'string' && tpl.receiptBusinessId.trim()
+              ? tpl.receiptBusinessId
+              : undefined,
+            receiptNumber,
+            issueDate: receiptIssuedAt,
+            customerName: String(booking.customerName ?? ''),
+            customerEmail: String(booking.customerEmail ?? ''),
+            bookingRef: String(booking.bookingRef ?? ''),
+            originLocation: String(booking.originLocation ?? ''),
+            destinationLocation: String(booking.destinationLocation ?? ''),
+            departureDisplay: formatDeparture(booking.departureDate as string | null, booking.scheduleTimeLabel as string | null),
+            ferryClassName: String(booking.ferryClassName ?? ''),
+            adults: Number(booking.adults ?? 0),
+            children: Number(booking.children ?? 0),
+            passengers: passengersList.map((p) => ({
+              fullName: [p.firstName, p.lastName].filter(Boolean).join(' ') || '-',
+              type: (p.passengerType === 'child' ? 'child' : 'adult') as 'adult' | 'child',
+            })),
+            currency: String(booking.currency ?? 'IDR'),
+            totalEstimate: (booking.totalEstimate as number) ?? 0,
+            paymentBank: paymentBankInput || String(booking.paymentBank ?? '-'),
+            paymentDate: paymentDateInput || String(booking.paymentDate ?? issueDateObj.toISOString()),
+            disclaimerText: receiptDisclaimerText,
+            footerNote: typeof tpl.receiptFooterNote === 'string' ? tpl.receiptFooterNote : undefined,
+          }
+          pdfBytes = await generatePaymentReceipt(receiptCtx)
+        } catch (e) {
+          pdfError = (e as Error).message
+          // eslint-disable-next-line no-console
+          console.error('[send-ticket] PDF generation failed:', pdfError)
+        }
+      }
+
+      // Phase 4.70.3.1 — Inject receiptAttachedNote variant berdasarkan hasil PDF.
+      const receiptAttachedNote = pdfBytes
+        ? (D.receiptAttachedNoteSuccess as string)
+        : (D.receiptAttachedNoteFailed as string)
 
       const ctx = buildContext(booking as any, {
         passengerList: formatPassengerList((booking.passengers as any) ?? []),
@@ -886,6 +1021,8 @@ const sendTicketEndpoint: Endpoint = {
         // Phase 4.70.2
         ...buildBrandContext(tpl),
         ...pickTemplateFields(tpl, ['ticketHeroHeadline', 'ticketHeroSubtext', 'ticketChecklistTitle']),
+        // Phase 4.70.3.1
+        receiptAttachedNote,
       })
 
       const emailSubjectR = renderTemplate(String(tpl.ticketEmailSubject ?? ''), ctx)
@@ -918,23 +1055,41 @@ const sendTicketEndpoint: Endpoint = {
           emailBodyHtml: emailBodyHtmlR.rendered,
           whatsappBody: waBodyR.rendered,
           waUrl,
+          // Hint untuk admin UI
+          receiptPreview: {
+            number: receiptNumber,
+            willAttachPdf: true,
+            paymentBank: paymentBankInput || (banks[0]?.bankName ?? ''),
+            paymentDate: paymentDateInput,
+          },
         } satisfies HandoffResponse)
       }
 
       const to = booking.customerEmail as string | undefined
       if (!to) {
         return Response.json(
-          { ok: false, errors: ['Customer email kosong — tidak bisa kirim e-ticket.'] },
+          { ok: false, errors: ['Customer email kosong — tidak bisa kirim payment receipt.'] },
           { status: 400 },
         )
       }
 
+      // Phase 4.70.3.1 — Email attachments (opsional, hanya kalau PDF berhasil).
+      const attachments = pdfBytes
+        ? [{
+            filename: `${receiptNumber}.pdf`,
+            content: uint8ArrayToBase64(pdfBytes),
+            content_type: 'application/pdf',
+          }]
+        : undefined
+
+      // Idempotency key per-attempt (Date.now ms) supaya resend tidak dedup.
       const sent = await sendEmail({
         to,
         subject: emailSubjectR.rendered,
         text: emailBodyR.rendered,
         html: emailBodyHtmlR.rendered,
-        idempotencyKey: `ticket:${booking.bookingRef}:${req.user!.id}`,
+        attachments,
+        idempotencyKey: `ticket:${booking.bookingRef}:${Date.now()}`,
       })
       if (!sent.ok) {
         return Response.json(
@@ -943,18 +1098,49 @@ const sendTicketEndpoint: Endpoint = {
         )
       }
 
+      // Phase 4.70.3.1 — Persist metadata. FROZEN on first-issue, overwrite
+      // paymentBank/Date on resend. sentTicketAt juga frozen kalau sudah set.
+      const nowIso = new Date().toISOString()
+      const updateData: Record<string, unknown> = {
+        status: 'confirmed',
+        sentTicketAt: isResend && booking.sentTicketAt ? booking.sentTicketAt : nowIso,
+        sentTicketBy: isResend && booking.sentTicketBy ? booking.sentTicketBy : req.user!.id,
+        receiptNumber,
+        receiptIssuedAt,
+        paymentBank: paymentBankInput,
+        paymentDate: paymentDateInput,
+      }
+
+      // Phase 4.70.3.1 (post-review) — Audit log untuk resend changes.
+      // Hanya tulis saat RESEND (status pre-send sudah `confirmed`) dan ada
+      // perubahan bank atau date dari nilai sebelumnya.
+      if (isResend) {
+        const prevBank = typeof booking.paymentBank === 'string' ? booking.paymentBank : ''
+        const prevDate = typeof booking.paymentDate === 'string' ? booking.paymentDate.slice(0, 10) : ''
+        const newDate = paymentDateInput.slice(0, 10)
+        const changes: string[] = []
+        if (prevBank !== paymentBankInput) {
+          changes.push(`paymentBank: ${prevBank || '(none)'} -> ${paymentBankInput}`)
+        }
+        if (prevDate !== newDate) {
+          changes.push(`paymentDate: ${prevDate || '(none)'} -> ${newDate}`)
+        }
+        const userEmail = (req.user as { email?: string } | null)?.email ?? `user#${req.user!.id}`
+        const prevLog = typeof booking.paymentAuditLog === 'string' ? booking.paymentAuditLog : ''
+        const header = `${nowIso} ${userEmail}`
+        const entry = changes.length > 0
+          ? `${header} | ${changes.join(' | ')}`
+          : `${header} | resend (no field changes)`
+        updateData.paymentAuditLog = prevLog ? `${prevLog}\n${entry}` : entry
+      }
       await req.payload.update({
         collection: 'bookings',
         id,
-        data: {
-          status: 'confirmed',
-          sentTicketAt: new Date().toISOString(),
-          sentTicketBy: req.user!.id,
-        },
+        data: updateData,
         overrideAccess: true,
       })
 
-      return Response.json({
+      const response: HandoffResponse = {
         ok: true,
         previewOnly: false,
         emailSubject: emailSubjectR.rendered,
@@ -963,7 +1149,12 @@ const sendTicketEndpoint: Endpoint = {
         waUrl,
         sentEmailId: sent.id,
         newStatus: 'confirmed',
-      } satisfies HandoffResponse)
+        receiptNumber,
+      }
+      if (pdfError) {
+        response.warning = `pdf_generation_failed: ${pdfError}. Email terkirim tanpa attachment. Admin bisa klik "Confirm & Send" lagi untuk retry.`
+      }
+      return Response.json(response)
     } catch (e) {
       return Response.json(
         { ok: false, errors: [(e as Error).message] },
@@ -971,6 +1162,33 @@ const sendTicketEndpoint: Endpoint = {
       )
     }
   },
+}
+
+/** Phase 4.70.3.1 — Format departureDate + scheduleTimeLabel ala email templates. */
+function formatDeparture(iso: string | null | undefined, time: string | null | undefined): string {
+  if (!iso) return ''
+  let dateStr = iso
+  try {
+    const d = new Date(iso)
+    if (!Number.isNaN(d.getTime())) {
+      dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+    }
+  } catch { /* keep raw */ }
+  const t = (time ?? '').trim()
+  return t ? `${dateStr} · ${t}` : dateStr
+}
+
+/** Phase 4.70.3.1 — Base64 encode (Workers + Node compatible via btoa + Latin-1 bridge). */
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  // Chunked to avoid "arguments too long" on large PDFs.
+  const CHUNK = 0x8000
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    const slice = bytes.subarray(i, i + CHUNK)
+    binary += String.fromCharCode.apply(null, slice as unknown as number[])
+  }
+  // btoa works di Node 18+ + Workers (global).
+  return btoa(binary)
 }
 
 /**
@@ -1491,6 +1709,46 @@ export const Bookings: CollectionConfig = {
         description: 'Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case.',
       },
     },
+    // Phase 4.70.3.1 — Payment Receipt PDF metadata.
+    // Semua hidden; di-set otomatis saat admin klik "Confirm Payment & Send Receipt".
+    // receiptNumber + receiptIssuedAt FROZEN on first send (resend reuse).
+    // paymentDate + paymentBank boleh di-update pada resend (admin boleh koreksi).
+    {
+      name: 'receiptNumber',
+      type: 'text',
+      admin: {
+        hidden: true,
+        readOnly: true,
+        description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1.',
+      },
+    },
+    {
+      name: 'receiptIssuedAt',
+      type: 'date',
+      admin: {
+        hidden: true,
+        readOnly: true,
+        date: { pickerAppearance: 'dayAndTime' },
+        description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send.',
+      },
+    },
+    {
+      name: 'paymentDate',
+      type: 'date',
+      admin: {
+        hidden: true,
+        date: { pickerAppearance: 'dayOnly' },
+        description: 'Tanggal customer transfer (admin pick di modal Confirm Payment).',
+      },
+    },
+    {
+      name: 'paymentBank',
+      type: 'text',
+      admin: {
+        hidden: true,
+        description: 'Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown).',
+      },
+    },
 
     // ── Admin-handoff audit (Phase 4.69.5) ─────────────
     // Semua field read-only di UI — otomatis diisi oleh endpoint
@@ -1519,9 +1777,18 @@ export const Bookings: CollectionConfig = {
         {
           type: 'row',
           fields: [
-            { name: 'sentTicketAt', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, readOnly: true, description: 'Di-set oleh admin "Confirm Payment & Send Ticket" (Phase 4.69.7).' } },
-            { name: 'sentTicketBy', type: 'relationship', relationTo: 'users', admin: { width: '50%', readOnly: true, description: 'Admin yang kirim e-ticket.' } },
+            { name: 'sentTicketAt', type: 'date', admin: { width: '50%', date: { pickerAppearance: 'dayAndTime' }, readOnly: true, description: 'Di-set oleh admin "Confirm Payment & Send Receipt" (Phase 4.69.7 + 4.70.3.1 rename). FROZEN on resend.' } },
+            { name: 'sentTicketBy', type: 'relationship', relationTo: 'users', admin: { width: '50%', readOnly: true, description: 'Admin yang kirim payment receipt pertama kali. FROZEN on resend.' } },
           ],
+        },
+        {
+          name: 'paymentAuditLog',
+          type: 'textarea',
+          admin: {
+            readOnly: true,
+            rows: 6,
+            description: 'Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only.',
+          },
         },
       ],
     },

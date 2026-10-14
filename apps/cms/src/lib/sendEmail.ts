@@ -12,12 +12,22 @@
 const RESEND_API_URL = 'https://api.resend.com/emails'
 const DEFAULT_TIMEOUT_MS = 10_000
 
+export interface SendEmailAttachment {
+  filename: string
+  /** Base64-encoded content. Caller handles base64 encoding. */
+  content: string
+  /** Optional MIME type; Resend defaults to octet-stream kalau tidak di-set. */
+  content_type?: string
+}
+
 export interface SendEmailInput {
   to: string
   subject: string
   text: string
   /** Optional HTML version (Phase 4.70.1). Resend auto-fallback ke text kalau client tidak render HTML. */
   html?: string
+  /** Optional file attachments (Phase 4.70.3.1 — payment receipt PDF). */
+  attachments?: SendEmailAttachment[]
   idempotencyKey?: string
 }
 
@@ -51,6 +61,13 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     text: input.text,
   }
   if (input.html) body.html = input.html
+  if (input.attachments && input.attachments.length > 0) {
+    body.attachments = input.attachments.map((a) => ({
+      filename: a.filename,
+      content: a.content,
+      ...(a.content_type ? { content_type: a.content_type } : {}),
+    }))
+  }
   if (replyTo) body.reply_to = replyTo
 
   const controller = new AbortController()
