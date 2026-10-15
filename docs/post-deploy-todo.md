@@ -67,5 +67,32 @@
 
 ---
 
+## Deferred
+
+> Item di bawah ini sengaja **tidak dibangun sekarang** (bukan post-deploy
+> SEO, tapi work-items dari phase bookings/checkout yang di-pause). Masuk di
+> file ini supaya satu tempat untuk semua "nanti dulu". Sumber keputusan:
+> [`docs/security-hardening-playbook.md`](security-hardening-playbook.md) §5.
+
+- **4.70.3.2 — Upload operator e-ticket per booking.**
+  Alasan: menunggu operator ferry. Belum ada perjanjian agen, format tiket
+  dari operator belum diketahui, jadi skema upload/attachment belum bisa
+  difinalkan.
+- **4.70.3.3 — Voucher PDF.**
+  Alasan: hanya dikerjakan **jika** operator mengizinkan voucher dari agen
+  pihak ketiga. Tanpa izin tertulis, voucher berisiko dianggap tiket palsu.
+- **4.71 Fix C — Admin list cell untuk `departureDate` (date-only display).**
+  Alasan: cosmetic fix di admin list view, bukan security/correctness
+  blocker. Boleh dikerjakan setelah Stage 3 UI redesign supaya tidak dobel
+  kerja.
+- **4.71.1 extras — Deadline reminder email, timezone selector di CMS, rename
+  tab "Bank Accounts" → "Payment Settings & Banks".**
+  Alasan: nice-to-have. Reminder email butuh keputusan bisnis (cadence,
+  template). Timezone selector & rename tab belum urgent sebelum go-live.
+
+Jangan reintroduce item di atas tanpa instruksi eksplisit dari user.
+
+---
+
 *Item di file ini di-defer dari Phase 4 SEO work karena butuh environment production.
 Referensi implementasi: [`docs/reports/service-listing-visual-audit.md`](reports/service-listing-visual-audit.md).*
