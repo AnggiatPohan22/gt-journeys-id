@@ -1,0 +1,64 @@
+---
+// HeaderTemplate1 — "Classic" (Logo | Menu | CTA). Replika layout Header lama.
+// Sub-menu: klik-untuk-buka (desktop) via NavDesktop; mobile = overlay full-screen
+// dengan CTA WhatsApp full-width di dalamnya (hijau khas WA).
+// Phase 4.41: warna menu/CTA/icon via CSS vars (--h-*) di-inject di #main-header.
+// Phase 4.41.1 addendum: surface bg via `--h-bg` + `.dnj-header-surface`, sticky
+// toggle-able, transparent-on-top betul-betul bekerja (scroll listener di renderer).
+import Icon from '@components/common/Icon.astro'
+import NavDesktop from './_HeaderNavDesktop.astro'
+import HeaderMobile from './_HeaderMobile.astro'
+const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, cta = { show: false }, themeStyle = '' } = Astro.props as any
+---
+<header
+  id="main-header"
+  style={themeStyle}
+  data-transparent-top={transparent ? '1' : '0'}
+  data-scrolled="0"
+  class:list={[
+    'left-0 right-0 z-40 transition-all duration-300 dnj-header-surface',
+    sticky ? 'fixed top-0' : 'relative',
+  ]}
+>
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="flex items-center justify-between h-20" aria-label="Main navigation">
+      <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0">
+        {logoUrl ? (
+          <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover shrink-0" />
+        ) : (
+          <span aria-hidden="true" class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold shrink-0">{siteName.slice(0, 2)}</span>
+        )}
+        <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
+      </a>
+
+      <NavDesktop items={items} currentPath={currentPath} ulClass="gap-6 xl:gap-8 tracking-wide" />
+
+      <div class="flex items-center gap-3">
+        {cta.show && cta.href && (
+          <a href={cta.href} target={cta.external ? '_blank' : undefined} rel={cta.external ? 'noopener noreferrer' : undefined} class="dnj-cta hidden lg:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold no-underline shadow-sm hover:shadow-md">
+            <Icon name="chat" class="w-4 h-4" />
+            <span>{cta.text}</span>
+          </a>
+        )}
+        <button id="mobile-toggle" type="button" class="dnj-icon-btn lg:hidden p-2 rounded-md hover:bg-sand transition-colors" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+          <Icon name="menu" class="w-6 h-6 mobile-toggle-open" />
+          <Icon name="close" class="w-6 h-6 mobile-toggle-close hidden" />
+        </button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<HeaderMobile items={items} currentPath={currentPath} siteName={siteName} logoUrl={logoUrl} logoAlt={logoAlt}>
+  {cta.show && cta.href && (
+    <a
+      href={cta.href}
+      target={cta.external ? '_blank' : undefined}
+      rel={cta.external ? 'noopener noreferrer' : undefined}
+      class="mt-6 w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold no-underline bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-lg shadow-md transition-colors"
+    >
+      <Icon name="chat" class="w-5 h-5" />{cta.text}
+    </a>
+  )}
+</HeaderMobile>
+{sticky && <div class="h-20"></div>}

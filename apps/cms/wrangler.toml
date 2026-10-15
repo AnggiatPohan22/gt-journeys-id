@@ -1,21 +1,36 @@
-name = "dn-journeys-cms"
+name = "gt-journeys-cms"
 compatibility_date = "2025-09-30"
 compatibility_flags = ["nodejs_compat"]
 
 # Main entry point (OpenNext adapter handles this)
 main = ".open-next/worker.js"
 
+# Phase 4.66.1 — Secrets tidak lagi di [vars] (di-commit ke git).
+# Set via wrangler CLI (encrypted at rest, tidak visible di dashboard):
+#   wrangler secret put PAYLOAD_SECRET       # 32+ char random string
+#   wrangler secret put PAYLOAD_API_KEY      # optional: rotate ini juga
+#   wrangler secret put BOOKING_FORM_SECRET  # kalau ferry checkout ikut aktif di worker ini
+# Non-sensitif tetap boleh di [vars]:
 [vars]
-PAYLOAD_SECRET = "CHANGE-THIS-TO-A-RANDOM-32-CHAR-STRING"
 SERVER_URL = "http://localhost:8787"
 
 # D1 Database — IDs will be auto-filled after first deploy
 [[d1_databases]]
 binding = "DB"
-database_name = "dn-journeys-db"
+database_name = "gt-journeys-db"
 database_id = "YOUR_D1_DATABASE_ID"
 
 # R2 Storage for media uploads
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "dn-journeys-media"
+bucket_name = "gt-journeys-media"
+
+# ── Chat retention cron trigger — Phase 4.50.7 ──
+# Runs POST /api/chat-retention daily at 03:00 UTC (10:00 WITA).
+# Requires `CHAT_RETENTION_CRON_KEY` secret set via:
+#   wrangler secret put CHAT_RETENTION_CRON_KEY
+# The scheduled handler in `.open-next/worker.js` will fan-out to the
+# endpoint URL (see `event.scheduled` in OpenNext runtime). Retention
+# logic itself is at `src/lib/chat-retention.ts`.
+[triggers]
+crons = ["0 3 * * *"]

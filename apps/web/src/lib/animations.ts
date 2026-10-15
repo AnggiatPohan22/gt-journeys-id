@@ -2,15 +2,32 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 export function initAnimations() {
+  // Idempotent — BaseLayout binds both DOMContentLoaded/immediate + astro:page-load,
+  // so this can be called more than once per page. Skip re-init to avoid dupe
+  // ScrollTriggers/observers.
+  if ((window as any).__dnjbAnimationsInited) return
+  ;(window as any).__dnjbAnimationsInited = true
+
   // Respect reduced motion preference
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
   gsap.registerPlugin(ScrollTrigger)
 
-  // Scroll reveal for [data-animate="reveal"] elements
+  // Phase 4.56 — hormati per-section duration (CSS var `--entry-duration`
+  // di element, dalam ms). Fallback 800ms kalau tak diset.
+  const readDurationMs = (el: HTMLElement, fallback: number): number => {
+    const raw = getComputedStyle(el).getPropertyValue('--entry-duration').trim()
+    if (!raw) return fallback
+    const n = parseFloat(raw)
+    if (!isFinite(n) || n <= 0) return fallback
+    return raw.endsWith('ms') ? n : n * 1000
+  }
+
+  // Scroll reveal for [data-animate="reveal"] elements (jalur GSAP)
   gsap.utils.toArray('[data-animate="reveal"]').forEach((el: any) => {
+    const dur = readDurationMs(el as HTMLElement, 800) / 1000
     gsap.from(el, {
-      y: 40, opacity: 0, duration: 0.8, ease: 'power3.out',
+      y: 40, opacity: 0, duration: dur, ease: 'power3.out',
       scrollTrigger: { trigger: el, start: 'top 85%', once: true },
     })
   })
@@ -31,6 +48,27 @@ export function initAnimations() {
     })
   })
 
+  // Phase 4.56 — Block-level entry animations (preset non-reveal).
+  // CSS `.entry-fade/-zoom/-slide-left/-slide-right` di global.css mulai
+  // hidden + offset. Observer masukin `.is-in-view` saat section 15%
+  // masuk viewport → transisi CSS jalan (durasi dari `--entry-duration`).
+  const entrySelector = '.entry-fade, .entry-zoom, .entry-slide-left, .entry-slide-right'
+  const targets = Array.from(document.querySelectorAll<HTMLElement>(entrySelector))
+  if (targets.length > 0 && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries, observer) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-in-view')
+          observer.unobserve(entry.target)
+        }
+      }
+    }, {
+      threshold: 0.15,
+      rootMargin: '0px 0px -8% 0px',
+    })
+    targets.forEach((el) => io.observe(el))
+  }
+
   // Header solid on scroll
   const header = document.querySelector('[data-header]')
   if (header) {
@@ -40,4 +78,16 @@ export function initAnimations() {
       onLeaveBack: () => header.classList.remove('header-solid'),
     })
   }
+
+  // Phase 4.56.1 — Recalculate ScrollTrigger start/end positions setelah
+  // full page load (fonts + images selesai). Tanpa ini, trigger dihitung
+  // saat init dgn layout awal → posisi bisa geser saat gambar tinggi
+  // masuk ke atas section, membuat sebagian animasi terlanjur "fired"
+  // sebelum user scroll ke sana.
+  if (document.readyState === 'complete') {
+    ScrollTrigger.refresh()
+  } else {
+    window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true })
+  }
 }
+

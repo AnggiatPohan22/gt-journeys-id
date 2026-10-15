@@ -39,6 +39,13 @@ const seed = async () => {
   const payload = await getPayload({ config })
 
   log('— Seeding Destinations —')
+  // Phase 3.23: `type` kini relationship ke destination-types. Resolve id by slug.
+  // Prasyarat: jalankan `seed-destination-types.ts` dulu agar tipe Island/Mainland ada.
+  const typeIdBySlug: Record<string, number | string> = {}
+  for (const slug of ['island', 'mainland']) {
+    const t = await payload.find({ collection: 'destination-types', where: { slug: { equals: slug } }, limit: 1 })
+    if (t.docs.length > 0) typeIdBySlug[slug] = t.docs[0].id
+  }
   for (const dest of destinations) {
     const existing = await payload.find({
       collection: 'destinations',
@@ -49,9 +56,14 @@ const seed = async () => {
       log(`  · "${dest.name}" already exists (id=${existing.docs[0].id}) — skipped`)
       continue
     }
+    const typeId = typeIdBySlug[dest.type]
+    if (!typeId) {
+      log(`  ⚠ Tipe "${dest.type}" belum ada — jalankan seed-destination-types.ts dulu. Skip "${dest.name}".`)
+      continue
+    }
     const created = await payload.create({
       collection: 'destinations',
-      data: { ...dest, status: 'published' },
+      data: { name: dest.name, slug: dest.slug, type: typeId, status: 'published' },
     })
     log(`  ✓ Created "${created.name}" (id=${created.id})`)
   }

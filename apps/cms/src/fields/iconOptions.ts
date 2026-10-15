@@ -1,9 +1,41 @@
 /**
- * Icon options for CMS select fields — value = icon name di
- * apps/web/src/components/common/Icon.astro. Label = emoji + text
- * supaya editor punya visual hint tanpa custom React component.
+ * Icon field factory — creates a Payload text field with the custom
+ * IconPickerField admin component (searchable Iconify grid picker).
  *
- * Kalau tambah icon baru di Icon.astro, tambah juga di sini.
+ * Stores Iconify identifiers like 'mdi:star', 'lucide:heart'.
+ * Legacy values ('star', 'badge') are still valid — the frontend
+ * Icon.astro resolves them via LEGACY_ICON_MAP.
+ *
+ * Usage:
+ *   import { iconField } from '../fields/iconOptions'
+ *   fields: [ iconField({ name: 'iconName', required: true }) ]
+ */
+import type { Field } from 'payload'
+
+interface IconFieldOptions {
+  name?: string
+  required?: boolean
+  admin?: Record<string, any>
+}
+
+export function iconField(opts: IconFieldOptions = {}): Field {
+  const { name = 'iconName', required = false, admin = {} } = opts
+  return {
+    name,
+    type: 'text',
+    required,
+    admin: {
+      ...admin,
+      components: {
+        Field: '/components/IconPickerField#default',
+      },
+    },
+  }
+}
+
+/**
+ * @deprecated — kept for reference during migration. Use iconField() instead.
+ * Legacy 32-option select list. Values map to Icon.astro via LEGACY_ICON_MAP.
  */
 export const iconOptions = [
   { label: '⭐ star',                value: 'star' },

@@ -1,1067 +1,217 @@
-# PROGRESS.md — Project Status & Phase Tracker
+# Project Progress — GtJourneysID
 
-Dokumen ini melacak progress development DnJourneysBali dari awal sampai
-launch. Update file ini setiap kali menyelesaikan task, agar siapapun
-(termasuk AI agent baru) bisa langsung tahu posisi project saat ini.
+> Dashboard tingkat tinggi. Detail tiap fase ada di [`docs/phases/`](phases/).
+> Konten detail lama (1067 baris) diarsipkan utuh di
+> [`docs/archive/progress-archive-2026-08-23.md`](archive/progress-archive-2026-08-23.md).
+>
+> **Catatan domain-specific logs:** Mulai Phase 4.66 (2026-09-30), pekerjaan yang khusus berdomain **security** (audit, hardening, patch CVE, pengetatan RBAC, dsb.) juga dicatat di master log [`docs/08-SECURITY-PATCH.md`](08-SECURITY-PATCH.md) — PROGRESS.md tetap mencantumkan phase-nya seperti biasa, tapi untuk gambaran menyeluruh "proteksi apa saja yang sudah terpasang" developer buka file 08 saja. Pola yang sama bisa diterapkan untuk domain lain nanti (mis. performance log, SEO log).
+>
+> **Last updated:** 2026-10-09 (Phase 4.68 series — Sidebar CMS Reorganization. Audit + reorg menyeluruh sidebar admin Payload supaya scalable + userfriendly. Masalah yg diperbaiki: (1) Chat Widget tersebar di 2 grup (Settings vs Administration), (2) Bookings numpang di Administration padahal akan ekspansi besar, (3) grup Content/Posts/Site Builder terlalu heterogen/tipis. Hasil: **9 grup final** (super-admin view) dgn urutan: **Bookings → Services → Destinations → Content & Pages → Blog → Chat & Messaging → Marketing → System → Appearance**. Series terdiri dari 5 sub-phase + 1 audit doc: **4.68** audit + blueprint; **4.68.1** reorg 19 collection `admin.group` (Bookings→Bookings grup sendiri, Chat*→Chat & Messaging, Users→System, NewsletterSubscribers→Marketing, Authors/BlogCategories/Tags/Posts→Blog, Destinations+DestinationTypes+Locations+ServiceTypes→Destinations, Pages+Testimonials+Categories+Media+Menus→Content & Pages); **4.68.2** reorg 6 global `admin.group` (ChatWidgetSettings→Chat & Messaging, BlogSettings→Blog, PopupSettings→Marketing, SiteSettings+SiteFeatures→System, HomepageContent→Content & Pages); **4.68.3** reorder `collections[]` + `globals[]` di `payload.config.ts` supaya urutan sidebar deterministik (Payload v3 tak punya `admin.order` — murni urutan array; konsekuensi Appearance grup globals-only otomatis jatuh ke akhir); **4.68.4** icon fix 3 ikon default-circle: Bookings (🎫 ticket), PopupSettings (💬 dialog window), Locations (🗺️ folded map, beda bentuk dari Destinations' map-pin); **4.68.5** QA matrix + UAT checklist 3-role (editor 4 grup / admin 9 grup / super-admin 9 grup) + verifikasi visibility derived dari source. Zero schema change, zero migration, zero slug change (semua URL `/admin/collections/<slug>` + `/admin/globals/<slug>` tetap valid, deep-link lama OK), zero access rule change — pure string `admin.group` + urutan array + 3 CSS vars/selectors. Auto-regen `importMap.js` + `payload-types.ts` hanya reorder keys (bukan semantic). CMS smoke test boot OK pasca-reorg (login page accessible). Branch `feat/sidebar-cms-reorg-phase-4.68.1` committed `4d6c67a`, merged ke `develop` (`b227698`), pushed ke origin. Detail: [`docs/phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.68-sidebar-audit.md`](phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.68-sidebar-audit.md) + 4.68.1–4.68.5.)
+> **Previous:** 2026-10-08 (Phase 4.67.2g — WhatsApp Message 2-Leg. **Sub-phase terakhir** dari 4.67.2 series. Refactor `buildMessage()` di `apps/web/src/lib/checkout/channels/manualWhatsApp.ts` jadi 2-mode. One-way (default): layout message **ZERO perubahan** (header "booking Ferry Ticket" + 1 block ferry+route+date+kelas + nama+WA + penutup). Round-trip (`booking.tripType === 'round-trip'`): header "booking *Round Trip* Ferry Ticket" + ringkasan ref+pax, lalu 2 block eksplisit — **🛫 OUTBOUND** (ferry title, route, tanggal, kelas) + **🔄 RETURN** (ferry title return, reverse route, tanggal return, kelas return). Copy penutup round-trip di-tweak jadi "ketersediaan **kedua leg** & langkah berikutnya" sebagai reminder eksplisit ke admin. Helper `ferryTitleOf(rel)` extract untuk DRY (dipakai outbound + return ferry title lookup dari populated relationship). Rule S-13 (Phase 4.66.10 — WA message dirampingkan untuk PII hygiene) tetap dihormati: tidak nambah PII baru, tidak sertakan harga/email/notes/per-passenger (tetap tersedia di CMS admin + confirmation page via access token). Zero schema, zero API, zero route change. Smoke test programmatic (Node mock Booking) → kedua mode render benar sesuai expected. Manual verify (pending user): submit round-trip baru → confirmation → klik tombol WA → check pesan di WhatsApp admin terbaca jelas 2 leg. **Phase 4.67.2 series COMPLETE** (7 sub-phase 2a–2g: schema → detail CTA → listing return-pick → checkout 2-leg → API persist → confirmation render → WA message). Round-trip booking end-to-end sekarang live: widget filter → listing Step 1 outbound → listing Step 2 return → checkout 2-leg → API persist → confirmation 2-leg → WhatsApp handoff 2-leg. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2g-whatsapp-2leg-message.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2g-whatsapp-2leg-message.md).)
+> **Previous:** 2026-10-07 (Phase 4.67.3 + patch-3 — Post-review polish-3. 3 fix lanjutan setelah user review ke-3: (1) **Verifikasi One Way label position**: user melaporkan Starting Point/Destination issue "juga ada pada One Way" — verified di browser pane bahwa mobile+desktop One Way sudah OK (label berada DI ATAS card, bukan di dalam) karena fix polish-2 di shared mobile markup berlaku untuk kedua trip mode + desktop sejak awal memang pakai pattern label-outside. Zero code change. (2) **Badge "Select Outbound/Return" redesign proporsional** (`ServiceListingTicketSearch.astro`): sebelumnya `-top-3 left-1/2 -translate-x-1/2 rounded-full` (pill tengah-atas floating) → terlihat "mepet/forced" terutama di mobile narrow cards. Baru: tag anchor **kiri-atas** (`top-1 left-4 sm:left-5`), rounded-md (bukan full pill), **icon added** (`flight_takeoff`/`event_repeat`) + arrow glyph, text responsive (`text-[10.5px] sm:text-[11px]`), icon responsive (`w-3 sm:w-3.5`). Wrapper picker-mode dapat `pt-7 sm:pt-8` (ruang nafas badge DI DALAM wrapper, tidak numpuk card content) + `ring-1 ring-ocean/40` (atau coral) sebagai affordance "clickable" + `hover:ring + hover:shadow-colored` biar actionable. Scaling natural across desktop/tablet/mobile. (3) **BUG FIX kritis — "Continue to Confirmation" lempar user ke halaman ferry cards** (`apps/web/src/pages/api/bookings/create.ts`): root cause server endpoint `errorRedirect` pakai `back = /checkout/ferry-tickets/{slug}` tanpa preserve query params. Kalau validasi apapun fail (rate_limit, stamp_expired, invalid_passengers, past_departure_date, invalid_passport_expiry, return_route_mismatch, dll 14+ error codes), redirect ke `/checkout/ferry-tickets/{slug}?err=X` tanpa `date`. Checkout page frontmatter: `if (!qDate) return redirect(detailUrl + ?err=needs_date)` → user langsung bounce ke `/ferry-tickets/{slug}` (detail page dgn ferry classes cards). Fix: rekonstruksi `back` dgn URL-encode `departureDate`, `adults`, `children`, `ferryClassType` dari form data (+ round-trip extras: `tripType`, `returnDate`, `returnFerryTicketId`, `returnTicketSlug`, `returnFerryClassType`). Form data = ground truth, tidak bergantung URL state. **Verified** via fetch POST invalid → redirect follow → final URL `/checkout/ferry-tickets/batam-fast-btm-to-sg?date=2026-10-10&adults=2&children=0&class=emerald&err=rate_limited` status 200 (user stays on checkout). Zero regression success flow. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md) §Patch polish-3.)
+> **Previous:** 2026-10-07 (Phase 4.67.3 + patch-2 — Post-review polish-2. **3 fix UI/UX** lanjutan setelah user review 2nd verify: (1) **Widget mobile label pindah KELUAR card** (`ServiceListingTicketSearch.astro`): sebelumnya label STARTING POINT / DESTINATION / DEPARTURE DATE / RETURN DATE / PASSENGER duduk di dalam card di sebelah pin icon (yang di-vertical-center sama card height), sehingga visual label text "ngambang di atas pin icon". Sekarang label pindah di ATAS card (small caps `mb-1 ml-3`), card tinggal berisi pin + value + subtitle yg properly center. Konsisten dgn pola desktop. (2) **Validation alert banner** (`checkout/ferry-tickets/[slug].astro`): form dapat `novalidate` + custom submit handler scan contact (name/email/phone) + per-passenger first/last name. Kalau ada kosong: prevent submit, auto-expand accordion passenger yg invalid, tampilkan banner coral `#checkoutValidationAlert` dgn daftar field yg kurang + dismiss button, scroll ke banner + focus field pertama + highlight ring coral 2.2s. Problem lama: `required` HTML cuma trigger tooltip di field pertama, tapi passenger 2+ accordion collapsed sehingga tooltip hidden. (3) **Booking Summary — Show Details collapsible + header disamakan dgn Passenger Info** (`checkout/ferry-tickets/[slug].astro` + `confirmation/[ref].astro`): checkout sidebar sekarang default **ringkas** (TRIP route+date summary + pax strip + Grand Total always visible) + tombol "Show Details" expand ke OUTBOUND BOX + RETURN BOX + fees (sebelumnya semua expanded = sidebar panjang). Header checkout + confirmation Booking Summary direfactor dari (ocean py-3 + dot kecil) → match style section Contact Information / Passenger Information (`bg-ocean text-white px-5 sm:px-6 py-4` + icon ring `receipt_long` + title besar + subtitle + badge `emerald-400/20` kanan). Visual selaras antar section form left + sidebar right + checkout + confirmation. Zero schema, zero API. Verified end-to-end di browser pane: widget mobile labels clean, validation alert lists 5 missing fields + auto-expands pax 2, Show Details toggle works, header matches. Detail patch section di: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md) §Patch 2026-10-07 polish-2.)
+> **Previous:** 2026-10-07 (Phase 4.67.3 + patch — Listing Outbound-Pick Wizard + Post-review polish. 5 fix UI/UX setelah user review 1st verify: (1) **Widget → listing spacing**: wrapper widget `pb-10 md:pb-14` → gap form ke banner 72px, "Our Collections" tidak lagi menimpa Starting Point/Destination inputs. (2) **Badge reposition**: "SELECT OUTBOUND/RETURN →" badge pindah dari top-right ke **center-top ribbon** (`-top-3 left-1/2 -translate-x-1/2 rounded-full shadow-lg`) biar simetris + tidak menimpa Price/Save/Recommended corners. (3) **No-reload Step 1 → Step 2 transition**: refactor `_handleCardClick` outbound branch jadi SPA-like — swap fromSlug↔toSlug + fromQ↔toQ + fromSub↔toSub, set wizard state, `this.date = this._wReturn`, flip `_isReturnMode=true`, `history.pushState()`, update `.tkc__date` elements, `sortRefreshing=true` ~420ms fade animation, smooth-scroll ke `#tsh-listing`. Back button bekerja via `window.popstate` → `_handlePopState()` → re-run `_detectWizardMode()`. Zero full page reload. (4) **"Change trip" / "Change return" URL** (`checkout/ferry-tickets/[slug].astro`): extract `outboundFromSlug`/`outboundToSlug` dari `item.originLocation`/`arrivalLocation`. "Change trip" sekarang point ke listing Step 1 (`?trip=round-trip&from=<outbound-origin>&to=<outbound-dest>&date=&return=`) bukan ke detail page (`detailUrl` yg bikin bingung customer landing di halaman tiket spesifik). "Change return" sekarang point ke listing Step 2 dgn reverse route + outbound metadata preserved. (5) **Booking Summary — 2 BOX layout**: sidebar lama flat section + collapsible "Show Details" direfactor jadi **OUTBOUND BOX** (ocean border + pale ocean bg, rounded-xl) + **RETURN BOX** (leaf border + pale leaf bg, round-trip only), masing-masing: badge (OUTBOUND/RETURN) + date + ferry title + class + route + Adult/Child line + **Subtotal** bold. Di bawahnya: Passenger strip + Service fee/Discount (jika ada) + **GRAND TOTAL BOX** (gradient coral + border-coral/30 2px, label "TOTAL PRICE · Outbound + Return", display 2xl coral). Collapsible toggle dihapus — semua info visible by default. Zero schema, zero API change, zero one-way regression. Verified end-to-end di browser pane. Detail patch section di: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md) §Patch.)
+> **Previous:** 2026-10-07 (Phase 4.67.3 — Listing Outbound-Pick Wizard. Refactor UX round-trip Step 1: hapus **detour ke detail page** warisan 4.67.2b, aktifkan **direct pick dari listing** (Traveloka-style). Ditambah di `ServiceListingTicketSearch.astro`: (1) deteksi mode `isOutboundPick = qTrip==='round-trip' && !isReturnPick && !!qReturnDate`; (2) **banner Step 1 of 2** (coral theme, `flight_takeoff` icon + hint "Tap a ferry below") sebelum banner Step 2 existing; (3) **click handler outbound-pick** compute cheapest class dari `item.ferryClasses[]`, build URL ke listing step 2 dgn reverse route (from↔to swap), `date=qReturnDate`, `return=qReturnDate` (display), `outbound=<id>&outboundSlug=&outboundClass=<cheapest>&departure=<outboundDate>`. Let anchor click lewat (`$event.target.closest('a')`) supaya link "More info" di card ke detail page masih functional; (4) wrapper class/click branching 3-way: isReturnPick > isOutboundPick > normal, badge "Select Outbound →" (ocean) counterpart "Select Return →" (coral); (5) Step 2 banner "Change outbound" button sekarang point ke listing Step 1 (reverse-swap route kembali ke original + outbound metadata dikosongkan), bukan ke detail page lagi. **Detail page tetap fallback** untuk URL direct/bookmark + visitor yang perlu pick class spesifik bukan cheapest. **Default class = cheapest** (MVP kompromi — Opsi B inline class pills di card defer ke 4.67.4 setelah user evaluate). Zero schema, zero API change, URL contract step 2 identik dgn 4.67.2b/c. Mode one-way: zero perubahan. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.3-listing-outbound-pick-wizard.md).)
+> **Previous:** 2026-10-07 (Phase 4.67.2f — Confirmation Page 2-Leg Render. Halaman `/checkout/ferry-tickets/confirmation/[ref]` sekarang render 2-leg saat `booking.tripType === 'round-trip'` (persisted sejak 4.67.2e). (1) **Success hero**: badge **"Round Trip"** (ocean bg + swap_horiz icon) di sebelah label "Booking Created" + copy intro beda ("Your round-trip booking includes both outbound and return legs..."). (2) **Sidebar header badge**: "ROUND TRIP · CONFIRMED" (ganti plain "CONFIRMED"). (3) **Return heading block** di sidebar (leaf-dark header + `event_repeat` icon) di bawah Departure heading — tampil tanggal return, route label (reverse origin↔destination), schedule time. (4) **Collapsible "Show Details"** price breakdown jadi 2 section: "Outbound Breakdown" (adult/child line + Subtotal Departure) + "Return Breakdown" (Ferry+Class rows + adult/child line + Subtotal Return). (5) **Fix bug lama**: child line sebelumnya `= max(0, total − adult*unit)` approximate single-leg (broken untuk 2-leg karena total jadi grand total). Sekarang pakai `childUnitOf(ferry, classType, unitPrice)` helper yang baca `ferry.ferryClasses[].childPrice` dari populated relationship (depth=2 sejak 4.66.5), fallback 50% unitPrice. Konsisten dgn checkout 4.63.2 + API 4.67.2e. Impact one-way: minor display accuracy improvement untuk booking lama yg CMS `childPrice ≠ 50%`. (6) **Estimated Total** tetap pakai `booking.totalEstimate` (grand total sejak 4.67.2e untuk round-trip, outbound-only untuk one-way). Mode one-way: zero behavior change selain child line fix. Zero schema, zero API. **Phase 4.67.2 tinggal 1 sub-phase (4.67.2g WhatsApp message 2-leg)** sebelum complete. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2f-confirmation-2leg-render.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2f-confirmation-2leg-render.md).)
+> **Previous:** 2026-10-07 (Phase 4.67.2e — API `/api/bookings/create` 2-Leg Persist. Endpoint sekarang handle round-trip booking end-to-end: parse `tripType` + `returnDate` + `returnFerryTicketId` + `returnTicketSlug` dari form, blok validasi + verify + recompute setelah outbound processing. Jika `tripType=round-trip`: (1) validate `returnDate` format + >= departureDate + >= today (err `past_return_date` baru); (2) verify `returnFerryTicketId` via `getFerryForCheckout` + slug match + classes non-empty + price valid (4 err code baru: `invalid_return_ferry` / `return_ferry_not_found` / `return_ferry_slug_mismatch` / `return_ferry_no_class` / `return_ferry_no_price`); (3) **sanity check reverse route** via `locationId()` helper — `returnOrigin.id === outboundDest.id` AND `returnDest.id === outboundOrigin.id`, reject `return_route_mismatch` (lenient skip saat legacy data location null); (4) **currency match**: outbound + return harus sama (reject `return_currency_mismatch` — audit §11 defer multi-currency); (5) recompute `returnUnitPrice` + `returnTotalEstimate` dari CMS (child fallback 50%); (6) snapshot `returnOrigin/DestinationLocation`, `returnScheduleTimeLabel`, `returnFerryClassName/Type`; (7) `totalEstimate` persist di DB = **grand total** (outbound + return). Payload `createBooking` dapat 10 field baru (null untuk one-way). One-way submission (`tripType=one-way` dari hidden input 4.67.2d): **ZERO behaviour change** — skip blok return, kirim semua returnXxx: null. Guard legacy 4.64 (`missing_return_date` di awal flow) dihapus — dipindah ke blok tripType-aware. Zero schema change (field 4.67.2a). Checkout page tambah 8 entri `errorMessages` map untuk display user-friendly English copy. Rate-limit + formStamp + session timer tetap jalan. Smoke test 3 skenario (full submit → DB verify / 10 validation errors / one-way regression) di phase doc. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2e-api-2leg-persist.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2e-api-2leg-persist.md).)
+> **Previous:** 2026-10-07 (Phase 4.67.2d — Checkout Page 2-Leg Render. Checkout page `/checkout/ferry-tickets/[slug]` sekarang 2 mode. Round-trip mode (URL `?trip=round-trip&returnTicketSlug=&returnFerryId=&return=`): SSR fetch return ferry via slug + id-match guard (defense-in-depth), compute return pricing (adultLineTotal + childLineTotal, child fallback 50%), render **2 trip strip stack** (Outbound sand+ocean badge "OUTBOUND" / Return leaf+leaf-dark badge "RETURN" dgn tombol "Change return →" ke listing return-pick), tambah hidden input `tripType`/`returnDate`/`returnFerryTicketId`/`returnTicketSlug`/`returnFerryClassType`/`returnFerryClassName`, sidebar Booking Summary badge "ONE WAY"→"ROUND TRIP" + collapsible "Show Details" expand ke block Return (leaf-dark header + `event_repeat` icon + ferry/class rows + adult/child line + Subtotal Return), grand total = outbound + return subtotal. Guard SSR fail-closed: `trip=round-trip` tapi `returnTicketSlug` kosong / ferry tidak ketemu / id mismatch → redirect ke detail outbound dgn 3 err code baru (`needs_return_ferry` / `return_ferry_not_found` / `return_ferry_mismatch`). One-way mode: **ZERO perubahan** — single strip, badge "ONE WAY", sidebar tanpa return block. Submit API tetap 1-leg sampai **4.67.2e** aktifkan 2-leg persist + sanity check `returnOrigin === outboundDestination`. Zero schema change. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2d-checkout-2leg-render.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2d-checkout-2leg-render.md). Smoke test 3 skenario (one-way regression / round-trip wizard end-to-end / guard SSR edge cases) di phase doc.)
+> **Previous:** 2026-10-07 (Phase 4.67.2c — Listing Return-Pick Mode. Aktifkan mode return-pick di `ServiceListingTicketSearch.astro`: saat URL carry `?trip=round-trip&outbound=<id>&outboundSlug=&departure=YYYY-MM-DD`, tampilkan **banner "Step 2 of 2 — Choose your return ferry"** (ocean bg, swap_horiz icon, outbound slug + departure/return date, tombol "← Change outbound") di atas listing header, dan tiap card dapat **click interceptor** (Alpine `@click.capture.prevent.stop`) yg bypass detail page → redirect langsung ke `/checkout/ferry-tickets/<outboundSlug>` dgn hidden `returnFerryId=<cardId>&returnTicketSlug=<cardSlug>&outboundClass=&date=<departure>&return=<returnDate>&adults=&children=`. Card dapat badge coral "Select Return →" top-right (non-interactive hint). Mode default (one-way): **ZERO perubahan** — click handler + card variant persis seperti sebelum. Juga fix inkonsistensi 4.67.2b: detail page sekarang pass hidden input `from=<destinationSlug>`/`to=<originSlug>` (slug location, match widget contract `?from=&to=`), bukan `origin`/`destination` sebagai ID. Alpine state `fromSlug`/`toSlug` otomatis pre-filter listing ke reverse route (origin↔destination swap). Zero schema, zero migration. Widget filter form TIDAK dilock di return-pick mode (acceptable untuk MVP — polish defer ke 4.67.3). Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2c-listing-return-pick-mode.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2c-listing-return-pick-mode.md).)
+> **Previous:** 2026-10-07 (Phase 4.67.2b — Detail Page Round-Trip CTA. Aktifkan mode round-trip di `/ferry-tickets/[slug]`: saat URL carry `?trip=round-trip`, (1) sidebar form berubah dari "Reserve Now" (langsung checkout) → **"Continue to pick return →"** yg redirect ke listing `/ferry-tickets` dgn **reverse route** (origin↔destination swap), return date pre-fill, dan outbound metadata (`outbound=<id>&outboundSlug=&outboundClass=&departure=&adults=&children=`) di URL; (2) tombol "Book Now" per-class card berubah label jadi "Pick Return · <Kelas>" dgn URL ikut carry outbound metadata; (3) kalau `date`+`return` belum ada di URL (bookmark langsung tanpa widget state), tombol per-class jadi dimmed + anchor `#reserve-form` sebagai hint "pilih tanggal dulu". Mode one-way (default): **ZERO perubahan** — jalur existing 100% backward-compatible. Zero schema change (field CMS sama). Helper `_locId()` extract id dari relationship untuk reverse-route. `defaultOutboundClass` = cheapest (konsisten dgn display sidebar). Listing return-pick mode (banner "pick your return", card "Select return") menyusul di **4.67.2c**. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2b-detail-page-roundtrip-cta.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2b-detail-page-roundtrip-cta.md).)
+> **Previous:** 2026-10-07 (Phase 4.67.2a — Bookings Round-Trip Schema. Tambah field `tripType` (one-way / round-trip, default `one-way`) + 10 kolom snapshot leg return (`returnDate`, `returnFerryTicket`, `returnOriginLocation`, `returnDestinationLocation`, `returnScheduleTimeLabel`, `returnFerryClassName`, `returnFerryClassType`, `returnUnitPrice`, `returnTotalEstimate`, index `bookings_return_ferry_ticket_idx`) di collection `Bookings`. Nama STRICT PARALLEL ke outbound supaya migration path ke multi-city `legs[]` di masa depan cukup copy outbound→legs[0] + return→legs[1]. Semua additive, non-destructive — booking 1-leg existing tetap valid tanpa backfill (default `one-way` + 10 field return NULL). Migration `20261007_061355_phase_4_67_2a_bookings_roundtrip` applied batch 43 (local). **Zero frontend change** — UI round-trip (detail → listing return → checkout → confirmation → WA) menyusul di sub-phase 4.67.2b–g. Catatan: `pnpm schema:new` emit drift out-of-scope untuk `site_settings` (brand rename 4.73), `popup_settings` (EN defaults), `bookings.access_token` (4.66.5) karena 3 migration itu hand-written tanpa `.json` snapshot → stripped manual dari `.ts`, `.json` snapshot dibiarkan menyimpan state penuh supaya baseline akurat. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2a-bookings-roundtrip-schema.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2a-bookings-roundtrip-schema.md). Audit scheme lengkap: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2-roundtrip-booking-audit.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.67.2-roundtrip-booking-audit.md).)
+> **Previous:** 2026-10-06 (Phase 4.67.1 — Checkout Session Timer. Tambah countdown timer **15 menit** di sidebar Booking Summary halaman passenger info (`apps/web/src/pages/checkout/ferry-tickets/[slug].astro`). Format `MM:SS`, warna coral + pulse saat ≤ 2:00. Saat 0:00: submit button di-disable + `preventDefault` di form submit handler + modal "Session Expired" muncul (role=dialog, aria-modal) — tombol OK → `window.location.href = detailUrl` kembali ke halaman detail ferry. Guard client ini melengkapi server-side `formStamp` TTL 30 menit yg sudah ada sejak Phase 4.62 (margin aman untuk drift jam / latency submit); tujuan: transaksi gagal tidak ter-record ke booking store supaya database bersih. **Zero schema, zero backend change**, perubahan terisolasi di 1 file. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.67.1-checkout-session-timer.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.67.1-checkout-session-timer.md).)
+> **Previous:** 2026-10-01 (Phase 4.73 — Brand rename DnJourneysBali → GtJourneysID. Comprehensive rewrite 86 file: package scope `@dn-journeys/*` → `@gt-journeys/*`, root package `dn-journeys-bali` → `gt-journeys-id`, `wrangler.toml` resource names (worker/D1/R2) di-rename ke `gt-journeys-*` (aman karena belum provisioned), semua display string + current state docs. Phase docs historical + migrations + archive sengaja TIDAK di-rename (sejarah proyek). `pnpm install` regen lockfile, module resolution OK. Detail: [`docs/phases/phase-4-polish-launch/phase-4.73-brand-rename-dn-to-gt.md`](phases/phase-4-polish-launch/phase-4.73-brand-rename-dn-to-gt.md).)
+> **Previous:** 2026-10-01 (Phase 4.72 — Docs reorg `docs/phases/`. 127 file di root flat dipindahkan ke struktur 2-level `phase-<N>-<nama>/<area>/<topic>/` (10 area di Phase 4: admin-ui, blocks-and-content, theming, mobile-polish, features, ferry-tickets, checkout-flow, cms-infra, security-patch; + Phase 3 di-breakdown jadi 4 sub-folder). Phase 1/2/5 (1 file masing-masing) tetap flat. Semua rename pakai `git mv` (history utuh), 61 file di-rewrite link reference, 2 komentar kode (`BlogSettings.ts`, `20260914_121211.ts`) ikut di-update. Peta folder di [`docs/phases/phase-4-polish-launch/README.md`](phases/phase-4-polish-launch/README.md). Zero code change, zero schema, zero deploy change. Detail: [`docs/phases/phase-4-polish-launch/phase-4.72-docs-phase-folder-reorg.md`](phases/phase-4-polish-launch/phase-4.72-docs-phase-folder-reorg.md).)
+> **Previous:** 2026-10-01 (Phase 4.66.14 — Security master log convention. Tambah [`docs/08-SECURITY-PATCH.md`](08-SECURITY-PATCH.md) sebagai index security per-phase + severity + status, aturan baru di AGENTS.md §14 "Matrix Docs" + section "Aturan khusus Security", dan `CLAUDE.md` pointer file dibuat baru untuk Claude Code. Phase 4.66 series (checkout security hardening) sudah di-populate di master log sebagai section pertama.)
+> **Previous:** 2026-09-30 (Phase 4.66 series — Checkout security hardening. Audit baseline `docs/phases/phase-4-polish-launch/security-patch/phase-4.66-security-patch-v0.1.md` (13 findings: 1 Critical, 4 High, 5 Medium, 3 Low) diikuti 11 sub-phase: **4.66.1** `PAYLOAD_SECRET` keluar dari `wrangler.toml [vars]`; **4.66.2** Payload `csrf: [...]` whitelist; **4.66.3** `apps/web/public/_headers` baseline (CSP + X-Frame-Options + HSTS + Referrer/Permissions Policy + COOP); **4.66.4** server-side ferry verification + price recompute (unitPrice/currency/snapshot dari CMS, bukan hidden input); **4.66.5** `accessToken` 128-bit di Bookings + `?t=<token>` gate untuk halaman konfirmasi (fix IDOR, butuh `pnpm schema:migrate`); **4.66.6** `Cache-Control: no-store` + `<meta noindex>` di checkout + confirmation; **4.66.7** field-level `superAdminFieldAccess` untuk `passportNumber`; **4.66.8** fail-fast env di prod (`PAYLOAD_API_KEY`, `BOOKING_FORM_SECRET`); **4.66.9** rate-limit hardening (RATE_MAX 5→3, hash IP key, bounded LRU); **4.66.10** WA message dirampingkan (buang email/notes/per-passenger dari URL); **4.66.11** `pnpm audit` report (73 vuln, dependency upgrade defer ke Phase 4.67). Detail: [`docs/phases/phase-4-polish-launch/security-patch/phase-4.66-security-patch-v0.1.md`](phases/phase-4-polish-launch/security-patch/phase-4.66-security-patch-v0.1.md) + subphases 4.66.1–4.66.11.)
+> **Previous:** 2026-09-30 (Phase 4.61.11 Sort By CMS-controlled + No-reload Themed Dropdown — Sort By di halaman Ticket Search (Available Trips) sekarang bisa dikonfigurasi super-admin dari CMS: field baru `ticketSortOptions` (select `hasMany:true`) di Filter & Search → Ticket Search collapsible, admin bisa uncheck opsi yang tidak diperlukan (Earliest / Latest / Cheapest / Shortest). Frontend: native `<select onchange=submit>` diganti dengan themed Alpine dropdown (icon-circle coral + labeled cell mirror gaya Find Ticket's, listbox pill dengan ikon per opsi + check indicator, transition scale+fade). Sort **tidak refresh halaman**: `allItems` di-enrich dengan `dep`/`price`/`dur` di SSR; Alpine state `sortKey`/`sortOpen`/`sortRefreshing` + method `rankOf(dep,price,dur)` compute urutan lewat CSS `order` per card. Saat sortKey berubah: `sortRefreshing=true` untuk ~380ms → grid `opacity-0 translate-y-3` → `opacity-100 translate-y-0` (fade-up transition) sehingga visitor merasa listing "refresh" secara visual. URL sinkron via `history.replaceState('?sort=X')` supaya Find Tickets tetap bisa carry pilihan visitor. Migration `20260930_070209_phase_4_61_11_ticket_sort_options` (non-destructive: 11 tabel `<parent>_blocks_service_listing_ticket_sort_options` — satu per parent yg pakai block serviceListing). Icon map dapat 4 alias baru (swap_vert, check, bolt, nightlight). SSR pakai `initialSort` (fallback aman kalau URL sort di-disable admin). Rollback: `pnpm schema:down` + revert file, atau `TICKET_SEARCH_V2=1` untuk kembali ke UI select-refresh. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.11-sort-by-cms-and-no-reload.md`](phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.11-sort-by-cms-and-no-reload.md))
+> **Previous:** 2026-09-30 (Phase 4.64 Round Trip Filter & Search — mengaktifkan pill **Round Trip** di widget `ServiceListingTicketSearch` (mobile + desktop): hapus `disabled` + badge "Soon", tambah Alpine state `returnDate` + methods (`pickTrip`, `quickReturn`, `humanReturnDate`, `returnBadge`, `syncReturn`, `addDaysISO`, `minReturn`), tambah **Return Date card** conditional `x-show="trip==='round-trip'"` di kedua variant dgn quick chips relatif departure (Same day / +2 / +3 / +7) dan native date picker `min=departure`. Default return = departure + 3 hari saat switch ke round-trip; `pickTrip('one-way')` auto-clear. URL passthrough: `?trip=round-trip&return=YYYY-MM-DD`; hidden input `return` bind conditional supaya one-way tidak leak orphan value; sort form + card href passthrough juga `return` + `trip`. Server API `POST /api/bookings/create` dapat guard defensif: `return < departure` → `err=return_before_departure`; `trip=round-trip` tanpa `return` → `err=missing_return_date` (validate-only, tidak dipersist karena schema Bookings masih 1-leg). CMS description `ticketEnableRoundTrip` di-update — hilangkan phrasing "Coming soon". **Zero schema change, zero migration**. Booking flow round-trip 2-leg (schema Bookings tambah `returnDate` + `returnFerryTicket` dsb, detail page dual selector, checkout 2 legs, WA message 2 legs) tetap Phase 4.65. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.64-round-trip-filter.md`](phases/phase-4-polish-launch/ferry-tickets/round-trip-filter/phase-4.64-round-trip-filter.md))
+> **Previous:** 2026-09-30 (Phase 4.61.10 Ticket Search CMS Fields — 2 elemen konten di layout `ticket-search` dinaikkan dari hardcoded ke CMS supaya superadmin bisa edit tanpa deploy: (1) `ticketStatusIndicator` (text) untuk eyebrow "Instant Confirmation · Multi-Route Coverage" di header row kartu filter, dan (2) `ticketBadges` (array 0–3 rows, label+color) untuk 3 trust badges di bawah kartu (Instant Confirmation / Flexible Rescheduling / Secure Online Payment) dgn 4 pilihan color dot (leaf/ocean/coral/amber). Nama field disingkat dari draft `ticketValueBadges` → `ticketBadges` untuk menghindari enum overflow 63-char (`enum_restaurants_blocks_service_listing_ticket_value_badges_color` = 65 char). Default values otomatis identik dgn hardcoded 4.61.9 sehingga block existing render sama seperti sebelumnya sampai user edit. Kosongkan field → seksi terkait hilang (bukan fallback ke hardcoded). Migration `20260930_044533_phase_4_61_10_ticket_cms_fields` non-destructive: 8 tabel array `<coll>_blocks_service_listing_ticket_badges` + 8 kolom `ticket_status_indicator` (satu set per collection yang pakai serviceListing block). Rollback: (1) kosongkan value di CMS → seksi hilang; (2) `TICKET_SEARCH_V2=1` → snapshot pre-4.61.9 abaikan field baru; (3) `git revert` + migration down(). Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.10-ticket-search-cms-fields.md`](phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.10-ticket-search-cms-fields.md))
+> **Previous:** 2026-09-30 (Phase 4.61.9 Ticket Search UI Refresh + UX Batch — redesign visual Filter & Search Template 2 mengikuti referensi `ai/reference/ticket_booking_filter` (labeled 12-col cells + swap overlay + value badges + breakdown pills). Ditambah: (1) mutual exclusion Origin↔Destination di dropdown lokasi, (2) 5 quick date chips (Today, Tomorrow, + H+2/3/4 auto-format ke weekday+date via `toLocaleDateString`), (3) tanggal terpilih ditampilkan di listing card (`FerryTicketsCard` prop baru `selectedDate` → `TicketRouteCard.from.date`/`to.date`), (4) submit form tanpa reload — Alpine `@submit.prevent="applyFilter()"` update URL via `history.replaceState`, semua items dirender & di-hide/show via `x-show="matchesFilter(o,a)"`, `visibleCount()` reaktif untuk header count & empty state, (5) smooth-scroll ke listing setelah submit (custom rAF cubic ease-out 600ms, offset 96px desktop / 80px mobile, respect `prefers-reduced-motion`), (6) button Find Tickets dikecilkan `px-4 lg:px-5 py-2 lg:py-2.5 rounded-lg text-[11px]`. Fix root cause layout: hapus class `grid-cols-1` dari grid parent — di build ini `.grid-cols-1` ter-generate SETELAH `.md:grid-cols-12` sehingga 4-col fail (parent `hidden md:block` sudah menjamin grid tidak render di <md). CMS: Hero tab (mediaType/singleImage/imageSlider/videoFile/heroOverlayOpacity/heroMinHeight) dibuka untuk layout `ticket-search` — condition diperluas `hero-immersive \|\| ticket-search`, TIDAK ada schema change. Rollback: `TICKET_SEARCH_V2=1` di `.env` → render `ServiceListingTicketSearchV2.astro` (snapshot pre-4.61.9). Field eyebrow status indicator + 3 value badges ditunda ke Phase 4.61.10 (butuh migration). Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.9-ticket-search-ui-refresh.md`](phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.9-ticket-search-ui-refresh.md))
+> **Previous:** 2026-09-29 (Phase 4.61.8b Ticket Search UX polish — 3 fix di Template 2 (`ServiceListingTicketSearch.astro`): (1) **Departure Date tidak bisa dibuka** (mobile + desktop) — native `<input type=date>` dipindah ke class `.tsh-date-native` (z-index:2 + `::-webkit-calendar-picker-indicator` full-cover) supaya seluruh area cell reliabel jadi click target; tambah `@click showPicker()` fallback via `x-ref` (`dateInputM` / `dateInputD`) untuk browser yang tidak auto-open picker dari transparent input (mis. Firefox/Edge tertentu); (2) **Quick chips dipindah ke row tersendiri di bawah row Departure Date** (desktop) — sebelumnya share footer dengan tombol Search; (3) **Submit button diperlebar** (desktop) — padding `px-6 lg:px-8` → `px-10 lg:px-14`, footer row jadi `justify-end`. Mobile layout tidak berubah selain fix showPicker. Zero schema, zero JS lib baru. Rollback = revert 1 file. Commit: `a8bc948`.)
+> **Previous:** 2026-09-29 (Phase 4.61.8 Fix Ticket Filter & Search Template width — kartu search/filter Template 2 (`ServiceListingTicketSearch.astro`) render sempit (~512px, seperti mobile) di md/desktop. Root cause: form pakai class chain `max-w-lg md:max-w-6xl lg:max-w-[1360px] mx-auto` — kombinasi arbitrary + responsive Tailwind pada file yang masih untracked tidak reliabel di JIT dev cache, ditambah cascade ambiguity antara `max-w-lg` (unconditional) dan `md:max-w-6xl` (media). Fix: pindahkan width chain ke scoped CSS `.tsh-form` di `<style>` block (mobile 32rem / md 72rem / lg 1360px) — deterministik, tidak bergantung Tailwind scan. Zero schema, zero JS. Rollback = revert 2 baris + hapus block CSS. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.8-fix-ticket-search-width.md`](phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.8-fix-ticket-search-width.md))
+> **Previous:** 2026-09-28 (Phase 4.61.7 Ticket Search Template + Real-time Calendar — layout ke-3 `ticket-search` di ServiceListing block: Trip pill (Round Trip visible+disabled+"Soon", One Way aktif) + Starting Point + swap + Destination (dropdown Locations filter by `locationType`) + Departure Date (min=today) + Passenger stepper (Alpine.js, Adult 1-9 / Child 0-6 / Infant 0-2) + Update. Sort dropdown default "Earliest Departure" (Cheapest/Latest/Shortest). Locations dapat field `locationType` (5 kategori). Ferry `durationMinutes` auto-set by hook untuk sort by duration. Semua date picker (listing widget, detail sidebar, server `/api/bookings/create`) enforce `min={todayLocalISO()}` — visitor tidak bisa book tanggal lewat. Card ticket font Departure/Arrival disamakan dgn Location title (14/16/20 px). Migration `20260928_152436_phase_4_61_7_ticket_search` (91 kolom ADD, non-destructive — 10 kolom × 9 tabel block + `locations.location_type` + `ferry_tickets.duration_minutes`). Reusable untuk train/plane nanti: tinggal ubah `ticketLocationType` & label per block. **Phase 4.65 (Round Trip booking flow)** ditunda. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.7-ticket-search-template.md`](phases/phase-4-polish-launch/ferry-tickets/search-template/phase-4.61.7-ticket-search-template.md))
+> **Previous:** 2026-09-28 (Phase 4.61.6 Ferry Ticket Time & Location Port refinement — Ferry Tickets pindah dari multi-jadwal `scheduleTime[]` ke single-schedule (`departureTime` + `arrivalTime` di Overview, format `HH:mm` dgn validasi). Locations dapat field baru `timezone` (IANA select, WIB/WITA/WIT/SGT/MYT) + `mapEmbedUrl` + `mapLink`. Hook `computeFerryDuration` auto-hitung `duration` lintas timezone (mis. Batam WIB → Singapore SGT: 08:00→09:15 = 15m real, bukan 1h 15m nominal); toggle `durationOverride` untuk edge case. Tab 3 di-reorder ke Pricing → Location Port → Additional Remark → Booking. Section "Location Port" baru di detail page tampilkan iframe Google Maps origin port + tombol "Open in Google/Apple Maps". `quickSpecs`, `highlights`, `scheduleTime` di-hide via `admin.hidden` (data tetap di DB, un-hide cukup hapus 1 baris). Migration `20260928_085851_phase_4_61_6_ferry_time_and_maps` (5 kolom ADD, non-destructive). User isi timezone lokasi existing manual di admin. **Phase 4.64 (Service Section Visibility Framework via CMS super-admin)** ditunda menunggu request user. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/card-design/phase-4.61.6-ferry-time-refinement.md`](phases/phase-4-polish-launch/ferry-tickets/card-design/phase-4.61.6-ferry-time-refinement.md))
+> **Previous:** 2026-09-28 (Phase 4.63.2 Booking Summary price breakdown — sidebar Booking Summary di halaman checkout Ferry Ticket sekarang menampilkan rincian harga lengkap: (1) Departure "Thu, 15 Oct 2026" (hari + tanggal); (2) Price Breakdown Adult (N × unit) + Child (M × unit) auto-kalkulasi (child price ambil `preselected.childPrice` dari CMS bila tersedia, else 50% adult); (3) Ticket fare (sum); (4) Subtotal (Departure); (5) Total Price coral 2xl paling bawah. Baris Service Fee & Discount disembunyikan sampai fee configurable & promo code aktif (struktur DOM siap). Zero schema, zero JS — semua SSR. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.63.2-booking-summary-breakdown.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.63.2-booking-summary-breakdown.md))
+> **Previous:** 2026-09-28 (Phase 4.63.1 Checkout UI polish — (1) section Trip Details di halaman checkout dihilangkan → semua trip field jadi hidden input, muncul sebagai strip read-only di atas form dgn tombol "Change trip →" balik ke detail page; (2) placeholder ditambahkan di 8 text input (Full Name, Email, Phone, Country, First/Last Name, Passport, Notes); (3) Nationality dari `<input text>` → `<select>` 50 negara reuse `PHONE_REGIONS` dedupe by ISO. Guard: kalau `/checkout/...` diakses tanpa `?date=` → redirect balik ke detail page dgn notice "Please pick a departure date". Sidebar detail date input jadi `required`. Zero schema change. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.63.1-checkout-ui-polish.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.63.1-checkout-ui-polish.md))
+> **Previous:** 2026-09-28 (Phase 4.63 Passenger Info + Contact Enrichment — form checkout Ferry Ticket diperluas: (1) contact section: Full Name, Email required, Phone `[Region ▾][Number][☐ Also WhatsApp]`, hardcoded 50 negara di `phoneRegions.ts`; (2) passenger blocks dinamis (jumlah = adults+children) berisi Title/Gender/Nationality/First/Last/DOB/Passport Number+Issue+Expiry; vanilla JS re-render on adults/children change, preserve values. Passport disimpan **penuh** di CMS untuk manifest/gateway; customer-facing (confirmation page + WA message) hanya tampil 4 digit terakhir (`••••XXXX`). Passport expiry divalidasi server-side ≥ departure + 6 bulan. Checkbox "Remember this passenger" DIsIAPKAN tapi disabled (menunggu Phase 4.64 dgn desain keamanan: endpoint prefill hanya return nama+DOB, passport resolve server-side). Migration `20260928_000355_phase_4_63_passengers`: 1 tabel baru `bookings_passengers` + 3 kolom di `bookings`. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.63-passenger-info.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.63-passenger-info.md))
+> **Previous:** 2026-09-27 (Phase 4.62.2 Bookings rate-limit — `POST /api/bookings/create` sekarang dibatasi 5 submit / 15 menit per IP hash. Pattern in-memory Map mirror `@lib/newsletter/validators.ts`, terpisah supaya spam newsletter tidak menahan booking (dan sebaliknya). Rate check DILETAKKAN sebelum HMAC stamp verification supaya traffic abusif tidak burn CPU. Smoke test: 5 pass, ke-6 → `?err=rate_limited`. Zero package baru, zero migration. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.62.2-bookings-rate-limit.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.62.2-bookings-rate-limit.md))
+> **Previous:** 2026-09-27 (Phase 4.62.1 Users useAPIKey enable — aktifkan `useAPIKey` di Users collection supaya server-side endpoint (`/api/bookings/create` Phase 4.62 & `/api/newsletter-subscribe` Phase 4.33) bisa authenticate ke Payload REST. Sebelum ini `auth: true` shorthand tidak menciptakan kolom `api_key` di DB & toggle "Enable API Key" tak tampil di admin UI. Migration `20260927_150653_phase_4_62_1_users_api_key` menambah 3 kolom (`enable_a_p_i_key`, `api_key`, `api_key_index`). Owner harus generate API key sekali di admin → paste ke `PAYLOAD_API_KEY` env. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.62.1-users-api-key-enable.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.62.1-users-api-key-enable.md))
+> **Previous:** 2026-09-27 (Phase 4.62 Ferry Ticket Checkout Flow — halaman Customer Information (`/checkout/ferry-tickets/[slug]`) + Confirmation (`/checkout/ferry-tickets/confirmation/[ref]`) khusus Ferry Ticket. Booking disimpan di collection baru `Bookings` (Payload) sebagai single source of truth untuk WA fallback sekarang & payment gateway (Xendit/Midtrans) nanti — desain sync-ready via `CheckoutChannel` strategy pattern (`apps/web/src/lib/checkout/channels/`): ganti channel = 1 env var + 1 file baru, form & schema TIDAK berubah. WhatsApp button TETAP jadi fallback manual admin bahkan setelah gateway aktif. Anti-spam: honeypot + HMAC-SHA256 signed time-trap `formStamp` (3s–30min), tanpa package baru. Migration batch: `20260927_142814_phase_4_62_bookings`. Detail: [`docs/phases/phase-4-polish-launch/checkout-flow/phase-4.62-ferry-ticket-checkout-flow.md`](phases/phase-4-polish-launch/checkout-flow/phase-4.62-ferry-ticket-checkout-flow.md))
+> **Previous:** 2026-09-27 (Phase 4.61.5 Ferry Ticket Card mobile/tablet — kartu Ferry Tickets (desain `ticket`/`TicketRouteCard`) di mobile & tablet dibuat compact: foto besar dihilangkan (cukup logo operator di header), baris rute jadi 3 kolom Origin→Ferry→Arrival + font responsif. Foto tetap tampil di desktop (`lg+`). Catatan: kartu ini terlihat "rusak" di dev server karena artefak dev-mode Astro+Tailwind (2 bundle CSS → base utility override responsif); **production build BENAR** — diverifikasi via `pnpm build` + serve dist di mobile/tablet/desktop. Detail: [`docs/phases/phase-4-polish-launch/ferry-tickets/card-design/phase-4.61.5-ferry-ticket-card-mobile-tablet.md`](phases/phase-4-polish-launch/ferry-tickets/card-design/phase-4.61.5-ferry-ticket-card-mobile-tablet.md))
+> **Previous:** 2026-09-25 (Phase 4.60.2 Media Picker Drawer — drawer "Choose from existing" (Payload ListDrawer) untuk field upload → media dirapikan: baris 185px→70px, thumbnail seragam 72×54, thumbnail duplikat di File Name disembunyikan. Sekalian perbaiki bug fungsional: klik thumbnail dulu navigasi ke edit (`Leave without saving`), kini memilih gambar + menutup drawer (custom Cell bypass `RenderDefaultCell` → onSelect di-handle via `useListDrawerContext`). **Addendum**: kontrol Detail/S/M/L di dalam drawer (state khusus drawer `data-drawer-view`, tak ganggu route list) + fix grid `width:1%` yg bikin gambar S/M/L menciut/tak bisa diklik. **Cakupan project-wide**: hanya ada 1 upload collection `media` (46 field `relationTo:'media'`, 0 hasMany) → semua "Choose from existing" di semua collection/service (aktif+nonaktif) otomatis pakai tampilan ini; ditambah ikon video (play-badge) agar image+video selaras. Verified via browser pane (image, semua mode). Detail: [`docs/phases/phase-4-polish-launch/admin-ui/media-library/phase-4.60.2-media-picker-drawer.md`](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.60.2-media-picker-drawer.md))
+> **Previous:** 2026-09-24 (Phase 4.60.1 Media Edit Compact — edit view gambar dibuat ringkas dua-kolom: main (Alt/Caption/Description) + sidebar (Category/License/Credit/Tags/Related*), helper text dipendekkan; tak ada lagi tumpukan 9 field full-width. Verified via browser pane. Detail: [`docs/phases/phase-4-polish-launch/admin-ui/media-library/phase-4.60.1-media-edit-compact.md`](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.60.1-media-edit-compact.md))
+> **Previous:** 2026-09-24 (Phase 4.61 Media FileBird Layout — halaman list Media jadi dua-panel: sidebar folder (navigasi + New Folder + hitungan) + grid native. Refinement: folder modul nonaktif disembunyikan + gambarnya dipindah ke Uncategorized (hook SiteFeatures), ukuran grid tetap per view (Detail 10 / S 24 / M 12 / L 4, anti scroll panjang), fix highlight folder aktif (bug encoding `params.toString()`). Detail: [`docs/reports/phase-media-filebird-layout.md`](reports/phase-media-filebird-layout.md))
+> **Previous:** 2026-09-24 (Phase 4.60 Media Folders — aktifkan Payload native Folders untuk Media: folder per service + Blog + Pages (sub-folder Featured/Gallery), auto-routing upload via afterChange hook di 10 collection, Uncategorized default, kontrol density Detail/S/M/L di folder view. Migration batch 27 (tabel payload_folders + media.folder_id). Seed 34 folder. ⚠️ Sekalian memperbaiki rantai snapshot migrasi yang rusak sejak 4.56. Verifikasi visual folder view menunggu admin login. Detail: [`docs/reports/phase-media-folders.md`](reports/phase-media-folders.md))
+> **Previous:** 2026-09-23 (Phase 4.59 section USERS — BUG #1: list row unclickable (root cause identik Media BUG #1, `UserAvatarCell` tak wrap `<a>`) + dead "SEO" sidebar tab. Password change diverifikasi FUNGSIONAL via smoke test — bukan bug, cuma UI native Payload terpisah dari tab Security. ⚠️ Perlu restart dev server utk fix sidebar tab.)
+> **Previous:** 2026-09-22 (Phase 4.59 Media Library enhancement — click-thumbnail→edit + 6 field baru: description, category, tags (hasMany), license (6 opsi English), relatedDestination, relatedService (polymorphic 9 services). Migration batch 26 dgn 4 kolom + 2 junction table + 15 index.)
+> **Previous:** 2026-09-22 (Phase 4.59 BUG #1 **VERIFIED FIXED v6** — real login smoke test PASS 4/4 modes. Root cause: Payload's preferences upsert loop overrides defaultColumns. Fix: DELETE `/api/payload-preferences/collection-media` + force URL columns include `thumbnail`. URL 548→90 chars.)
+> **Previous:** 2026-09-21 (Phase 4.58.3 — Dashboard Widget Titles Custom: 9 field text opsional untuk override judul semua widget dashboard + header + subtitle dgn `{name}` placeholder)
+> **Previous:** 2026-09-21 (Phase 4.58.2 — Dashboard Widget tab UX polish: 3-seksi grouping + row layout + emoji labels, module-aware Quick Access filter, single-row cap 12 icon)
+> **Previous:** 2026-09-21 (Phase 4.58.1 — Dashboard Widget Config: At A Glance clickable + configurable, Recent Activity limit, Quick Access & System Health per-role picker via SiteFeatures)
+> **Previous:** 2026-09-21 (Phase 4.58 — Improve Dashboard CMS: SiteFeatures tab "Dashboard Widgets" + Smart Insight widget heuristic wired + Top Performing placeholder, admin/super-admin only, migration 5 kolom)
+> **Previous:** 2026-09-20 (Phase 4.56.1 — Scroll animation init fix: BaseLayout invoke `initAnimations()` di DOMContentLoaded/immediate, bukan cuma `astro:page-load` yang tak fire tanpa ClientRouter)
+> **Previous:** 2026-09-19 (Phase 4.57 — Access Control Bugs living doc: ServiceGrid hidden saat modul off + Chat Widget hidden dari Admin/Editor)
+> **Previous:** 2026-09-19 (Phase 4.56 — Entry Animation scroll-triggered via IntersectionObserver + speed control field, semua 22 block otomatis)
+> **Previous:** 2026-09-18 (Phase 4.55 — Full rollout 22 block: Advanced tab compact color picker + collapsible sections, dual-mode token/hex, zero migration)
 
-**Cara update:** Pindahkan checkbox dari `[ ]` ke `[x]` saat selesai,
-tambah tanggal, dan tulis catatan singkat kalau ada keputusan penting.
+## Project Overview
 
-**Report per fase:** Setiap fase besar yang selesai wajib punya file
-laporan di [`docs/reports/`](./reports/README.md). Lihat aturan &
-template di [`AGENTS.md`](../AGENTS.md) Section 14.
-
----
-
-## Status Ringkas
-
-```
-Current Phase:  CMS Enhancement Sprint COMPLETE (Phase 3.14–3.19)
-                Sprint 0–4 semua ✅ · frontend build verified (76 pages)
-                Next: Phase 4 Polish & Launch
-Overall:        ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ~97%
-Last Updated:   2026-08-20
-```
-
-### CMS Enhancement Sprint — Ringkasan (Phase 3.14–3.19)
-
-Report lengkap: [`docs/reports/sprint-cms-enhancement.md`](./reports/sprint-cms-enhancement.md)
-
-```
-Sprint 0  Technical Prerequisites ..... ✅  (schema sync + build 76 pages OK)
-Sprint 1  Sidebar Reorganization ....... ✅  → Phase 3.14.1–3.14.3
-Sprint 2  Seed Content & Testing ....... ✅  → Phase 3.14.4–3.14.5
-Sprint 3  Service Management ........... ✅  → Phase 3.15–3.16 (ServiceTypes collection)
-Sprint 4  Quick Wins .................. ✅  → Phase 3.16–3.19 (WA per-service, Testimonials collection, Dashboard)
-
-Verifikasi akhir: pnpm --filter @dn-journeys/web build → 76 pages, Complete! (no error)
-Pending manual (perlu login CMS): CRUD UI per role, visual dashboard, set WA number per service
-```
-
----
-
-## Phase 0 — Planning & Architecture ✅ DONE
-
-- [x] Tentukan stack: Astro + Payload CMS + Cloudflare — 2026-08-04
-- [x] Rancang content schema untuk 7 service modules — 2026-08-04
-- [x] Tentukan hosting strategy: Full Cloudflare (Pages + Workers) — 2026-08-04
-- [x] Rancang design direction: "Tropical Sophistication" — 2026-08-04
-- [x] Buat dokumentasi: AGENTS.md, SETUP.md, WORKFLOW.md — 2026-08-04
-
-**Catatan:** Budget hosting target $5/bulan (Workers paid plan).
-Frontend gratis selamanya di Cloudflare Pages.
-
----
-
-## Phase 1 — Foundation ✅ DONE
-
-### 1.1 Monorepo Setup
-- [x] Struktur folder: apps/web, apps/cms, packages/shared — 2026-08-04
-- [x] pnpm workspace config — 2026-08-04
-- [x] Root package.json dengan scripts — 2026-08-04
-
-### 1.2 CMS Backend Scaffold
-- [x] Payload CMS collections ditulis (13 collections) — 2026-08-04
-- [x] Reusable fields (seo, pricing, status, location, whatsapp) — 2026-08-04
-- [x] Access control / RBAC functions — 2026-08-04
-- [x] Block definitions untuk page builder (11 blocks) — 2026-08-04
-- [x] Next.js app router scaffold via Claude Code — 2026-08-04
-- [x] CMS berhasil running lokal (localhost:3030) — 2026-08-04
-- [x] Sharp image resize diaktifkan (import + property `sharp` di payload.config.ts) — 2026-08-04
-- [x] Super-admin user pertama dibuat — 2026-08-04
-- [x] Semua 13 collections diverifikasi muncul di admin panel — 2026-08-04
-- [x] Test create/edit/delete di setiap collection — 2026-08-04
-
-### 1.3 Frontend Scaffold
-- [x] Astro project setup — 2026-08-04
-- [x] Tailwind config dengan design system colors — 2026-08-04
-- [x] Fix Tailwind v4 → v3.4 compatibility — 2026-08-04
-- [x] Frontend berhasil running lokal (localhost:4321) — 2026-08-04
-- [x] Font files self-hosted: Fraunces variable (67KB) + Plus Jakarta Sans variable (27KB) — 2026-08-04
-- [x] BaseLayout final (head, meta, font preload) — 2026-08-04
-- [x] Header + Footer components (di `components/navigation/`) — 2026-08-04
-- [x] Payload API client tersambung ke CMS lokal — 2026-08-04
-- [x] Path alias `@config/*` + `@styles/*` ditambahkan ke tsconfig — 2026-08-04
-
-### 1.4 Connect Frontend ↔ Backend
-- [x] apps/web/.env pointing ke CMS URL yang benar (http://localhost:3030) — 2026-08-04
-- [x] Test fetch dari frontend ke CMS API berhasil — 2026-08-04
-- [x] CORS/API access dikonfirmasi tidak ada blocking (same-origin dev, publik-read) — 2026-08-04
-- [x] Bukti E2E: homepage `/` menampilkan live counts dari `/api/tours` & `/api/destinations` — 2026-08-04
-
-**Blocker saat ini:** —
-
-**Next action:** Frontend tour listing page & detail page (Phase 2.2).
-
----
-
-## Phase 2 — Service Modules ✅ DONE
-
-Ikuti urutan workflow di WORKFLOW.md Section 2 untuk setiap module.
-
-### 2.1 Destinations & Categories (Foundation Data)
-- [x] Seed script idempotent: `apps/cms/src/scripts/seed.ts` (jalankan via `pnpm seed`) — 2026-08-04
-- [x] Isi Destinations: Lembongan, Nusa Penida, Mainland Bali (via seed, status=published) — 2026-08-04
-- [x] Isi Categories untuk Tours: Island Hopping, Snorkeling Tour, Cultural Tour (via seed, status=published) — 2026-08-04
-- [x] Verifikasi via API: 6 Destinations total (3 seed + 3 existing draft), 6 Categories total — 2026-08-04
-
-**Catatan data existing (dari user):** Ceningan, Kuta, "Kelinging Beach" (destinations)
-dan Tour/Accomodation/Water Activities (categories) semua masih status=draft.
-Publish/hapus/rename lewat admin kalau perlu.
-
-### 2.2 Tours & Activities ✅ DONE
-- [x] Test collection di CMS dengan data dummy (1 tour: "Individual Bali Day Trip …") — 2026-08-04
-- [x] Sample tour dipublikasi (id=1, `status=published`) — 2026-08-04
-- [x] TourCard component (`apps/web/src/components/cards/TourCard.astro`) — 2026-08-04
-- [x] Tour listing page (`/tours`) — 2026-08-04
-- [x] Tour detail page (`/tours/[slug]` pakai `getStaticPaths()`) — 2026-08-04
-- [x] WhatsApp booking integration (pakai `generateWhatsAppLink` + `tourBookingMessage`, override via `tour.whatsappMessage` field) — 2026-08-04
-- [x] Lexical richtext plain-text extractor (`apps/web/src/lib/lexical.ts`) — 2026-08-04
-- [x] `fetchCollection<T>()` refactor: proper generics + optional `status` param — 2026-08-04
-- [x] Cleanup: hapus 2 folder artifact (`{tours,accommodations,...}` literal name di pages/ & components/) — 2026-08-04
-
-### 2.3 Villa & Hotel (Accommodations) ✅ DONE
-- [x] Sample "CIty Hotel Giattech" (hotel, 3-star, 2 room types) dipublikasi (id=1) — 2026-08-04
-- [x] `AccommodationCard.astro` — type badge (Villa/Hotel/Resort/Guesthouse), star rating, cheapest-room price — 2026-08-04
-- [x] Listing page `/accommodations` (`getAccommodations()`) — 2026-08-04
-- [x] Detail page `/accommodations/[slug]` (`getStaticPaths()`) dengan room types, amenities, policies, check-in/out — 2026-08-04
-- [x] WhatsApp booking pakai `accommodationMessage()` (override via `whatsappMessage` field) — 2026-08-04
-
-### 2.4 Water Activities ✅ DONE
-- [x] Sample "Snorkeling at Nusa Penida" (snorkeling type) dipublikasi (id=1) — 2026-08-04
-- [x] `WaterActivityCard.astro` — activity type badge, difficulty level, duration, price — 2026-08-04
-- [x] Listing `/water-activities` + detail `/water-activities/[slug]` (`getStaticPaths()`) — 2026-08-04
-- [x] Detail sections: About, What to Bring, Requirements, Safety Info (lexical) — 2026-08-04
-- [x] WhatsApp booking pakai `waterActivityMessage()` — 2026-08-04
-
-### 2.5 Private Yacht ✅ DONE
-- [x] Sample "Rent Yacth Premium" (sailing type) dipublikasi (id=1) — 2026-08-04
-- [x] `YachtCard.astro` — yacht type badge, capacity, cheapest package price — 2026-08-04
-- [x] Listing `/yacht` + detail `/yacht/[slug]` (`getStaticPaths()`) — 2026-08-04
-- [x] Detail sections: About, Specifications (length/engine/crew/year), Amenities, Charter Packages (per-package includes + price) — 2026-08-04
-- [x] WhatsApp booking pakai `yachtMessage()` — 2026-08-04
-
-### 2.6 Restaurant Reservation ✅ DONE
-- [x] Sample "Restaurant test 1" (mid_range) dipublikasi (id=1) — 2026-08-04
-- [x] `RestaurantCard.astro` — price range badge ($/$$/$$$), cuisine types, destination — 2026-08-04
-- [x] Listing `/restaurants` + detail `/restaurants/[slug]` (`getStaticPaths()`) — 2026-08-04
-- [x] Detail sections: About, Menu Highlights (nama + harga + deskripsi), Features, Opening Hours (sorted mon–sun, Closed handling) — 2026-08-04
-- [x] WhatsApp reservation pakai `restaurantMessage()` — 2026-08-04
-
-### 2.7 Wedding & Event Services ✅ DONE
-- [x] Sample "Wedding Garden Venue" (garden type) dipublikasi (id=1) — 2026-08-04
-- [x] `VenueCard.astro` — venue type badge, capacity range, cheapest package price — 2026-08-04
-- [x] Listing `/weddings` + detail `/weddings/[slug]` (`getStaticPaths()`) — 2026-08-04
-- [x] Detail sections: About, Packages (with lexical description + includes + startingPrice), Testimonials (couple + date + quote) — 2026-08-04
-- [x] WhatsApp enquiry pakai `venueMessage()` (auto-include eventType[0]) — 2026-08-04
-
-### 2.8 Rental Service ✅ DONE
-- [x] Sample "Rental Motor Ceningan" (motorbike type) dipublikasi (id=1) — 2026-08-04
-- [x] `RentalCard.astro` — rental type badge, cheapest tier price dengan duration label — 2026-08-04
-- [x] Listing `/rentals` + detail `/rentals/[slug]` (`getStaticPaths()`) — 2026-08-04
-- [x] Detail sections: About, Specifications (brand/model/year/details), Included, Requirements, sidebar Pricing Tiers (hourly/half_day/full_day/weekly/monthly) — 2026-08-04
-- [x] WhatsApp booking pakai `rentalMessage()` — 2026-08-04
-
-**Next action:** Phase 3 — CMS features & dynamic content. Prioritas:
-1. `BlockRenderer.astro` + 11 block components (hero, richText, image, gallery, cta, faq, testimonials, serviceGrid, contact, embed, spacer)
-2. Dynamic pages `apps/web/src/pages/[...slug].astro` yang render Page collection dari CMS
-3. `MenuRenderer` untuk Header navigation dari CMS (`getMenuBySlug('main-navigation')`)
-4. Footer + Header pakai `SiteSettings` global (bukan siteConfig fallback)
-5. Homepage `/` full build dari CMS blocks — ganti section E2E test
-
----
-
-## Phase 3 — CMS Features & Dynamic Content ✅ DONE
-
-- [x] BlockRenderer.astro + 11 block components (Hero, RichText, Image, Gallery, CTA, FAQ, Testimonials, ServiceGrid, Contact, Embed, Spacer) — 2026-08-04
-- [x] Dynamic pages `[...slug].astro` (catch-all, `getStaticPaths()` fetch semua published Pages) — 2026-08-04
-- [x] Header navigation dari CMS (`getMenuBySlug('main-navigation')` dengan support nested `children` dropdown) — 2026-08-04
-- [x] Footer dari CMS SiteSettings (siteName, tagline, contact, social, copyright) — 2026-08-04
-- [x] Global settings terpasang di semua halaman via `getSiteSettings()` di Header+Footer (dipakai PageLayout) — 2026-08-04
-- [x] Homepage full build (hybrid: CMS Page slug='home' → fallback ke Hero + 3× ServiceGrid + CTA) — 2026-08-04
-- [x] **Bonus fix (retroactive):** `fetchBySlug()` bug lama — key `where[slug[equals]]` (bracket bersarang salah) → `where[slug][equals]` (nested where object). Sebelumnya detail pages diam-diam return doc pertama yang published (bukan yg match slug); tersamar karena tiap collection cuma 1 published — 2026-08-04
-- [x] `lexicalToHtml()` helper — render richText dengan formatting (paragraph, heading, list, link, bold/italic/underline/strike/code, blockquote) — 2026-08-04
-
-### Manual Test Log — Phase 3
-
-Audit trail semua manual test yang PASS untuk Phase 3.
+Website multi-layanan pariwisata Bali (**GtJourneysID**) — 7 modul layanan (Tours,
+Villa/Hotel, Water Activities, Yacht, Restaurant, Wedding & Event, Rental) dengan
+booking via WhatsApp. Stack: **Astro** (frontend SSG) + **Payload CMS** (backend, RBAC
+multi-user) + **Cloudflare** (Pages + Workers, target $5/bln). Tujuan: situs
+CMS-driven yang fully manageable client, plus dipaketkan sebagai template reusable.
 
 ```
-Step 1 — BlockRenderer + 11 placeholder blocks
-  [x] BlockRenderer.astro ter-create tanpa TypeScript error
-  [x] Import 11 block components tidak error (placeholder minimal)
-
-Step 2 — 11 Block Components (real markup)
-  [x] Halaman test "About" (slug=about) dibuat di CMS dengan 3 block:
-      Hero + RichText + ServiceGrid — data ter-isi lengkap
-  [x] API /api/pages?where[slug][equals]=about return content sesuai
-      ekspektasi (array of blocks dengan blockType yg benar)
-
-Step 3 — Dynamic [...slug].astro
-  [x] pnpm dev jalan di apps/web (localhost:4321)
-  [x] /about → HTTP 200, render Hero + RichText + ServiceGrid berurutan
-  [x] Data setiap block render benar (heading "About Us", lexical
-      "What is Lorem Ipsum?", ServiceGrid reuse TourCard)
-  [x] Slug tidak ada → HTTP 404 clean (bukan crash)
-  [x] Draft page (/home) → HTTP 404 (getStaticPaths filter published)
-  [x] Static route /tours tetap menang atas catch-all
-
-Step 4 — Header/Footer CMS-driven
-  [x] Header: siteName "DnJourneysBali - by Giattech" (dari CMS,
-      bukan hardcoded "DnJourneysBali")
-  [x] Header nav items: Home / About Us / Tours / Contact (dari
-      menu 'main-navigation' CMS, bukan hardcoded)
-  [x] Header "Book Now" pakai wa.me/6282386357012 (dari CMS)
-  [x] Footer contact: example@giattech.com, 082386357012,
-      "Nusa Ceningan - Bali" (semua dari CMS)
-  [x] Footer social: Instagram/Facebook/TikTok icons render dengan URL
-      auto-normalisasi dari bare handles CMS
-  [x] Footer copyright "Created by Giattech" (dari CMS)
-  [x] User konfirmasi manual: ganti siteName di CMS → refresh browser
-      → Header+Footer ikut berubah (bukti CMS-driven, bukan hardcoded)
-
-Step 5 — Homepage Full Build
-  [x] / (homepage) → HTTP 200
-  [x] Title "DnJourneysBali - by Giattech" (dari CMS siteName)
-  [x] E2E test section dari Phase 1 SUDAH DIHAPUS (grep "Sync Test",
-      "CMS Connected", "Sample Tour Fetched" → 0 match)
-  [x] Sections tampil berurutan: Hero "test site setting" → Featured
-      Tours (dgn TourCard "Individual Bali Day Trip") → Where to Stay
-      (AccommodationCard "CIty Hotel Giattech") → On the Water
-      (WaterActivityCard "Snorkeling at Nusa Penida") → CTA "Plan Your
-      Bali Trip with Us" → Chat on WhatsApp button
-  [x] Semua data dari CMS (siteName, tagline, tours, accommodations,
-      water-activities, whatsapp number)
-  [x] Regression check: /about tetap render RichText "What is Lorem
-      Ipsum?" (bukan tercampur homepage fallback)
-  [x] Regression check: /tours/individual-bali-day-trip-… title =
-      "Individual Bali Day Trip …" (bukan cross-slug leak)
-  [x] Regression check: /accommodations/city-hotel-giattech title =
-      "CIty Hotel Giattech" (bukan cross-slug leak)
+Overall progress:  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░  ~97% code · pra-deploy
+Current phase:     Phase 3.24 (header/footer template system) CODE selesai → butuh CMS schema push + seed + verifikasi UI
 ```
 
-**Manual test yang PERLU KAMU LAKUKAN SENDIRI (browser-only):**
-```
-[ ] Buka http://localhost:4321/ di browser, cek visual layout Hero
-    section (background overlay, typography, CTA button) — bukan cuma
-    struktur DOM
-[ ] Resize browser ke mobile (~375px width) → grid ServiceGrid collapse
-    ke 1 kolom, Header muncul tombol hamburger (belum ada JS toggle
-    interaction, itu polish Phase 4), Footer stack vertikal
-[ ] Klik "Book Now" di Header → open WhatsApp dengan nomor
-    6282386357012 (verifikasi kalau device punya WhatsApp)
-[ ] Klik "Chat on WhatsApp" di CTA homepage → sama
-[ ] Buat/publish Page baru di CMS dgn slug bebas (misal "policy") →
-    langsung akses /policy → render pakai BlockRenderer (setelah
-    touch [...slug].astro atau restart Astro)
-```
+## Phase Status Dashboard
+
+| Phase | Nama | Status | Detail |
+|-------|------|--------|--------|
+| 0–1 | Planning & Foundation | ✅ Complete | [phase-1-foundation.md](phases/phase-1-foundation/phase-1-foundation.md) |
+| 2 | Service Modules (7 modul) | ✅ Complete | [phase-2-service-modules.md](phases/phase-2-service-modules/phase-2-service-modules.md) |
+| 3 (–3.13) | CMS-Driven Features & Content | ✅ Code · 🔨 manual test | [phase-3-cms-driven.md](phases/phase-3-cms-driven/phase-3-cms-driven.md) |
+| 3.14–3.19 | CMS Enhancement Sprint | ✅ Complete (build 76 pages OK) | [phase-3.14-cms-enhancement-sprint.md](phases/phase-3-cms-driven/cms-enhancement/phase-3.14-cms-enhancement-sprint.md) |
+| 3.20 | Service Listing Fixes (Consolidation + SEO) | ✅ Code + data · build 46 pages OK · belum merge | [phase-3.20-service-listing-fixes.md](phases/phase-3-cms-driven/service-listing/phase-3.20-service-listing-fixes.md) |
+| 3.21 | CMS-Editable Section Listing Header | ✅ Code · dev render OK · belum merge | [phase-3.21-cms-section-listing-header.md](phases/phase-3-cms-driven/service-listing/phase-3.21-cms-section-listing-header.md) |
+| 3.22 | Hierarchical Destinations (Core + Child Filter) | 🔨 Code · ⏳ butuh CMS schema push + seed hierarki | [phase-3.22-hierarchical-destinations.md](phases/phase-3-cms-driven/destinations/phase-3.22-hierarchical-destinations.md) |
+| 3.23 | Dynamic Destination Types System | ✅ Code + schema + seed selesai & terverifikasi · merged ke main | [phase-3.23-dynamic-destination-types.md](phases/phase-3-cms-driven/destinations/phase-3.23-dynamic-destination-types.md) |
+| 3.24 | Header & Footer Template System + Import/Export | 🔨 Code selesai · ⏳ butuh CMS schema push + seed + verifikasi UI | [phase-3.24-header-footer-template-system.md](phases/phase-3-cms-driven/header-footer/phase-3.24-header-footer-template-system.md) |
+| 4 | Polish & Launch | 🔨 In Progress (SEO technical sebagian ✅) | [phase-4-polish-launch.md](phases/phase-4-polish-launch/phase-4-polish-launch.md) |
+| 4.1 | Admin Dashboard Redesign + Login/Sidebar Branding (UI only) | ✅ Code selesai · login terverifikasi (DOM) · ⏳ screenshot dashboard | [phase-4.1-admin-dashboard-redesign.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.1-admin-dashboard-redesign.md) |
+| 4.2 | Admin Dashboard Polish — Sidebar, Layout, Color Theming (UI only) | ✅ Code selesai · login terverifikasi (DOM) · ⏳ screenshot dashboard/sidebar | [phase-4.2-admin-dashboard-polish.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.2-admin-dashboard-polish.md) |
+| 4.3 | Role-Based Dashboard (super-admin/admin/editor layouts) (UI only) | ✅ Code selesai · compile OK · ⏳ screenshot per-role (login) | [phase-4.3-role-based-dashboard.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.3-role-based-dashboard.md) |
+| 4.4 | Sidebar (design4: black glossy, icons, accordion, giattech) & Light/Dark (UI only) | ✅ Code selesai · theming terverifikasi (computed) · ⏳ screenshot sidebar | [phase-4.4-sidebar-and-theming.md](phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.4-sidebar-and-theming.md) |
+| 4.5 | Sidebar Redesign — Accordion, Fixed 3-zone (header/menu-scroll/footer), Transitions (UI only) | ✅ **Sidebar UI/UX OK** (terverifikasi user) | [phase-4.5-sidebar-redesign.md](phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.5-sidebar-redesign.md) |
+| 4.6 | Dashboard Refinement — compact stat row (super 6/admin 5/editor 5), icon-only Quick Access per role (UI only) | ✅ Code selesai · compile OK · ⏳ screenshot per-role | [phase-4.6-dashboard-refinement.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.6-dashboard-refinement.md) |
+| 4.7 | Breadcrumb logo dari SiteSettings (graphics.Icon) + sembunyikan panah ▾ Edit/Reset (UI only) | ✅ Code selesai · compile OK · ⏳ screenshot | [phase-4.7-dashboard-logo-and-cleanup.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.7-dashboard-logo-and-cleanup.md) |
+| 4.8 | Page Editor UX — Preview, Sidebar Tabs, Block Polish, Sticky Bar (collapsible sidebar dibatalkan) | ✅ Done (commit `cc384d7`) · tsc clean · ⏳ visual verify (login) | [phase-4.8-page-editor-ux.md](phases/phase-4-polish-launch/admin-ui/editor-ux/phase-4.8-page-editor-ux.md) |
+| 4.9 | Editor UX Replication — sidebar tabs + preview button di Group A (8 services) + Group B (Destinations, ServiceTypes) | ✅ Done (commit `37dfde9`) · tsc clean · ⏳ visual verify per collection | [phase-4.9-editor-ux-replication.md](phases/phase-4-polish-launch/admin-ui/editor-ux/phase-4.9-editor-ux-replication.md) |
+| 4.10 | Main-Content Tabs Visual Polish — sticky pill tabs di 8 service collections | ✅ Done (commit `c1cc86d`) · tsc clean · ⏳ visual verify | (in-doc) |
+| 4.11 | Media Library List Redesign — View selector (Detail/S/M/L), CSS grid transform, hide Columns | ✅ Done (commit `edc2846`) · tsc clean · ⏳ visual verify (login) | [phase-4.11-media-library-redesign.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.11-media-library-redesign.md) |
+| 4.12 | List View Redesign + Breadcrumb Back Nav — Pages + 8 services + 5 taxonomy (14 collections) | ✅ Done (commits `e5ca1f0`, `d2f93ca`, `6f28c7b`) · tsc clean · ⏳ visual verify | [phase-4.12-list-view-redesign.md](phases/phase-4-polish-launch/admin-ui/list-view/phase-4.12-list-view-redesign.md) |
+| 4.13 | Menu Editor Redesign — main-vs-sub cards, per-type badges, scoped nested-array polish | ✅ Done (commit `f176492`) · tsc clean · ⏳ visual verify | [phase-4.13-menu-editor-redesign.md](phases/phase-4-polish-launch/admin-ui/menu-editor/phase-4.13-menu-editor-redesign.md) |
+| 4.14 | Users Collection Redesign — Tracks A+B: avatar/phone/address/enabled/lastLoginAt + password generator + force unlock (email forgot-password + WA reset deferred) | ✅ Code selesai (commit `50a300c` + fix `f37d8ee` + types `6595200`) · tsc clean · ⏳ DB schema push + login verify | [phase-4.14-users-redesign.md](phases/phase-4-polish-launch/admin-ui/users/phase-4.14-users-redesign.md) |
+| 4.15 | Service Grid Card Styles — add `cardVariant` (compact/detailed) mirroring Service Listing | ✅ Code selesai (commit `156e369`) · tsc clean · ⏳ visual verify | [phase-4.15-service-grid-card-styles.md](phases/phase-4-polish-launch/blocks-and-content/service-grid-cards/phase-4.15-service-grid-card-styles.md) |
+| 4.16 | Curated Alternatives → Service Grid Template — retire 8 hardcoded recommended sections, add `curated` template + `auto` selection mode | ✅ Done (Pass 1 `4ee3998` + Pass 2) · Astro build OK · ⏳ visual verify | [phase-4.16-curated-alternatives-to-template.md](phases/phase-4-polish-launch/blocks-and-content/service-grid-cards/phase-4.16-curated-alternatives-to-template.md) |
+| 4.17 | Related Services — Hybrid Cascade System (Global Default + Per Service Type + Per Service Override) | ✅ Done · Astro build 50 pages OK · ⏳ CMS schema push + visual verify | [phase-4.17-related-services-hybrid.md](phases/phase-4-polish-launch/blocks-and-content/service-grid-cards/phase-4.17-related-services-hybrid.md) |
+| 4.18 | Service Content Tabs V2 — 6-Tab Accordion Structure (all 8 services) + Centralized Config | ✅ Done (Pass 1–3) · Astro build 50 pages OK · ⏳ CMS visual verify | [phase-4.18-service-content-tabs-v2.md](phases/phase-4-polish-launch/blocks-and-content/service-grid-cards/phase-4.18-service-content-tabs-v2.md) |
+| 4.19 | Icon System — Iconify Migration (select enum → searchable picker, 200k+ icons) | ✅ Done · Astro build 50 pages OK · ⏳ CMS schema push + visual verify | [phase-4.19-icon-system-migration.md](phases/phase-4-polish-launch/blocks-and-content/icon-system/phase-4.19-icon-system-migration.md) |
+| 4.20 | Block Spacing Audit — vertical spacing inventory across 16 blocks | ✅ Audit selesai (read-only, no code changes) | [phase-4.20-block-spacing-audit.md](phases/phase-4-polish-launch/blocks-and-content/block-spacing/phase-4.20-block-spacing-audit.md) |
+| 4.21 | Block Spacing Refactor — centralized gap system + outlier fixes | ✅ Done · Astro build 50 pages OK · ⏳ CMS schema push + visual verify | [phase-4.21-block-spacing-refactor.md](phases/phase-4-polish-launch/blocks-and-content/block-spacing/phase-4.21-block-spacing-refactor.md) |
+| 4.21b | Block Spacing Bugfix — last-block footer gap restored | ✅ Done · Astro build 50 pages OK · ⏳ visual verify | [phase-4.21-block-spacing-bugfix.md](phases/phase-4-polish-launch/blocks-and-content/block-spacing/phase-4.21-block-spacing-bugfix.md) |
+| 4.22 | Spacing System v2 — sibling-margin + beforeFooter + per-block spacingOverride | ✅ Done (Phase 1+2 code) · ⏳ CMS schema push + visual verify | [phase-4.22-spacing-v2.md](phases/phase-4-polish-launch/blocks-and-content/block-spacing/phase-4.22-spacing-v2.md) |
+| 4.23 | Stat Banner Cleanup + 2-Theme System — audit + Part A surgical fix (Editorial Grid baseline) + Part B per-instance theme selector (Theme 1 / Theme 2 Feature Cards) + post-merge schema fix | ✅ **Complete** · Part A + B merged ke `feature/phase4-polish-launch` · schema pushed manual (9 tables) · CMS API 11/11 green · Theme 1 & Theme 2 verified rendering di web dev | [phase-4.23-stat-banner-audit.md](phases/phase-4-polish-launch/blocks-and-content/stat-banner/phase-4.23-stat-banner-audit.md) |
+| 4.24 | Per-Block Padding System — unify internal top/bottom padding across all blocks (root cause of remaining ketimpangan setelah Phase 4.22), CMS global default + per-block override | ✅ **Complete** — Phase 1 & Phase 2 code done, schema pushed, post-merge hotfix untuk 8 tabel trust_badges yang terlewat, 9/9 collection API 200, web 200. Merged ke `feature/phase4-polish-launch` · ServiceListingHeroImmersive deferred | [phase-4.24-per-block-padding.md](phases/phase-4-polish-launch/blocks-and-content/block-spacing/phase-4.24-per-block-padding.md) |
+| 4.25 | CMS Cold-Start Fix — hilangkan `payload/package.json` resolver warning di dashboard + fix duplicate-index race (2-3 error 500 di boot lalu normal) via `push:false` + instrumentation warm-up singleton | ✅ **Complete** — 2 commits fokus, cold-start 3× test pass, tidak ada regresi | [phase-4.25-cms-cold-start-fix.md](phases/phase-4-polish-launch/cms-infra/cold-start-fix/phase-4.25-cms-cold-start-fix.md) |
+| 4.26 | Gallery Bulk Upload (CMS) + Photo Viewer UX (villa detail) — Pilot Accommodations only. A: custom Admin UI component `GalleryBulkUpload.tsx` (max 10, append-preserving), B1: `overflow-hidden` fix main bento cell, B2: reusable `PhotoLightbox.astro` (touch swipe, mobile arrows, hero in-place swipe) — no npm deps | ✅ **Code complete (pilot)** — 3 commits, B1+B2 dev-browser verified, A compile+register verified · ⏳ owner-login CMS end-to-end | [phase-4.26-gallery-bulk-upload-photo-viewer.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.26-gallery-bulk-upload-photo-viewer.md) |
+| 4.26a | Bulk Upload Fix — v1 hung silently on any upload failure (no timeout, no try/finally, no visible error). Rewrite: 60s AbortController per file, batch dispatch after all uploads succeed, inline error panel, `setModified(true)` so Save lights up | ✅ **Complete** — user-verified end-to-end | [phase-4.26a-bulk-upload-fix.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.26a-bulk-upload-fix.md) |
+| 4.26b | Gallery Thumbnail-Grid (pure-CSS attempt) — added `GalleryCardOverlay.tsx` + scoped CSS to restyle Payload's array UI into a 4-per-row grid. Failed: rows didn't stretch, only 1 image visible, buttons overlapped label + upload-cell controls | ⚠️ **Superseded by 4.26c** — kept in history as first-attempt reference | [phase-4.26b-gallery-grid-css-attempt.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.26b-gallery-grid-css-attempt.md) |
+| 4.26c | Gallery Grid — Fully Custom Component — abandoned CSS restyle; new `GalleryGrid.tsx` renders from form state + `useDocumentDrawer` for Edit UX; hides Payload default array UI entirely. Root cause of 4.26b failure traced to Payload's inline `height:0` on `react-animate-height` + unclassed dnd wrappers | ✅ **Complete** — user-verified | [phase-4.26c-gallery-grid-custom-component.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.26c-gallery-grid-custom-component.md) |
+| 4.26d | Gallery Card Framed Layout Polish — restructure each card into image top + bottom toolbar zones (left nav ← →, right actions ✎ 🗑), theme-aware neutral chip buttons, badge with white ring + shadow for legibility on light+dark photos | ✅ **Complete** — code-level verified; visual hard-refresh check by user not recorded | [phase-4.26d-gallery-card-framed-layout.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.26d-gallery-card-framed-layout.md) |
+| 4.27 | Frontend Gallery — Consistent Frame + Crossfade Transitions (villa pilot) — dual-layer opacity crossfade (350ms cubic-bezier soft), fixed 16:9 lightbox frame with object-cover (no letterbox / no resize on nav), warm-preload of allPhotos + prime layer B, first-open of lightbox now fades in (not snap). 3 commits (base + fix + uniform behavior) | ✅ **Complete** — dev-browser verified; frame stable 1024×576 across 3 nav clicks | [phase-4.27-frontend-gallery-crossfade.md](phases/phase-4-polish-launch/blocks-and-content/hero-gallery/phase-4.27-frontend-gallery-crossfade.md) |
+| 4.27a | Hero Hover-Zoom "Kaku" Fix — my 4.27 CSS `transition:` shorthand silently reset Tailwind's `transition-transform duration-700` → hover scale snapped instantly. Fix: list BOTH `opacity 350ms` AND `transform 700ms` explicitly; hover-zoom now matches side cells exactly | ✅ **Complete** — computed style verified: hero transition-property "opacity, transform" | [phase-4.27a-hero-zoom-fix.md](phases/phase-4-polish-launch/blocks-and-content/hero-gallery/phase-4.27a-hero-zoom-fix.md) |
+| 4.28 | HeroBentoGallery Rollout — extract shared `HeroBentoGallery.astro` from villa's post-pilot code + refactor villa (parity gate) + roll out to 7 other service detail pages (tour, restaurant, water-activity, venue, yacht, rental, spa). 8 commits total (1 prep + 7 rollouts). Broken `#options` anchor + B1 zoom overflow fixed on all 7 as a side-effect. Data model unchanged | ✅ **Complete** — villa parity verified, tour+yacht spot-checked in browser pane · ⏳ owner UAT with populated gallery data per page | [phase-4.28-hero-bento-gallery-rollout.md](phases/phase-4-polish-launch/blocks-and-content/hero-gallery/phase-4.28-hero-bento-gallery-rollout.md) |
+| 4.29 | CMS Gallery Rollout — apply the pilot bulk-upload + framed grid (from 4.26 → 4.26d, Accommodations) to the 7 remaining service collections (Tours, Restaurants, WaterActivities, Venues, Yachts, Rentals, Spa). Zero code duplication: both shared Admin components already work at path 'gallery'; rollout is config wiring only. maxRows: 10 enforced consistently across all. 8 commits (7 collection + 1 types regen). No DB / data-shape / dependency changes | ✅ **Complete** — code + types regen clean · ⏳ owner UAT per collection | [phase-4.29-cms-gallery-rollout.md](phases/phase-4-polish-launch/blocks-and-content/hero-gallery/phase-4.29-cms-gallery-rollout.md) |
+| 4.30 | Site Settings UX Cleanup — wrap Site Settings global in 6 tabs (Brand · Contact & Socials · SEO & Analytics · Layout · Content Defaults · Advanced) with `type:'tabs'`, then wrap every sub-section inside each tab in `type:'collapsible'` accordions (first sub-section open, rest collapsed; Tracking Scripts always collapsed as danger zone). All labels/descriptions rewritten to English. WhatsApp caller trace across 14 consumers confirmed both `contact.whatsapp` and `whatsappDefaults.*` are live — consolidated under Contact & Socials with primary vs fallback helper text. Zero field renames, zero schema change, zero move of `relatedServices` (Phase 4.17 cascade intact). payload-types diff = JSDoc + property reorder only, TypeScript-equivalent. 2 commits (`e78b95c` tabs+English + `e6176dc` accordions) | ✅ **Code complete** — types regen clean, tsc clean (only pre-existing errors) · ⏳ owner UAT in Payload admin + frontend smoke test | [phase-4.30-site-settings-ux-cleanup.md](phases/phase-4-polish-launch/admin-ui/site-settings/phase-4.30-site-settings-ux-cleanup.md) |
+| 4.31 | Site Settings — Restrict Content Defaults + Advanced Tabs to Super-Admin — apply field-level `access.update: superAdminFieldAccess` (reuse existing helper from `apps/cms/src/access/roles.ts`, no new helper) to 4 named groups: `sectionPages`, `relatedServices` (via factory augmentation, Phase 4.17 cascade preserved), `errorPages`, `footer`. Also add `admin.condition: superAdminOnly` to the wrapping collapsibles + groups so non-super-admin sees the two tabs as empty panes instead of controls that reject on save. Read stays public (frontend Astro build fetches these fields anonymously — copyright, 404 copy, listing header, tracking scripts must remain build-accessible). Reason: Content Defaults changes cascade to every service page; `footer.additionalScripts` is raw HTML injection = XSS surface. Global-level `access.update: isAdmin` unchanged (Brand · Contact & Socials · SEO & Analytics · Layout tetap admin-editable per Phase 3.14 policy). Zero schema change, zero payload-types change, zero Users schema change. 1 commit (`afce46e`) | ✅ **Code complete** — tsc clean · ⏳ owner UAT: verify per-role visibility (super/admin/editor) in admin UI + API write-rejection test as admin | [phase-4.31-site-settings-superadmin-access.md](phases/phase-4-polish-launch/admin-ui/site-settings/phase-4.31-site-settings-superadmin-access.md) |
+| 4.32 | Site Features — Refactor Admin Panel into 4 Tabs + Reserved Toggle Audit — bungkus 4 top-level group (`modules`, `sections`, `destinations`, `features`) di Site Features global ke dalam satu unnamed Payload `type:'tabs'` (Modul Layanan · Section Halaman · Destinasi · Fitur Opsional). Pure UI refactor: data shape tidak berubah (unnamed tabs = no key namespace), 0 field slug/label/description direname, 0 perubahan di `apps/web`, `payload-types.ts` unchanged. Sekalian audit 3 toggle "(reserved — Phase 4)" — Banner Promo (`sections.promoBanner`), Newsletter Signup (`sections.newsletter`), Announcement Bar (`features.announcementBar`) — semua DEAD (typed di `features.ts` tapi 0 konsumen render). Owner pilih **Option A: leave as-is** sebagai placeholder Phase 4. 1 commit (`a94a70d`) | ✅ **Code complete** — grep konfirmasi 3 reserved 0 konsumen · ⏳ owner UAT: 4 tab tampil di admin + toggle persist saat save | [phase-4.32-site-features-tabs.md](phases/phase-4-polish-launch/admin-ui/site-settings/phase-4.32-site-features-tabs.md) |
+| 4.59 | CMS Bugs (living doc — BUG internal admin CMS) — **section MEDIA**: BUG #1 grid mode S/M/L card kosong (root cause: `adminThumbnail` tak di-set + Payload `Thumbnail` lazy-mount race + observer tanpa `subtree`) → fixed via dedicated `thumbnail` UI field + custom Cell + DELETE preferences reset (v6, verified 4/4 modes via real login smoke test). Plus Media library enrichment: click-thumbnail→edit + 6 field baru (description/category/tags/license/relatedDestination/relatedService). **section USERS** (2026-09-23): BUG #1 list row unclickable — root cause **identik** Media BUG #1 (`UserAvatarCell` custom Cell di kolom pertama tak wrap `<a>`, jadi seluruh row kehilangan link Payload) → fix tambah anchor wrap sama pola `MediaThumbnailCell`. Plus dead "SEO" sidebar tab (Users cuma punya 2 sidebar group, bukan 3) → fix `sidebarTabsFieldWith(['general','status'])`. **Password change diverifikasi FUNGSIONAL** via smoke test end-to-end (ubah password → save → login dgn password baru → HTTP 200 OK) — BUKAN bug; native Payload "Change Password" button render di luar tabs (`auth-fields__controls`, di bawah Save) karena `mergeBaseFields()` push field auth ke top-level, tak bisa direposisi ke dalam tab custom tanpa override besar (didokumentasikan sbg follow-up, bukan dikerjakan). ⚠️ Fix sidebar tab butuh restart dev server (Payload cache config singleton `global._payload` lintas Next.js Fast Refresh — konfirmasi via hard-reload berulang browser, tab SEO masih muncul sampai proses Node di-restart). **Format living doc**: 1 file per area, tiap bug baru = section increment `### BUG #N` | ✅ **Code complete** MEDIA BUG#1 + enrichment + USERS BUG#1 · ⏳ Owner: restart `pnpm --filter cms dev` lalu UAT — Media S/M/L thumbnail, Users row klik ke edit, sidebar 2 tab (no SEO), password change end-to-end | [phase-4.59-cms-bugs.md](phases/phase-4-polish-launch/cms-infra/cms-bugs/phase-4.59-cms-bugs.md) |
+| 4.58.3 | Dashboard Widget Titles Custom (super-admin editable) — owner request: super-admin bisa merubah "At A Glance" dan judul lain di dashboard (saat ini hardcoded, tak bisa custom). **CMS**: 9 field text opsional baru di `SiteFeatures.dashboardWidgets` — (a) seksi baru "🎯 Header · Judul & Subjudul Dashboard" (collapsible top, initCollapsed true) dgn `headerTitle` (text, placeholder "Overview") + `headerSubtitle` (textarea, placeholder default English, support `{name}` placeholder untuk nama user), (b) 7 title field per-widget dipasang di collapsible existing: `atAGlanceTitle`, `recentActivityTitle`, `quickAccessTitle`, `systemHealthTitle` (kosong → auto heuristic Media Usage/System Health), `smartInsightTitle`, `analyticsCardTitle` + `topPerformingTitle` (row 50/50). Semua placeholder menampilkan default. **Migration `20260921_110920_phase_4_58_3_dashboard_titles.ts`** — 9 ALTER TABLE ADD COLUMN text nullable (no default → NULL fallback runtime). Reversible. Applied batch 25 dlm 432ms. **DashboardStats**: widgetToggles state extended +9 title fields, resolver helper `t(custom, fallback)` dgn trim + fallback default hardcoded, subtitle special-case `{name}` → replace runtime dgn `displayName` via `.replace(/\{name\}/g, ...)`. System Health special: `titleOverride` prop, komponen decide `override.trim() || auto-heuristic` supaya kosong tetap trigger heuristic. 6 komponen (StatRow/QuickAccess/AnalyticsCard/SystemHealth/SmartInsightWidget/TopPerformingWidget) terima `title` prop, RecentActivity yg sudah punya diteruskan. Cleanup hapus `.slice(0, 10)` di QuickAccess (cap 12 di resolveActions saja — 1 tempat cap konsisten dgn 4.58.2). **Backward compat penuh**: field kosong → semua widget default English identik pre-4.58.3. `{name}` placeholder optional. System Health heuristic tetap aktif kalau field kosong. Zero perubahan `apps/web/**`. Types regen (9 field `string \| null`). tsc clean | ✅ **Code complete** — migration applied batch 25, types regen, tsc clean, CMS admin route render OK · ⏳ Owner UAT: SA login → tab Dashboard Widgets → seksi Header di atas + 7 field "Judul panel" per widget. Test isi masing-masing → dashboard update. Test `headerSubtitle` = "Halo {name}!" → replace runtime. Kosongkan `systemHealthTitle` → auto heuristic kembali | [phase-4.58.3-dashboard-widget-titles.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.58.3-dashboard-widget-titles.md) |
+| 4.58.2 | Dashboard Widget Tab UX Polish + Module-Aware Quick Access — owner request lanjutan 4.58.1: (a) tab Dashboard Widgets lebih user-friendly, (b) service module off jangan tampil di Quick Access (ambigu), (c) Quick Access cap 1 baris (hitung muat 14/15), jangan bertumbuh. **3 perbaikan**: (1) **UX restructure** — 6 collapsible di-prefix dgn seksi bernama: `📊 Core · At A Glance`, `🕒 Core · Recent Activity`, `⚡ Access · Quick Access (per role)`, `🩺 Access · System Health (per role)`, `✨ Insight · AI Smart Insight`, `📈 Insight · Traffic & Top Performing`. Pair toggle bool (enabled+clickable, enabled+limit, seo+imageTag, views+inquiries) pakai `type: 'row'` + `width: 50%`. Core panel `initCollapsed: false` (paling sering), Access + Insight `true` (advanced). Description Indonesia ringkas + action-oriented. Analytics Provider select dgn emoji per opsi (⏸️/🗄️/📊). Group description mention 3-seksi + note filter modul. Zero custom UI component (hindari kompleksitas importMap). (2) **Module-aware filter** — DashboardStats load `siteModules` dari `sf.modules` selain `dashboardWidgets` (reuse call). Helper `SLUG_TO_MODULE` map (9 service slug → module key: tours/accommodations/waterActivities/yacht/restaurants/weddings/rentals/spa/ferryTickets — identik dgn `SERVICE_TYPE_TO_MODULE` di `apps/web/src/lib/features.ts`, perhatikan aliasi venues↔weddings & yachts↔yacht) + `isModuleActive(slug)` guard. Diterapkan di **At A Glance stats** filter + **Quick Access resolveActions** per role. Non-service slug (pages/media/menu/dst) selalu aktif. Super-admin `superActions` hardcoded 8 non-service, tak difilter. (3) **Single-row cap 12** — hitungan: `.dnj-col--main` 2fr @ 1200px ≈ 760px inner, padding 40px = 720 usable, icon 46+gap 10 = 56 per slot → 720/56 ≈ 12.85 → cap **12** aman. Runtime `.slice(0, 12)` (naik dari 10). **CSS** `.dnj-quick__grid` diubah `flex-wrap: wrap` → `nowrap + overflow: hidden + min-width: 0` — box **tak akan bertambah tinggi** meski user pilih >12 di CMS (di-truncate runtime, clip overflow di CSS sebagai safety net). Zero migration/field. Types regen (no diff — hanya label description). tsc clean (verified: 0 error dari DashboardStats/SiteFeatures). importMap regen | ✅ **Code complete** — CMS admin route render OK (login form healthy) · ⏳ Owner UAT: (1) SA login → tab Dashboard Widgets 3-seksi grouping visible, Core open by default. (2) Off modul Tours di tab Modul Layanan → dashboard Admin: icon Tours tak ada di Quick Access + At A Glance walaupun terpilih. (3) Isi quickAccessAdmin 15 item → Admin hanya lihat 12 icon (1 baris, tak wrap) | [phase-4.58.2-dashboard-widget-ux-polish.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.58.2-dashboard-widget-ux-polish.md) |
+| 4.58.1 | Dashboard Widget Config (At A Glance / Recent Activity / Quick Access / System Health) — owner request lanjutan 4.58: (a) At A Glance bisa diatur pilih stat mana yg tampil (max 6) + clickable ke collection listing; (b) Recent Activity bisa toggle + set item limit; (c) Quick Access super-admin bisa atur apa yg tampil di Admin vs Editor; (d) System Health idem. **CMS `SiteFeatures.ts`**: 4 collapsible baru di tab Dashboard Widgets — At A Glance (`atAGlanceEnabled` bool + `atAGlanceClickable` bool + `atAGlanceStats` select hasMany 11 opsi), Recent Activity (`recentActivityEnabled` bool + `recentActivityLimit` number 3-20), Quick Access (`quickAccessAdmin` + `quickAccessEditor` select hasMany dari 17-opsi registry `QUICK_ACCESS_OPTIONS`), System Health (`systemHealthAdmin` + `systemHealthEditor` select hasMany dari 5-opsi registry `SYSTEM_HEALTH_OPTIONS`). Super-admin tetap dapat set lengkap (bukan filtered by CMS toggle). Registry constants di top file = single source of truth. **Migration `20260921_103429_phase_4_58_1_dashboard_widget_config.ts`** — 4 ALTER TABLE ADD COLUMN scalar (`dashboard_widgets_at_a_glance_enabled/_clickable/_recent_activity_enabled/_recent_activity_limit`) + 5 CREATE TABLE junction (`site_features_dashboard_widgets_at_a_glance_stats`, `..._quick_access_admin/_editor`, `..._system_health_admin/_editor`) dgn 10 CREATE INDEX + FK cascade ke `site_features.id`. Table names diperoleh dari `payload generate:db-schema` (temp file dihapus) supaya konsisten 100% dgn ORM. Applied batch 24 dlm 150ms. Reversible. **DashboardStats refactor**: Stat/Action type dapat `key` + optional `href`. Type baru `HealthKey`. Fetch 5 modul spesifik tambahan (tours/accommodations/water-activities/yachts/restaurants) untuk At A Glance opsi. `STAT_REGISTRY` (11 entry) + `ACTION_REGISTRY` (17 entry) map keyed by slug. Widget config loader extend jadi 15 field, `isAdminUp` gate dihapus supaya editor juga bisa di-off At A Glance/Recent Activity. Resolver helpers: `stats.filter(users→super only).slice(0,6)`, `resolveActions('admin'\|'editor')` cap 10, `healthKeys` per role. StatRow terima `clickable` prop → render `<a class="dnj-stat dnj-stat--link">` bukan `<div>`. SystemHealth refactor dari `full: boolean` ke `healthKeys: HealthKey[]`, title heuristic "Media Usage" (hanya media+storage) vs "System Health", `.length===0 → return null`. RecentActivity slice from unsliced `recentAll` dgn clamp [3,20]. **CSS**: `.dnj-stat--link` variant (text-decoration none, cursor pointer, border ocean on hover). **Backward compat**: config kosong → visually identik pre-4.58.1 (default hardcoded fallback penuh). Super-admin tak terpengaruh Quick Access/System Health toggle. Zero perubahan `apps/web/**`. Types regen. tsc clean (verified: 0 error dari DashboardStats/SiteFeatures) | ✅ **Code complete** — migration applied batch 24, types regen, tsc clean · ⏳ Owner UAT: SA login → Pengaturan Fitur → 4 collapsible baru tampil. Test tiap: At A Glance clickable + pilih stats, Recent limit, Quick Access per role, System Health per role. Login sbg Admin/Editor untuk verify filter berlaku. Super-admin lihat full default | [phase-4.58.1-dashboard-widget-config.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.58.1-dashboard-widget-config.md) |
+| 4.58 | Improve Dashboard CMS — Smart Insight + Top Performing (scaffolding) — owner request: dashboard superadmin/admin lebih lengkap (AI Assistant Smart Insight + Traffic/Performance dgn Top Views/Inquiries, semua di-control lewat SiteFeatures toggle). **Owner decisions**: (1) AI provider = placeholder dulu, heuristic rule-based (belum panggil AI); (2) Analytics data = hybrid own+GA (field siap, wiring 4.58.1/.2); (3) Scope = scaffolding + 1 fitur wired end-to-end (Smart Insight heuristic). **CMS**: `SiteFeatures.ts` tab baru "Dashboard Widgets" (posisi ke-5) berisi group `dashboardWidgets` dgn 2 collapsible — AI Assistant (`smartInsightSeo` default true + `smartInsightImageTag` default false placeholder) + Traffic & Performance (`topPerformingViews`/`topPerformingInquiries` default true + `analyticsProvider` select none/own/ga default none). Access inherit SiteFeatures = super-admin only update, read public. **Migration `20260921_101203_phase_4_58_dashboard_widgets.ts`** — 5 ALTER TABLE ADD COLUMN di `site_features` (4 integer/bool + 1 text), reversible, applied batch 23 dlm 113ms. **Dashboard `DashboardStats.tsx`**: (a) fetch site-features via `payload.findGlobal` saat render (try-catch → fallback semua off kalau pre-migration); (b) SmartInsightWidget **wired heuristic** — `buildSmartInsight()` scan pages+9 service collections via `payload.count` untuk meta description kosong / draft _status / media alt empty (pattern try-both `meta.description` + `seo.metaDescription`, schema-agnostic), render list 3 row (icon+label+hint+count) dgn link ke collection listing. Bonus row "Auto Image Tagging — Soon" muncul kalau `smartInsightImageTag=true`; (c) TopPerformingWidget **placeholder** — 2 mode: `provider=none` CTA setup, `own`/`ga` note wiring menyusul. Badge state-aware. **CSS**: `.dnj-widgets` grid 1fr 1fr (≥1024px, 1fr mobile), card `.dnj-insight/.dnj-toppf` konsisten dgn `.dnj-panel`, hover row highlight, count tabular-nums, dark-mode sheen diagonal parity. **4 icon baru**: sparkles/trending/alert/tag. **Gate**: widget hanya admin+super-admin (editor tak lihat). Kalau semua toggle off → grid `.dnj-widgets` tak render. Zero perubahan `apps/web/**`. Types regen 5 field baru di `SiteFeature.dashboardWidgets`. tsc clean (no new errors dari DashboardStats/SiteFeatures) | ✅ **Code complete** — migration applied batch 23, types regen, tsc clean · ⏳ Owner UAT: SA login → Pengaturan Fitur → tab "Dashboard Widgets" (2 collapsible + 5 field) → toggle test → dashboard grid muncul/hilang sesuai. Verify Smart Insight count real, link kerja. Top Performing = placeholder CTA. Editor tak lihat widget. Dark mode + responsive OK | [phase-4.58-improve-dashboard-cms.md](phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.58-improve-dashboard-cms.md) |
+| 4.56.1 | Scroll Animation Init Fix (hard-refresh) — owner report: "disaat refresh, scroll animation tak jalan, semua section sudah tampil seutuhnya saat scroll". **Root cause**: Phase 4.56 memasang `initAnimations()` hanya via `document.addEventListener('astro:page-load', initAnimations)` di `BaseLayout.astro`. Event `astro:page-load` **HANYA fire kalau `<ClientRouter />` (View Transitions) aktif** — project ini tak pakai ClientRouter (grep verified 0 hit) → hard-refresh (F5) tak pernah trigger init → GSAP ScrollTrigger untuk `data-animate="reveal"` tak terdaftar (section render normal tanpa `opacity:0` awal), IntersectionObserver untuk `.entry-*` juga tak terpasang → semua preset entry animation efektif tak jalan. **Fix**: (1) `BaseLayout.astro` — invoke `initAnimations()` langsung saat `DOMContentLoaded` (atau immediate kalau readyState≠loading), listener `astro:page-load` tetap dipertahankan supaya future-proof kalau ClientRouter ditambah. (2) `animations.ts` — guard idempotency via `window.__dnjbAnimationsInited` (mencegah double IntersectionObserver + double ScrollTrigger karena init bisa dipanggil 2×). (3) `animations.ts` — panggil `ScrollTrigger.refresh()` pada `window.load` (setelah images/fonts settle) supaya posisi start/end trigger tak geser akibat layout shift LCP-heavy. Zero perubahan CMS/field/CSS/schema. 22 block frontend tak disentuh. Backward-compat penuh dgn 4.56 | ✅ **Code complete** — 2 file modified · ⏳ Owner UAT: hard-refresh homepage → section pertama animate normal, section di bawah fold BELUM visible, scroll perlahan → animasi baru fire saat masuk viewport (~15% threshold). Test preset Slide from Left+Slow (~1.5s), Fast (~0.5s), Custom 2000ms | [phase-4.56.1-scroll-animation-init-fix.md](phases/phase-4-polish-launch/blocks-and-content/animations/phase-4.56.1-scroll-animation-init-fix.md) |
+| 4.57 | Access Control Bugs (living doc — BUG hak akses) — **BUG #1** ServiceGrid render meski modul di-off di SiteFeatures: `apps/web/src/lib/features.ts` tambah helper `isServiceTypeEnabled(key)` + reverse map `SERVICE_TYPE_TO_MODULE` (kebab slug → ServiceModule enum); `ServiceGridBlock.astro` gate seluruh template dgn `!moduleActive ? null : …` sebelum render. **BUG #2** menu Chat Widget bocor ke Admin/Editor: `ChatWidgetSettings.admin.hidden = ({user}) => user?.role !== 'super-admin'` (pola sama SiteFeatures). Zero schema/migration. File phase = living doc: setiap bug hak akses baru tambah entry di sana | ✅ **Code complete** — 2 bug perdana fixed · ⏳ Owner UAT: (1) login Admin → sidebar tak ada Chat Widget; (2) SA toggle off satu modul di Pengaturan Fitur → block ServiceGrid modul itu hilang di homepage/page | [phase-4.57-access-control-bugs.md](phases/phase-4-polish-launch/cms-infra/access-control-bugs/phase-4.57-access-control-bugs.md) |
+| 4.56 | Entry Animation Scroll-Triggered + Speed Control — owner report: "entry animation sudah diisi per block tapi frontend tidak ada transisi saat scroll". **Root cause**: preset non-`reveal` (fade/zoom/slide-*) pakai CSS `@keyframes` di-inline di 3 block → fire on page load, bukan scroll-triggered. Editor tidak lihat animasi karena selesai sebelum scroll ke section. Field entry juga tak punya kontrol durasi. **CMS**: `entryAnimationRow` (50/50) tampung `entryAnimation` + baru `entryAnimationSpeed` (slow 1500ms / normal 900ms default / fast 500ms / custom) + `entryAnimationDurationMs` number 100-5000. Otomatis muncul di 22 block via shared helper. **Frontend**: `resolveEntryAnimation` signature baru `(v, speed, customMs) → { useDataAnimate, className, dataAnimate, durationMs, style }`. `style` = `--entry-duration:{ms}ms` CSS var. **global.css** — `.entry-fade/-zoom/-slide-left/-slide-right` transition-based (opacity:0 + transform offset), class `.is-in-view` di-toggle observer → transisi ke visible. **animations.ts** — `IntersectionObserver` untuk `.entry-*` selectors dgn `threshold: 0.15` + `rootMargin: '0px 0px -8% 0px'` (trigger saat 15% masuk viewport dari bawah). GSAP `data-animate="reveal"` juga baca `--entry-duration` var (via `getComputedStyle` helper `readDurationMs`) supaya duration setting berlaku juga di preset default. **Hapus inline @keyframes** dari HeroBlock/CTABlock/ImageBlock (sebelumnya conflict dgn transition-based global). **15 block** call site di-update pass 3 args + section `style` attribute inject `entry.style`. HeroBlock refactor dari inline entryClass ke shared resolver. **Zero migration** — 2 field baru optional. Backward compat: data lama tanpa speed → 'normal' 900ms → ritme identik; `reveal` tetap GSAP jalur (sudah scroll-triggered) → no visible change. Types regen 22 block × 2 field baru. **Verified**: CSS applies (`opacity: 0`, `transition: opacity 0.9s cubic-bezier`, `transform: translateX(-40px)` untuk slide-left), `IntersectionObserver` di window, GSAP reveal path count 12 di home | ✅ **Code complete** — CSS applies, resolver dual-mode verified · ⏳ Owner UAT: SA login → set block Advanced entryAnimation=Slide from Left + Speed=Slow → refresh preview, scroll dari atas → verify section slide in dari kiri saat mendekati viewport, ~1.5s. Test Fast (~0.5s), Custom (2000ms), preset lain (Fade/Zoom) | [phase-4.56-entry-animation-scroll-triggered.md](phases/phase-4-polish-launch/blocks-and-content/animations/phase-4.56-entry-animation-scroll-triggered.md) |
+| 4.55 | Block Advanced — Compact Color Picker + Collapsible Sections (FULL ROLLOUT 22 block) — owner request: 22 block CMS Advanced tab pakai `select` 8-token hardcoded, tak bisa hex bebas, panjang scroll. **Iterasi 1 (Hero pilot)**: file `heroAdvanced.ts` khusus dgn 5 collapsible + colorPickerField (Phase 4.42) 7 preset chip theme. **Iterasi 2 (owner feedback: 2 kol 50/50)**: layout `initCollapsed: true` + `admin.width: '50%'` disebar dalam 3 rows (Bg+Btn · TS+Pad · Spacing solo). **Iterasi 3 (owner feedback: compact ColorSwatchField)**: `admin.custom.compact: true` → label pakai flex + `?` tooltip (description direlokasi ke hover), hex text input inline dihilangkan (edit hex via popover), Reset di sebelah swatch, kode hex ditampilkan read-only di bawah swatch monospace uppercase — hemat width horizontal. **Iterasi 4 (full rollout)**: `advancedStyle.ts` di-refactor dari flat `Field[]` → function `(opts) => Field[]` dgn args `textElements`/`omitBackground`. Text Styles collapsible di-inline (helper `buildTextStyleField` di textStyle.ts dihapus, sisa type export). Layout auto-batch 2 per baris — semua 22 block dapat pola sama tanpa duplikasi. File pilot `heroAdvanced.ts` dihapus, Hero pakai helper generic. 22 usage di `blocks/index.ts` di-swap ke function form. **Frontend blockStyles.ts dual-mode**: new `resolveColorValue(val, prefix)` → `{ className, style }` deteksi `HEX_RE` (3/4/6/8-digit dgn alpha) → hex inline style, slug Tailwind class. `resolveBackground` tambah `bgStyle` (backward compat: `bgClass` string tetap). `resolveButtonClasses` breaking change → return object `{ classes, style }` — CTABlock 5 anchor updated pass `style={btnStyle || undefined}`. Auto-contrast hex button pakai luma (0.299R+0.587G+0.114B)/255 threshold 0.7. `resolveTextColor` tetap return `string` (backward compat 15+ callers), companion `resolveTextColorStyle`. HeroBlock pakai shared resolver, CSS var `--hero-heading-color` untuk override `!important`. **Zero migration** — semua kolom warna sudah `text` di SQLite (verified `20260912_114854.ts`). Types regen: ~110 field warna (5 field × 22 block) jadi `string \| null` dari enum tuple. **Backward compat verified** dev-browser: 8 sections home render identik (Hero bg-ocean rgb(27,58,75), CTA bg-coral, StatsBanner bg-ocean, WA CTA bg-sand rgb(245,240,232)), semua no inline style pada element token-path | ✅ **Code complete** — dev-browser 8 sections verified, CMS 200, types regen · ⏳ Owner UAT: SA login → buka Advanced tab di beberapa block (Hero, RichText, CTA, Testimonials, ServiceGrid) → cek collapsibles 50/50 + swatch popover + `?` tooltip + hex code di bawah swatch, test custom hex → refresh preview | [phase-4.55-block-advanced-color-picker.md](phases/phase-4-polish-launch/theming/color-and-swatches/phase-4.55-block-advanced-color-picker.md) |
+| 4.53 | Service Listing Mobile Polish + Per-BP Pagination — owner UAT `/tour` di mobile: (a) destination filter pills makan ruang dan jarang dipakai di mobile → **hidden di mobile saja** (`hidden md:flex`), tablet & desktop tetap. (b) mobile default `sl-swipe`/`slh-swipe` (horizontal card carousel 1×swipe) tidak sesuai preferensi → **grid vertikal biasa + Load More** untuk reveal batch berikutnya. (c) `initialVisibleCount` cuma 1 nilai global → owner minta bisa set count per-breakpoint via CMS tanpa hardcode. **CMS:** tab Card Style dapat 2 field baru — `initialVisibleCountTablet` (default 4, label "Initial Visible Count (Tablet)", range 640–1023px) + `initialVisibleCountMobile` (default 3, label "(Mobile)", <640px). Existing `initialVisibleCount` di-relabel jadi "(Desktop)" ≥1024px, kedua field baru fallback ke Desktop kalau kosong. Semua 3 di-gate `showLoadMore === true`. **Migration `20260917_145526.ts`** — 16 ALTER TABLE `ADD ... numeric DEFAULT`, reversible (`DROP COLUMN`), applied batch 19 dalam 332ms. 8 tabel target: `pages_/posts_/tours_/yachts_/restaurants_/venues_/rentals_/spa__blocks_service_listing`. **Frontend Editorial & Hero Immersive:** read 3 counts (mobile→desktop fallback), pass ke `data-per-mobile/tablet/desktop`. SSR baseline pakai perDesktop (no-flash desktop; JS reconcile mobile/tablet on mount). Dest pills `hidden md:flex`. Search bar border-t di-gate `md:` supaya tak muncul garis kosong di mobile. Hapus CSS `sl-swipe/slh-swipe` + class-nya — grid vertikal `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` di semua bp. JS helper `readPerPage(grid)` — `innerWidth<640→mobile`, `<1024→tablet`, else desktop. Resize handler debounce 150ms + orientationchange — kalau count berubah, reset currentPage=1 & loadMoreRevealed=0 lalu applyView. Backward-compat script pagination-pages (numbered) masih pakai perDesktop untuk totalPg. Dev-verified: mobile 3 visible + Load More, click reveal +3, tablet 4 visible + dest filter tampil, resize sync per-bp | ✅ **Code complete** — migration applied, dev-browser verified all 3 breakpoints · ⏳ Owner UAT: buka `/admin/collections/pages/6` set 3 count → cek `/tour` di HP asli mobile/tablet/desktop | [phase-4.53-service-listing-mobile-per-bp-pagination.md](phases/phase-4-polish-launch/mobile-polish/service-listing-mobile/phase-4.53-service-listing-mobile-per-bp-pagination.md) |
+| 4.52 | Announcement Bar Mobile Marquee — owner minta AB tetap **1 baris** di mobile (sebelumnya wrap 2–3 baris kalau pesan panjang, ambil vertical space berlebih). Kalau teks lebih panjang dari lebar viewport → **auto running text (marquee) kanan→kiri, loop seamless**. Desktop (≥sm) tidak berubah — tetap wrap + center. **Pendekatan:** classic "dual-copy marquee" — track berisi item asli + clone identik, animate `transform: translateX(0 → -50%)` linear infinite. Karena track = 2× lebar item, saat geser 50% (= 1× item) posisi visual identik → loop tanpa jeda. **Markup:** `[.ab-viewport overflow-hidden] > [.ab-track flex width:max-content] > [.ab-item shrink-0 whitespace-nowrap sm:whitespace-normal]`. **CSS:** default `.ab-item { margin-inline: auto }` (center saat tak marquee); `.dnj-ab[data-ab-marquee="1"] .ab-track { animation: ab-marquee var(--ab-marquee-duration) linear infinite }`; `.ab-item padding-right:3rem` (jarak antar salinan); `@media (hover:hover) :hover { animation-play-state: paused }` (UX); `@media (prefers-reduced-motion) { animation: none }` (a11y); `@media (min-width:640px) { animation: none !important; white-space: normal }` (force-off desktop). **JS `setupMarquee(bar)`:** dijalankan pada init + `load` + `resize` (debounce 150ms) + `orientationchange` + `ResizeObserver` di `.ab-viewport` (reliable buat font-load & viewport emulation yang tak trigger resize event). Reset → cek `innerWidth ≤ 639` → ukur `viewport.width` vs `item.width` → kalau overflow: `cloneNode(true)` + `aria-hidden` + `tabindex=-1` pada link clone (a11y screen reader baca 1×, keyboard nav tak dobel), hitung `duration = max(8, itemWidth / 60)` detik (~60 px/s konsisten), set `--ab-marquee-duration` + `data-ab-marquee="1"`. Zero schema/migration/payload-types change, backward-compat Phase 4.44 theming + 4.45 alpha color | ✅ **Code complete** — dev-browser verified: bar h=44px, item 663px > viewport 307px → marquee aktif, 2 items, duration 11.06s · ⏳ Owner UAT: mobile viewport, pesan panjang jalan mulus, pesan pendek tetap center, orientation change auto re-evaluate, desktop tak marquee | [phase-4.52-announcement-bar-mobile-marquee.md](phases/phase-4-polish-launch/mobile-polish/announcement-marquee/phase-4.52-announcement-bar-mobile-marquee.md) |
+| 4.51 | Header Mobile Polish (3 templates) + theme vars global + T1/T2 surface bg fix — owner minta rapikan tampilan mobile header supaya sesuai standard tanpa merubah desktop. **Template 1 (Classic):** title site name muncul di mobile (`hidden sm:inline` dihapus, `truncate`+`min-w-0`), logo group `gap-3`+`shrink-0` supaya posisi identik dengan overlay (tidak shift saat buka/tutup menu), desktop CTA `hidden sm:inline` → `hidden lg:inline` (di mobile CTA pindah ke overlay), CTA WA di overlay full-width hijau WhatsApp `#25D366` + hover `#1ebe57` + rounded-lg supaya menonjol beda visual dari CTA desktop. **Template 2 (Search & Social):** title muncul di mobile (hapus `hidden md:inline`), logo group `gap-3`+`shrink-0`, terima prop `cta` dari renderer, CTA WA full-width hijau di overlay, social icons di overlay `justify-center` (rata tengah). **Template 3 (Top Bar):** title muncul di mobile, logo `gap-3`+`shrink-0`, desktop CTA `hidden sm:inline` → `hidden lg:inline` (hindari tabrakan dengan menu toggle di tablet), **mobile menu dirender di BAWAH header** (bukan overlay full-screen shared) supaya **top bar phone+social + main bar tetap terlihat saat menu buka** — identitas Template 3 dijaga. Panel `fixed; top:100px; bottom:0` isi menu items + WA hijau full-width. Script toggle sendiri (`initT3Mobile`) — kelola aria, ikon, scroll-lock, ESC, auto-close di ≥lg. **Overlay shared `_HeaderMobile.astro`:** logo strip atas `gap-2` → `gap-3` + `shrink-0`+`truncate`+`min-w-0` supaya match Template 1 & 2. **Theming CSS vars pindah dari `#main-header` ke `:root`** via `<style is:global set:html={`:root{${themeStyle}}`}></style>` supaya overlay mobile (`#mobile-menu*`) yang di-render di luar `#main-header` tetap bisa akses vars. Rule `.dnj-nav-link/hover/--active` + `.dnj-cta/hover` dilepas dari scope `#main-header` → berlaku di overlay mobile juga (icon-btn/topbar/header-surface tetap scoped karena element-nya cuma di header). Hasil: menu items + hover + active state di ketiga overlay mobile ikut tone warna dari CMS Advanced → Header (Phase 4.41). Verified: link aktif rendering warna `--h-menu-active` dari CMS. Zero schema/migration/payload-types change, zero perubahan desktop di ketiga template. **Addendum (commit `008e94b`):** fix bug lama Phase 4.41.1 — `.dnj-header-surface` di Template 1 & 2 ditaruh di element `#main-header` sendiri (T3 taruh di descendant `<div>`), sedangkan CSS selector pakai descendant combinator `#main-header .dnj-header-surface` (spasi) yang tidak match element sama → T1 & T2 header transparent tanpa bg apapun. Fix: dobel selector `#main-header.dnj-header-surface, #main-header .dnj-header-surface` (tanpa + dengan spasi) supaya cover kedua kasus. Rule transparent-on-top juga di-dobel biar konsisten. T3 tak terpengaruh | ✅ **Code complete** — dev-browser verified surface bg `rgba(255, 255, 255, 0.9)` dari CMS `--h-bg` · ⏳ Owner UAT: switch antar 3 template di CMS + mobile viewport + verifikasi background muncul saat scroll | [phase-4.51-header-mobile-polish.md](phases/phase-4-polish-launch/mobile-polish/header-mobile/phase-4.51-header-mobile-polish.md) |
+| 4.50 | Chat Widget — channel-agnostic overhaul (WhatsAppFloating → ChatWidget, blocks-based channels[], multi-layer anti-spam, AI chatbot inline panel) — 7 sub-phase: **4.50.1** schema (`ChatWidgetSettings` global 8 tab: General/Appearance/Popup/Channels[whatsapp\|ai\|liveChat\|email blocks]/Availability/Behavior/Tracking/Security) + 3 audit collection (`chat-visitors`, `chat-messages`, `chat-blocked-events`) + migration init 507 baris. **4.50.2** data-move `SiteSettings.whatsappDefaults` → `chat-widget.channels[0]` (Payload local API, idempotent up+down). **4.50.3** component cutover: `WhatsAppFloating.astro` → `ChatWidget.astro`, adapter per channel di `apps/web/src/lib/chat-channels/{whatsapp,ai_chatbot,live_chat,email}.ts`, mount di `BaseLayout.astro` (site-wide, fix keluhan awal "cuma di home"), fallback ke legacy `whatsappDefaults` bila `chat-widget.channels[]` kosong. **4.50.4** security lib `apps/web/src/lib/chat-security/`: Web Crypto helpers, `IpHasher` HMAC-SHA256 128-bit, `RateLimitStore` (Memory + Cloudflare KV, swappable ke DO/Redis), `VerificationVerifier` (Turnstile + reCAPTCHA v3), visitor cookie signed, composite `runSpamChecks` (length/honeypot/timing/keyword/regex/dedup/UA/IP/country). **4.50.5** endpoint `POST /api/chat/send`: thin controller + orchestrator 5-layer pipeline + AnthropicProvider (Messages API, non-streaming MVP) + EmailLogProvider stub + PayloadChatStore (fail-soft REST audit). Response code stable (no signal leak). **4.50.6** frontend UI: panel mode swap (menu ↔ AI chat thread), Turnstile invisible mount (conditional load), honeypot hidden field, formOpenedAt timing, sendCooldownMs, char counter + maxlength, client dedup, behavior enforcement (showDelaySeconds, showAfterScrollPct, autoOpenOnceAfter 1×/session, exitIntentDesktop, dismissible localStorage TTL), error UX Bahasa Indonesia. **4.50.7** retention cron: lib `chat-retention.ts` (2-phase — redact content @ retention/2, delete @ retention), CLI `pnpm retention:chat`, HTTP endpoint `POST /api/chat-retention` gated by `CHAT_RETENTION_CRON_KEY`, wrangler cron `0 3 * * *`. Backward-compat: `contact.whatsapp` + `generateWhatsAppLink` + 10 page detail tidak disentuh; `whatsappFloat` feature flag jadi master toggle. Scalability: blocks-based (nambah channel = 1 file + 1 branch dispatcher), JSON `context` di 3 audit collection zero-migration untuk signal baru, `securityVersion` field untuk logic-level upgrade, verifier/store abstract via interface | ✅ **Code complete** — tsc clean semua file chat/* · ⏳ Owner UAT: run `pnpm schema:migrate`, config env vars (`CHAT_IP_HASH_SALT`/`CHAT_VISITOR_COOKIE_SECRET`/`ANTHROPIC_API_KEY`) + wrangler KV binding `CHAT_RATE_LIMIT_KV`, walkthrough di homepage & non-home, add AI channel di admin, cURL rate-limit test | [4.50.1](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.1-chat-widget-schema-and-security.md) · [4.50.2](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.2-chat-widget-data-move.md) · [4.50.3](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.3-chat-widget-component-cutover.md) · [4.50.4](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.4-chat-security-lib.md) · [4.50.5](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.5-chat-send-endpoint.md) · [4.50.6](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.6-chat-widget-panel-ui.md) · [4.50.7](phases/phase-4-polish-launch/features/chat-widget/phase-4.50.7-chat-retention-and-docs.md) |
+| 4.49 | SiteFeatures Modul Layanan registry + ServiceTypes backfill — 2 bug owner UAT: (a) description Modul Layanan hardcode "Master on/off untuk **8** modul layanan utama" padahal aslinya 9 (Ferry Tickets ditambah setelah phase awal), owner minta auto-count. (b) Ferry Tickets tidak muncul di frontend footer kolom services meski toggle SiteFeatures ON — bug consistency antara SiteFeatures dan konsumsi frontend. **Fix a:** `SiteFeatures.ts` refactor ke single `SERVICE_MODULES` const array (name+label per modul) + helper `moduleRowFields()` yang bagi 2-per-baris auto; description pakai `` `${SERVICE_MODULES.length}` `` template literal (`9` di sini) + note "menambah modul baru = 1 entry di SERVICE_MODULES registry". Zero visual regression di layout row checkbox. **Fix b:** `getResolvedServiceTypes()` di `apps/web/src/lib/serviceTypes.ts` refactor — kalau CMS returns partial list (Ferry Tickets belum di-seed atau statusnya draft/archived), backfill missing keys dari `modules.ts` fallback (`fallback.filter(!cmsKeys.has(s.key)).map((s,i) => ({...s, order: cmsMaxOrder + i + 1}))`), lalu sort keseluruhan by order. Sebelumnya cuma dipakai kalau CMS list KOSONG total. Sekarang: Ferry Tickets tetap tampil di footer/nav/homepage listing meski record belum ada. Filter SiteFeatures.modules (Phase 4.48.2 di footer) tetap berlaku di atas list ini — kalau modul di-off, tetap hilang. Zero schema/migration/payload-types change. Konsumen lain `getResolvedServiceTypes()` (homepage listing, service card grid) otomatis dapat backfill — konsisten | ✅ **Code complete** — tsc clean · ⏳ Owner UAT: verifikasi description auto 9, Ferry Tickets tampil di frontend footer, disable → hilang | [phase-4.49-site-features-registry-and-service-backfill.md](phases/phase-4-polish-launch/admin-ui/site-settings/phase-4.49-site-features-registry-and-service-backfill.md) |
+| 4.48 | Footer Flexible Column Builder + Payment Methods — 2 request owner: (Task 1) newsletter "Get Bali Travel Inspiration" di semua halaman blog/blog-detail mau dihilangkan karena sudah ada Newsletter Block; (Task 2) multi-column footer template-1 hardcode 4-slot, mau bisa arrange kolom bebas + selipkan Payment Methods. **Task 1 solve via toggle CMS** (0 code change): audit konfirmasi `NewsletterSignup.astro` di-gate `isSectionEnabled('newsletter')`, `NewsletterBlock.astro` tidak baca SiteFeatures → cukup owner uncheck `Site Features → Newsletter Signup` → bar footer hilang site-wide, block editor tetap jalan. **Task 2 (Interpretasi X + dual-state):** field baru `footer_settings.layoutColumns` array (max 4 rows) tiap row `type` (`brand`/`menuList`/`services`/`contact`/`paymentMethods`/`custom`) + `width` (`auto`/`25`/`33`/`50` %) + conditional content per type (`menu` rel utk menuList/services · `showBusinessHours`+`showPaymentMethods` utk contact · `customContent` richText utk custom). Renderer dual-state: kolom kosong → fallback ke logic slot lama (Phase 4.43, zero regresi visual); ≥1 row → render sesuai. **Task 3:** `site_settings.paymentMethods` array (label + logo upload + optional URL) — source of truth global, siap-roll ke checkout nanti. Migration `20260915_120444.ts` bikin 2 sub-table baru (`site_settings_payment_methods` + `footer_settings_layout_columns`), reversible via DROP TABLE (destructive utk data layout — safe untuk data legacy `columns` yg utuh). Applied batch 16. FooterTemplate1 refactor jadi dual-branch (layoutColumns branch pakai flex-wrap + basis-1/N; legacy branch grid-cols-4). Payment badge chip CSS scoped `#main-footer` (neutral surface + subtle border). Frontend fetch paymentMethods dari SiteSettings, filter yang punya logo, forward sebagai prop. LexicalRenderer untuk `custom` type richText. Newsletter component tetap ada di codebase (kalau owner nyalain lagi tinggal toggle). Field legacy footer (`columns`, `showBrandColumn`, `showServicesColumn`, dst) tetap ada — cleanup di follow-up phase | ✅ **Code complete** · **Addendum 4.48.1 (2026-09-15)**: brand row dapat `showSocialLinks` checkbox (default true, condition `type==='brand'`) + migration `20260915_134319.ts` `ALTER TABLE footer_settings_layout_columns ADD show_social_links integer DEFAULT true` reversible applied batch 17; frontend `LayoutColumnOut.showSocialLinks` + FooterTemplate1 brand branch cek `col.showSocialLinks !== false`. Row label polish: new `apps/cms/src/components/FooterLayoutRowLabel.tsx` pakai `useRowLabel<Data>()` (pola sama BlockLabel Phase 4.8) render `[BADGE type] · heading · [width chip] · #NN` dengan fallback text untuk brand ("Logo · tagline · social") dan paymentMethods ("Badges dari SiteSettings"); palette ocean/stone/ocean-mid/neutral/amber-coral/leaf per type. Registered via `admin.components.RowLabel` pada array `layoutColumns`. New CSS `apps/cms/src/admin/footer-layout.css` scoped `.dnj-fl-row*` + border-left `.array-field__draggable-rows > .collapsible:has(.dnj-fl-row[data-type=...])` per type (mirror pola block row 4.8). Loaded via `AdminStyles.tsx` provider. Detail lengkap di section "4.48.1 Addendum" pada phase doc. **Addendum 4.48.2 (2026-09-15)**: Footer `services` column (auto path) sekarang di-filter oleh `SiteFeatures.modules` gate — modul yang di-off tak lagi muncul di footer. Bikin `SERVICE_KEY_TO_MODULE` map (kebab→camelCase mirror `MODULE_TO_KEY`), filter `enabled = svc.filter(s => feats.modules[modKey] !== false)`. Auto path difilter; menu override tetap dihormati (SA eksplisit). Deskripsi CMS diperbarui: option `services` label jadi "Services — auto dari Modul Layanan aktif / Menu"; description field `menu` mention "kosong = auto dari Modul Layanan yang aktif". Zero migration. **Hotfix (2026-09-16)**: `label: false` pada 2 array baru (`SiteSettings.paymentMethods` + `FooterSettings.layoutColumns`) crash Payload v3 renderField dengan "Cannot read properties of undefined (reading 'singular')" — ganti ke label string + `labels: { singular, plural }` explisit. Lesson: `label: false` aman utk group, TIDAK aman utk array. **Addendum 4.48.3 (2026-09-16)**: hide legacy Content-tab UI di FooterSettings (`showBrandColumn`+`brandTaglineOverride`, `showSocialLinks` top-level, `columns` array Menu Columns, `showServicesColumn`+`servicesColumnLabel`+`servicesMenu`, `showContactColumn`+`contactColumnLabel`, group `newsletter` heading/theme/description/copy) — tiap collapsible & field dikasih `admin.hidden: true`. Hide-not-delete: field def tetap ada di TS supaya fallback branch FooterTemplate1 tetap safe + Payload API tetap kembalikan data legacy dari DB (payload-types tak berubah). Zero migration, zero data loss. Description tab Content diperbarui: "Layout Columns, legal links, dan bottom bar text." Layout Columns collapsible description disederhanakan (drop "kosongkan = layout lama"). Cleanup DB kolom orphan direncanakan di follow-up phase setelah owner konfirmasi semua data migrated. `legalLinks` + `bottomBarRightText` tetap visible (dipakai footer-3 minimal + bottom bar semua footer) | [phase-4.48-footer-flexible-columns.md](phases/phase-4-polish-launch/theming/footer/phase-4.48-footer-flexible-columns.md) |
+| 4.47 | Sidebar Icons — fill missing + differentiate Authors/Users — owner minta lengkapi icon sidebar untuk nav yang masih tampil default circle: `newsletter-subscribers`, `announcement-bar`, `promo-banner`, `ferry-tickets`; plus **Authors** yang sebelumnya pakai icon multi-person sama dengan **Users** (bikin bingung), diganti icon pen supaya beda visual. Pure CSS di `apps/cms/src/admin/admin-global.css` — tambah 5 icon SVG data URI baru (mail/envelope, megaphone, percent, ship, pen) sebagai `--dnj-ic-*` variable di `:root` (Lucide-style, stroke-based, di-tint pakai currentColor via `mask` di `.nav__link::before` mekanisme Phase 4.4), lalu tambah 5 rule mapping `.nav__link[href$='/…']` → `--i: var(--dnj-ic-…)`. Mapping baru: ferry-tickets → ship (khas, beda dari service lain yang pakai layers), newsletter-subscribers → mail, announcement-bar → megaphone, promo-banner → percent, authors → pen (users tetap multi-person). Zero schema/data/component change; CSS ini sudah di-load via provider `AdminStyles.tsx` global — tidak perlu re-generate importMap/types. Icon fallback `--dnj-ic-default` circle tetap untuk future collection/global yang belum di-map | ✅ **Code complete** — CSS-only · ⏳ Owner UAT: refresh sidebar, verifikasi 5 icon baru + Authors ≠ Users, cek dark theme tetap terlihat | [phase-4.47-sidebar-icons.md](phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.47-sidebar-icons.md) |
+| 4.46 | HomepageContent Tabs Refactor — owner minta rapikan **Homepage — Fallback Content** biar konsisten dengan global lain yang sudah tab. Sebelumnya 5 collapsible flat vertikal (Hero · Value Props · Stats · Testimonials · Bottom CTA). Sekarang wrap ke satu unnamed `type:'tabs'` container jadi 3 tab semantic matching struktur halaman itu sendiri: **Hero** (heroHeading + heroCtaText row · heroSubheading · heroCtaLink), **Content Sections** (3 collapsible: Value Propositions array default open · Stats Banner default closed · Testimonials Section default closed — item testimonial ambil dari collection Testimonials, hanya heading di sini), **Bottom CTA** (ctaHeading · ctaDescription · ctaButtonText + ctaButtonLinkOverride row). Kenapa 3 bukan 4/5: Testimonials terlalu sparse untuk tab sendiri, semantic homepage natural = atas/badan/bawah, global ini pure editorial content (tidak butuh General/Advanced/Import-Export). Field name/type/order semua sama = 0 rename, 0 migration, 0 payload-types shape change (unnamed tabs presentation-only, sama pola Phase 4.32 SiteFeatures). `payload-types.ts` diff = 3 baris JSDoc description tambahan pada `heroCtaLink`. Zero apps/web change: `pages/index.astro` fetch `getHomepageContent` baca field lewat nama tak berubah | ✅ **Code complete** — tsc clean · ⏳ Owner UAT: login CMS, buka global, verifikasi 3 tab dan isi field masih persist | [phase-4.46-homepage-content-tabs.md](phases/phase-4-polish-launch/blocks-and-content/homepage-content/phase-4.46-homepage-content-tabs.md) |
+| 4.45 | Alpha Color Support (universal) + Remove AB `theme` preset — owner UAT Phase 4.44 sukses, minta dua penyempurnaan: (a) AnnouncementBar tab Content & Theme masih ada preset theme select yang duplikat dengan Advanced Colors → hapus, Advanced satu-satunya sumber. (b) Warna butuh **transparansi** biar per-project tweak halus (mis. PromoBanner backdrop 60% alpha). Fix universal di komponen shared: `ColorSwatchField.tsx` swap `HexColorPicker` → **`HexAlphaColorPicker`** react-colorful (menambah alpha slider), `HexColorInput` dengan prop `alpha`, regex validate diperluas ke 3/4/6/8-digit hex, swatch preview di-layer di atas **checker pattern** supaya transparansi kelihatan; helper `colorPickerField()` regex & opts `alpha?: boolean` (default true). Semua consumer helper (Header 4.41, Footer 4.43, AB+PB 4.44) langsung dapat alpha tanpa perubahan config. **AnnouncementBar**: field `theme` select dihapus dari config, `beforeChange` hash drop `data?.theme`, Advanced Colors collapsible relabel ke "Colors" (default expanded, sole source). Migration `20260915_055940.ts` — `ALTER TABLE announcement_bar DROP COLUMN theme` reversible (DOWN re-add default 'ocean', data lama tidak dipulihkan). Applied batch 14. **PromoBanner**: default `backdropColor` `#0D1B2A` → `#0D1B2A99`, `bodyColor` `#1B3A4B` → `#1B3A4BBF`; CSS drop `color-mix` di `.dnj-pb-backdrop` + `.dnj-pb-body` (alpha ada di value hex sendiri sekarang); close-btn + image bg tetap `color-mix` karena mereka derivative dari `heading`. Zero visual regression. **Bonus fix Phase 4.43 bug**: `#main-footer .dnj-f-divider { opacity: 0.10 }` meredupkan seluruh container (termasuk copyright/bottomRight paragraphs) → default `dividerColor` `#FFFFFF` → `#FFFFFF1A` (10% alpha), CSS drop `opacity: 0.10`. Regex `pick()` di FooterRenderer + HeaderRenderer expand ke 4/8-digit (consistency) | ✅ **Code complete** — migration applied + types regen + tsc clean · ⏳ Owner UAT: alpha slider di semua picker, AnnouncementBar tab Content & Theme tanpa preset, PromoBanner backdrop dgn alpha, Footer copyright tidak redup dobel | [phase-4.45-alpha-and-remove-ab-theme.md](phases/phase-4-polish-launch/theming/theme-cleanup/phase-4.45-alpha-and-remove-ab-theme.md) |
+| 4.44 | Marketing Globals Advanced Theming (AnnouncementBar + PromoBanner) — rollout pattern reusable Phase 4.42 ke dua global Marketing. Kedua global sudah SA-only + sudah punya tab Advanced (sparse). Extend tab Advanced dengan collapsible **"Colors (override preset theme)"** (AB) / **"Colors & Shape (override defaults)"** (PB). **AnnouncementBar**: 4 warna override (`bgColor`, `textColor`, `linkColor`, `linkHoverColor`); preset theme select `ocean/coral/leaf/sand` tetap UI utama, override menang kalau di-set — di frontend `themeDefaults` map preset → palette, `.dnj-ab` classes read CSS vars. **PromoBanner**: 7 warna + 1 CTA shape via `buttonStyleFields({namePrefix:'cta', defaultRadius:'rounded'})` — `panelBgColor` `#F5F0E8`, `backdropColor` `#0D1B2A` (60% alpha via `color-mix`), `headingColor`+`bodyColor` `#1B3A4B`, `ctaBgColor` `#E07A5F` + hover `#C4583E` + text `#F5F0E8`, `ctaRadius` pill/rounded/rounded-md/square (default rounded=12px, mirip `rounded-lg` lama). Migration `20260915_052058.ts` — 12 nullable `ALTER TABLE ADD text` + 1 `advanced_cta_radius text DEFAULT 'rounded'`, reversible, applied batch 13. Frontend `AnnouncementBar.astro` + `PromoBannerModal.astro` refactor: kelas Tailwind hardcoded `bg-[#...]`/`text-[#...]`/`rounded-lg` diganti class `dnj-ab-*` / `dnj-pb-*` + CSS vars di `<style is:global>` scoped. Script open/close (opacity fade, scroll-lock, focus-trap) tak disentuh. Dismiss cookie version hook tak diperluas — warna edit ≠ content edit, sengaja tidak invalidasi dismissal. Zero komponen baru | ✅ **Code complete** — migration applied + types regen + tsc clean · ⏳ Owner UAT: buka Marketing → override warna & shape, drag SV picker aman | [phase-4.44-marketing-advanced-theming.md](phases/phase-4-polish-launch/theming/marketing-theming/phase-4.44-marketing-advanced-theming.md) |
+| 4.43 | Footer Settings Tabs + Advanced Theming (rollout ke Footer) — first non-Header consumer dari pattern reusable Phase 4.42. Mirror Header 4.41: restructure `FooterSettings.ts` ke 4 tab (General template picker · Content [brand column · showSocialLinks · Menu Columns array · Services · Contact · Newsletter Signup group · legalLinks · bottomBarRightText] · Advanced SA-only · Import/Export). Advanced group berisi 6 warna override via `colorPickerField()` helper (1-baris per field, 0 komponen baru), 2 collapsible: **Surface & Text** (`bgColor` `#1B3A4B`, `textColor` `#D9DEE1`, `mutedTextColor` `#8FA0A9`, `linkHoverColor` `#FFFFFF`), **Headings & Divider** (`headingColor` `#FFFFFF`, `dividerColor` `#FFFFFF` dengan opacity 0.10 di CSS). Migration `20260915_050611.ts` — 6× `ALTER TABLE footer_settings ADD advanced_*_color text` nullable, reversible, applied batch 12. `payload generate:types` menambah 6 field opsional. Frontend: `FooterRenderer.astro` hitung default per-template + override, serialize jadi inline `style="--f-bg:#…;…"` pada `<footer id="main-footer">`; `<style is:global>` scoped `#main-footer` baca vars via class `.dnj-f-heading`, `.dnj-f-muted`, `.dnj-f-divider`, `a.dnj-f-link`, `.dnj-f-social`. 3 template Footer refactor: kelas Tailwind hardcoded `bg-ocean`/`text-white/*`/`border-white/10` dihapus, digantikan class `dnj-f-*`; layout non-warna tetap. Newsletter section (theme select ocean/sand/leaf) sengaja tak disentuh — kontrak beda, override bakal rusak coherent theme. Editor tetap tak lihat Footer Settings sama sekali (hidden existing dipertahankan) | ✅ **Code complete** — migration applied + types regen + tsc clean · ⏳ Owner UAT: verifikasi Advanced tab hanya untuk SA, ganti warna → save → cek frontend footer 3 template | [phase-4.43-footer-advanced-theming.md](phases/phase-4-polish-launch/theming/footer/phase-4.43-footer-advanced-theming.md) |
+| 4.42a | ColorSwatchField Drag Loop Fix — UAT Phase 4.42: klik warna aman, tapi **drag** SV/hue memicu runtime `Maximum update depth exceeded`. Root cause: `react-colorful` `HexColorPicker` fires onChange di setiap pointermove (~60fps); v1 memanggil Payload `setValue` per event → form context re-render kilat → validate loop → React update-depth guard trip. Fix: buffer `draft` state lokal update instant untuk UI, `setValue` di-debounce 80ms via `scheduleCommit` (timer di-reset per event, hanya sekali fire per pause). `flushCommit` saat popover close / unmount memastikan write terakhir masuk ke form. `lastCommittedRef` cegah loop external → local sync menabrak draft. Klik tunggal (1 event) tetap instant (single scheduled commit fires after 80ms). Hydration warning tambahan dari runtime `<style>` injection react-colorful = red herring (Recoverable, benign; catatan di phase doc untuk follow-up opsional). Zero schema/migration/dep change | ✅ **Code complete** — tsc clean · ⏳ Owner UAT re-run: drag SV rectangle & hue slider, verifikasi tidak ada runtime error | [phase-4.42a-color-swatch-drag-loop-fix.md](phases/phase-4-polish-launch/theming/color-and-swatches/phase-4.42a-color-swatch-drag-loop-fix.md) |
+| 4.42 | Color Swatch Picker + CTA Button Shape (reusable) — owner UAT Phase 4.41 sukses; minta: warna di Advanced diganti visual picker (swatch + popover) alih-alih ketik hex, plus CTA button shape selector (bulatan lingkaran), dan **reusable** untuk global lain nanti. Fix: (1) new client component `apps/cms/src/components/ColorSwatchField.tsx` — swatch 38×38 + hex text + Reset + popover `react-colorful` HexColorPicker (SV rect + hue) + HexColorInput; ESC/outside-click close; optional `presets`; value tetap string hex → drop-in ke kolom text existing (0 migration untuk swap). (2) new helpers `apps/cms/src/fields/colorPicker.ts` (`colorPickerField(name, label, desc, swatchDefault, opts)` mengembalikan TextField dengan admin.components.Field wired + validate hex + custom.swatchDefault) dan `apps/cms/src/fields/buttonStyle.ts` (`buttonStyleFields({namePrefix, access, radiusLabel, radiusDescription, defaultRadius})` return array, sekarang berisi `<prefix>Radius` select 4 opsi + export `BUTTON_RADIUS_CSS` map). (3) HeaderSettings Advanced refactor pakai helper: 9 warna override + `ctaRadius`, layout row 3-kolom warna, grup CTA diganti judul jadi "CTA Button Colors & Shape". (4) Migration `20260915_043455.ts` — `ALTER TABLE header_settings ADD advanced_cta_radius text DEFAULT 'pill'` reversible, applied batch 11. (5) HeaderRenderer.astro map `advanced.ctaRadius → --h-cta-radius` CSS var; `.dnj-cta` di `<style is:global>` renderer tambah `border-radius: var(--h-cta-radius, 9999px)`; Tailwind `rounded-full` dihapus dari CTA di Template1/3 (avatar `rounded-full` tetap). Default `'pill'` → zero visual regression tanpa tweak. New dep: `react-colorful` (2.8kb gzip, MIT). Rollout ke Footer/Promo/AnnouncementBar/SiteSettings tinggal 1-baris config swap per field warna | ✅ **Code complete** — tsc clean, migration applied, importMap + types regen · ⏳ Owner UAT: klik swatch → popover picker, ganti CTA shape ke Square, verifikasi frontend | [phase-4.42-color-swatch-and-button-style.md](phases/phase-4-polish-launch/theming/color-and-swatches/phase-4.42-color-swatch-and-button-style.md) |
+| 4.41 | Header Settings Tabs + Advanced Theming — owner report: 3 template Header sudah ada tapi warna menu-active/hover + button + icon hardcoded di template, tidak bisa di-adjust dari CMS; halaman Header Settings juga berantakan (10+ field flat). Fix: (1) restructure ke 4 tab (`type:'tabs'`) — **General** (template + sticky/transparent), **Content** (menu, search, social, CTA, top-bar), **Advanced** (SA-only, gated via `admin.condition:({user}) => role==='super-admin'` + field-level `access.update: superAdminFieldAccess`), **Import/Export** (existing snapshot). (2) Group `advanced` berisi 9 text hex color field opsional (validate `#XXX`/`#XXXXXX`) di 4 collapsible: Menu Colors (default/hover/active), CTA Colors (bg/bgHover/text), Icon, Top Bar (visible saat template mendukung slot top-bar). Migration `20260915_032234.ts` — 9× `ALTER TABLE header_settings ADD advanced_*_color text` nullable, reversible, applied batch 10; `payload generate:types` +57 baris. (3) Frontend refactor `HeaderRenderer.astro` menghitung default per-template lalu override dengan `advanced.*` → serialize jadi inline `style="--h-menu-text: #…; …"` di `<header id="main-header">`; templates 1/2/3 + `_HeaderNavDesktop.astro` + `_HeaderNavMobile.astro` pakai class-class `dnj-nav-link[--active]`, `dnj-cta`, `dnj-icon-btn`, `dnj-topbar` — CSS scoped `#main-header` di `<style is:global>` renderer baca CSS vars. Default warna per template dipertahankan (header-3 CTA tetap coral by default, header-1/2 tetap ocean). Layout theme tetap fixed, hanya warna aksesorial yang bergerak. Admin non-SA tak lihat tab Advanced. Editor tetap tak lihat Header Settings sama sekali (existing) | ✅ **Code complete** · **Addendum 4.41.1 (2026-09-15)**: fix 4 bug polish setelah owner UAT — (a) Advanced philosophy clarification (override selalu menang lintas template, tidak reset saat ganti template; klik Reset per-field untuk kembali ke default template terbaru; description Advanced tab diperbarui eksplisit); (b) `transparentOnTop` sekarang bekerja nyata — CSS class `.dnj-header-surface` scoped `#main-header` (bg + backdrop-blur + border + shadow), data attribute `data-transparent-top` + `data-scrolled` toggle via inline scroll listener (threshold 40px), T3 main-bar juga respect (top-bar tetap opaque); (c) missing `bgColor` field ditambahkan di collapsible baru "Header Surface" (paling atas Advanced), migration `20260915_084823.ts` `ALTER TABLE header_settings ADD advanced_bg_color text` nullable reversible applied batch 15, default per-template T1 `#FFFFFFD9`/T2/T3 `#FFFFFFE6`; (d) `stickyOnScroll` dulu dead-toggle (template hardcode `fixed`) — sekarang wired, conditional `sticky ? 'fixed top-0' : 'relative'` + spacer `<div class="h-20">` conditional pada `sticky`. Detail lengkap di section "4.41.1 Addendum" pada phase doc | [phase-4.41-header-advanced-theming.md](phases/phase-4-polish-launch/theming/header-theming/phase-4.41-header-advanced-theming.md) |
+| 4.40 | Gallery Media Picker (Upload + Pick-from-Library) — owner minta opsi "pick from library" di sebelah bulk-upload biar editor bisa reuse gambar existing tanpa upload ulang (hemat storage saat launch). Design: satu komponen `GalleryMediaPicker.tsx` gabungkan dua tombol bersanding — 📥 **Upload new** (flow lama Phase 4.26) + 📎 **Pick from library** (modal picker baru). Modal: fullscreen overlay + panel 1100px, search debounce 300ms via `where[filename][like]`, paginated 48/page dengan Prev/Next, grid auto-fill 140px aspect-ratio 4/3, multi-select dengan hijau outline + checkmark, respect `remaining slots` (MAX_ROWS 10 - currentCount), filter otomatis `mimeType` diawali `image/`, media yang **sudah** ada di gallery ini di-disable + label "already in gallery". Commit picks → dispatchFields `ADD_ROW` untuk tiap ID (image + caption kosong) + setModified(true) + toast success + close. Rilis bertahap per permintaan owner: **test on Destinations only** (rename UI-field `galleryBulkUpload` → `galleryMediaPicker` + swap Field ref); 10 koleksi lain (Posts + 9 service) tetap pakai `GalleryBulkUpload` sampai UAT lulus. Zero schema/migration/payload-types change. Alternatif dua UI-field ditolak (tinggi + rollout mahal). Rollback trivial (swap UI-field ref balik). Follow-up Phase 4.40.1: rollout ke 10 koleksi setelah UAT | 🧪 **Code complete, test-gated** — typecheck bersih, importMap regen · ⏳ Owner UAT di `/admin/collections/destinations/6` sebelum rollout | [phase-4.40-gallery-media-picker.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.40-gallery-media-picker.md) |
+| 4.39 | Destinations Gallery Bulk Upload Parity — follow-up dari Phase 4.38 yang me-defer Destinations karena shape beda (hanya `{image}`, no `caption`, no `maxRows`). Opsi A dipilih: tambah `caption` opsional + `maxRows:10` ke schema `Destinations.gallery`, lalu wire bulk-upload + framed grid seperti 10 collection lain. Migration `20260914_153206.ts` di-generate via `pnpm schema:new`: single `ALTER TABLE destinations_gallery ADD caption text` (nullable → zero data update, row lama tidak terpengaruh; reversible). Applied local batch 9. `payload generate:types` menambah 5 baris (`caption?` di `Destination.gallery` + `DestinationsSelect`). Wire config di `Destinations.ts`: sibling UI `galleryBulkUpload` setelah `featuredImage`, admin `className:'dnj-gallery-grid'` + `afterInput:['/admin/GalleryGrid#default']`. Zero komponen baru, zero dampak konsumsi `apps/web` (`caption` opsional, konsumer boleh abaikan). Setelah phase ini: 11/11 koleksi bergallery pakai bulk-upload seragam | ✅ **Code complete** — migration applied + types regenerated + tsc clean · ⏳ Owner UAT: buka Destinations → verifikasi tombol bulk-upload + grid + caption persist | [phase-4.39-destinations-gallery-bulk-upload.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.39-destinations-gallery-bulk-upload.md) |
+| 4.38 | Posts Gallery Bulk Upload Parity — audit `type:'array'` × `gallery` di semua collection: 9 service (Accommodations, Tours, WaterActivities, Yachts, Restaurants, Venues, Rentals, Spa, FerryTickets) sudah pakai shared bulk-upload + framed grid (Phase 4.26/4.29), tapi **Posts** dengan shape yang identik (`{image, caption}`, maxRows 10) masih pakai UI array default Payload. Fix: 3 tambahan config di `apps/cms/src/collections/Posts.ts` tab Media — sibling `galleryBulkUpload` (type `ui`) memuat `/admin/GalleryBulkUpload#default`, `admin.className: 'dnj-gallery-grid'` menyembunyikan UI array default, `admin.components.afterInput: ['/admin/GalleryGrid#default']` mount grid kartu foto dengan aksi ←/→ (reorder), ✎ (edit/ganti via drawer Payload), 🗑 (hapus). Reuse total: komponen shared sudah hardcode `GALLERY_PATH='gallery'` dan sudah terdaftar di importMap → 0 kode komponen baru, 0 schema change, 0 migration, 0 payload-types change, 0 dampak `apps/web`. Destinations gallery deferred (schema beda — hanya `{image}` tanpa `caption`) | ✅ **Code complete** — tsc clean pada Posts.ts · ⏳ Owner UAT: buka Posts, tab Media → tombol bulk upload + framed grid tampil sama seperti Accommodations | [phase-4.38-posts-gallery-bulk-upload.md](phases/phase-4-polish-launch/admin-ui/media-library/phase-4.38-posts-gallery-bulk-upload.md) |
+| 4.37 | Site Features Module Toggle Enforcement — audit menemukan 9 service collection (Tours, Accommodations, WaterActivities, Yachts, Restaurants, Venues, Rentals, Spa, FerryTickets) memakai `access: { read: () => true, ... }` sehingga toggle `site-features.modules[*]` (Global `site-features`, tab Modul Layanan) tidak pernah menyembunyikan koleksinya dari sidebar admin/editor — fitur ini terlihat hidup tapi mati fungsi. Fix: helper baru `apps/cms/src/access/moduleAccess.ts` (factory `moduleAccess(key)` mengembalikan `{read,create,update,delete}` yang fetch `req.payload.findGlobal('site-features')` lalu cek `modules[key] !== false`). Anonymous SSG fetch tetap public (frontend Astro build tidak putus). **Semua role di-hide** saat modul off — super-admin ikut, biar tidak bingung; toggle re-enable-nya sendiri hidup di grup Settings yang tetap terlihat super-admin. Mapping slug→moduleKey: yachts→yacht, venues→weddings, water-activities→waterActivities, ferry-tickets→ferryTickets, sisanya sama. Payload otomatis hide koleksi tanpa `read` access → tidak perlu `admin.hidden` (yang toh tak menerima `req`). Fetch global gagal → fallback allow (jangan blokir editor kalau CMS-nya bermasalah). Zero schema change, zero migration, zero payload-types change, zero package change | ✅ **Code complete** — tsc clean pada file yang disentuh (error yang ada semuanya pre-existing di file lain) · ⏳ Owner UAT: login per-role setelah toggle off/on beberapa modul, verifikasi sidebar + direct URL forbidden | [phase-4.37-module-toggle-enforcement.md](phases/phase-4-polish-launch/admin-ui/site-settings/phase-4.37-module-toggle-enforcement.md) |
+| 4.36 | Settings Sidebar Reorganization — split satu grup "Settings" (8 globals) jadi 3 grup: **Settings** (Site Settings · Site Features · Blog Settings), **Appearance** (Header · Footer · Homepage Fallback), **Marketing** (Announcement Bar · Promo Banner). Pure `admin.group` string change on 5 globals + fix bug akses `BlogSettings` (tambah `hidden: editor` yang sebelumnya hilang → editor jadi konsisten tidak lihat semua domain-config globals). Zero schema change, zero migration, zero payload-types change. Access matrix terjaga: editor tidak lihat 3 grup sama sekali (Payload auto-hide empty groups); admin lihat Settings (2) + Appearance (3); super-admin lihat semua 8. Opsi B (merge announcement+promo → `marketing-popups`) di-defer karena butuh migrasi + refactor fetch di apps/web | ✅ **Code complete** · ⏳ Owner UAT: login CMS per-role, verify 3 accordion di sidebar | [phase-4.36-settings-sidebar-reorg.md](phases/phase-4-polish-launch/admin-ui/sidebar-cms/phase-4.36-settings-sidebar-reorg.md) |
+| 4.35 | Blog Feature Scaffold + **Migration System Bootstrap** — two-part phase bundled together after 3 consecutive collection-adds hit the same class of dev-push failures. **Part A (migration system, primary going forward):** `sqliteAdapter` config switched to `push: false, migrationDir: './migrations'` permanently. New `pnpm schema:{new,migrate,status,down,refresh,fresh}` scripts wrap Payload's `payload migrate:*` CLI. First migration `20260912_114854_initial-baseline.ts` snapshots the DB pre-Blog (marked applied via one-time bootstrap without running its UP — DB already matched). Subsequent Blog migrations run normally: `20260912_115008` (Authors + blog enum + FK, 118 lines, 27ms), `20260912_124731` (Posts + 30 sub-tables, 1074 lines, 1340ms), `20260912_124950` (SiteFeatures blog.enabled + blog.enableAds, 27ms), `20260912_125056` (5 new blog blocks × collections that embed blocks = 66 tables, 2638ms). All 5 migrations show `Ran: Yes` via `schema:status`. Retired 22 pre-migrations-era scripts (db-safe-push, push-schema-once, phase4.33-*, phase4.35-*, drop-*, inspect-*, nuclear-*) moved to `apps/cms/src/scripts/archive/pre-migrations-era/` with a do-not-run README. Rewrote `docs/DB-SCHEMA-CHANGES.md` around migration workflow, added `docs/reports/schema-management-audit.md` with the full "why". AGENTS.md §6 updated; `PAYLOAD_FORCE_PUSH` explicitly banned. Memory saved (`memory/schema-workflow.md`) so future Claude sessions default to migrations. **Part B (Blog feature):** new `Authors` collection (separate from Users; adminCreate) + new `Posts` collection (editor-createable — the one RBAC widening; additionalBlocks SA-only) + `blog` in Categories.module enum. Five new blocks: **PostList** (grid, category filter, View-All CTA), **FeaturedPost** (2-col hero + 3 side cards, auto/manual), **CategoryGrid** (tile grid, cross-module via `module` field, per-tile article count for blog), **PopularPosts** (sidebar + grid variants; reads `apps/web/src/data/top-posts.json`, falls back to `-isFeatured,-publishedAt`), **AdSlot** (AdSense/custom HTML, gated by new `enableAds` toggle). Frontend: `blogPostingSchema` + `blogSchema` in structuredData.ts, `<LexicalRenderer>` component wrapping existing `lexicalToHtml`, new `/blog/[slug].astro` static route (hero + LexicalRenderer body + PopularPosts sidebar + Categories tag cloud + Related Posts + full JSON-LD stack), new `/blog/rss.xml.ts` (hand-rolled RSS 2.0, no `@astrojs/rss` dep, `<link rel="alternate">` announced in detail head). Extended `features.ts` with blog shape + `isBlogFlagEnabled()`, extended `payload.ts` with `getPosts/getAuthors/getPostBySlug/getAuthorBySlug`. Zero changes to reserved-slug list — `/blog/*` lives under a static subpath. **Deferred:** comments (skipped v1), self-hosted analytics fetch job for `top-posts.json`, AdSense loader script, `/blog` index page (composed as CMS Page at slug `blog`), `/author/[slug]` page, reading-time auto-compute | 🔨 **Code complete** · ⏳ Owner UAT: seed 1 Author + 1 blog Category + 1 published Post + verify `/blog/<slug>` + `/blog/rss.xml` + create CMS Page at slug `blog` for index | [phase-4.35-blog-feature-scaffold.md](phases/phase-4-polish-launch/features/blog/phase-4.35-blog-feature-scaffold.md) · [schema-management-audit.md](reports/schema-management-audit.md) |
+| 4.34 | NavAccordion List-View Auto-Expand Fix — perbaiki selector `findActiveGroup` di `NavAccordion.tsx` supaya juga mendeteksi `<div class="nav__link">` no-href yang Payload render saat pathname eksak match (list-view koleksi). Sebelumnya filter `[href]` mengecualikan div ini → grup pemilik (mis. Content) tidak auto-expand di `/admin/collections/pages` walau detail-view `/admin/collections/pages/17` jalan normal. Sekaligus reset dua row `payload_preferences.key='nav'` (user 1 & 3) untuk membersihkan pollusi preferensi `open:false` yang menumpuk dari perilaku single-open Phase 4.5–4.7. 1 commit (`6f342a1`), 1 file source, +17/−2. Zero package/schema change | ✅ **Complete** — owner UAT confirmed sesuai (list-view + detail-view + single-open behavior semua jalan) | [phase-4.34-nav-accordion-listview-fix.md](phases/phase-4-polish-launch/mobile-polish/nav-accordion-fix/phase-4.34-nav-accordion-listview-fix.md) |
+| 4.33 | Reserved Feature Build-out — Announcement Bar, Promo Banner Modal, Newsletter Signup (initial ship 2026-09-07 · hotfixes + owner tweaks 2026-09-08 → 09) — three previously-dead "(reserved — Phase 4)" toggles are now real features with 4-tab CMS surfaces and versioned dismiss cookies. **Announcement Bar**: new global `announcement-bar` (4 tabs — Content & Theme / Trigger & Behavior / Schedule / Advanced), slim in-flow bar rendered **below** the header (each header template's h-20/h-16/h-[100px] spacer keeps it clear of the fixed nav), 4 themes, optional link + date window + `showOnHomepageOnly` (default OFF, site-wide), `displayFrequency` preset (30 min / 1 h / 6 h / 12 h / 1 d, stored as string minutes) — dismiss now stores a **timestamp** so the bar re-appears once the frequency window elapses; `version` (auto-hashed in beforeChange over content + reset nonce) keys `localStorage[dnj:ab-dismissed:{version}]` so any content edit or `resetVisitorCookies` checkbox tick invalidates all visitor cookies; zero-flash on repeat visits via inline `<script is:inline>` in BaseLayout head. **Promo Banner** (revised from inline section → **timed modal**): new global `promo-banner` (4 tabs), themes theme1-with-image / theme2-text-only (auto-degrade if theme1 selected without image), super-admin-adjustable `triggerDelay` (0–60 s) + `displayFrequency` preset (same 5 presets as AB) + `suppressAfterScroll` (default true) + `showOnHomepageOnly` (default ON), scroll-lock (`body { overflow: hidden }` + scrollbar padding) while modal is open, versioned dismiss (same pattern as AB), `resetVisitorCookies` manual reset, a11y role=dialog with ESC / backdrop / × / CTA all closing. **Newsletter**: new collection `newsletter-subscribers` (email unique, status, source, userAgent, ipHash, notes; delete = super-admin only), FooterSettings gets `newsletter` group (heading/description/placeholder/button/success+error copy + theme ocean/sand/leaf), modular `apps/web/src/lib/newsletter/{validators,store,notifiers,index}.ts` (`Notifier` interface for future SMTP/Hostinger/webhook chain), Astro POST `/api/newsletter-subscribe` (honeypot `website` field, cf-connecting-ip hashed with `NEWSLETTER_IP_SALT`, 5/60s in-memory rate limit, duplicate = idempotent 200), injected into **FooterRenderer** above whichever footer template renders (not the legacy Footer.astro). **Deploy target**: `output: 'static'` + `@astrojs/cloudflare` adapter (Astro 5 removed `output: 'hybrid'`; static now natively supports opt-in on-demand routes via `prerender = false`). **Hotfixes traced during owner boot** (`9677f88`, `0abfdd9`, `890079f`, `59f6a55`): Payload's non-idempotent CREATE INDEX + Phase-4.25 cold-start race prevents automatic schema push → recovered with `phase4.33-preflight.ts` + `phase4.33-finalize.ts` (manual ALTER TABLE ADD COLUMN for `payload_locked_documents_rels.newsletter_subscribers_id` + 7 `footer_settings.newsletter_*`); Astro 5 `output: 'hybrid'` deprecation; BaseLayout `<style>{`…`}</style>` PostCSS crash; `features.ts` module-level cache stale across CMS toggle flips → skipped in dev; newsletter wired to dead pre-Phase-3.24 Footer.astro → moved to FooterRenderer. **16 commits total** — initial: `2a8c9c0`, `64b9a1a`, `4bb0dbb`, `9e6f567`, `a1fe15a`, `a700dbb`, `e1cc9a2`, `899527b` (docs); hotfixes: `9677f88`, `0abfdd9`, `890079f`, `59f6a55`; owner tweaks: `112e5f5` (AB below header), `f791142` (Promo frequency preset + reset), `23022cd` (Promo scroll-lock), `6c25e48` (AB parity: 4 tabs + preset + reset + scope) | ✅ **Code complete** · schema manually finalized · types regenerated · dev boot verified (SSR HTML carries `.announcement-bar` + `.promo-modal-root` + `.newsletter-signup` when master toggles ON) · ⏳ owner final UAT: issue Payload API key + set env vars (`PAYLOAD_API_KEY`, `NEWSLETTER_IP_SALT`) + walk the full frontend checklist in the phase doc | [phase-4.33-reserved-features-buildout.md](phases/phase-4-polish-launch/features/reserved-features/phase-4.33-reserved-features-buildout.md) |
+| 5 | Production Deploy (+ 6 Packaging) | ⬜ Not Started | [phase-5-deploy.md](phases/phase-5-deploy/phase-5-deploy.md) |
+
+**Legenda:** ✅ Complete · 🔨 In Progress · 📋 Planned · ⬜ Not Started · ⏸️ Paused
+
+**Phase 3.23 (Code selesai 2026-08-24):** Field `type` Destinations (select hardcoded) →
+collection baru `destination-types` CRUD-able (name/slug/`isActive` checkbox/`sortOrder`
+auto-increment+swap), toggle super-admin `destinationTypesEnabled` (soft-gate `update`
+admin), access berlapis. Goal 5 frontend **dibatalkan** → type = taksonomi internal,
+orthogonal dgn hierarki 3.22. **Butuh aktivasi**: CMS schema push (jawab `+ create column`)
++ `pnpm tsx src/scripts/seed-destination-types.ts` — runbook di
+[phase-3.23](phases/phase-3-cms-driven/destinations/phase-3.23-dynamic-destination-types.md) §0. DB backup: `cms.db.bak-3.23`.
+
+**Phase 3.24 (Planned 2026-08-25):** Header & Footer dari satu layout hardcoded →
+**sistem template**: registry di code (`packages/shared`), Super Admin pilih template +
+isi slot content dinamis (Payload `select` + `admin.condition`, dispatch build-time Astro
+— pola block `serviceListing`), import/export config JSON antar-project, konvensi porting
+cross-framework. Audit lengkap (feasibility, risk, arsitektur, JSON schema, migrasi,
+rollback, acceptance, ~4.75–6.25 hari) di
+[phase-3.24](phases/phase-3-cms-driven/header-footer/phase-3.24-header-footer-template-system.md). Branch:
+`feature/header-footer-service-fixes`. **Butuh keputusan owner** (cakupan template,
+UI import/export, thumbnail, slot storage) sebelum eksekusi.
+
+## Current Focus
+
+[Phase 3.22](phases/phase-3-cms-driven/destinations/phase-3.22-hierarchical-destinations.md) **code selesai** di branch
+`feature/service-listing-fixes` — destinasi jadi berjenjang (parent→child): filter listing
+hanya menampilkan 4 "core" (Super Admin toggle `showInFilter`), child disembunyikan tapi
+ikut cocok saat core dipilih/dicari; digate toggle **Hierarchical Destinations** di
+Pengaturan Fitur (default OFF → degradasi aman ke perilaku flat lama). Berlaku di kedua
+layout listing. **Butuh aktivasi**: restart CMS (schema push, jawab `+ create column`) +
+seed 4 core & parent child + nyalakan toggle — lihat phase doc.
+
+Sebelumnya [Phase 3.21](phases/phase-3-cms-driven/service-listing/phase-3.21-cms-section-listing-header.md) menjadikan judul +
+subtitle listing editable dari Site Settings → Section Pages. Sisa: **merge ke `main`**,
+lalu Phase 4 Polish & Launch.
+
+## Quick Links
+
+- [All Reports](reports/README.md) — audit & phase reports
+- [Guides](guides/) — how-to developer, mis. [Menambahkan Service Baru](guides/adding-new-service.md)
+- [Post-Deploy TODO](post-deploy-todo.md) — item yang hanya bisa diverifikasi di produksi
+- [Dev Reference](dev-reference.md) — foundational decision log, known issues/tech-debt, quick commands
+- [Archived full progress](archive/progress-archive-2026-08-23.md) — snapshot PROGRESS.md lama (utuh)
+- [AGENTS.md](../AGENTS.md) — AI agent rules & reporting template (Section 14)
+- Reference docs: [Overview](00-PROJECT-OVERVIEW.md) · [Architecture](01-ARCHITECTURE.md) · [DB Schema](02-DATABASE-SCHEMA.md) · [Content Model](03-CONTENT-MODEL.md) · [RBAC](04-RBAC.md) · [Infra](05-INFRA.md) · [Runbook](06-MAINTENANCE-RUNBOOK.md) · [Decision Log](07-DECISION-LOG.md)
+
+## Blockers / Decisions Needed
+
+- **Merge branch** — `feature/service-listing-fixes` sudah code+data complete & build
+  bersih; belum di-merge ke `main`. Phase 4 sebaiknya mulai dari main yang bersih.
+- **Manual test butuh login CMS** — beberapa verifikasi role/sidebar/dashboard tidak
+  bisa diotomasi (password entry). Perlu owner.
+- **Konten dummy** — sebagian data masih demo/draft (SiteSettings kontak sudah terisi);
+  real content final di-input saat Phase 5.
 
 ---
 
-## Phase 3.5 — Reference Layout Implementation ✅ DONE
+## Known Issues & Commands
 
-Menerapkan reference desain (`ai/reference/home/`) ke komponen fixed/reusable
-sebelum masuk Phase 4, agar animasi & polish tidak perlu rework kalau
-layout berubah.
+Ringkasan tech-debt dan perintah cepat dipindah ke [Dev Reference](dev-reference.md).
+Highlight yang perlu diingat:
 
-**Catatan scope:** User menyebutkan akan ada halaman baru "Property & Land
-for Sale" di luar 7 service modules awal (Tours, Accommodations, Water
-Activities, Yacht, Restaurants, Weddings, Rentals). Collection CMS-nya
-belum dibuat (future scope). Sementara ini `/property` = coming-soon page
-minimal supaya nav "Property" tidak 404.
-
-Urutan halaman yang direncanakan ke depan (referensi, belum tentu
-urutan pengerjaan): Home, About, Tour, Villa, Water Activities,
-Private Yacht, Restaurant, Wedding & Event Services, Property & Land
-for Sale, Contact.
-
-### 3.5.1 Fixed/Reusable Components ✅ DONE
-- [x] Header — reference diterapkan, mapped tokens (ocean/coral), CTA pill "WhatsApp Booking", mobile drawer + JS toggle (ESC/outside-click/link close, matchMedia auto-close) — 2026-08-05
-- [x] Footer — reference diterapkan, bg ocean, 4-col grid, contact icons via Icon component, social wrapped bulat, "Designed with ♥ in Bali" tagline — 2026-08-05
-- [x] `apps/web/src/components/common/Icon.astro` — helper icon lookup (33+ icon SVG map, no CDN, replaces Material Symbols) — 2026-08-05
-- [x] Filter & Booking Floating — `apps/web/src/components/common/FilterBookingBar.astro` reusable, sticky-top, destination tabs (radio+peer, no JS), booking search inputs (native form GET), preview di `/demo-filter` — 2026-08-05
-- [x] CTA Floating (WhatsApp) — `apps/web/src/components/common/WhatsAppFloating.astro` popup pattern (Intercom-style): bulat toggle → open panel dengan chat options → klik option buka WA. Data cascade CMS-first. Icon brand WA asli (bukan generic chat) — 2026-08-05
-
-### 3.5.2 Home Page ✅ DONE
-- [x] Layout Home diterapkan sesuai reference (8 sections: Hero + ValuePropsBanner overlap + 3× ServiceGrid + StatsBanner + TestimonialsCarousel + CTA) — 2026-08-05
-- [x] 3 CMS block baru ditambah di `apps/cms/src/blocks/index.ts`:
-      `ValuePropsBanner`, `StatsBanner`, `TestimonialsCarousel` — 2026-08-05
-- [x] Types regen via `pnpm generate:types` — 2026-08-05
-- [x] 3 frontend block components di `apps/web/src/components/blocks/` — 2026-08-05
-- [x] BlockRenderer register 3 block baru — 2026-08-05
-- [x] `apps/web/src/pages/index.astro` restructure fallback: preserve hybrid CMS Page 'home' + fallback komposisi block sesuai reference — 2026-08-05
-
-### 3.5.3 Coming Soon Page
-- [x] `apps/web/src/pages/property.astro` — coming-soon minimal, WA Enquire button pakai CMS whatsapp number — 2026-08-05
-
-### Manual Test Log — Phase 3.5
-
-Audit trail semua manual test yang PASS.
-
-```
-Step 2 — Header
-  [x] Header render CMS data (siteName, nav, WA number)
-  [x] Active state indicator (border-b-2 border-coral)
-  [x] Fallback ke siteConfig kalau CMS unreachable
-  [x] Mobile drawer + JS toggle: click → open, click link/ESC/outside → close,
-      resize ≥1024px → auto-close
-  [x] Konsisten di 2 halaman berbeda (/ dan /tours)
-  [x] Icon via Icon component (menu, chat, close) — no CDN
-
-Step 3 — Footer
-  [x] Bg ocean (mapped dari reference primary-container teal)
-  [x] 4-col grid: Brand+social / Quick Links / Our Services / Contact
-  [x] Contact icons via Icon component (phone, mail, location_on, schedule)
-  [x] Social auto-normalize bare handles → full URL
-  [x] Brand social SVGs preserved (bukan generic Material Symbols)
-  [x] "Designed with ♥ in Bali" copyright tagline
-
-Step 4 — Filter & Booking Floating
-  [x] /demo-filter renders 2 example configurations (Accommodations dgn
-      CMS destinations + Tours dgn custom searchFields)
-  [x] Sticky top-20 z-30 (di bawah header 80px)
-  [x] Destination tabs pakai radio + peer-checked (no JS active state)
-  [x] Form GET → navigate ke searchAction dgn query params
-  [x] Reusable — configurable via props (destinations, searchFields, searchAction, sticky)
-  [x] Bug fix: Tailwind JIT cache stale untuk file di folder baru — resolved dgn touch config
-
-Step 5 — WhatsApp Floating (popup pattern)
-  [x] Bulat toggle 56px bottom-right z-50 dengan icon brand WhatsApp asli
-  [x] Klik toggle → popup panel muncul (header hijau + subtitle + option list)
-  [x] Option card: border-l-4 hijau + WA icon bulat + title/subtitle
-  [x] 1 option default auto-generate dari CMS greeting message
-  [x] Interactive: toggle click, ESC key, outside click, option click → close
-  [x] Icon konsisten pakai WA brand di 4 tempat (toggle + header + option kiri + accent kanan)
-  [x] No close X — toggle button icon selalu WA (per user preference)
-  [x] Bug fix: CSS transition opacity stuck di preview pane — resolved dgn no-transition
-      (snap in/out reliable across environments)
-
-Step 6 — Home Full Layout
-  [x] 3 CMS block baru terdaftar di CMS + types regen benar (grep validated)
-  [x] BlockRenderer switch case cover semua 14 block types
-  [x] Homepage HTTP 200 dgn semua 8 section render:
-      Hero → ValueProps (4 items) → Featured Tours → Where to Stay →
-      On the Water → Stats (4 items) → Testimonials (3 items) → CTA + WA Floating
-  [x] Regression: /about /tours /demo-filter /property tetap 200
-```
-
-**Manual test browser (kamu verify langsung):**
-```
-[ ] Refresh browser di / — visual check:
-    1. Hero image full-width + heading + CTA orange
-    2. Value Props Banner overlap bawah hero (-mt-16), 4 items dgn icon bulat
-    3. Featured Tours / Where to Stay / On the Water — card grid dari CMS
-    4. Stats banner bg ocean dgn 4 stats putih + icon besar
-    5. Testimonials 3-col dgn quote italic + avatar/initial + stars
-    6. CTA Banner hijau WhatsApp
-    7. Floating WA button bulat di bottom-right — klik → popup muncul
-[ ] Test /about → tetap render 3 CMS block (Hero, RichText, ServiceGrid)
-[ ] Buka /admin/collections/pages/create → cek 14 block options tersedia
-    di block picker (11 lama + 3 baru: Value Props Banner, Stats Banner,
-    Testimonials Carousel)
-[ ] Buat Page slug='home' di CMS dgn komposisi block bebas → publish →
-    refresh homepage → CMS Page override fallback
-[ ] Mobile ~375px: semua section stack proper, floating WA tidak menutupi
-    tombol CTA banner (kalau overlap, tap salah satu tetap bisa)
-```
-
----
-
-## Phase 3.6 — Block System Enhancement 🔨 IN PROGRESS
-
-Memperkaya block system dengan opsi media flexible, rich text formatting,
-dan advanced styling (background/button/animasi), plus compact CMS UI
-pakai tabs. Dikerjakan sebelum mulai halaman baru (About, Tour, dst)
-supaya semua halaman ke depan bisa langsung pakai block yang sudah kaya
-opsi, tidak perlu rework berulang.
-
-**Strategi:** Pilot di Hero block dulu (CMS + frontend end-to-end),
-baru batch ke block lain setelah pattern tervalidasi.
-
-### 3.6.1 Reusable Field Groups (Foundation) ✅ DONE
-- [x] fields/media.ts — mediaType branching (single/multiple/video/none), video URL/upload dgn poster fallback, transition preset (fade/slide/zoom/none) + interval, lazyLoad — 2026-08-05
-- [x] fields/advancedStyle.ts — sectionPadding (compact/normal/spacious), background (default/color/image + overlay), button (variant/color/textColor/radius/hoverAnimation) — semua sinkron design tokens tailwind — 2026-08-05
-- [x] Lexical features diaktifkan: Paragraph, Heading(h2-h4), Bold/Italic/Underline/Strikethrough/Sub/Sup/InlineCode, Align/Indent, UL/OL, Link/Upload/Relationship, Blockquote/HR, Inline+Fixed toolbars, TextStateFeature (color → 5 design tokens: ocean/coral/leaf/stone/midnight) — 2026-08-05
-
-### 3.6.2 Pilot: Hero Block ✅ DONE
-- [x] Hero block direstructure pakai `type: 'tabs'` (Content / Media / Advanced) + reusable field groups — 2026-08-05
-- [x] Legacy fields `backgroundImage` + `overlayOpacity` di-preserve sebagai hidden (schema additive, no rename ambiguity for Drizzle push) — 2026-08-05
-- [x] HeroBlock.astro update lengkap: mediaType branching render (single image / slider dgn CSS transition + JS interval / video YouTube/Vimeo/direct file dgn poster fallback / none), Advanced styling (bg color/image/overlay, button variant/color/radius/hover animation), section padding preset — 2026-08-05
-- [x] Homepage fallback config diperbarui pakai schema baru (mediaType='none', background/button defaults) — 2026-08-05
-- [x] Backward compat: existing Hero data yang punya `backgroundImage` tetap tersimpan di DB (via hidden legacy field); frontend fallback safe kalau field baru kosong — 2026-08-05
-- [x] DB migration recovery: dropped stale `pages_blocks_hero*` tables setelah Drizzle sempat corrupt schema push mid-way (rename ambiguity) — Payload recreate fresh schema saat restart — 2026-08-05
-
-### 3.6.3 Batch Rollout — Media-relevant blocks ✅ DONE
-- [x] Image block — tabs Content/Advanced, tambah aspectRatio + imageFit + imagePosition, advancedStyleFieldsNoButton — 2026-08-06
-- [x] Gallery block — tabs Content/Advanced, per-image fit+position, layout+columns di-`row` — 2026-08-06
-- [x] CTA block — tabs Content/Media/Advanced, mediaLayout (background/left/right/above/below), advancedStyleFields (with button), legacy `style` preserved hidden — 2026-08-06
-- [x] Shared helper `apps/web/src/lib/blockStyles.ts` — resolver fit/pos/align/container/padding/entry/bg/button dipakai lintas komponen (Image/Gallery/CTA) — 2026-08-06
-- [x] `advancedStyleFieldsNoButton` variant export — untuk block tanpa CTA (Image, Gallery) — 2026-08-06
-- [x] `buildFitPositionRow()` + `imageFitOptions`/`imagePositionOptions` export dari media.ts — reusable di block lain — 2026-08-06
-
-### 3.6.3.1 Text Style + Slider AutoStart + CTA Templates + Gallery Lightbox ✅ DONE
-- [x] `apps/cms/src/fields/textStyle.ts` — `buildTextStyleField(elements)` generator per-element color + animIn (default 'inherit') — 2026-08-06
-- [x] `apps/web/src/lib/blockStyles.ts` — `resolveTextColor` + `resolveTextAnimIn` helpers — 2026-08-06
-- [x] `apps/web/src/styles/global.css` — text-anim-* keyframes (fade/fade-up/fade-down/zoom/slide-left/slide-right/blur) reduced-motion aware — 2026-08-06
-- [x] `sliderAutoStart` checkbox di mediaFields — Hero slider trigger first transition on load — 2026-08-06
-- [x] Hero: buildTextStyleField(['heading','subheading']) + sliderAutoStart wired ke JS — 2026-08-06
-- [x] Image: buildTextStyleField(['caption']) — 2026-08-06
-- [x] Gallery: replace `columns` dgn desktopColumns/tabletColumns/mobileColumns (row 3-col dgn emoji hint), enableLightbox toggle, hoverEffect select (none/zoom/lift/overlay/grayscale), buildTextStyleField(['caption']). Legacy `columns` preserved hidden. Lightbox modal built-in dgn prev/next arrows (desktop), ESC/arrow key, backdrop click close — 2026-08-06
-- [x] CTA: buildTextStyleField(['heading','description']) + 2 new mediaLayout templates: `scrolling-columns` (2-col vertical infinite loop, 5-10 images, ref cta-idea-1) dan `dual-frames` (2 overlapping rotated cards, ref cta-idea-2) — 2026-08-06
-
-### 3.6.4 Batch Rollout — Text & sisanya ✅ DONE
-- [x] RichText — tabs Content/Advanced. Advanced pakai advancedStyleFieldsNoButton + buildTextStyleField(['paragraph']). Legacy `alignment` preserved hidden — 2026-08-06
-- [x] FAQ — tabs Content/Advanced. Advanced + buildTextStyleField(['heading','quote']). Text answer render via existing rich-text class — 2026-08-06
-- [x] Testimonials — tabs Content/Advanced. Advanced + buildTextStyleField(['heading','quote']). Default bg-sand kalau bg advanced default — 2026-08-06
-- [x] ServiceGrid — tabs Content/Advanced. Advanced + buildTextStyleField(['heading']). Limit + featuredOnly di-row-kan — 2026-08-06
-- [x] Contact — tabs Content/Advanced. Advanced + buildTextStyleField(['paragraph']). showMap+showWhatsApp di-row-kan — 2026-08-06
-- [x] ValuePropsBanner — tabs Content/Advanced. Advanced + buildTextStyleField(['label','subheading']). Overlap positioning (-mt-16) tetap — 2026-08-06
-- [x] StatsBanner — tabs Content/Advanced. Advanced TANPA background group (hindari kolom bentrok dgn existing `backgroundImage`). + buildTextStyleField(['eyebrow','heading','label','caption']) — 2026-08-06
-- [x] TestimonialsCarousel — tabs Content/Advanced. Advanced + buildTextStyleField(['eyebrow','heading','quote']) — 2026-08-06
-- [x] Embed, Spacer — skip sesuai plan (sudah cukup simple)
-
-**Manual Test Log — Phase 3.6**
-(diisi setelah setiap step)
-
----
-
-## Phase 3.7 — Service Landing Pages 🔨 IN PROGRESS
-
-Halaman filter+search per service module dgn destination pills (dari CMS
-Destinations), editorial featured card, listing grid, dan concierge/trust
-section. Reference: `ai/reference/villa/code.html`.
-
-### 3.7.0 CMS-driven service landing blocks ✅ DONE
-- [x] `ServiceListing` block (CMS) — bundle heading + destination filter tabs + search bar + featured editorial + grid. Auto-fetch dari service collection sesuai serviceType. Client-side filter (destination + name search). Featured mode auto/none — 2026-08-06
-- [x] `TrustBadges` block (CMS) — 2-col concierge (text+buttons+badge grid), min 2 max 8 badges — 2026-08-06
-- [x] Frontend components: `ServiceListingBlock.astro`, `TrustBadgesBlock.astro` — 2026-08-06
-- [x] Register di BlockRenderer — 2026-08-06
-- [x] `seed-villa-page.ts` — idempotent seed CMS Page slug='villa' dgn ServiceListing (accommodations, type=villa/hotel/resort) + TrustBadges (4 badges) — 2026-08-06
-
-### 3.7.1.2 Accommodations quickSpecs + icon picker + super-admin blocks ✅ DONE
-- [x] `apps/cms/src/fields/iconOptions.ts` — shared icon options (~32 icons) dgn emoji hint di label → editor pilih dari dropdown (bukan input manual) — 2026-08-06
-- [x] `quickSpecs` array field (max 4) di tab baru "Quick Specs" — iconName (select), label, subtitle. Frontend: kalau CMS diisi override; kosong = auto-derive dari rooms/guests/rating/amenities — 2026-08-06
-- [x] `amenities.icon` diganti dari text ke select pakai iconOptions — 2026-08-06
-- [x] `additionalBlocks` (type: blocks) di tab baru "🔒 Custom Sections" — full access ke semua 16 block. Field-level access: `update: superAdminFieldAccess` (super-admin only bisa edit; editor lain read-only) — 2026-08-06
-- [x] Frontend villa/[slug]: render CMS quickSpecs kalau ada, else fallback derived. BlockRenderer untuk additionalBlocks setelah main section (di antara Room Options dan Recommended Alternatives) — 2026-08-06
-
-### 3.7.1.1 Accommodations CMS restructure ✅ DONE
-- [x] `Accommodations.ts` restructure jadi 7 tabs: Overview / Media / Amenities & Highlights / Rooms & Pricing / Location & Experiences / Policies / Booking. seoFields tetap sidebar — 2026-08-06
-- [x] Field baru: `subtitle` (short tagline), `highlightTags[]` (chip sidebar, fallback ke amenities), `nearbyLandmarks[]` ({name, distance}), `curatedExperiences[]` ({name}) — 2026-08-06
-- [x] `type` + `starRating` di-row, `destination` + `category` di-row, roomType `bedType`+`maxGuests` di-row + `pricePerNight`+`currency` di-row, `checkInTime`+`checkOutTime` di-row — kompaktkan admin UI — 2026-08-06
-- [x] Villa/[slug] update konsumsi field baru: subtitle di bawah title, highlightTags override sidebar tags, nearbyLandmarks + curatedExperiences render side-by-side setelah map, policies section, check-in/out di sidebar sebelum Concierge — 2026-08-06
-
-### 3.7.1 Villa (pilot) ✅ DONE
-- [x] Villa listing = CMS Page slug='villa' dgn ServiceListing + TrustBadges block — 2026-08-06
-- [x] `apps/web/src/pages/villa/[slug].astro` — detail route mengikuti reference villa_detail: hero bento gallery (1 big + 2 side), 12-col layout (8 left detail + 4 sticky booking), quick specs 4-card (rooms/guests/rating/amenities), amenities grid dgn icon bulat, location dgn map embed fallback, room types list, sticky booking sidebar (tags+price+form+Reserve WA+Concierge), recommended alternatives 3 card — 2026-08-06
-- [x] `AccommodationCard` diberi prop `hrefBase` (default `/accommodations`, ServiceListing pass `/villa`) — 2026-08-06
-- [x] `ServiceListingBlock` detailRouteMap accommodations → `/villa` (default asumsi ServiceListing dipakai untuk villa/hotel/resort pattern) — 2026-08-06
-- [x] Filter type villa/hotel/resort di getStaticPaths — guesthouse tetap di /accommodations legacy route
-- [x] `apps/web/src/pages/villa/index.astro` — full page dgn: editorial heading, destination filter pills (CMS destinations + "All Bali"), search bar (name/dates/guests), featured villa editorial card (isFeatured first, fallback first), listings grid dgn AccommodationCard, concierge/trust section (4 badges), client-side JS filter (destination + name) — 2026-08-06
-- [x] Filter type: `villa` OR `hotel` (guesthouse/resort tetap di /accommodations)
-- [x] Featured card: image full-bleed + gradient ocean overlay, editor choice badge, star rating, destination, price/night, "Reserve Experience" CTA
-- [x] Client filter JS: destination tab click → filter by data-dest, search input → filter by name (live), empty state message
-- [x] Concierge section: WhatsApp inquiry CTA + link ke /accommodations, 4 trust badges (verified/support/best-price/curated)
-- [x] `apps/cms/src/scripts/add-menu-item.ts` — script idempotent tambah "Villa" ke main-navigation menu (insert after Home)
-- [ ] Manual test: buka /villa, verify filter pill click, search input, featured card render, mobile responsive
-- [ ] Run add-menu-item script → verify nav "Villa" muncul di Header
-
-### 3.7.2 Tour CMS restructure ✅ DONE
-- [x] `Tours.ts` restructure jadi 9 tabs: Overview / Media / Quick Specs / Highlights & Meeting / Itinerary / Includes & Info / Pricing / 🔒 Custom Sections / Booking — 2026-08-06
-- [x] Field baru: `meetingPoint` group (name, time, address, mapEmbed), `pickupService` group (available checkbox + areas + notes conditional), `additionalInfo` richText, `itinerary[].iconName` (select) — 2026-08-06
-- [x] Reuse: `pricingFields` (adult/child/infant + note), `subtitle` (existing), `highlights`, `includes`, `excludes` — 2026-08-06
-- [x] `additionalBlocks` (blocks type, super-admin only via `superAdminFieldAccess`) — full 16 block (tours_blocks_ prefix pendek, no filter needed) — 2026-08-06
-- [x] `quickSpecs` array (max 4, iconName select + label + subtitle) — 2026-08-06
-- [x] Rows untuk kompak: destination+category, duration+min+max participants, itinerary time+title+icon — 2026-08-06
-- [x] Frontend `/tour/[slug]` detail page mirror `/villa/[slug]`: hero bento, 12-col split, quick specs, highlights, itinerary timeline dgn icon+time, includes/excludes side-by-side, meeting point + pickup service, additional info, sidebar booking (date + adults + children + Book Tour WA), additionalBlocks, recommended tours — 2026-08-06
-
-### 3.7.4 WaterActivities + Yachts + Restaurants + Venues rollout ✅ DONE
-- [x] `WaterActivities.ts` — 8 tabs: Overview / Media / Quick Specs / What to Bring & Safety / Pricing / 🔒 Custom Sections / Booking. Field baru: subtitle, quickSpecs, whatToBring[].icon (select), additionalBlocks filter [valuePropsBanner, testimonialsCarousel, serviceListing] karena water_activities_blocks_ prefix panjang — 2026-08-07
-- [x] `Yachts.ts` — 9 tabs: Overview / Media / Quick Specs / Amenities / Specifications / Cruise Packages / 🔒 Custom Sections / Booking. Field baru: subtitle, quickSpecs, amenities.icon (select), additionalBlocks (full blocks, prefix pendek) — 2026-08-07
-- [x] `Restaurants.ts` — 8 tabs: Overview / Media / Quick Specs / Features / Menu Highlights / Location & Hours / 🔒 Custom Sections / Booking. Field baru: subtitle, quickSpecs, features (name+icon), cuisine dgn emoji, additionalBlocks filter [valuePropsBanner, testimonialsCarousel] — 2026-08-07
-- [x] `Venues.ts` — 10 tabs: Overview / Media / Quick Specs / Features / Packages / Location / Testimonials / 🔒 Custom Sections / Booking. Field baru: subtitle, quickSpecs, features (name+icon), additionalBlocks (full blocks) — 2026-08-07
-- [x] `seed-landing-pages.ts` extended dgn 4 CMS Pages: water-activity, yacht, restaurant, venue — masing2 dgn ServiceListing + TrustBadges konten adapted per niche + nav item — 2026-08-07
-- [x] Frontend `/water-activity/[slug]`, `/yacht/[slug]`, `/restaurant/[slug]`, `/venue/[slug]` — mirror villa/[slug] layout: hero bento, 12-col split, quick specs 4-card, "amenities-style" grid per niche (what-to-bring/amenities/features/features), "location-style" (map/specs/hours), "policies-style" (safety/req), "options-style" list (packages/menu/packages), sidebar (tags+price+form+CTA+info bar+concierge), additionalBlocks BlockRenderer, recommended 3-card — 2026-08-07
-- [x] Card hrefBase prop: WaterActivityCard, YachtCard, RestaurantCard, VenueCard — semua accept override, default ke coded plural route — 2026-08-07
-- [x] ServiceGrid + ServiceListing detailRouteMap + hrefBase pass update: water-activities→/water-activity, yachts→/yacht, restaurants→/restaurant, venues→/venue — 2026-08-07
-
-### 3.7.3 Rental CMS restructure ✅ DONE
-- [x] `Rentals.ts` restructure jadi 8 tabs: Overview / Media / Quick Specs / Specifications / Includes & Requirements / Pricing Tiers / 🔒 Custom Sections / Booking — 2026-08-06
-- [x] Field baru: `subtitle`, `features` array (name + icon select — mirip amenities), `quickSpecs`, `additionalBlocks` (super-admin) — 2026-08-06
-- [x] `rentalType` labels dpt emoji hint (🏍️ Motorbike, 🚗 Car, 🚴 Bicycle, 🚤 Boat, 🏄 Surfboard, 🤿 Snorkel, 📷 Camera, 📦 Other) — 2026-08-06
-- [x] Specs group (brand+model+year row) di-kompaktkan — 2026-08-06
-- [x] Pricing tiers row (duration+price+currency) — 2026-08-06
-- [x] Frontend `/rental/[slug]` detail page mirror `/villa/[slug]`: hero bento, 12-col split, quick specs, specifications (brand/model/year card grid + details textarea + features grid dgn icon), includes list, pricing tiers table, requirements, sidebar booking (pickup + return date + quantity select + Book Rental WA), additionalBlocks, recommended (same rentalType) — 2026-08-06
-- [x] `TourCard` + `RentalCard` diberi prop `hrefBase` (default `/tours`, `/rentals`). ServiceGrid + ServiceListing pass `/tour` `/rental` supaya click card ke CMS-driven detail — 2026-08-06
-- [x] `ServiceListingBlock.detailRouteMap`: tours→/tour, rentals→/rental — 2026-08-06
-
----
-
-## Phase 3.8 — Header & Footer CMS Sync 🔨 IN PROGRESS
-
-Gap ditemukan (investigasi 2026-08-07): Header 80% CMS-driven, Footer 60%.
-Yang masih hardcoded: Header CTA button text, Footer Quick Links column.
-Setup Global baru "Header Settings" + "Footer Settings" (grup System) untuk
-kontrol struktural (menu wiring + CTA + toggle). Kontak/social/copyright
-TETAP di SiteSettings (tidak duplikasi).
-
-### 3.8.1 CMS — Global Settings Baru ✅ DONE
-- [x] `apps/cms/src/globals/HeaderSettings.ts` — primaryMenu relationship, showCtaButton, ctaText, ctaType (whatsapp/custom), ctaCustomLink (conditional), stickyOnScroll, transparentOnTop. Grup System, super-admin only — 2026-08-07
-- [x] `apps/cms/src/globals/FooterSettings.ts` — columns array (columnLabel + menu relationship, max 4). Grup System, super-admin only — 2026-08-07
-- [x] Registrasi kedua global di payload.config.ts `globals: [SiteSettings, HeaderSettings, FooterSettings]` — 2026-08-07
-
-### 3.8.2 Seed Data ✅ DONE
-- [x] `seed-header-footer.ts` — idempotent create menu `footer-quick-links` (Home/About/Contact/Property) + set HeaderSettings defaults (primaryMenu=main-navigation, showCta=true, ctaText="WhatsApp Booking", ctaType=whatsapp) + FooterSettings (1 column: Quick Links → footer-quick-links) — 2026-08-07
-
-### 3.8.3 Frontend — Sync ✅ DONE
-- [x] `apps/web/src/lib/payload.ts` — tambah `getHeaderSettings()` + `getFooterSettings()` — 2026-08-07
-- [x] Header.astro — fetch HeaderSettings, resolve primaryMenu.slug (fallback main-navigation), CTA config-driven (showCtaButton/ctaText/ctaType/ctaCustomLink), transparent behavior: prop override → HeaderSettings.transparentOnTop → default false. Both desktop + mobile CTA updated — 2026-08-07
-- [x] Footer.astro — fetch FooterSettings + async loop menus per column, render CMS-driven columns. Fallback ke hardcoded Quick Links kalau FooterSettings.columns kosong (safety net). SiteSettings preserved untuk brand/contact/social/copyright. Services column tetap dari `enabledModules()` (per user decision) — 2026-08-07
-- [x] **Fix**: Menu items di Header & Footer Quick Links tidak sync (selalu fallback). Root cause: `getMenuBySlug()` pakai `fetchBySlug` yang filter `status=published`, sedangkan collection Menus pakai enum `status: 'active' | 'inactive'` → filter tidak match → return null → jatuh ke fallback nav. Fix Opsi A: konsumsi `headerCfg.primaryMenu.items` dan `footerCfg.columns[].menu.items` yang sudah ter-populate langsung dari global fetch (relationship di-resolve Payload by default), hilangkan double-fetch. `servicesMenu` di Footer ikut fix pola sama. — 2026-08-07
-
-### Decision Log — Phase 3.8
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-07 | Header/Footer Settings TIDAK duplikasi field contact/social/copyright dari SiteSettings | Single source of truth: SiteSettings sudah full untuk konten branding. HeaderSettings hanya kontrol structural (menu wiring + CTA behavior). FooterSettings hanya kontrol kolom menu ekstra. |
-| 2026-08-07 | Services column Footer tetap dari `enabledModules()` config, bukan CMS Menu | User decision. Services = struktur produk (per-toggle di config), bukan editorial menu. Zero duplikasi data. |
-| 2026-08-07 | Footer fallback ke hardcoded Quick Links kalau FooterSettings.columns kosong | Safety net supaya Footer tetap punya konten kalau editor belum isi FooterSettings. Fallback disappear otomatis begitu editor tambah minimal 1 column. |
-| 2026-08-07 | Konsumsi relationship menu dari global response langsung (bukan re-fetch via `getMenuBySlug`) | Payload sudah populate relationship di response Global by default (`primaryMenu.items` dan `columns[].menu.items` sudah ada). Re-fetch redundan + expose bug: collection `Menus` pakai status enum `'active'/'inactive'` sedangkan `fetchBySlug` default filter `status=published` → mismatch → semua menu return null. Konsumsi langsung = 1 request lebih sedikit + tidak ada risiko status filter mismatch. |
-
-**Manual Test Log — Phase 3.8**
-(diisi setelah setiap step)
-
----
-
-## Phase 3.13 — ServiceListing Template 2 (Hero Immersive) 🔨 IN PROGRESS
-
-Menambahkan opsi layout kedua ke block `ServiceListing`: **Hero Immersive** (hero image/video background + floating filter tabs + search bar di dalam hero, tanpa featured card, dengan cards style "detailed" — multi-image slider, rating, description, amenity badges, Book Now button). Layout existing tetap tersedia sebagai **Editorial Featured** (default) dan tidak berubah visualnya.
-
-### Approach
-- **CMS**: field `layout` (select: editorial-featured / hero-immersive) di atas tabs, super-admin only via `superAdminFieldAccess`. Field additive lainnya opsional + default aman.
-- **Frontend**: split ke 3 file — `ServiceListingBlock.astro` (dispatcher tipis), `ServiceListingEditorial.astro` (markup existing, verbatim), `ServiceListingHeroImmersive.astro` (baru). Split dipilih karena struktur Template 2 (hero full-width + floating filter) beda fundamental, bukan sekadar tweak class. Split = regression risk nol untuk Template 1.
-- **Cards**: 7 card component (`Accommodation/Tour/WaterActivity/Yacht/Restaurant/Venue/Rental`) diberi prop `variant?: 'compact' | 'detailed'`. Default `compact` (tidak berubah). `detailed` delegate ke shared `DetailedCard.astro` — multi-image slider + rating + description + amenity pills + Book Now button.
-
-### 3.13.1 CMS Block Config ✅ DONE
-- [x] `layout` field super-admin only di ServiceListing block — 2026-08-08
-- [x] Tab baru "Hero" (conditional pada layout=hero-immersive) — heroBackground group (backgroundType image/video, backgroundImage, backgroundVideo, overlayOpacity) — 2026-08-08
-- [x] Tab "Filter & Search" diperluas — showDatePicker, showGuestCount, searchButtonText — 2026-08-08
-- [x] Tab baru "Card Style" — cardVariant (compact/detailed), showLoadMore + loadMoreText + initialVisibleCount — 2026-08-08
-
-### 3.13.2 Frontend Split ✅ DONE
-- [x] `ServiceListingBlock.astro` di-rewrite jadi dispatcher (~15 lines) — 2026-08-08
-- [x] `ServiceListingEditorial.astro` = markup existing verbatim + tambahan variant pass-through + Load More support — 2026-08-08
-- [x] `ServiceListingHeroImmersive.astro` baru — hero image/video background (YouTube/Vimeo/direct file/image), floating destination pills + search bar di dalam hero area, tanpa featured card, cards default `detailed` — 2026-08-08
-- [x] Editorial JS query id prefix ketatkan ke `sl-` supaya tidak double-bind ke Hero Immersive grids (prefix `slh-`) — 2026-08-08
-
-### 3.13.3 Detailed Card Variant ✅ DONE
-- [x] `apps/web/src/components/cards/DetailedCard.astro` shared component (multi-image slider dgn dot indicator + JS, badge, eyebrow, title + rating stars, description 2-line clamp, amenity pills, price + Book Now button) — 2026-08-08
-- [x] 7 card diextend dgn prop `variant`: Accommodation, Tour, WaterActivity, Yacht, Restaurant, Venue, Rental — semua additive, default `compact` (regression-safe) — 2026-08-08
-
-### Decision Log — Phase 3.13
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-08 | Split frontend jadi 3 file (dispatcher + 2 layout) alih-alih conditional dalam 1 file | Struktur Hero Immersive fundamental beda (hero full-width vs section datar, floating filter vs section terpisah, no featured card). 1-file bakal ~700+ baris dgn 2 markup path yang sulit di-review. Split = regression Template 1 zero-risk (markup asli dipindah utuh via `cp`). |
-| 2026-08-08 | `DetailedCard.astro` shared component (satu markup, 7 adapter di masing2 card) | Alternatif duplikasi markup di 7 card = 500+ baris redundant, sulit maintain (fix bug di dot indicator = edit 7x). Adapter approach: masing2 card normalize data-nya sendiri (subtitle/description/gallery/amenities/features) → delegate ke DetailedCard. Kalau butuh style perbedaan per-service nanti, tinggal split. |
-| 2026-08-08 | Search/filter + Load More = VISUAL ONLY (JS interaction ada, tapi belum ada logic dates/guests) | Sesuai instruksi user. Destination filter + name search JS functional (client-side hide/show). Date picker + guest count = input placeholder saja (belum wired ke query/API). Load More: functional (reveal hidden cards) tapi belum ada pagination fetch. Follow-up task terpisah. |
-| 2026-08-08 | Hero Immersive default `cardVariant='detailed'` (bukan mengikuti CMS field default `compact`) | Reference `template2-target.png` selalu detailed cards. Kalau editor override ke compact via Card Style tab, tetap dihormati. |
-| 2026-08-08 | Field-level access `superAdminFieldAccess` untuk `layout` (bukan collection-level) | Editor & Admin tetap bisa edit semua konten & blocks; hanya field `layout` yang read-only untuk mereka. Match instruksi user: "user lain hanya bisa melakukan edit, penambahan block akan tetapi tidak dapat melakukan perubahan template". |
-
-**Fixes & Enhancements — Phase 3.13**
-- [x] Fix: unified frame untuk destination tabs + search bar — tabs dan search bar dibungkus dalam SATU card sesuai reference. — 2026-08-08
-- [x] Enhancement: CMS-controlled pagination — field `paginationType` (select: load-more / pages) di tab Card Style. Load More = reveal batch berikutnya per klik. Pages = numbered pagination (1, 2, 3… + prev/next). Kedua template (Editorial + HeroImmersive) support. Filter/search reset ke page 1. — 2026-08-08
-- [x] Enhancement: Pagination ditambahkan ke 3 block lain — Testimonials, TestimonialsCarousel, ServiceGrid. Field CMS: `paginate` (checkbox), `pageMode` (load-more/pages), `pageSize` (number), `moreText` (text). Field names pendek untuk avoid 63-char overflow. — 2026-08-08
-- [x] Fix: scroll position saat ganti page — semua 5 komponen pagination sekarang scroll ke posisi atas grid cards (dengan offset 100px untuk fixed header), bukan `scrollIntoView` yang bisa tertutup header. — 2026-08-08
-- [x] Enhancement: mobile responsive pagination — pada mobile (<768px), cards per page ditampilkan dalam horizontal swipeable row (scroll-snap) yang bisa di-swipe. Pagination nav tetap di bawah. Desktop tetap grid layout biasa. Berlaku untuk semua 5 komponen: Testimonials, TestimonialsCarousel, ServiceGrid, ServiceListingEditorial, ServiceListingHeroImmersive. — 2026-08-08
-
-**Manual Test Log — Phase 3.13**
-- [x] `pnpm astro sync` sukses di apps/web — types + imports valid
-- [ ] CMS admin: field `layout` muncul di ServiceListing block, super-admin bisa switch, editor read-only — pending manual test
-- [ ] Conditional tabs (Hero) hanya muncul saat layout=hero-immersive — pending manual test
-- [ ] Regression: block ServiceListing existing (default `editorial-featured`) render identik dgn sebelumnya — pending manual test
-- [ ] Template 2 visual vs `template2-target.png`: hero background, floating filter pills, search bar rounded, detailed card layout (multi-image, rating, description, amenities, Book Now, Load More) — pending manual test
-- [ ] Multi-instance: 2 ServiceListing block di 1 halaman (mixed editorial + hero-immersive) — JS scope terisolasi by listing-id — pending manual test
-
----
-
-## Phase 3.14 — CMS Admin UX Restructure + Demo Content Seeding ✅ DONE
-
-Merapikan sidebar admin (role-based visibility + regrouping + ordering) supaya
-client (role admin) hanya melihat menu yang relevan, plus seed konten demo
-lengkap untuk semua halaman utama + landing pages agar frontend punya data
-nyata untuk verifikasi.
-
-### 3.14.1 Role-based sidebar visibility (`admin.hidden`) ✅ DONE
-- [x] Roles existing dikonfirmasi: `editor` / `admin` / `super-admin` (di `Users.ts`, checker di `access/roles.ts`) — 2026-08-19
-- [x] `Users` collection — `hidden` untuk non super-admin — 2026-08-19
-- [x] `Menus` collection — `hidden` untuk editor (admin+ visible) — 2026-08-19
-- [x] Globals `SiteSettings`, `HeaderSettings`, `FooterSettings`, `HomepageContent` — `hidden` untuk editor — 2026-08-19
-- [x] Global `SiteFeatures` — `hidden` untuk non super-admin — 2026-08-19
-- [x] `admin.hidden` HANYA menyembunyikan dari sidebar UI — access control (read/create/update/delete) tidak diubah, tetap enforce di API level — 2026-08-19
-
-### 3.14.2 Admin access update — client (admin) bisa edit settings ✅ DONE
-- [x] `SiteSettings`, `HeaderSettings`, `FooterSettings` — `access.update` diubah dari `isSuperAdmin` → `isAdmin` supaya client (role admin) bisa adjust brand/kontak/nav/footer sendiri. Editor tetap tidak bisa (hidden + no update access) — 2026-08-19
-
-### 3.14.3 Sidebar group restructure + ordering ✅ DONE
-- [x] Payload 3.x TIDAK support custom nav icon bawaan (butuh override Nav component) — di-skip — 2026-08-19
-- [x] Group baru: `Content` (Pages + Destinations + Categories + Testimonials), `Services` (7 service collections), `Site Builder` (Menus + Media), `Administration` (Users), `Settings` (5 globals) — 2026-08-19
-- [x] `Pages` dipindah dari group `Layout` → `Content`; `Media` dari `Content` → `Site Builder`; `Menus` dari `Layout` → `Site Builder`; `Users` dari `System` → `Administration`; semua globals dari `System` → `Settings` — 2026-08-19
-- [x] Ordering via urutan registrasi di `payload.config.ts` — Content → Services → Site Builder → Administration; globals: SiteSettings → Header → Footer → HomepageContent → SiteFeatures — 2026-08-19
-
-### 3.14.4 Demo content seed — main pages ✅ DONE
-- [x] `seed-demo-content.ts` + script `pnpm seed:demo` — 5 pages: home, about, contact, privacy-policy, terms — 2026-08-19
-- [x] Home: Hero + ValuePropsBanner + 3× ServiceGrid + StatsBanner + TestimonialsCarousel (6) + CTA — 2026-08-19
-- [x] About: Hero + RichText (company story) + StatsBanner + TestimonialsCarousel (3) + CTA — 2026-08-19
-- [x] Contact: Hero + Contact + CTA. Privacy/Terms: RichText (full legal copy travel-themed) — 2026-08-19
-- [x] Semua page `status: published`, idempotent (upsert by slug), travel-themed copy — 2026-08-19
-
-### 3.14.5 Service landing pages repair + Explore Bali ✅ DONE
-- [x] **Bug ditemukan**: landing pages `/tour /yacht /restaurant /rental /water-activity /venue` kehilangan blok `serviceListing` (hanya `trustBadges` tersisa) — cards tidak tampil. Kemungkinan ter-wipe saat nuclear-reset serviceListing; hanya `/villa` yang lengkap. Data service records utuh (4-5/collection) — 2026-08-19
-- [x] `seed-service-landing-content.ts` + script `pnpm seed:landing` — re-seed 6 landing pages dgn `serviceListing` (hero-immersive, mirror shape /villa yg working) + `trustBadges`. NO schema change (data only, nol risiko CMS 500) — 2026-08-19
-- [x] Page baru `explore-bali` — Hero + ValuePropsBanner + 4× ServiceGrid (Tours/Stays/Activities/Yachts) + StatsBanner + CTA. Nav item "Explore Bali" ditambah after Home — 2026-08-19
-- [x] Script verifikasi in-line: konfirmasi `serviceListing` ter-persist di semua 6 page sebelum exit — 2026-08-19
-
-### 3.14.6 Homepage SEO title fix ✅ DONE
-- [x] `apps/web/src/pages/index.astro` — `pageTitle` untuk homepage CMS-driven pakai `seo.metaTitle ?? title` (sebelumnya cuma `title` = "Home"). Menyelaraskan dgn `[...slug].astro` yg sudah pakai metaTitle — 2026-08-19
-
-**Manual Test Log — Phase 3.14 (frontend rendering verification)**
-```
-Pages verified (desktop + mobile 375px, zero console errors, no horizontal overflow):
-  [x] /                → 8 blocks, title = metaTitle (fixed), links functional
-  [x] /about           → 5 blocks, all render
-  [x] /contact         → 3 blocks (kontak pakai placeholder SiteSettings — low, expected)
-  [x] /privacy-policy  → RichText full copy
-  [x] /terms           → RichText full copy
-  [x] /tour            → serviceListing 4 tours + trustBadges + pagination
-  [x] /yacht           → serviceListing 5 yachts + trustBadges + pagination
-  [x] /restaurant      → serviceListing 4 restaurants + pagination
-  [x] /rental          → serviceListing 4 rentals + pagination
-  [x] /water-activity  → serviceListing 4 activities + pagination
-  [x] /venue           → serviceListing 5 venues + pagination (mobile page-click works: 3+2)
-  [x] /explore-bali    → hero + 4 serviceGrids (12 cards) + stats + CTA
-  [x] /villa (regression) → tetap lengkap, mobile cards 327px swipe
-```
-
-**Known follow-ups (Phase 4 backlog):**
-- [ ] Hero background image landing pages di-assign arbitrer dari media pool (mis. /yacht pakai foto motor) → client upload & assign hero sesuai per page di CMS
-- [ ] RichText privacy/terms: section heading ("1. General" dst) render sbagai paragraph biasa (seed helper cuma emit paragraph node) → editor format heading di CMS, atau upgrade helper
-- [ ] SiteSettings kontak + map embed belum diisi → Contact block tampil placeholder
-- [ ] Manual test admin panel: login sebagai role `admin` & `editor` → verify sidebar visibility sesuai matrix (butuh CMS restart)
-
-**Pending — butuh CMS restart untuk apply group/hidden/access changes:**
-- [ ] Restart `pnpm dev` di apps/cms → verify sidebar groups + role visibility + admin bisa edit SiteSettings/Header/Footer
-
----
-
-## Phase 3.19 — Admin Dashboard Overview (nice-to-have) ✅ DONE
-
-Custom overview stats + recent activity di atas dashboard admin Payload.
-Payload 3.x mendukung ini via `admin.components.beforeDashboard` (Server
-Component) — tidak terlalu kompleks, jadi dikerjakan (bukan di-skip).
-
-### Implementasi ✅ DONE
-- [x] `apps/cms/src/admin/DashboardStats.tsx` — async Server Component. Query via `payload` local API (count + find), no HTTP — 2026-08-20
-- [x] Stat cards: Pages (published/draft), Active Services, Testimonials, Media — 2026-08-20
-- [x] Recent Activity: last 5 edits across 12 collections (sort -updatedAt, merge, take 5), link ke edit view — 2026-08-20
-- [x] Styling pakai CSS var tema Payload (`--theme-elevation-*`, `--theme-text`) → konsisten light/dark. Accent border pakai design token brand — 2026-08-20
-- [x] Register di `payload.config.ts` `admin.components.beforeDashboard: ['/admin/DashboardStats#default']` + `pnpm generate:importmap` — 2026-08-20
-
-### Manual Test Log — Phase 3.19
-```
-[x] importMap ter-generate dgn entry DashboardStats
-[x] CMS boot bersih, /admin (login) render 200 tanpa console error → komponen kompilasi OK
-[x] Data queries terverifikasi via REST: Pages 12 pub/1 draft, Services 7,
-    Testimonials 7, Media 22, recent activity dgn timestamp benar
-[ ] Visual render dashboard (post-login) — PERLU login super-admin (tidak bisa
-    dilakukan otomatis; password entry di luar kemampuan agent)
-```
-
-### Decision Log — Phase 3.19
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-20 | Pakai `beforeDashboard` (bukan override full dashboard view) | Lebih ringan & aman — nambah section di atas dashboard default, tidak mengganti UI Payload existing |
-| 2026-08-20 | Server Component + `payload` local API | Query langsung tanpa HTTP round-trip; standar Payload 3 untuk admin RSC |
-| 2026-08-20 | safeCount() try/catch per query | Kalau satu collection error, dashboard tetap render (graceful degradation) |
-
----
-
-## Phase 3.18 — Testimonials: Block dari Collection ✅ DONE
-
-Testimonials SUDAH dedicated collection (Phase 3.11). Task ini menyambungkan
-block `testimonials` & `testimonialsCarousel` supaya bisa pilih sumber:
-**inline** (isi manual, existing) atau **collection** (ambil dari koleksi
-Testimonials dgn filter service/destination/featured/limit).
-
-### 3.18.1 Collection enhancement (additive) ✅ DONE
-- [x] Testimonials collection TIDAK dibuat ulang (sudah ada) — hanya tambah 2 field: `destination` (relationship→destinations, untuk filter "by destination") + `date` (untuk urutan kronologis). Field lain (name/quote/rating/avatar/`sourceModule`/isFeatured/status) tetap — 2026-08-20
-
-### 3.18.2 Block config — source toggle ✅ DONE
-- [x] Helper `testimonialSourceFields()` di blocks/index.ts — `source` (inline/collection), `svc` (service filter), `filterDest` (relationship), `onlyFeatured`, `maxItems`. Dipakai di kedua block — 2026-08-20
-- [x] Nama field select SENGAJA pendek (`source`/`svc`) — worst case `enum_water_activities_blocks_testimonials_carousel_source`=57 (<63). `items` array jadi conditional (source≠collection), required→false — 2026-08-20
-
-### 3.18.3 Frontend ✅ DONE
-- [x] `TestimonialsBlock.astro` + `TestimonialsCarouselBlock.astro` — kalau source=collection: fetch `getTestimonials` dgn where {sourceModule, isFeatured, destination} + limit + sort '-date'; map avatar→photoUrl. Kalau inline: pakai block.items (existing) — 2026-08-20
-- [x] `seed-testimonials.ts` (+ `pnpm seed:testimonials`) — 7 record contoh dgn sourceModule/destination/featured/date — 2026-08-20
-- [x] About page di-set source=collection (featured only) sebagai demo real; homepage tetap inline — 2026-08-20
-
-### ⚠️ Schema migration recovery (Payload SQLite push bug)
-- [x] Menambah field ke block existing memicu bug Payload: push meng-emit `CREATE INDEX` dobel untuk block sub-table yg di-ALTER → gagal. Drop index saja tak cukup (push emit ulang) — 2026-08-20
-- [x] **Recovery**: drop 26 tabel `*_blocks_testimonials*` (bukan tabel utama `testimonials`, bukan `venues_testimonials`) → push recreate fresh (sekali, no dup) → sukses. Data block inline (home/about/villa) di-restore via re-seed (seed-demo-content + seed-villa-page) — 2026-08-20
-- [x] Pola drop-and-recreate ini konsisten dgn recovery block sebelumnya (drop-cta-tables dll) — 2026-08-20
-
-### Manual Test Log — Phase 3.18 (empiris)
-```
-[x] Schema push sukses setelah recovery — /api/testimonials → 200 (7 records)
-[x] Filter API: sourceModule=tours + featured → Sarah Mitchell ✅
-[x] Source=collection (About page): tampil 4 featured dari collection
-    (Chen/Mitchell/Bergmann/Emma) + lokasi; nama inline lama (Alex/Sophie/Mark) hilang ✅
-[x] Source=inline (Homepage): tetap inline (Sarah Mitchell "Australia" dst) — regresi OK ✅
-[x] Semua page 200 server-side; warm reload 59 resources semua 200 (500 sempat
-    transient saat CMS restart, benign) ✅
-```
-
-### Decision Log — Phase 3.18
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-20 | Tidak recreate collection, hanya tambah destination+date | Instruksi: skip step 2 kalau collection sudah ada. Field existing (name/quote/sourceModule/isFeatured) sudah cukup untuk sebagian besar filter |
-| 2026-08-20 | Field select block pakai nama pendek `source`/`svc` | testimonialsCarousel embed di additionalBlocks water_activities → prefix 51 char, budget 12. `filterService` (13) overflow, `svc` (3) aman |
-| 2026-08-20 | Recovery via drop block TABLES (bukan index) | Bug Payload emit CREATE INDEX dobel saat ALTER; drop index tak menolong. Drop tabel → recreate fresh sekali. Data inline di-restore via re-seed |
-| 2026-08-20 | About page → source=collection sebagai demo | Bukti end-to-end + improvement nyata (About tampil testimonial asli dari CMS, bukan hardcode) |
-
-**Catatan dev:** `/explore-bali` sempat 404 di dev (getStaticPaths cache) — touch `[...slug].astro` untuk refresh. Production build selalu fresh.
-
----
-
-## Phase 3.17 — WhatsApp Deep Integration (template + variables) ✅ DONE
-
-Menyempurnakan WA per-service: Task 3.3 sudah wire NOMOR; sekarang wire
-TEMPLATE pesan (CMS-editable) dengan dukungan variabel placeholder, plus
-verifikasi empiris penuh (custom number, fallback, variable replacement).
-
-### 3.17.1 Field verification ✅
-- [x] `whatsappNumber` + `whatsappTemplate` sudah ada di ServiceTypes (dari 3.15) — skip penambahan field. SiteSettings sudah punya WA default (`contact.whatsapp`) — 2026-08-20
-
-### 3.17.2 Template renderer + variables ✅ DONE
-- [x] `lib/whatsapp.ts` — `renderWhatsAppTemplate(template, vars)` — ganti `{{serviceName}}`, `{{destination}}`, `{{date}}`, `{{userName}}`, `{{price}}`. Variabel tak terisi → placeholder `[nama]` untuk diisi visitor — 2026-08-20
-- [x] `ServiceTypes.whatsappTemplate` field description didokumentasikan dengan daftar variabel — 2026-08-20
-- [x] `seed-service-types.ts` — 7 template di-upgrade pakai variabel (mis. accommodations: "...booking *{{serviceName}}* di {{destination}}. Check-in: {{date}}...") + re-seed — 2026-08-20
-
-### 3.17.3 Frontend integration (7 detail pages) ✅ DONE
-- [x] Priority pesan WA: `item.whatsappMessage` (override per-listing) → `ServiceType.whatsappTemplate` (rendered) → builder per-collection (fallback) — 2026-08-20
-- [x] Priority nomor WA: `ServiceType.whatsappNumber` → SiteSettings → siteConfig — 2026-08-20
-- [x] Wire villa/tour/rental/yacht/venue/restaurant/water-activity detail — 2026-08-20
-- [x] CTA/Contact block generik tetap pakai WA global (tidak punya konteks service) — by design — 2026-08-20
-
-### Manual Test Log — Phase 3.17 (empiris, via frontend)
-```
-[x] Variable replacement — /villa/seaside-villa-lembongan booking button:
-    "...booking *Seaside Villa Lembongan* di Lembongan. Check-in: [date]..."
-    → {{serviceName}}→nama, {{destination}}→Lembongan, {{date}}→[date] ✅
-[x] Custom WA number — set yachts.whatsappNumber=6280000000009 (test) →
-    /yacht/ocean-serenity-catamaran booking → number=6280000000009 ✅
-    (test number di-clear kembali ke null setelah verifikasi)
-[x] Fallback global — service tanpa custom number (villa) → 6282386357012
-    (SiteSettings) ✅
-[x] 7 detail page render tanpa error (hanya HMR WebSocket dev-only)
-```
-
-### Decision Log — Phase 3.17
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-20 | Template = priority DI ATAS builder (di bawah item override) | Task minta pesan digenerate dari template CMS. Client kini kontrol pesan; builder jadi fallback kalau template kosong |
-| 2026-08-20 | Variabel tak terisi → `[nama]` bukan string kosong | {{userName}}/{{date}} tak ada datanya di SSG → visitor isi sendiri di chat, konsisten dgn pola builder lama ("[isi tanggal]") |
-| 2026-08-20 | CTA/Contact block generik tetap WA global | Block generik tidak punya konteks service type; WA per-service hanya relevan di detail page & landing |
-
----
-
-## Phase 3.16 — Wire ServiceTypes ke Consumer (Task 3.3) ✅ DONE
-
-Menyambungkan collection `service-types` (dibuat di 3.15) ke consumer frontend
-supaya metadata yang di-edit client benar-benar reflect di situs — services
-jadi "fully manageable" untuk 7 vertical tetap (bukan sekadar collection
-menganggur). Semua wiring bersifat **additive/fallback** → nol regresi.
-
-### Keputusan scope (user: "Semua di atas")
-- Sambungkan: landing hero/desc/SEO, WhatsApp per-service, nav + block heading.
-- Header nav TIDAK di-override (sudah pakai CMS Menu by design) → "nav" dicover
-  Footer (3.15) + block heading fallback. Menghindari bentrok sistem Menu.
-
-### 3.16.1 Block enrichment (heading/description/hero fallback) ✅ DONE
-- [x] `ServiceListingBlock.astro` dispatcher — fetch `getServiceTypeByKey(serviceType)`, pass `serviceMeta` ke kedua layout — 2026-08-20
-- [x] `ServiceListingHeroImmersive.astro` — heading/description fallback ke ServiceType.name/description; hero singleImage fallback ke ServiceType.coverImage — 2026-08-20
-- [x] `ServiceListingEditorial.astro` — heading/description fallback sama — 2026-08-20
-- [x] `ServiceGridBlock.astro` — heading fallback ke ServiceType.name — 2026-08-20
-- [x] Pola: field blok = OVERRIDE (menang), ServiceType = fallback. Editor tetap bisa custom editorial copy per-blok — 2026-08-20
-
-### 3.16.2 SEO fallback ✅ DONE
-- [x] `[...slug].astro` — kalau slug page == ServiceType.slug, SEO fallback ke ServiceType.metaTitle/metaDescription (Page.seo tetap menang kalau diisi) — 2026-08-20
-
-### 3.16.3 WhatsApp per-service ✅ DONE
-- [x] `lib/serviceTypes.ts` — helper `getServiceWhatsApp(key, fallbackNumber)` → nomor dari ServiceType.whatsappNumber, fallback ke SiteSettings/siteConfig — 2026-08-20
-- [x] Wire 7 detail page NEW routes: villa/tour/rental/yacht/venue/restaurant/water-activity — precedence: ServiceType.whatsappNumber → SiteSettings → siteConfig. Pesan tetap pakai per-listing builder (lebih kaya) — 2026-08-20
-- [x] Legacy plural routes (accommodations/tours/dst) sengaja tidak disentuh (deprecated) — 2026-08-20
-
-### 3.16.4 Footer (dari 3.15) — konfirmasi ulang ✅
-- [x] Footer services column sudah CMS-driven via `getResolvedServiceTypes()` — 2026-08-20
-
-### Manual Test Log — Phase 3.16
-```
-[x] Footer CMS-driven (dari 3.15): label "Private Yachts"/"Rentals"/"Restaurants & Dining" (cmsDriven:true)
-[x] /villa landing render OK — block override heading tetap jalan, 4 cards, hero (no regresi)
-[x] /villa/[slug] detail — render OK, 4 WA links, nomor fallback benar (ServiceType.whatsappNumber null → SiteSettings 6282386357012)
-[x] /yacht/[slug] + /tour/[slug] detail — render OK, WA present, no page error (7 detail edits non-breaking)
-[x] Semua page: hanya error HMR WebSocket (dev-only), tidak ada page/console error
-```
-
-### Batas "fully manageable" (tetap berlaku)
-- ✅ Editable via CMS: label/ikon/urutan (nav+footer), SEO per-service, WA number per-service, hero cover (kalau di-upload), deskripsi (fallback)
-- ⚠️ Editorial heading/description landing = block override (page-specific, sengaja tidak dipaksa dari ServiceType)
-- 🔒 TETAP butuh code: tambah TIPE service baru (mis. "Spa") — path full-dynamic yang tidak dipilih
-
-### Decision Log — Phase 3.16
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-20 | Block heading/description = override, ServiceType = fallback (tidak strip block fields) | Copy hero landing legit page-specific & lebih editorial dari label pendek nav. Strip = kehilangan polish + risiko re-persist blok serviceListing yg rapuh |
-| 2026-08-20 | WA: wire NUMBER ke 7 detail page, message tetap per-listing builder | Nomor per-service = nilai utama (routing booking). Pesan builder lebih kaya (nama+destinasi) drpd template generik ServiceType |
-| 2026-08-20 | Header nav tidak di-override ke ServiceTypes | Header sudah pakai CMS Menu (hand-curated). Footer + block heading sudah cukup untuk "nav services" |
-
----
-
-## Phase 3.15 — ServiceTypes CMS Collection (Task 3.2) ✅ DONE
-
-Memindahkan METADATA 7 service vertical (Tours/Villa/Water Activities/Yacht/
-Restaurant/Wedding&Event/Rental) dari hardcoded `config/modules.ts` ke CMS
-collection `service-types` — supaya client bisa adjust label/ikon/urutan/
-deskripsi/hero/WA/SEO tanpa deploy. Scope "metadata editable" (bukan full
-dynamic — 7 tipe tetap fixed, schema listing per-tipe tidak berubah).
-
-### Task 3.1 — Investigation (arsitektur services) ✅ DONE
-- [x] Konfirmasi: service TYPES hardcoded di 6 lapisan (config/modules.ts, lib/features.ts, SiteFeatures global, block serviceType select ×2, Categories.module, lib/payload getters). Service LISTINGS ada di 7 collection terpisah dgn schema per-tipe. TIDAK ada collection "Services" sebelumnya — 2026-08-19
-- [x] Keputusan user: "Metadata editable (recommended)" — buat collection metadata, 7 tipe tetap fixed — 2026-08-19
-
-### 3.15.1 CMS collection ✅ DONE
-- [x] `apps/cms/src/collections/ServiceTypes.ts` — fields: name, slug (auto), key (select 7 fixed, super-admin-only, pengikat ke collection listing), status (active/draft/archived), order, description (richText), iconName (select iconOptions), coverImage (upload), whatsappNumber, whatsappTemplate, metaTitle, metaDescription. Group `Content`, useAsTitle name, defaultSort order — 2026-08-19
-- [x] **Deviasi dari spec (didokumentasikan)**: `read: () => true` (public) bukan `authenticated` — WAJIB karena frontend SSG fetch tanpa auth; authenticated-only bikin fitur percuma. Access lain sesuai spec: create/delete super-admin, update admin+super-admin — 2026-08-19
-- [x] **Tambahan dari spec**: field `key` (7 enum fixed) — pemetaan ke collection listing existing; tanpa ini collection jadi orphan metadata — 2026-08-19
-- [x] Register di `payload.config.ts` (group Content, setelah Pages) — 2026-08-19
-- [x] Tabel `service_types` dibuat via schema push (additive, nol rename ambiguity). Identifier terpanjang `service_types_hero_image_id` ~27 char (aman < 63) — 2026-08-19
-
-### 3.15.2 Data migration ✅ DONE
-- [x] `seed-service-types.ts` + script `pnpm seed:service-types` — 7 row dari modules.ts, idempotent (upsert by key). Slug diselaraskan ke landing page CMS (tour/villa/water-activity/yacht/restaurant/venue/rental) — 2026-08-19
-- [x] `pnpm generate:types` — `ServiceType` interface + slug `service-types` masuk payload-types.ts — 2026-08-19
-
-### 3.15.3 Frontend — CMS-first dengan fallback ✅ DONE
-- [x] `apps/web/src/lib/payload.ts` — `getServiceTypes()` + `ServiceTypeDoc` (typed loose; status enum active/draft/archived → fetch `status:'all'` + where active) — 2026-08-19
-- [x] `apps/web/src/lib/serviceTypes.ts` — resolver `getResolvedServiceTypes()` + `getServiceTypeByKey()`, CMS-first dgn fallback ke modules.ts (pola features.ts). Cache per build — 2026-08-19
-- [x] `Footer.astro` services column — cascade: servicesMenu (CMS eksplisit) → ServiceTypes collection → modules.ts fallback. Bonus fix: slug service kini BENAR (/tour /villa dst; sebelumnya modules.ts salah /tours /accommodations) — 2026-08-19
-- [x] **By design TETAP hardcoded**: block `serviceType` select enum (Payload select tak bisa dynamic dari collection; convert→relationship = risiko CMS 500 di embedded blocks). 7 collection listing + schema per-tipe tidak berubah — 2026-08-19
-
-### Manual Test Log — Phase 3.15
-```
-[x] Seed sukses: 7 service-types created (CMS stopped, no SQLite lock conflict)
-[x] API public-readable: /api/service-types return 7 docs tanpa auth (read:()=>true works)
-[x] Exact resolver query (status=all + where[status]=active) → 7 docs CMS names
-[x] Footer CMS-driven CONFIRMED: label "Private Yachts"/"Rentals"/"Restaurants & Dining"
-    (CMS) menggantikan "Private Yacht"/"Rental Service"/"Restaurants" (modules.ts fallback)
-[x] Regression: /yacht landing tetap render 5 listing cards (Footer change additive)
-[x] Fallback path verified: saat CMS down, Footer jatuh ke modules.ts (tidak crash)
-```
-
-### Decision Log — Phase 3.15
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-19 | `read: () => true` (public), override spec `authenticated` | Frontend SSG fetch tanpa auth. Authenticated-only → frontend selalu fallback → fitur CMS-editable percuma. Konsisten dgn semua content collection lain |
-| 2026-08-19 | Tambah field `key` (7 enum fixed, super-admin-only) | Spec tidak punya field pemetaan. Tanpa `key`, ServiceTypes = orphan metadata yg tak terhubung ke collection listing (tours/yachts/…) |
-| 2026-08-19 | Block `serviceType` TETAP select enum (tidak convert ke relationship) | Payload select tak bisa dynamic dari collection lain. Convert→relationship = schema change di embedded blocks lintas banyak collection → risiko CMS 500 (yang user sangat hindari). Scope "metadata editable" tidak butuh ini |
-| 2026-08-19 | Resolver CMS-first + fallback modules.ts (pola features.ts) | Preview/build tetap jalan kalau CMS kosong/unreachable. Zero-downtime migration |
-
-**Follow-ups (Phase 4 backlog):**
-- [ ] Wire lebih banyak consumer ke ServiceTypes: landing page hero/description/SEO (dari coverImage/description/metaTitle), block heading fallback ke ServiceType.name, WhatsApp per-service (whatsappNumber/whatsappTemplate)
-- [ ] Upload coverImage per service type di CMS admin (saat ini null → landing pakai hero image dari block)
-- [ ] iconName rentals sementara `badge` (tak ada ikon car/motor di Icon.astro) — tambah ikon kendaraan atau pilih yg lebih pas
-- [ ] Manual test CMS admin: ServiceTypes muncul di group Content, admin bisa edit, field `key` read-only untuk non-super-admin
-
----
-
-## Phase 3.12 — Menu Manager UX ✅ DONE
-
-- [x] `MenuItemRowLabel.tsx` + `MenuChildRowLabel.tsx` client components — 2026-08-07
-- [x] Menus.ts refactor — `initCollapsed: true` di items & children; RowLabels wired via importMap — 2026-08-07
-- [x] Sub-menu (children) dapat field `type` — `page/custom_url/anchor/none` (`none` = label-only header) — 2026-08-07
-- [x] Conditional fields per type; `page` relationship untuk children type `page` — 2026-08-07
-- [x] Header.astro `resolveChildUrl()` + render `asSpan` branch untuk label-only child — 2026-08-07
-- [x] 06-MAINTENANCE-RUNBOOK §1.5 diupdate — 2026-08-07
-- [x] Report `docs/reports/phase-menu-manager-ux.md` — 2026-08-07
-- [ ] Manual test admin panel + verify data lama tetap render normal — pending
-
----
-
-## Phase 3.11 — Hardcoded Content Migration ✅ DONE
-
-- [x] Global `HomepageContent` (`homepage-content`) — hero/valueProps/stats/testimonials heading/CTA — 2026-08-07
-- [x] Collection `Testimonials` — name/quote/rating/location/avatar/sourceModule + status/sortOrder/isFeatured — 2026-08-07
-- [x] Extend `SiteSettings.errorPages` — `notFound` + `propertyComingSoon` groups — 2026-08-07
-- [x] `pages/index.astro` rewrite — 3-level cascade (Page(slug=home) → HomepageContent + Testimonials → hardcoded defaults) — 2026-08-07
-- [x] `pages/404.astro` retain-with-fallback wiring — 2026-08-07
-- [x] `pages/property.astro` retain-with-fallback wiring — 2026-08-07
-- [x] Empty-state text 6 module index.astro digenericize (Bahasa Indonesia, dev instruksi dihapus) — 2026-08-07
-- [x] `pages/demo-filter.astro` **dihapus** — 2026-08-07
-- [x] Helpers: `getHomepageContent`, `getTestimonials` di `lib/payload.ts` — 2026-08-07
-- [x] Docs: 03-CONTENT-MODEL §2.3, §2.5, §2.6 diupdate — 2026-08-07
-- [x] Report: `docs/reports/phase-hardcoded-migration.md` — 2026-08-07
-- [ ] Test manual: buat testimonial dummy di admin → rebuild → verify — pending
-- [ ] Test manual: isi HomepageContent field → rebuild → verify override — pending
-- [ ] Test manual: isi errorPages copy → rebuild → verify 404 + /property — pending
-
----
-
-## Phase 3.10 — Footer & Utility Wiring ✅ DONE
-
-- [x] Field baru `cloudflareWebAnalyticsToken` di `site-settings.defaultSeo` — 2026-08-07
-- [x] BaseLayout wire `site-settings.favicon` → `<link rel=icon>` — 2026-08-07
-- [x] BaseLayout wire `defaultSeo.metaTitle/metaDescription` sebagai fallback — 2026-08-07
-- [x] BaseLayout wire `defaultSeo.ogImage` sebagai fallback OG image — 2026-08-07
-- [x] BaseLayout inject GA4 gtag snippet dari `defaultSeo.googleAnalyticsId` — 2026-08-07
-- [x] BaseLayout inject Cloudflare Web Analytics beacon dari `defaultSeo.cloudflareWebAnalyticsToken` — 2026-08-07
-- [x] Footer render `site-settings.footer.additionalScripts` via `set:html` — 2026-08-07
-- [x] Docs: 03-CONTENT-MODEL §2.9 diupdate (4 ⚠️ hilang) — 2026-08-07
-- [x] Report: `docs/reports/phase-footer-cms-migration.md` — 2026-08-07
-- [ ] Test manual: isi field di admin → rebuild → verify di frontend — pending
-
----
-
-## Phase 3.9 — Feature Toggle CMS 🔨 IN PROGRESS
-
-- [x] Global `SiteFeatures` (`site-features`) — modules/sections/features groups — 2026-08-07
-- [x] Register di `payload.config.ts` — 2026-08-07
-- [x] Access: read public, update super-admin only — 2026-08-07
-- [x] `apps/web/src/lib/features.ts` — `getFeatures/isModuleEnabled/isFeatureEnabled/isSectionEnabled/enabledModulesAsync` — 2026-08-07
-- [x] Footer services column pakai `enabledModulesAsync()` — 2026-08-07
-- [x] WhatsAppFloating pakai `isFeatureEnabled('whatsappFloat')` — 2026-08-07
-- [x] Route guards di 5 index.astro + 12 [slug].astro (rewrite/return []) — 2026-08-07
-- [x] `pages/404.astro` dibuat sebagai fallback rewrite — 2026-08-07
-- [x] Docs updated: 03-CONTENT-MODEL, 04-RBAC, phase report — 2026-08-07
-- [ ] Regen `payload-types.ts` (butuh CMS restart di dev) — pending
-- [ ] Test end-to-end di admin panel (toggle OFF → rebuild → verify 404) — pending
-- [ ] Webhook rebuild trigger saat `site-features` diupdate — Phase 5
-
-**Catatan**: Toggle change butuh rebuild frontend (SSG mode). Otomatisasi via
-Cloudflare Pages build hook ada di Phase 5. Untuk sementara dev perlu manual
-restart `pnpm dev`.
-
-Report lengkap: [`docs/reports/phase-feature-toggle.md`](./reports/phase-feature-toggle.md)
-
----
-
-## Phase 4 — Polish & Launch ⬜ NOT STARTED
-
-- [ ] GSAP animations semua preset terpasang
-- [ ] "Journey Path" visual signature diimplementasi
-- [ ] SEO: structured data (Schema.org) per module
-- [ ] Sitemap generation terverifikasi
-- [ ] Meta tags dinamis per halaman
-- [ ] Performance audit: Lighthouse 90+ (semua kategori)
-- [ ] Mobile responsive QA — test semua breakpoint
-- [ ] Cross-browser test (Chrome, Safari, Firefox)
-- [ ] WhatsApp flow end-to-end test
-- [ ] Accessibility check (alt text, contrast, keyboard nav)
-
----
-
-## Phase 5 — Production Deploy ⬜ NOT STARTED
-
-- [ ] Cloudflare account setup + Workers paid plan ($5/mo)
-- [ ] D1 database provisioned
-- [ ] R2 bucket provisioned
-- [ ] CMS deployed ke Cloudflare Workers
-- [ ] Super-admin user dibuat di production
-- [ ] Real content di-input (bukan dummy data)
-- [ ] Frontend connected ke Cloudflare Pages (GitHub auto-deploy)
-- [ ] Environment variables production di-set
-- [ ] Custom domain pointing (dnjourneysbali.com)
-- [ ] SSL terverifikasi aktif
-- [ ] Build webhook CMS → Pages terpasang
-- [ ] Content webhook → auto-rebuild frontend saat CMS save (pindah dari Phase 3 — hanya bisa dites di production dgn Cloudflare Pages build hook)
-- [ ] Final smoke test di production URL
-
----
-
-## Phase 6 — Documentation & Template Packaging ⬜ NOT STARTED
-
-- [ ] Update SETUP.md dengan langkah final yang sudah teruji
-- [ ] Content guide untuk client (cara pakai CMS admin)
-- [ ] Screenshot/video tutorial CMS usage
-- [ ] Template checklist final untuk reuse ke client berikutnya
-- [ ] Git tag versi template: v1.0.0
-
----
-
-## Decision Log
-
-Catatan keputusan penting yang diambil selama development,
-supaya tidak perlu tanya ulang alasan di belakang keputusan.
-
-| Tanggal | Keputusan | Alasan |
-|---------|-----------|--------|
-| 2026-08-04 | Payload CMS dipilih, bukan Keystatic | Butuh RBAC multi-user + relational data untuk 7 modules |
-| 2026-08-04 | Full Cloudflare (Pages + Workers) | Termurah ($5/bln), bandwidth unlimited, single ecosystem |
-| 2026-08-04 | Tailwind 3.4, bukan 4.x | @astrojs/tailwind plugin belum compatible dengan v4 syntax |
-| 2026-08-04 | Monorepo dengan pnpm workspace | Frontend & backend perlu deploy terpisah tapi share types |
-| 2026-08-04 | CMS port 3030 (bukan default 3000) | Port 3000 dipakai proses lain saat scaffolding pertama; 3030 dipilih sebagai port tetap agar tidak konflik dengan tool lain (langganan Laragon dsb.) |
-| 2026-08-04 | Frontend fonts self-hosted (latin subset variable) | Privacy (bebas Google Fonts CDN tracking) + performa (preload di BaseLayout, tanpa DNS extra ke fonts.gstatic.com) |
-| 2026-08-04 | Seed script pakai `tsx` (bukan `payload run`) | `payload run` silent-exit di Windows/Node 22; tsx (~5MB devDep) transpile TS on-the-fly dengan reliable stdout |
-| 2026-08-04 | Homepage index.astro punya section E2E test | Bukti koneksi frontend↔backend live; wajib DIHAPUS begitu Phase 2.2 (TourCard + listing) real content mengganti |
-| 2026-08-04 | Astro dynamic route pakai `getStaticPaths()`, bukan SSR | astro.config `output: 'static'` — build-time prerender lebih murah di Cloudflare Pages (free tier); SSR baru dipertimbangkan kalau ada halaman yang perlu real-time (harga dinamis, availability) |
-| 2026-08-04 | Rich-text lexical → plain text extractor sederhana (bukan lexical-to-HTML) | MVP Tour detail cukup teks (whitespace-pre-line); rendering full formatted lexical (bold/list/link) ditunda ke Phase 3 saat BlockRenderer dibuat |
-| 2026-08-04 | Phase 3 — extend `lib/lexical.ts` dengan `lexicalToHtml()`, bukan install `@payloadcms/richtext-lexical/html` | Custom converter ~50 baris, tanpa dep baru (aturan AGENTS.md §11), coverage cukup: p/heading/list/link/bold/italic/underline/strike/code/blockquote/linebreak |
-| 2026-08-04 | Homepage `/` pakai hybrid CMS-Page + fallback (bukan pure CMS-driven atau pure hardcoded) | (1) Editor bisa restructure via CMS Page slug='home' tanpa deploy, (2) fallback tetap render homepage bermakna kalau CMS home belum diisi, (3) reuse block components (ServiceGrid, Hero, CTA) — nol duplikasi markup |
-| 2026-08-04 | Fix bug lama `fetchBySlug` (Phase 2) — `where[slug[equals]]` → nested `{slug:{equals:...}}` yg di-flatten benar | Payload silently mengabaikan filter salah dan return doc pertama published. Tersamar karena tiap collection cuma 1 published entry saat Phase 2. Ditemukan saat Step 5 homepage — getPageBySlug('home') return About page. |
-| 2026-08-04 | Pindahkan item "Content webhook auto-rebuild" dari Phase 3 → Phase 5 | Butuh Cloudflare Pages build hook yang live — tidak bisa dites di lokal, jadi baru relevan saat production deploy |
-| 2026-08-05 | Phase 3.5 — mapped reference color palette (teal/orange M3) ke existing token (ocean/coral/leaf/sand/stone) alih-alih adopt palette M3 penuh | Zero breaking change untuk 30+ existing Phase 2 components; visual close enough dgn reference; tokens existing sudah battle-tested |
-| 2026-08-05 | Icon inline SVG per-icon (helper `Icon.astro`), bukan Material Symbols CDN | Konsisten no-CDN policy (Phase 1 decision), controllable size, ~1KB per icon acceptable. 33+ icon terdaftar; tambah per step saat needed |
-| 2026-08-05 | Property page = coming-soon dedicated `property.astro` (bukan `#` no-op) | Nav link "Property" di Header berfungsi meaningful; landing yang menghubungkan visitor ke WhatsApp untuk enquiry sementara collection belum ada |
-| 2026-08-05 | Component reusable baru (FilterBookingBar, WhatsAppFloating, Icon) di folder `apps/web/src/components/common/` | Folder baru — konsisten dgn existing `cards/` + `navigation/`. `common/` = utility reusable lintas-page yg bukan navigation atau card |
-| 2026-08-05 | WhatsAppFloating pakai popup pattern (Intercom-style), bukan direct-to-WA button | Higher engagement — visitor lebih intentional sebelum initiate chat. Multi-option support siap dipakai kalau nanti perlu (Booking / General / Support). Backward compatible: 1 option default auto dari CMS |
-| 2026-08-05 | Homepage fallback = hardcoded komposisi block (Hero+VP+3×SG+Stats+Test+CTA), bukan wajib pakai CMS Page | Sensible default kalau editor belum susun 'home' di CMS. Hybrid preserved: CMS Page 'home' published → override fallback. Zero markup duplication (100% pakai block components) |
-| 2026-08-05 | 3 CMS block baru (`ValuePropsBanner`, `StatsBanner`, `TestimonialsCarousel`) — schema change ke Pages | Extend Phase 3 architecture dgn tetap CMS-driven. Editor bisa remake homepage dari admin tanpa deploy. Icon name reference lookup ke Icon.astro map |
-
----
-
-## Known Issues / Tech Debt
-
-Hal-hal yang perlu diperbaiki tapi belum urgent.
-
-- [x] ~~Sharp belum aktif → upload gambar belum auto-resize~~ — resolved 2026-08-04 (aktif via `sharp` property di payload.config.ts)
-- [x] ~~`fetchCollection()` hardcode filter `status=published`~~ — resolved 2026-08-04 (sekarang ada opsi `status: 'published' | 'draft' | 'all'`, default tetap published)
-- [ ] Data pre-existing di CMS masih banyak status=draft (Kuta, Ceningan, "Kelinging Beach", kategori Tour/Accomodation/Water Activities) — publish/rename/hapus manual
-- [ ] Webhook auto-rebuild belum di-setup (masih manual trigger)
-- [ ] Belum ada automated testing (unit/e2e)
-- [x] ~~Homepage `index.astro` masih pakai E2E test section~~ — resolved 2026-08-04 (Phase 3 Step 5: hybrid CMS Page 'home' + fallback dgn block components)
-- [ ] Astro dev caching `getStaticPaths()`: setelah publish/create entry baru di CMS, harus touch file `[slug].astro` supaya path baru muncul. Production build fresh setiap deploy jadi tidak berpengaruh live.
-- [ ] **Tailwind JIT cache stale saat tambah file di folder baru**: `@astrojs/tailwind` integration kadang tidak scan file baru yang berada di subfolder yang belum pernah di-scan sebelumnya (misal `components/common/` yang baru dibuat di Phase 3.5). Symptom: kelas Tailwind yang unik (belum dipakai file lain — misal `top-20`, `pl-12`, `pointer-events-none`, `peer-checked`, `md:grid-cols-3`) tidak compile → element render tanpa styling. **Fix:** `touch apps/web/tailwind.config.mjs` untuk force full rebuild. Production build (`pnpm build`) fresh setiap kali jadi tidak berpengaruh live. Setelah folder pertama kali di-scan, HMR normal berikutnya bekerja.
-- [ ] Tailwind `container-page` class dipakai Header/Footer tapi tidak jelas di config — perlu audit tailwind.config.mjs vs global.css (mungkin sama dengan `container-content`)
-
----
-
-## Quick Status Check Commands
-
-```powershell
-# Cek CMS jalan
-cd apps/cms && pnpm dev            # → localhost:3030/admin
-
-# Cek Frontend jalan
-cd apps/web && pnpm dev            # → localhost:4321
-
-# Seed foundation data (Destinations + Categories)
-cd apps/cms && pnpm seed           # NOTE: stop `pnpm dev` dulu (SQLite lock)
-
-# Regenerate types dari CMS ke shared package
-cd apps/cms && pnpm generate:types
-
-# Cek collections yang sudah ada di CMS
-# Buka http://localhost:3030/admin
-
-# Cek API response
-curl http://localhost:3030/api/tours
-curl http://localhost:3030/api/destinations
-curl http://localhost:3030/api/categories
-```
+- Astro dev cache `getStaticPaths()` → touch `[slug].astro` setelah publish entry baru (produksi fresh).
+- Tailwind JIT cache stale saat tambah file di folder baru → touch `tailwind.config.mjs` (produksi tidak terpengaruh).
+- Seed CMS harus dijalankan saat `pnpm dev` CMS **stop** (SQLite exclusive lock).

@@ -1,0 +1,56 @@
+---
+// AdSlot — manual advertisement placeholder. Ad script loading itself
+// is out of scope: for AdSense, add the loader (`adsbygoogle.js`) in
+// BaseLayout once behind the `enableAds` flag. Renders nothing when
+// the flag is off, or when the block has no provider data.
+import { isBlogFlagEnabled } from '@lib/features'
+import { resolveContainer, resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
+
+interface Props { block: any }
+const { block } = Astro.props
+const b = block ?? {}
+
+const enabled = await isBlogFlagEnabled('enableAds').catch(() => false)
+
+const containerClass = resolveContainer(b.containerWidth ?? 'narrow')
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+
+const size = b.size ?? '300x600'
+const provider = b.provider ?? 'adsense'
+
+const sizeMap: Record<string, { w: number; h: number }> = {
+  '300x600': { w: 300, h: 600 },
+  '300x250': { w: 300, h: 250 },
+  '728x90':  { w: 728, h: 90 },
+  '336x280': { w: 336, h: 280 },
+}
+const dims = sizeMap[size]
+
+const hasAdsense = provider === 'adsense' && b.adsenseClient && b.adsenseSlotId
+const hasCustom = provider === 'custom' && typeof b.customHtml === 'string' && b.customHtml.trim().length > 0
+---
+
+{enabled && (hasAdsense || hasCustom) && (
+  <section class:list={['relative', paddingClass]} style={padOverrideStyle} data-ad-placement={b.placement ?? 'inline'}>
+    <div class:list={['relative z-10 mx-auto flex justify-center', containerClass]}>
+      {hasAdsense ? (
+        size === 'responsive' ? (
+          <ins class="adsbygoogle block w-full"
+               style="display:block"
+               data-ad-client={b.adsenseClient}
+               data-ad-slot={b.adsenseSlotId}
+               data-ad-format="auto"
+               data-full-width-responsive="true"></ins>
+        ) : (
+          <ins class="adsbygoogle"
+               style={dims ? `display:inline-block;width:${dims.w}px;height:${dims.h}px` : 'display:block'}
+               data-ad-client={b.adsenseClient}
+               data-ad-slot={b.adsenseSlotId}></ins>
+        )
+      ) : (
+        <div class="ad-custom" set:html={b.customHtml} />
+      )}
+    </div>
+  </section>
+)}

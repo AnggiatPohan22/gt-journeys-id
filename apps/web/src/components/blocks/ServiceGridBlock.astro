@@ -11,30 +11,77 @@ import YachtCard from '@components/cards/YachtCard.astro'
 import RestaurantCard from '@components/cards/RestaurantCard.astro'
 import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
+import SpaCard from '@components/cards/SpaCard.astro'
+import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
 import Icon from '@components/common/Icon.astro'
+import CuratedCard from '@components/cards/CuratedCard.astro'
 import { getServiceTypeByKey } from '@lib/serviceTypes'
+import { isServiceTypeEnabled } from '@lib/features'
 
 import {
   getTours, getAccommodations, getWaterActivities, getYachts,
-  getRestaurants, getVenues, getRentals,
+  getRestaurants, getVenues, getRentals, getSpas, getFerryTickets,
+  getSiteFeatures,
 } from '@lib/payload'
+import { resolveCardVariant, resolveCardBackground } from '@lib/serviceCards'
 import {
-  resolveAlignment, resolveContainer, resolvePadding,
+  resolveAlignment, resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
   resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
 type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'serviceGrid' }>
-interface Props { block: Block }
-const { block } = Astro.props
+interface Props {
+  block: Block
+  /**
+   * Phase 4.16 — when the block runs inside a service detail page's
+   * Custom Sections (via BlockRenderer's `excludeId` pass-through)
+   * and `selectionMode === 'auto'`, this doc id is filtered out so
+   * the curated grid never shows the page you're already on.
+   */
+  excludeId?: number | string
+  /**
+   * Phase 4.16 Pass 2 — extra `where` clause merged with the base
+   * fetch. Only used by the fallback synthesizer in service detail
+   * pages (villa/spa/rental preserve the hardcode's sub-type filter:
+   * `{ type: { equals: item.type } }` etc.). Not exposed via CMS —
+   * synthesizer-only path.
+   */
+  extraWhere?: Record<string, any>
+}
+const { block, excludeId, extraWhere } = Astro.props
 
-const limit = block.limit ?? 6
-const where = block.featuredOnly ? { isFeatured: { equals: true } } : {}
+// Phase 4.16 (Pass 1) — Curated template opt-in.
+const template: 'default' | 'curated' =
+  (block as any).template === 'curated' ? 'curated' : 'default'
+const selectionMode: 'manual' | 'auto' =
+  (block as any).selectionMode === 'auto' ? 'auto' : 'manual'
+const isCurated = template === 'curated'
+const isAuto = isCurated && selectionMode === 'auto'
+
+// Auto mode fetches a slightly larger slice so the exclude-filter
+// still leaves us N items. Manual mode uses the block's own `limit`.
+const limit = isAuto ? Math.max(block.limit ?? 3, 10) : (block.limit ?? 6)
+const where: Record<string, any> = {
+  ...(block.featuredOnly ? { isFeatured: { equals: true } } : {}),
+  ...(extraWhere ?? {}),
+}
+// Phase 4.15 — card variant (mirrors ServiceListing). Fallback to
+// `compact` so existing block instances render byte-identical.
+// Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
+const gridFeatures = await getSiteFeatures().catch(() => null)
+const cardVariant = resolveCardVariant(block.serviceType, gridFeatures)
+const cardBg = resolveCardBackground(block.serviceType, gridFeatures)
 
 const opts = { limit, where, sort: 'sortOrder' }
 
 let allItems: any[] = []
 const serviceType = block.serviceType
+
+// Phase 4.57 — kalau modul untuk serviceType ini di-disable di SiteFeatures
+// (Super Admin), block ini tidak boleh render sama sekali (menghindari
+// ambigu: client cuma melihat modul yang mereka aktifkan).
+const moduleActive = await isServiceTypeEnabled(serviceType).catch(() => true)
 
 // Task 3.3 — heading fallback ke ServiceType.name (CMS-managed) kalau kosong.
 const svcMeta = await getServiceTypeByKey(serviceType).catch(() => null)
@@ -49,16 +96,31 @@ try {
     case 'restaurants':      allItems = (await getRestaurants(opts)).docs; break
     case 'venues':           allItems = (await getVenues(opts)).docs; break
     case 'rentals':          allItems = (await getRentals(opts)).docs; break
+    case 'spa':              allItems = (await getSpas(opts)).docs; break
+    case 'ferry-tickets':    allItems = (await getFerryTickets(opts)).docs; break
   }
 } catch {
   // fail silently — block renders empty
 }
 
+// Auto-exclude the current detail-page doc when selectionMode = auto.
+if (isAuto && excludeId !== undefined && excludeId !== null) {
+  allItems = allItems.filter((d: any) => String(d?.id) !== String(excludeId))
+}
+// Cap curated grid to 3 by default (matches the hardcoded "Curated
+// Alternatives" section which always showed 3). Editor can override
+// via block.limit when in manual mode.
+if (isCurated) {
+  const cap = isAuto ? 3 : (block.limit ?? 3)
+  allItems = allItems.slice(0, cap)
+}
+
 const b = block as any
 const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const bgResolved = resolveBackground(b.background)
 const ts = b.ts ?? {}
 const hColor = resolveTextColor(ts.headingColor)
@@ -68,10 +130,12 @@ const defaultViewAllHref: Record<Block['serviceType'], string> = {
   accommodations: '/villa',
   tours: '/tour',
   rentals: '/rental',
+  spa: '/spa',
   'water-activities': '/water-activity',
   yachts: '/yacht',
   restaurants: '/restaurant',
   venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 
 const showViewAll = b.showViewAll !== false
@@ -80,9 +144,10 @@ const viewAllLink = (b.viewAllLink as string) || defaultViewAllHref[serviceType]
 const isExternal = viewAllLink?.startsWith('http')
 
 const hrefBaseMap: Record<string, string> = {
-  accommodations: '/villa', tours: '/tour', rentals: '/rental',
+  accommodations: '/villa', tours: '/tour', rentals: '/rental', spa: '/spa',
   'water-activities': '/water-activity', yachts: '/yacht',
   restaurants: '/restaurant', venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 const hrefBase = hrefBaseMap[serviceType] ?? '/'
 
@@ -93,9 +158,69 @@ const pageSize = typeof b.pageSize === 'number' ? b.pageSize : 3
 const moreText = b.moreText ?? 'Load More'
 const totalPages = paginate ? Math.ceil(allItems.length / pageSize) : 1
 const gridId = `sg-${Math.random().toString(36).slice(2, 9)}`
+
+// ── Phase 4.16 (Pass 1) — Curated template config ────────────
+const curatedTitleDefault: Record<Block['serviceType'], string> = {
+  tours:              'Curated Alternatives',
+  accommodations:     'Curated Alternatives',
+  spa:                'Curated Alternatives',
+  rentals:            'Curated Alternatives',
+  yachts:             'More Yachts',
+  'water-activities': 'More Activities',
+  restaurants:        'More Restaurants',
+  venues:             'More Venues',
+  'ferry-tickets':    'More Ferry Routes',
+}
+const curatedExploreDefault: Record<Block['serviceType'], string> = {
+  tours:              'Explore All Tours',
+  accommodations:     'Explore All Villas',
+  spa:                'Explore All Spas',
+  rentals:            'Explore All Rentals',
+  yachts:             'Explore All Yachts',
+  'water-activities': 'Explore All Activities',
+  restaurants:        'Explore All Restaurants',
+  venues:             'Explore All Venues',
+  'ferry-tickets':    'Explore All Ferry Tickets',
+}
+const curatedTitle = ((b.sectionTitle as string) || '').trim() || curatedTitleDefault[serviceType]
+const curatedExplore = ((b.viewAllText as string) || '').trim() || curatedExploreDefault[serviceType]
+const curatedExploreHref = ((b.viewAllLink as string) || '').trim() || (defaultViewAllHref[serviceType] ?? hrefBase)
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+{!moduleActive ? null : isCurated ? (
+  /* ─── Curated template — matches the (formerly) hardcoded
+       "Curated Alternatives" section on each service detail page.
+       Fixed 3-col grid, floating price chip, per-type meta line. ─── */
+  <section class:list={['container-content', paddingClass]}>
+    <div class="flex flex-wrap justify-between items-end gap-4 mb-10">
+      <h2 class="font-display text-2xl md:text-3xl text-ocean">{curatedTitle}</h2>
+      {allItems.length > 0 && (
+        <a href={curatedExploreHref} class="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-ocean hover:text-coral transition-colors no-underline">
+          {curatedExplore} <Icon name="arrow_forward" class="w-4 h-4" />
+        </a>
+      )}
+    </div>
+    {allItems.length === 0 ? (
+      <p class="text-center text-sm text-stone-light">
+        No {serviceType.replace('-', ' ')} to show yet.
+      </p>
+    ) : (
+      <>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          {allItems.map((item: any) => (
+            <CuratedCard item={item} serviceType={serviceType} hrefBase={hrefBase} />
+          ))}
+        </div>
+        <div class="mt-8 text-center sm:hidden">
+          <a href={curatedExploreHref} class="inline-flex items-center gap-2 text-sm font-semibold text-ocean bg-ocean/10 px-6 py-3 rounded-lg no-underline">
+            {curatedExplore} <Icon name="arrow_forward" class="w-4 h-4" />
+          </a>
+        </div>
+      </>
+    )}
+  </section>
+) : (
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
@@ -116,7 +241,7 @@ const gridId = `sg-${Math.random().toString(36).slice(2, 9)}`
     ) : (
       <>
         <div
-          class:list={['grid md:grid-cols-2 lg:grid-cols-3 gap-6', paginate && 'pg-swipe']}
+          class:list={[cardVariant === 'ticket' ? 'grid grid-cols-1 gap-5' : 'grid md:grid-cols-2 lg:grid-cols-3 gap-6', paginate && 'pg-swipe']}
           data-animate="stagger"
           data-pgrid={gridId}
           data-pagination={paginate ? pageMode : 'none'}
@@ -126,13 +251,15 @@ const gridId = `sg-${Math.random().toString(36).slice(2, 9)}`
             const hidden = paginate && idx >= pageSize
             return (
               <div class:list={['pg-item', paginate && 'pg-swipe-item', hidden && 'pg-hidden']} style={hidden ? 'display:none' : undefined}>
-                {serviceType === 'tours' && <TourCard tour={item} hrefBase={hrefBase} />}
-                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={hrefBase} />}
-                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={hrefBase} />}
-                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={hrefBase} />}
-                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={hrefBase} />}
-                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={hrefBase} />}
-                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={hrefBase} />}
+                {serviceType === 'tours' && <TourCard tour={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={hrefBase} variant={cardVariant} background={cardBg} />}
               </div>
             )
           })}
@@ -181,6 +308,7 @@ const gridId = `sg-${Math.random().toString(36).slice(2, 9)}`
     )}
   </div>
 </section>
+)}
 
 <style>
   @media (max-width: 767px) {

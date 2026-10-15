@@ -1,0 +1,252 @@
+---
+/**
+ * AnnouncementBar — Phase 4.33 + Phase 4.44 (advanced theming).
+ *
+ * Slim site-wide bar rendered in-flow above the header. Gated by:
+ *   - Site Features → features.announcementBar (master on/off)
+ *   - AnnouncementBar global → message (content must exist)
+ *   - Optional startDate/endDate window
+ *
+ * Colors (Phase 4.44):
+ *   - Preset theme select (ocean/coral/leaf/sand) sets the palette.
+ *   - Advanced overrides per color slot win when set.
+ *   - Rendering pipes both into CSS custom properties on the bar root.
+ *
+ * Dismiss persistence: localStorage["dnj:ab-dismissed:{version}"]. The
+ * version is auto-hashed from the message text by the CMS beforeChange
+ * hook, so any message edit auto-invalidates prior dismissals.
+ *
+ * Zero-flash on repeat visitors: BaseLayout has an inline is:inline
+ * script in <head> that reads the same key and stamps
+ * <html data-ab-hidden="true"> before body paint. CSS hides the bar
+ * before it can render.
+ */
+import { isFeatureEnabled } from '@lib/features'
+import { getAnnouncementBar } from '@lib/payload'
+
+const featureEnabled = await isFeatureEnabled('announcementBar')
+
+let bar: any = null
+try { bar = await getAnnouncementBar() } catch { /* fallback: no render */ }
+
+const now = Date.now()
+const inWindow =
+  (!bar?.startDate || now >= new Date(bar.startDate).getTime()) &&
+  (!bar?.endDate || now <= new Date(bar.endDate).getTime())
+
+const hasMessage = !!bar?.message
+
+// Homepage scope check (mirrors PromoBanner).
+const showOnHomepageOnly: boolean = bar?.showOnHomepageOnly === true
+const currentPath = Astro.url.pathname.replace(/\/+$/, '') || '/'
+const isHomepage = currentPath === '/'
+const scopeMatches = !showOnHomepageOnly || isHomepage
+
+const shouldRender = featureEnabled && hasMessage && inWindow && scopeMatches
+
+const message: string = bar?.message ?? ''
+const dismissible: boolean = bar?.dismissible !== false
+const version: string = bar?.version ?? 'v0'
+const frequencyMinutes: number = Number(bar?.displayFrequency ?? '1440') || 1440
+
+const link = bar?.link
+const linkEnabled = !!link?.enabled && !!link?.url
+const linkLabel: string = link?.label ?? 'Learn more'
+const linkUrl: string = link?.url ?? '#'
+const linkNewTab: boolean = !!link?.newTab
+
+// ── Colors (Phase 4.45): preset theme dihapus — Advanced sole source.
+// Default = ocean palette; alpha-aware (menerima 3/4/6/8-digit hex).
+const abDefaults = { bg: '#1B3A4B', text: '#F5F0E8', link: '#F5F0E8', linkHover: '#FFFFFF' }
+const adv = bar?.advanced ?? {}
+const pick = (v: string | null | undefined, fallback: string) =>
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
+const themeVars = {
+  '--ab-bg':          pick(adv.bgColor,        abDefaults.bg),
+  '--ab-text':        pick(adv.textColor,      abDefaults.text),
+  '--ab-link':        pick(adv.linkColor,      abDefaults.link),
+  '--ab-link-hover':  pick(adv.linkHoverColor, abDefaults.linkHover),
+}
+const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
+---
+
+{shouldRender && (
+  <div
+    class="announcement-bar dnj-ab w-full text-xs sm:text-sm font-body overflow-hidden transition-[max-height,opacity] duration-200 ease-out"
+    style={themeStyle}
+    data-ab-version={version}
+    data-ab-dismissible={dismissible ? '1' : '0'}
+    data-ab-frequency-minutes={String(frequencyMinutes)}
+    role="region"
+    aria-label="Site announcement"
+  >
+    <div class="max-w-[1440px] mx-auto flex items-center gap-3 sm:gap-4 px-4 py-2 min-h-[36px]">
+      <div class="ab-viewport flex-1 min-w-0 overflow-hidden">
+        <div class="ab-track flex items-center leading-snug">
+          <span class="ab-item shrink-0 whitespace-nowrap sm:whitespace-normal sm:text-center sm:w-full">
+            {message}
+            {linkEnabled && (
+              <>
+                {' '}
+                <a
+                  href={linkUrl}
+                  target={linkNewTab ? '_blank' : undefined}
+                  rel={linkNewTab ? 'noopener noreferrer' : undefined}
+                  class="dnj-ab-link underline underline-offset-2 font-semibold"
+                >
+                  {linkLabel}
+                </a>
+              </>
+            )}
+          </span>
+        </div>
+      </div>
+      {dismissible && (
+        <button
+          type="button"
+          class="ab-dismiss shrink-0 -mr-1 w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-white/40 transition-colors"
+          aria-label="Dismiss announcement"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+          </svg>
+        </button>
+      )}
+    </div>
+  </div>
+)}
+
+<style is:global>
+  /* Phase 4.44 — Announcement Bar via CSS custom properties. */
+  .dnj-ab { background-color: var(--ab-bg); color: var(--ab-text); }
+  .dnj-ab .dnj-ab-link { color: var(--ab-link); transition: color 200ms; }
+  .dnj-ab .dnj-ab-link:hover { color: var(--ab-link-hover); }
+
+  /* Phase 4.52 — Mobile marquee.
+     Default (mobile): 1 baris. Kalau overflow, JS clone item ke-2 supaya
+     loop seamless (translateX 0 → -50% = geser satu lebar item). Kalau
+     tak overflow, item di-center pakai margin auto. Desktop (sm+) tetap
+     wrap + center seperti sebelumnya. */
+  .dnj-ab .ab-track { width: max-content; max-width: 100%; }
+  .dnj-ab:not([data-ab-marquee="1"]) .ab-item { margin-inline: auto; }
+  .dnj-ab[data-ab-marquee="1"] .ab-track {
+    width: max-content;
+    max-width: none;
+    animation: ab-marquee var(--ab-marquee-duration, 20s) linear infinite;
+  }
+  .dnj-ab[data-ab-marquee="1"] .ab-item { padding-right: 3rem; }
+  @keyframes ab-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  @media (hover: hover) {
+    .dnj-ab[data-ab-marquee="1"]:hover .ab-track { animation-play-state: paused; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dnj-ab[data-ab-marquee="1"] .ab-track { animation: none; transform: none; }
+  }
+  /* Desktop (sm+): non-aktifkan marquee sama sekali — wrap kembali normal. */
+  @media (min-width: 640px) {
+    .dnj-ab .ab-track { width: 100%; max-width: 100%; animation: none !important; transform: none !important; }
+    .dnj-ab .ab-item { padding-right: 0; margin-inline: 0; white-space: normal; }
+  }
+</style>
+
+<script>
+  const DISMISS_KEY_PREFIX = 'dnj:ab-dismissed:'
+  const MINUTE_MS = 60_000
+
+  // Phase 4.52 — evaluate marquee mode: aktif kalau viewport <sm (640px)
+  // DAN lebar item > lebar viewport (teks overflow satu baris).
+  const MOBILE_MAX_WIDTH = 639
+  const MARQUEE_PX_PER_SEC = 60
+
+  const setupMarquee = (bar: HTMLElement) => {
+    const viewport = bar.querySelector<HTMLElement>('.ab-viewport')
+    const track = bar.querySelector<HTMLElement>('.ab-track')
+    const primary = track?.querySelector<HTMLElement>('.ab-item')
+    if (!viewport || !track || !primary) return
+
+    // Reset ke state default sebelum ukur.
+    track.querySelectorAll('.ab-item.ab-item--clone').forEach((n) => n.remove())
+    bar.removeAttribute('data-ab-marquee')
+    track.style.removeProperty('--ab-marquee-duration')
+
+    if (window.innerWidth > MOBILE_MAX_WIDTH) return
+
+    // Ukur setelah reflow.
+    const viewportWidth = viewport.getBoundingClientRect().width
+    const itemWidth = primary.getBoundingClientRect().width
+    if (itemWidth <= viewportWidth + 1) return // muat 1 baris, tidak perlu marquee
+
+    // Overflow → aktifkan marquee: clone item ke-2 supaya loop seamless.
+    const clone = primary.cloneNode(true) as HTMLElement
+    clone.classList.add('ab-item--clone')
+    clone.setAttribute('aria-hidden', 'true')
+    // Cegah link di clone dapat fokus/klik ganda.
+    clone.querySelectorAll('a').forEach((a) => { a.setAttribute('tabindex', '-1'); a.setAttribute('aria-hidden', 'true') })
+    track.appendChild(clone)
+
+    // Durasi proporsional lebar item (biar kecepatan konsisten apapun panjang teks).
+    const duration = Math.max(8, itemWidth / MARQUEE_PX_PER_SEC)
+    track.style.setProperty('--ab-marquee-duration', duration.toFixed(2) + 's')
+    bar.setAttribute('data-ab-marquee', '1')
+  }
+
+  const init = () => {
+    const bar = document.querySelector<HTMLElement>('.announcement-bar')
+    if (!bar) return
+
+    const version = bar.dataset.abVersion ?? 'v0'
+    const frequencyMinutes = Number(bar.dataset.abFrequencyMinutes ?? '1440')
+    const key = DISMISS_KEY_PREFIX + version
+
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw) {
+        const ts = Number(raw)
+        if (Number.isFinite(ts) && Date.now() - ts < frequencyMinutes * MINUTE_MS) {
+          bar.style.display = 'none'
+          return
+        }
+        localStorage.removeItem(key)
+      }
+    } catch { /* localStorage blocked — render as normal */ }
+
+    const btn = bar.querySelector<HTMLButtonElement>('.ab-dismiss')
+    btn?.addEventListener('click', () => {
+      try { localStorage.setItem(key, String(Date.now())) } catch { /* ignore */ }
+      bar.style.maxHeight = bar.offsetHeight + 'px'
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      bar.offsetHeight
+      bar.style.maxHeight = '0px'
+      bar.style.opacity = '0'
+      bar.addEventListener(
+        'transitionend',
+        () => { bar.style.display = 'none' },
+        { once: true },
+      )
+    })
+
+    // Marquee setup — jalankan setelah frame supaya font/layout settled.
+    // Pakai ResizeObserver di viewport supaya resilient terhadap font-load,
+    // orientation-change, dan viewport emulation yang tak trigger resize event.
+    const runSetup = () => setupMarquee(bar)
+    requestAnimationFrame(runSetup)
+    window.addEventListener('load', runSetup)
+    let resizeTimer: number | undefined
+    const schedule = () => {
+      if (resizeTimer) window.clearTimeout(resizeTimer)
+      resizeTimer = window.setTimeout(runSetup, 150)
+    }
+    window.addEventListener('resize', schedule)
+    window.addEventListener('orientationchange', schedule)
+    const viewportEl = bar.querySelector<HTMLElement>('.ab-viewport')
+    if (viewportEl && 'ResizeObserver' in window) {
+      new ResizeObserver(schedule).observe(viewportEl)
+    }
+  }
+
+  document.addEventListener('astro:page-load', init)
+  init()
+</script>

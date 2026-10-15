@@ -2,13 +2,15 @@
 /**
  * BlockRenderer — dispatcher untuk Page.content blocks dari Payload CMS.
  *
- * Menerima array blocks (dari Page.content) dan render component per
- * `blockType`. Component untuk tiap block ada di folder ini.
- *
- * Note: block components di Phase 3.1 masih placeholder (render debug
- * info). Step 2 akan mengisi dengan markup real per block.
+ * Inter-block spacing uses a CSS sibling-margin pattern (> * + *) instead
+ * of flex gap, so per-block overrides can replace the margin via normal
+ * CSS cascade (inline style beats class selector). The wrapper also sets
+ * padding-bottom for last-block-to-footer spacing, controlled by the
+ * separate `beforeFooter` token in SiteSettings.
  */
 import type { Page } from '@shared/types/payload-types'
+import { getSiteSettings } from '@lib/payload'
+import { resolveSpacingOverride } from '@lib/blockStyles'
 
 import HeroBlock from './HeroBlock.astro'
 import RichTextBlock from './RichTextBlock.astro'
@@ -26,38 +28,128 @@ import StatsBannerBlock from './StatsBannerBlock.astro'
 import TestimonialsCarouselBlock from './TestimonialsCarouselBlock.astro'
 import ServiceListingBlock from './ServiceListingBlock.astro'
 import TrustBadgesBlock from './TrustBadgesBlock.astro'
+import PostListBlock from './PostListBlock.astro'
+import FeaturedPostBlock from './FeaturedPostBlock.astro'
+import CategoryGridBlock from './CategoryGridBlock.astro'
+import PopularPostsBlock from './PopularPostsBlock.astro'
+import AdSlotBlock from './AdSlotBlock.astro'
+import NewsletterBlock from './NewsletterBlock.astro'
 
 type PageBlock = NonNullable<Page['content']>[number]
 
 interface Props {
   blocks: Page['content']
+  /**
+   * Phase 4.16 — when passed, any serviceGrid child block with
+   * `template: 'curated'` + `selectionMode: 'auto'` will filter this
+   * doc id out of its list. Service detail pages should pass their
+   * current doc id (`item.id`) so the Curated grid never shows the
+   * page you're currently on.
+   */
+  excludeId?: number | string
 }
 
-const { blocks } = Astro.props
+const { blocks, excludeId } = Astro.props
+
+const settings = await getSiteSettings().catch(() => null)
+const layout = (settings as any)?.layout
+const blockGap = layout?.blockGap ?? 'normal'
+const beforeFooter = layout?.beforeFooter ?? blockGap
+
+// Phase 4.24 — global block padding (internal top/bottom for every block).
+// Emitted as CSS variables on the wrapper so per-block .block-pad-default
+// (returned by resolvePadding for the default preset) can pick them up
+// without every block component needing to know the numbers.
+const bp = layout?.blockPadding ?? {}
+const padTopM = Number(bp?.top?.mobile  ?? 48)
+const padTopD = Number(bp?.top?.desktop ?? 64)
+const padBtmM = Number(bp?.bottom?.mobile  ?? 48)
+const padBtmD = Number(bp?.bottom?.desktop ?? 64)
+const padVarStyle = `--block-pt-m:${padTopM}px;--block-pt-d:${padTopD}px;--block-pb-m:${padBtmM}px;--block-pb-d:${padBtmD}px`
+
+const soStyles = (blocks ?? []).map((b) => resolveSpacingOverride(b))
 ---
 
-{blocks?.map((block: PageBlock) => {
+<div class="flex flex-col block-stack" data-block-gap={blockGap} data-before-footer={beforeFooter} style={padVarStyle}>
+{blocks?.map((block: PageBlock, i: number) => {
+  const so = soStyles[i]
   switch (block.blockType) {
-    case 'hero':         return <HeroBlock block={block} />
-    case 'richText':     return <RichTextBlock block={block} />
-    case 'image':        return <ImageBlock block={block} />
-    case 'gallery':      return <GalleryBlock block={block} />
-    case 'cta':          return <CTABlock block={block} />
-    case 'faq':          return <FAQBlock block={block} />
-    case 'testimonials': return <TestimonialsBlock block={block} />
-    case 'serviceGrid':  return <ServiceGridBlock block={block} />
-    case 'contact':      return <ContactBlock block={block} />
-    case 'embed':        return <EmbedBlock block={block} />
+    case 'hero':         return so ? <div style={so}><HeroBlock block={block} /></div> : <HeroBlock block={block} />
+    case 'richText':     return so ? <div style={so}><RichTextBlock block={block} /></div> : <RichTextBlock block={block} />
+    case 'image':        return so ? <div style={so}><ImageBlock block={block} /></div> : <ImageBlock block={block} />
+    case 'gallery':      return so ? <div style={so}><GalleryBlock block={block} /></div> : <GalleryBlock block={block} />
+    case 'cta':          return so ? <div style={so}><CTABlock block={block} /></div> : <CTABlock block={block} />
+    case 'faq':          return so ? <div style={so}><FAQBlock block={block} /></div> : <FAQBlock block={block} />
+    case 'testimonials': return so ? <div style={so}><TestimonialsBlock block={block} /></div> : <TestimonialsBlock block={block} />
+    case 'serviceGrid':  return so ? <div style={so}><ServiceGridBlock block={block} excludeId={excludeId} /></div> : <ServiceGridBlock block={block} excludeId={excludeId} />
+    case 'contact':      return so ? <div style={so}><ContactBlock block={block} /></div> : <ContactBlock block={block} />
+    case 'embed':        return so ? <div style={so}><EmbedBlock block={block} /></div> : <EmbedBlock block={block} />
     case 'spacer':       return <SpacerBlock block={block} />
-    case 'valuePropsBanner':     return <ValuePropsBannerBlock block={block} />
-    case 'statsBanner':          return <StatsBannerBlock block={block} />
-    case 'testimonialsCarousel': return <TestimonialsCarouselBlock block={block} />
-    case 'serviceListing':       return <ServiceListingBlock block={block} />
-    case 'trustBadges':          return <TrustBadgesBlock block={block} />
+    case 'valuePropsBanner':     return so ? <div style={so}><div class="block-overlap"><ValuePropsBannerBlock block={block} /></div></div> : <div class="block-overlap"><ValuePropsBannerBlock block={block} /></div>
+    case 'statsBanner':          return so ? <div style={so}><StatsBannerBlock block={block} /></div> : <StatsBannerBlock block={block} />
+    case 'testimonialsCarousel': return so ? <div style={so}><TestimonialsCarouselBlock block={block} /></div> : <TestimonialsCarouselBlock block={block} />
+    case 'serviceListing':       return so ? <div style={so}><ServiceListingBlock block={block} /></div> : <ServiceListingBlock block={block} />
+    case 'trustBadges':          return so ? <div style={so}><TrustBadgesBlock block={block} /></div> : <TrustBadgesBlock block={block} />
+    case 'postList':             return so ? <div style={so}><PostListBlock block={block} /></div> : <PostListBlock block={block} />
+    case 'featuredPost':         return so ? <div style={so}><FeaturedPostBlock block={block} /></div> : <FeaturedPostBlock block={block} />
+    case 'categoryGrid':         return so ? <div style={so}><CategoryGridBlock block={block} /></div> : <CategoryGridBlock block={block} />
+    case 'popularPosts':         return so ? <div style={so}><PopularPostsBlock block={block} /></div> : <PopularPostsBlock block={block} />
+    case 'adSlot':               return so ? <div style={so}><AdSlotBlock block={block} /></div> : <AdSlotBlock block={block} />
+    case 'newsletter':           return so ? <div style={so}><NewsletterBlock block={block} /></div> : <NewsletterBlock block={block} />
     default:
-      // TypeScript exhaustiveness — shouldn't hit di runtime
       return <div class="container-content py-4 text-xs text-coral">
         Unknown blockType: {(block as { blockType: string }).blockType}
       </div>
   }
 })}
+</div>
+
+<style>
+  /* --block-gap CSS variable, set per preset on the wrapper */
+  [data-block-gap="compact"]  { --block-gap: 1rem; }
+  [data-block-gap="normal"]   { --block-gap: 2rem; }
+  [data-block-gap="spacious"] { --block-gap: 4rem; }
+
+  @media (min-width: 768px) {
+    [data-block-gap="compact"]  { --block-gap: 1.5rem; }
+    [data-block-gap="normal"]   { --block-gap: 3rem; }
+    [data-block-gap="spacious"] { --block-gap: 5rem; }
+  }
+
+  /* beforeFooter spacing (wrapper padding-bottom) */
+  [data-before-footer="compact"]  { padding-bottom: 2rem; }
+  [data-before-footer="normal"]   { padding-bottom: 4rem; }
+  [data-before-footer="spacious"] { padding-bottom: 6rem; }
+
+  @media (min-width: 768px) {
+    [data-before-footer="compact"]  { padding-bottom: 3rem; }
+    [data-before-footer="normal"]   { padding-bottom: 6rem; }
+    [data-before-footer="spacious"] { padding-bottom: 8rem; }
+  }
+
+  .block-overlap {
+    margin-top: 0;
+  }
+</style>
+
+<style is:global>
+  /* Sibling margin replaces flex gap — an inline margin-top on a specific
+     block overrides this rule through normal CSS cascade. */
+  .block-stack > * + * {
+    margin-top: var(--block-gap, 2rem);
+  }
+
+  /* Phase 4.24 — default block padding via CSS variables set on
+     .block-stack. Applied to any element with class `block-pad-default`
+     (returned by resolvePadding when sectionPadding is unset). */
+  .block-pad-default {
+    padding-top: var(--block-pt-m, 48px);
+    padding-bottom: var(--block-pb-m, 48px);
+  }
+  @media (min-width: 768px) {
+    .block-pad-default {
+      padding-top: var(--block-pt-d, 64px);
+      padding-bottom: var(--block-pb-d, 64px);
+    }
+  }
+</style>

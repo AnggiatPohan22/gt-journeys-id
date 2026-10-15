@@ -7,7 +7,8 @@ import ServiceGridBlock from '@components/blocks/ServiceGridBlock.astro'
 import StatsBannerBlock from '@components/blocks/StatsBannerBlock.astro'
 import TestimonialsCarouselBlock from '@components/blocks/TestimonialsCarouselBlock.astro'
 import CTABlock from '@components/blocks/CTABlock.astro'
-import WhatsAppFloating from '@components/common/WhatsAppFloating.astro'
+import StructuredData from '@components/common/StructuredData.astro'
+import { SITE_URL } from '@lib/structuredData'
 import { getPageBySlug, getSiteSettings, getHomepageContent, getTestimonials } from '@lib/payload'
 import type { Page } from '@shared/types/payload-types'
 
@@ -23,7 +24,7 @@ try { cmsHome = await getPageBySlug('home') } catch { /* fallback */ }
 
 const settings = await getSiteSettings().catch(() => null)
 const home = await getHomepageContent().catch(() => null)
-const siteName = settings?.siteName ?? 'DnJourneysBali'
+const siteName = settings?.siteName ?? 'GtJourneysID'
 const tagline = settings?.tagline ?? 'Your Bali Journey, Our Local Expertise'
 const waNumber = (settings?.contact?.whatsapp ?? '').replace(/\D/g, '')
 
@@ -60,7 +61,7 @@ const D_STATS = [
 ]
 const D_TESTIMONIALS = [
   { name: 'Sarah', location: 'Australia', quote: 'The Lembongan tour was amazing! Everything was perfectly arranged. Highly recommended!', rating: 5 },
-  { name: 'James', location: 'UK',        quote: 'Booked a villa through DnJourneysBali and the experience was seamless. Great service!', rating: 5 },
+  { name: 'James', location: 'UK',        quote: 'Booked a villa through GtJourneysID and the experience was seamless. Great service!', rating: 5 },
   { name: 'Maya',  location: 'Indonesia', quote: 'We had our wedding arranged by their team. It was beyond our expectations!', rating: 5 },
 ]
 
@@ -69,7 +70,7 @@ const fallbackHero: HeroData = {
   heading: home?.heroHeading || D_HERO_HEADING,
   subheading: home?.heroSubheading || D_HERO_SUB,
   ctaText: home?.heroCtaText || 'Explore Tours',
-  ctaLink: home?.heroCtaLink || '/tours',
+  ctaLink: home?.heroCtaLink || '/tour',
   mediaType: 'none',
   sectionPadding: 'normal',
   background: { type: 'default', overlayOpacity: 50 },
@@ -154,5 +155,13 @@ const pageDesc = usingCmsHome
     </>
   )}
 
-  <WhatsAppFloating />
+  {/* ChatWidget dipindah ke BaseLayout (Phase 4.50.3) — mount site-wide. */}
+
+  <StructuredData schema={[
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: siteName, url: SITE_URL },
+    {
+      '@context': 'https://schema.org', '@type': 'Organization', name: siteName, url: SITE_URL,
+      ...(waNumber ? { contactPoint: { '@type': 'ContactPoint', telephone: `+${waNumber}`, contactType: 'customer service' } } : {}),
+    },
+  ]} />
 </PageLayout>

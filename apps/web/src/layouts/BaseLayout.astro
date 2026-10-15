@@ -1,19 +1,37 @@
 ---
-import { getSiteSettings } from '@lib/payload'
+import { getSiteSettings, getAnnouncementBar } from '@lib/payload'
 import type { Media } from '@shared/types/payload-types'
+import ChatWidget from '@components/common/ChatWidget.astro'
 
 interface Props {
   title: string
   description?: string
   ogImage?: string
+  /** Canonical URL override; default = current path absolut terhadap site. */
+  canonical?: string
+  /** og:type (default 'website'; detail pages bisa pakai 'product'/'article'). */
+  ogType?: string
+  /** noindex,nofollow (mis. 404). Default index,follow. */
+  noindex?: boolean
 }
 
-const { title, description: descProp, ogImage: ogImageProp } = Astro.props
+const {
+  title,
+  description: descProp,
+  ogImage: ogImageProp,
+  canonical: canonicalProp,
+  ogType = 'website',
+  noindex = false,
+} = Astro.props
+
+// Canonical (absolute). Astro.site = https://gtjourneysid.com (astro.config).
+const canonicalURL =
+  canonicalProp ?? new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href
 
 // Fetch site-settings — semua fallback branding/SEO dari sini. Fail-safe: null → hardcoded fallback.
 const settings = await getSiteSettings().catch(() => null)
 
-const siteName = settings?.siteName ?? 'DnJourneysBali'
+const siteName = settings?.siteName ?? 'GtJourneysID'
 const siteTitle = `${title} — ${siteName}`
 
 // Description cascade: prop → CMS defaultSeo.metaDescription → hardcoded fallback
@@ -34,6 +52,24 @@ const faviconMime = faviconMedia?.mimeType ?? 'image/svg+xml'
 // Analytics — both providers optional & independent
 const gaId = settings?.defaultSeo?.googleAnalyticsId as string | undefined
 const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as string | undefined
+
+// Phase 4.33 — Announcement Bar zero-flash dismissal check.
+// Read the version + displayFrequency SSR; inline a tiny script in
+// <head> that stamps data-ab-hidden on <html> before body paint if
+// the visitor's stored dismissal timestamp is still within the
+// frequency window. CSS hides .announcement-bar under that attribute
+// so it never flickers on repeat visits. When the window elapses (or
+// the version changes because the CMS was edited or the reset
+// checkbox was ticked), the bar re-appears automatically.
+let abVersion = ''
+let abFrequencyMinutes = 1440
+try {
+  const bar = await getAnnouncementBar()
+  abVersion = (bar as any)?.version ?? ''
+  const rawFreq = (bar as any)?.displayFrequency
+  const parsedFreq = Number(rawFreq)
+  if (Number.isFinite(parsedFreq) && parsedFreq > 0) abFrequencyMinutes = parsedFreq
+} catch { /* absent = no head script needed */ }
 ---
 
 <!doctype html>
@@ -43,12 +79,23 @@ const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as st
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{siteTitle}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow'} />
+    <link rel="canonical" href={canonicalURL} />
 
     <!-- Open Graph -->
     <meta property="og:title" content={siteTitle} />
     <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content="en_US" />
     {ogImage && <meta property="og:image" content={ogImage} />}
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={siteTitle} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
 
     <!-- Favicon (CMS-driven with hardcoded fallback) -->
     <link rel="icon" type={faviconMime} href={faviconUrl} />
@@ -56,6 +103,27 @@ const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as st
     <!-- Preload fonts -->
     <link rel="preload" href="/fonts/plus-jakarta-sans-variable.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/fraunces-variable.woff2" as="font" type="font/woff2" crossorigin />
+
+    {abVersion && (
+      <script is:inline set:html={`
+        try {
+          var k = 'dnj:ab-dismissed:${abVersion}';
+          var raw = localStorage.getItem(k);
+          if (raw) {
+            var ts = Number(raw);
+            var freqMs = ${abFrequencyMinutes} * 60000;
+            if (raw === '1' || (isFinite(ts) && Date.now() - ts < freqMs)) {
+              document.documentElement.setAttribute('data-ab-hidden', 'true');
+            } else if (isFinite(ts)) {
+              localStorage.removeItem(k);
+            }
+          }
+        } catch (_) {}
+      `}></script>
+    )}
+    <style is:global>
+      html[data-ab-hidden] .announcement-bar { display: none !important; }
+    </style>
 
     {/* Google Analytics 4 — only if measurement ID set in CMS */}
     {gaId && (
@@ -73,10 +141,26 @@ const cfAnalyticsToken = settings?.defaultSeo?.cloudflareWebAnalyticsToken as st
   <body>
     <slot />
 
+    {/* Floating chat widget — CMS-driven (chat-widget global). Mount site-wide
+        via BaseLayout; per-page display controlled by displayScope in CMS. */}
+    <ChatWidget pathname={Astro.url.pathname} />
+
     <!-- GSAP init -->
     <script>
       import { initAnimations } from '@lib/animations'
-      document.addEventListener('astro:page-load', initAnimations)
+      // Phase 4.56.1 — `astro:page-load` HANYA fires kalau ClientRouter
+      // (View Transitions) aktif. Project ini tak pakai ClientRouter →
+      // event itu tidak pernah fire pada hard-refresh, akibatnya
+      // initAnimations tak pernah jalan dan scroll-triggered entry
+      // animation (baik GSAP `reveal` maupun CSS `.entry-*`) tak nyala.
+      // Fix: panggil langsung saat DOM ready. initAnimations idempotent
+      // (guard `__dnjbAnimationsInited`) — aman double-called.
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initAnimations())
+      } else {
+        initAnimations()
+      }
+      document.addEventListener('astro:page-load', () => initAnimations())
     </script>
 
     {/* Cloudflare Web Analytics — beacon (privacy-first, cookieless). Only if token set. */}

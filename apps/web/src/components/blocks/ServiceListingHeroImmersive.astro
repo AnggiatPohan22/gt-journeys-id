@@ -4,7 +4,8 @@ import Icon from '@components/common/Icon.astro'
 import { lexicalToPlainText } from '@lib/lexical'
 import {
   getAccommodations, getTours, getWaterActivities, getYachts,
-  getRestaurants, getVenues, getRentals, getDestinations,
+  getRestaurants, getVenues, getRentals, getSpas, getFerryTickets, getDestinations,
+  getSiteSettings, getSiteFeatures,
 } from '@lib/payload'
 import AccommodationCard from '@components/cards/AccommodationCard.astro'
 import TourCard from '@components/cards/TourCard.astro'
@@ -13,6 +14,9 @@ import YachtCard from '@components/cards/YachtCard.astro'
 import RestaurantCard from '@components/cards/RestaurantCard.astro'
 import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
+import SpaCard from '@components/cards/SpaCard.astro'
+import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
+import { resolveCardVariant, resolveCardBackground } from '@lib/serviceCards'
 import {
   resolveContainer, resolveEntryAnimation,
   resolveTextColor, resolveTextAnimIn,
@@ -43,7 +47,7 @@ let error: string | null = null
 
 try {
   const opts = { limit, sort: 'sortOrder' }
-  const destPromise = getDestinations({ limit: 20, sort: 'sortOrder' })
+  const destPromise = getDestinations({ limit: 100, sort: 'sortOrder' })
   let itemsPromise: Promise<any>
   switch (serviceType) {
     case 'tours':            itemsPromise = getTours(opts); break
@@ -52,6 +56,8 @@ try {
     case 'restaurants':      itemsPromise = getRestaurants(opts); break
     case 'venues':           itemsPromise = getVenues(opts); break
     case 'rentals':          itemsPromise = getRentals(opts); break
+    case 'spa':              itemsPromise = getSpas(opts); break
+    case 'ferry-tickets':    itemsPromise = getFerryTickets(opts); break
     default:                 itemsPromise = getAccommodations(opts); break
   }
   const [itemsData, destData] = await Promise.all([itemsPromise, destPromise])
@@ -68,10 +74,12 @@ const detailRouteMap: Record<string, string> = {
   accommodations: '/villa',
   tours: '/tour',
   rentals: '/rental',
+  spa: '/spa',
   'water-activities': '/water-activity',
   yachts: '/yacht',
   restaurants: '/restaurant',
   venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 const detailBase = detailRouteMap[serviceType] ?? '/'
 
@@ -156,21 +164,60 @@ const showGuestCount = b.showGuestCount !== false
 const searchButtonText = b.searchButtonText ?? 'Search Collection'
 const hasFilterUI = enableDestFilter || enableSearch
 
+// ── Hierarchical destinations (Phase 3.22) ─────────────
+// Gated by Site Features. When ON: only "core" destinations (showInFilter)
+// become filter tabs; child destinations are matched to their core. When OFF:
+// flat behavior (every destination is its own tab, exact-match) — unchanged.
+const features = await getSiteFeatures().catch(() => null)
+const hierEnabled = (features as any)?.destinations?.hierarchicalFilter === true
+
+const destBySlug = new Map<string, any>()
+for (const d of destinations) if (d?.slug) destBySlug.set(d.slug, d)
+const parentSlugOf = (d: any): string | null => {
+  const p = d?.parent
+  if (!p) return null
+  return typeof p === 'object' ? (p.slug ?? null) : (destBySlug.get(String(p))?.slug ?? null)
+}
+// Walk up the parent chain (via the flat map) to the top-level destination.
+const coreSlugOf = (slug: string): string => {
+  let cur = destBySlug.get(slug)
+  const seen = new Set<string>()
+  while (cur?.slug && !seen.has(cur.slug)) {
+    seen.add(cur.slug)
+    const ps = parentSlugOf(cur)
+    if (!ps) break
+    cur = destBySlug.get(ps)
+  }
+  return cur?.slug ?? slug
+}
+const coreNameOf = (slug: string): string => destBySlug.get(coreSlugOf(slug))?.name ?? ''
+
+// Tabs source: cores only when hierarchy is on, else all destinations.
+const tabDestinations = hierEnabled
+  ? destinations.filter((d: any) => d?.showInFilter === true)
+  : destinations
+
 const filterDestinations = enableDestFilter
-  ? [{ label: 'All Bali', value: 'all' }, ...destinations.map((d: any) => ({ label: d.name, value: d.slug ?? '' }))]
+  ? [{ label: 'All', value: 'all' }, ...tabDestinations.map((d: any) => ({ label: d.name, value: d.slug ?? '' }))]
   : []
 
 // ── Card + pagination ───────────────────────────────────
-const cardVariant: 'compact' | 'detailed' = b.cardVariant === 'compact' ? 'compact' : 'detailed'
+// Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
+const cardVariant = resolveCardVariant(serviceType, features)
+// Phase 4.61.3: background/corak kartu ticket (per-service).
+const cardBg = resolveCardBackground(serviceType, features)
 const showLoadMore = b.showLoadMore === true
 const paginationType: 'load-more' | 'pages' = b.paginationType === 'pages' ? 'pages' : 'load-more'
-const initialVisibleCount = typeof b.initialVisibleCount === 'number' ? b.initialVisibleCount : 6
+// Phase 4.53 — per-breakpoint counts (mirror Editorial).
+const perDesktop = typeof b.initialVisibleCount === 'number' ? b.initialVisibleCount : 6
+const perTablet = typeof b.initialVisibleCountTablet === 'number' ? b.initialVisibleCountTablet : perDesktop
+const perMobile = typeof b.initialVisibleCountMobile === 'number' ? b.initialVisibleCountMobile : perDesktop
 const loadMoreText = b.loadMoreText ?? 'Load More'
-const totalPages = showLoadMore ? Math.ceil(items.length / initialVisibleCount) : 1
+const totalPages = showLoadMore ? Math.ceil(items.length / perDesktop) : 1
 
 // ── Styling ─────────────────────────────────────────────
 const containerClass = resolveContainer(b.containerWidth)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 
 const ts = b.ts ?? {}
 const eyebrowColor = resolveTextColor(ts.eyebrowColor)
@@ -182,9 +229,15 @@ const descAnim = resolveTextAnimIn(ts.descriptionAnimIn)
 
 const listingId = `slh-${Math.random().toString(36).slice(2, 9)}`
 const visibleItems = items
+
+// ── CMS-editable listing header (Site Settings → Section Pages) ─────────
+const siteSettings = await getSiteSettings().catch(() => null)
+const sp = (siteSettings as any)?.sectionPages ?? {}
+const listingTitle = sp.listingTitle || 'Luxury Collections'
+const listingSubtitle = sp.listingSubtitle || 'properties available in Bali & surrounding islands'
 ---
 
-<section class="relative bg-sand" data-animate={entry.dataAnimate}>
+<section class="relative bg-sand" data-animate={entry.dataAnimate} style={entry.style || undefined}>
   {/* ── Hero ────────────────────────────────────────── */}
   <div class:list={['relative w-full overflow-hidden', heroMinHeightClass[heroMinHeight]]}>
     {/* Media layer */}
@@ -276,7 +329,7 @@ const visibleItems = items
       <div class="max-w-5xl mx-auto bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden">
         {enableDestFilter && filterDestinations.length > 1 && (
           <div
-            class:list={['flex items-center justify-center gap-2 md:gap-3 overflow-x-auto no-scrollbar px-4 md:px-6 pt-4 md:pt-5', enableSearch ? 'pb-3 md:pb-4' : 'pb-4 md:pb-5']}
+            class:list={['hidden md:flex items-center justify-center gap-2 md:gap-3 overflow-x-auto no-scrollbar px-4 md:px-6 pt-4 md:pt-5', enableSearch ? 'pb-3 md:pb-4' : 'pb-4 md:pb-5']}
             data-role="dest-tabs"
             data-listing-id={listingId}
           >
@@ -296,7 +349,7 @@ const visibleItems = items
         )}
 
         {enableSearch && (
-          <div class:list={['px-4 md:px-6 pb-4 md:pb-5 flex flex-col md:flex-row gap-2 md:gap-3 items-stretch md:items-center', enableDestFilter && filterDestinations.length > 1 ? 'border-t border-sand-dark/10 pt-3 md:pt-4' : 'pt-4 md:pt-5']}>
+          <div class:list={['px-4 md:px-6 pb-4 md:pb-5 flex flex-col md:flex-row gap-2 md:gap-3 items-stretch md:items-center', enableDestFilter && filterDestinations.length > 1 ? 'pt-4 md:border-t md:border-sand-dark/10 md:pt-4' : 'pt-4 md:pt-5']}>
             <div class:list={['flex-1 grid grid-cols-1 gap-2 md:gap-3', showDatePicker && showGuestCount ? 'md:grid-cols-3' : showDatePicker || showGuestCount ? 'md:grid-cols-2' : 'md:grid-cols-1']}>
               <label class="relative block">
                 <Icon name="location_on" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
@@ -305,10 +358,15 @@ const visibleItems = items
                        class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
               </label>
               {showDatePicker && (
-                <label class="relative block">
-                  <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
-                  <input type="text" placeholder="Check-in — Check-out"
-                         class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
+                <label class="relative block" data-role="date-range" data-listing-id={listingId}>
+                  <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none z-10" />
+                  <div class="w-full pl-12 pr-3 py-2.5 rounded-xl bg-sand focus-within:bg-white focus-within:ring-2 focus-within:ring-ocean text-sm text-stone flex items-center gap-1 transition-all cursor-pointer">
+                    <input type="date" data-role="checkin" aria-label="Check-in date"
+                           class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+                    <span class="text-stone-light shrink-0">—</span>
+                    <input type="date" data-role="checkout" aria-label="Check-out date"
+                           class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+                  </div>
                 </label>
               )}
               {showGuestCount && (
@@ -333,10 +391,10 @@ const visibleItems = items
   <div class:list={['relative mx-auto px-4', containerClass, hasFilterUI ? 'pt-10 md:pt-12 pb-12 md:pb-16' : 'py-12 md:py-16']}>
     <div class="mb-8 md:mb-10 flex items-end justify-between gap-4 flex-wrap">
       <div>
-        <h3 class="font-display text-2xl md:text-3xl text-ocean">Luxury Collections</h3>
+        <h3 class="font-display text-2xl md:text-3xl text-ocean">{listingTitle}</h3>
         <p class="text-sm text-stone-light mt-1">
           <span data-role="count" data-listing-id={listingId}>{visibleItems.length}</span>
-          <span> {visibleItems.length === 1 ? 'property' : 'properties'} available in Bali &amp; surrounding islands</span>
+          <span> {listingSubtitle}</span>
         </p>
       </div>
     </div>
@@ -358,37 +416,51 @@ const visibleItems = items
     {visibleItems.length > 0 && (
       <>
         <div
-          class:list={['grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8', showLoadMore && 'slh-swipe']}
+          class:list={[
+            'grid',
+            cardVariant === 'ticket'
+              ? 'grid-cols-1 gap-5'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8',
+          ]}
           data-role="grid"
           data-listing-id={listingId}
           data-pagination={showLoadMore ? paginationType : 'none'}
-          data-per-page={initialVisibleCount}
+          data-per-mobile={perMobile}
+          data-per-tablet={perTablet}
+          data-per-desktop={perDesktop}
         >
           {visibleItems.map((item: any, idx: number) => {
-            const destSlug = typeof item.destination === 'object' ? (item.destination?.slug ?? '') : ''
-            const name = (item.name ?? item.title ?? '').toLowerCase()
-            const hiddenByPagination = showLoadMore && idx >= initialVisibleCount
+            const ownDestSlug = typeof item.destination === 'object' ? (item.destination?.slug ?? '') : ''
+            const ownDestName = typeof item.destination === 'object' ? (item.destination?.name ?? '') : ''
+            // Match key: core slug when hierarchy is on, else the item's own dest slug.
+            const destSlug = hierEnabled && ownDestSlug ? coreSlugOf(ownDestSlug) : ownDestSlug
+            // Searchable string: item name + (when hierarchical) its destination + core names.
+            const name = [item.name ?? item.title ?? '', hierEnabled ? ownDestName : '', hierEnabled ? coreNameOf(ownDestSlug) : '']
+              .join(' ').trim().toLowerCase()
+            const hiddenByPagination = showLoadMore && idx >= perDesktop
             return (
               <div
-                class:list={['sl-card', showLoadMore && 'slh-swipe-item', hiddenByPagination && 'sl-hidden-page']}
+                class:list={['sl-card', hiddenByPagination && 'sl-hidden-page']}
                 data-dest={destSlug}
                 data-name={name}
                 style={hiddenByPagination ? 'display:none' : undefined}
               >
-                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'tours' && <TourCard tour={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} />}
+                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'tours' && <TourCard tour={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
               </div>
             )
           })}
         </div>
 
         {/* Load More button (load-more mode only) */}
-        {showLoadMore && paginationType === 'load-more' && visibleItems.length > initialVisibleCount && (
+        {showLoadMore && paginationType === 'load-more' && visibleItems.length > Math.min(perMobile, perTablet, perDesktop) && (
           <div class="mt-10 md:mt-12 text-center">
             <button
               type="button"
@@ -434,26 +506,23 @@ const visibleItems = items
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 
-  /* Mobile swipe for paginated grids */
-  @media (max-width: 767px) {
-    .slh-swipe {
-      display: flex !important;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      gap: 1rem;
-      padding-bottom: 0.5rem;
-    }
-    .slh-swipe::-webkit-scrollbar { display: none; }
-    .slh-swipe > .slh-swipe-item {
-      min-width: calc(100vw - 3rem);
-      width: calc(100vw - 3rem);
-      max-width: calc(100vw - 3rem);
-      flex-shrink: 0;
-      scroll-snap-align: start;
-    }
+  /* Phase 4.54 — native date input polish (mirror Editorial). */
+  .dnj-date-input {
+    color-scheme: light;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    min-height: 1.5rem;
   }
+  .dnj-date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 150ms;
+  }
+  .dnj-date-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
 
   /* ── Slider transitions (own-scoped copy of hero-slider) ── */
   .slh-slider .slh-slide {
@@ -508,12 +577,23 @@ const visibleItems = items
     })
   }
 
+  // Phase 4.53 — per-breakpoint pagination count (mirror Editorial).
+  const readPerPage = (grid: HTMLElement): number => {
+    const w = window.innerWidth
+    const mobile = Number(grid.dataset.perMobile ?? grid.dataset.perDesktop ?? 6)
+    const tablet = Number(grid.dataset.perTablet ?? grid.dataset.perDesktop ?? 6)
+    const desktop = Number(grid.dataset.perDesktop ?? 6)
+    if (w < 640) return mobile
+    if (w < 1024) return tablet
+    return desktop
+  }
+
   const initHeroImmersive = () => {
     const grids = document.querySelectorAll<HTMLElement>('[data-role="grid"][data-listing-id^="slh-"]')
     grids.forEach((grid) => {
       const id = grid.dataset.listingId!
       const paginationMode = grid.dataset.pagination ?? 'none'
-      const perPage = Number(grid.dataset.perPage ?? 6)
+      let perPage = readPerPage(grid)
       const tabs = document.querySelector<HTMLElement>(`[data-role="dest-tabs"][data-listing-id="${id}"]`)
       const nameInput = document.querySelector<HTMLInputElement>(`[data-role="search-name"][data-listing-id="${id}"]`)
       const searchBtn = document.querySelector<HTMLElement>(`[data-role="search-btn"][data-listing-id="${id}"]`)
@@ -631,8 +711,59 @@ const visibleItems = items
         loadMoreRevealed += perPage
         applyView()
       })
+
+      // Re-evaluate perPage saat viewport crossing breakpoint.
+      let resizeTimer: number | undefined
+      const onResize = () => {
+        if (resizeTimer) window.clearTimeout(resizeTimer)
+        resizeTimer = window.setTimeout(() => {
+          const next = readPerPage(grid)
+          if (next !== perPage) {
+            perPage = next
+            currentPage = 1
+            loadMoreRevealed = 0
+            applyView()
+          }
+        }, 150)
+      }
+      window.addEventListener('resize', onResize)
+      window.addEventListener('orientationchange', onResize)
+
+      // Initial apply — reconcile SSR (desktop count) dengan viewport aktual.
+      applyView()
     })
   }
   document.addEventListener('astro:page-load', initHeroImmersive)
   initHeroImmersive()
+
+  // Phase 4.54 — auto-open native calendar picker (mirror Editorial).
+  const initDatePickers = () => {
+    document.querySelectorAll<HTMLLabelElement>('[data-role="date-range"]').forEach((wrap) => {
+      if (wrap.dataset.dpBound === '1') return
+      wrap.dataset.dpBound = '1'
+      const checkin = wrap.querySelector<HTMLInputElement>('[data-role="checkin"]')
+      const checkout = wrap.querySelector<HTMLInputElement>('[data-role="checkout"]')
+
+      const openPicker = (input: HTMLInputElement | null) => {
+        if (!input) return
+        try { (input as any).showPicker?.() } catch { /* ignored */ }
+      }
+
+      wrap.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement
+        if (target.tagName === 'INPUT') return
+        openPicker(checkin ?? checkout)
+      })
+      checkin?.addEventListener('focus', () => openPicker(checkin))
+      checkout?.addEventListener('focus', () => openPicker(checkout))
+      checkin?.addEventListener('change', () => {
+        if (checkout && checkin.value) {
+          checkout.min = checkin.value
+          if (checkout.value && checkout.value < checkin.value) checkout.value = checkin.value
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initDatePickers)
+  initDatePickers()
 </script>

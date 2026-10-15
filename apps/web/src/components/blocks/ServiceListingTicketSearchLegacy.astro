@@ -1,0 +1,375 @@
+---
+/**
+ * ServiceListingTicketSearch — Phase 4.61.7.
+ * Template 2: trip pill + from/to + date + passenger stepper + submit.
+ * Reusable for ferry, train, flight, bus. Round Trip UI visible but
+ * booking flow deferred to Phase 4.65.
+ */
+import type { Page } from '@shared/types/payload-types'
+import Icon from '@components/common/Icon.astro'
+import { getFerryTickets, getLocations, getSiteSettings, getSiteFeatures } from '@lib/payload'
+import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
+import { resolveCardVariant, resolveCardBackground } from '@lib/serviceCards'
+import { resolveContainer, resolveEntryAnimation, resolveTextColor, resolveTextAnimIn } from '@lib/blockStyles'
+import { todayLocalISO } from '@lib/date'
+
+type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'serviceListing' }>
+interface Props { block: Block; serviceMeta?: any }
+const { block, serviceMeta = null } = Astro.props
+const b = block as any
+
+const serviceType = b.serviceType ?? 'ferry-tickets'
+const heading = b.heading || serviceMeta?.name || 'Find Your Trip'
+const description = b.description || ''
+const eyebrow = b.eyebrow || ''
+
+const enableRoundTrip = b.ticketEnableRoundTrip !== false
+const enableInfant = b.ticketEnableInfant !== false
+const maxAdults = typeof b.ticketMaxAdults === 'number' ? b.ticketMaxAdults : 9
+const maxChildren = typeof b.ticketMaxChildren === 'number' ? b.ticketMaxChildren : 6
+const maxInfants = typeof b.ticketMaxInfants === 'number' ? b.ticketMaxInfants : 2
+const locationType = b.ticketLocationType ?? 'ferry-port'
+const startingLabel = b.ticketStartingPointLabel || 'Starting Point'
+const destLabel = b.ticketDestinationLabel || 'Destination'
+const submitText = b.ticketSubmitButtonText || 'Update'
+const defaultSort = b.ticketDefaultSort || 'earliest'
+
+const url = new URL(Astro.request.url)
+const q = url.searchParams
+const qFrom = q.get('from') || ''
+const qTo = q.get('to') || ''
+const qDate = q.get('date') || ''
+const qAdults = Math.max(1, Math.min(maxAdults, Number(q.get('adults')) || 2))
+const qChildren = Math.max(0, Math.min(maxChildren, Number(q.get('children')) || 0))
+const qInfants = Math.max(0, Math.min(maxInfants, Number(q.get('infants')) || 0))
+const qTrip = q.get('trip') === 'round-trip' ? 'round-trip' : 'one-way'
+const qSort = q.get('sort') || defaultSort
+
+const limit = b.limit ?? 24
+let items: any[] = []
+let locations: any[] = []
+let error: string | null = null
+try {
+  const [itemsData, locData] = await Promise.all([
+    getFerryTickets({ limit, sort: 'sortOrder' }),
+    getLocations({ limit: 200 }),
+  ])
+  items = itemsData.docs
+  locations = locData.docs.filter((l: any) => l.isActive !== false && l.locationType === locationType)
+} catch (err) {
+  error = err instanceof Error ? err.message : String(err)
+}
+
+if (qFrom) items = items.filter((it: any) => (typeof it.originLocation === 'object' ? it.originLocation?.slug : '') === qFrom)
+if (qTo) items = items.filter((it: any) => (typeof it.arrivalLocation === 'object' ? it.arrivalLocation?.slug : '') === qTo)
+
+const timeToMin = (t?: string): number => {
+  if (typeof t !== 'string') return 99999
+  const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(t)
+  return m ? Number(m[1]) * 60 + Number(m[2]) : 99999
+}
+const cheapestPriceOf = (it: any): number => {
+  const arr = Array.isArray(it.ferryClasses) ? it.ferryClasses : []
+  const prices = arr.map((c: any) => c?.adultPrice).filter((n: any) => typeof n === 'number' && n > 0)
+  return prices.length ? Math.min(...prices) : Number.MAX_SAFE_INTEGER
+}
+items = items.slice().sort((a: any, c: any) => {
+  if (qSort === 'latest')    return timeToMin(c.departureTime) - timeToMin(a.departureTime)
+  if (qSort === 'cheapest')  return cheapestPriceOf(a) - cheapestPriceOf(c)
+  if (qSort === 'shortest')  return (a.durationMinutes ?? 99999) - (c.durationMinutes ?? 99999)
+  return timeToMin(a.departureTime) - timeToMin(c.departureTime)
+})
+
+const features = await getSiteFeatures().catch(() => null)
+const cardVariant = resolveCardVariant(serviceType, features)
+const cardBg = resolveCardBackground(serviceType, features)
+const detailBase = '/ferry-tickets'
+
+const containerClass = resolveContainer(b.containerWidth)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
+const ts = b.ts ?? {}
+const eyebrowColor = resolveTextColor(ts.eyebrowColor)
+const eyebrowAnim = resolveTextAnimIn(ts.eyebrowAnimIn)
+const hColor = resolveTextColor(ts.headingColor)
+const hAnim = resolveTextAnimIn(ts.headingAnimIn)
+const descColor = resolveTextColor(ts.descriptionColor)
+const descAnim = resolveTextAnimIn(ts.descriptionAnimIn)
+
+const siteSettings = await getSiteSettings().catch(() => null)
+const sp = (siteSettings as any)?.sectionPages ?? {}
+const listingTitle = sp.listingTitle || 'Your Trips'
+const listingSubtitle = sp.listingSubtitle || 'trips found'
+
+const heroMinHeight = b.heroMinHeight ?? 'md'
+const heroMinHeightClass: Record<string, string> = {
+  sm: 'min-h-[380px]', md: 'min-h-[440px] md:min-h-[480px]',
+  lg: 'min-h-[520px] md:min-h-[560px]', full: 'min-h-screen',
+}
+const today = todayLocalISO()
+
+// Phase 4.61.7 bugfix R2 — combobox pattern for from/to. Serialize
+// locations minimal shape + resolve initial display text from query.
+const locDisplay = (l: any): string => l.terminalName ? `${l.name} — ${l.terminalName}` : (l.name || '')
+const locJson = JSON.stringify(locations.map((l: any) => ({
+  slug: l.slug, name: l.name || '', terminal: l.terminalName || '',
+})))
+const initFromLoc = locations.find((l: any) => l.slug === qFrom)
+const initToLoc = locations.find((l: any) => l.slug === qTo)
+const initFromQ = initFromLoc ? locDisplay(initFromLoc) : ''
+const initToQ = initToLoc ? locDisplay(initToLoc) : ''
+
+const sortOptions = [
+  { value: 'earliest', label: 'Earliest Departure' },
+  { value: 'latest',   label: 'Latest Departure' },
+  { value: 'cheapest', label: 'Cheapest' },
+  { value: 'shortest', label: 'Shortest Duration' },
+]
+---
+
+<section class="relative bg-sand" data-animate={entry.dataAnimate} style={entry.style || undefined}
+  x-data={`{
+    locations: ${locJson},
+    fromQ: ${JSON.stringify(initFromQ)}, toQ: ${JSON.stringify(initToQ)},
+    fromSlug: ${JSON.stringify(qFrom)}, toSlug: ${JSON.stringify(qTo)},
+    fromOpen: false, toOpen: false,
+    adults: ${qAdults}, children: ${qChildren}, infants: ${qInfants},
+    trip: '${qTrip}', passengerOpen: false,
+    enableInfant: ${enableInfant}, maxAdults: ${maxAdults}, maxChildren: ${maxChildren}, maxInfants: ${maxInfants},
+    inc(k, max) { if (this[k] < max) this[k]++ },
+    dec(k, min) { if (this[k] > min) this[k]-- },
+    passengerSummary() {
+      const p = [this.adults + ' Adult', this.children + ' Child']
+      if (this.enableInfant) p.push(this.infants + ' Infant')
+      return p.join(' ')
+    },
+    filtered(q) {
+      const s = (q || '').toLowerCase().trim()
+      if (!s) return this.locations
+      return this.locations.filter(l =>
+        l.name.toLowerCase().includes(s) ||
+        (l.terminal || '').toLowerCase().includes(s))
+    },
+    labelOf(l) { return l.terminal ? l.name + ' — ' + l.terminal : l.name },
+    pick(field, l) {
+      this[field + 'Q'] = this.labelOf(l)
+      this[field + 'Slug'] = l.slug
+      this[field + 'Open'] = false
+    },
+    onInput(field) {
+      this[field + 'Open'] = true
+      this[field + 'Slug'] = ''
+    },
+    swap() {
+      const q = this.fromQ, s = this.fromSlug
+      this.fromQ = this.toQ; this.fromSlug = this.toSlug
+      this.toQ = q; this.toSlug = s
+    }
+  }`}
+>
+  <div class:list={['relative w-full overflow-hidden', heroMinHeightClass[heroMinHeight]]}>
+    <div class="absolute inset-0 z-[1] bg-gradient-to-br from-ocean via-ocean/85 to-leaf"></div>
+    <div class="absolute inset-0 z-[2] bg-black/25"></div>
+    <div class:list={['relative z-10 mx-auto flex flex-col items-center justify-center h-full py-14 md:py-20 px-4', containerClass, entry.className, heroMinHeightClass[heroMinHeight]]}>
+      <div class="text-center max-w-3xl mx-auto text-white">
+        {eyebrow && <p class:list={['text-xs uppercase tracking-[0.3em] mb-4 font-semibold', eyebrowColor || 'text-white/80', eyebrowAnim]}>{eyebrow}</p>}
+        {heading && <h2 class:list={['font-display italic text-4xl md:text-5xl lg:text-6xl mb-4 leading-tight', hColor || 'text-white', hAnim]}>{heading}</h2>}
+        {description && <p class:list={['text-base md:text-lg max-w-2xl mx-auto', descColor || 'text-white/90', descAnim]}>{description}</p>}
+      </div>
+    </div>
+  </div>
+
+  <div class:list={['relative z-20 mx-auto px-4 -mt-16 md:-mt-20', containerClass]}>
+    <form method="get" class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl p-4 md:p-5">
+      {enableRoundTrip && (
+        <div class="flex items-center gap-6 mb-4 text-sm md:text-base">
+          <label class="inline-flex items-center gap-2 cursor-not-allowed opacity-70">
+            <input type="radio" name="trip" value="round-trip" class="peer sr-only" x-model="trip" disabled />
+            <span class="w-4 h-4 rounded-full border-2 border-stone-light flex items-center justify-center">
+              <span class="w-1.5 h-1.5 rounded-full bg-ocean" x-show="trip === 'round-trip'"></span>
+            </span>
+            <span class="font-semibold text-stone-light">Round Trip</span>
+            <span class="ml-1 text-[10px] uppercase tracking-wider text-stone-light bg-sand px-1.5 py-0.5 rounded" title="Coming soon">Soon</span>
+          </label>
+          <label class="inline-flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="trip" value="one-way" class="peer sr-only" x-model="trip" />
+            <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center" x-bind:class="trip === 'one-way' ? 'border-ocean' : 'border-stone-light'">
+              <span class="w-1.5 h-1.5 rounded-full bg-ocean" x-show="trip === 'one-way'"></span>
+            </span>
+            <span class="font-semibold" x-bind:class="trip === 'one-way' ? 'text-ocean' : 'text-stone-light'">One Way</span>
+          </label>
+        </div>
+      )}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1fr_auto_1fr_1fr_1fr_auto] gap-3 items-stretch">
+        {/* Starting Point — combobox */}
+        <div class="relative" @click.outside="fromOpen = false">
+          <span class="absolute top-2 left-3 text-[10px] uppercase tracking-wider text-stone-light font-semibold z-10 pointer-events-none">{startingLabel}</span>
+          <input type="text" autocomplete="off" spellcheck="false"
+                 x-model="fromQ"
+                 @focus="fromOpen = true"
+                 @input="onInput('from')"
+                 @keydown.escape="fromOpen = false"
+                 placeholder="Type city or port…"
+                 class="w-full h-full min-h-[64px] pt-6 pb-2 px-3 pr-8 border border-sand-dark/40 rounded-lg text-stone text-sm md:text-base font-medium bg-white focus:outline-none focus:border-ocean" />
+          <input type="hidden" name="from" x-bind:value="fromSlug" />
+          <button type="button" x-show="fromQ" x-cloak
+                  @click.prevent="fromQ=''; fromSlug=''; fromOpen=true"
+                  aria-label="Clear starting point"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full text-stone-light hover:bg-sand hover:text-stone transition-colors">
+            <span class="text-sm leading-none">×</span>
+          </button>
+          <ul x-show="fromOpen" x-cloak x-transition.opacity.duration.100ms
+              class="absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white rounded-lg shadow-2xl border border-sand-dark/20 z-30">
+            <template x-for="loc in filtered(fromQ)" :key="loc.slug">
+              <li @click="pick('from', loc)"
+                  class="px-3 py-2.5 cursor-pointer hover:bg-sand border-b border-sand-dark/10 last:border-b-0">
+                <p class="text-sm font-semibold text-ocean" x-text="loc.name"></p>
+                <p class="text-xs text-stone-light" x-show="loc.terminal" x-text="loc.terminal"></p>
+              </li>
+            </template>
+            <li x-show="filtered(fromQ).length === 0" class="px-3 py-3 text-sm text-stone-light text-center">No matches</li>
+          </ul>
+        </div>
+
+        {/* Swap button — visible on all breakpoints. Rotates 90° on mobile
+            so the ↕ arrow sits between stacked inputs. */}
+        <button type="button"
+                @click.prevent="swap()"
+                aria-label="Swap starting point and destination"
+                class="flex items-center justify-center w-10 h-10 mx-auto self-center rounded-full border border-sand-dark/40 bg-white hover:bg-sand transition-colors -my-1 lg:my-0 rotate-90 lg:rotate-0">
+          <Icon name="swap_horiz" class="w-5 h-5 text-ocean" />
+        </button>
+
+        {/* Destination — combobox */}
+        <div class="relative" @click.outside="toOpen = false">
+          <span class="absolute top-2 left-3 text-[10px] uppercase tracking-wider text-stone-light font-semibold z-10 pointer-events-none">{destLabel}</span>
+          <input type="text" autocomplete="off" spellcheck="false"
+                 x-model="toQ"
+                 @focus="toOpen = true"
+                 @input="onInput('to')"
+                 @keydown.escape="toOpen = false"
+                 placeholder="Type city or port…"
+                 class="w-full h-full min-h-[64px] pt-6 pb-2 px-3 pr-8 border border-sand-dark/40 rounded-lg text-stone text-sm md:text-base font-medium bg-white focus:outline-none focus:border-ocean" />
+          <input type="hidden" name="to" x-bind:value="toSlug" />
+          <button type="button" x-show="toQ" x-cloak
+                  @click.prevent="toQ=''; toSlug=''; toOpen=true"
+                  aria-label="Clear destination"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full text-stone-light hover:bg-sand hover:text-stone transition-colors">
+            <span class="text-sm leading-none">×</span>
+          </button>
+          <ul x-show="toOpen" x-cloak x-transition.opacity.duration.100ms
+              class="absolute left-0 right-0 top-full mt-1 max-h-64 overflow-y-auto bg-white rounded-lg shadow-2xl border border-sand-dark/20 z-30">
+            <template x-for="loc in filtered(toQ)" :key="loc.slug">
+              <li @click="pick('to', loc)"
+                  class="px-3 py-2.5 cursor-pointer hover:bg-sand border-b border-sand-dark/10 last:border-b-0">
+                <p class="text-sm font-semibold text-ocean" x-text="loc.name"></p>
+                <p class="text-xs text-stone-light" x-show="loc.terminal" x-text="loc.terminal"></p>
+              </li>
+            </template>
+            <li x-show="filtered(toQ).length === 0" class="px-3 py-3 text-sm text-stone-light text-center">No matches</li>
+          </ul>
+        </div>
+
+        <label class="relative block">
+          <span class="absolute top-2 left-3 text-[10px] uppercase tracking-wider text-stone-light font-semibold z-10">Departure Date</span>
+          <input type="date" name="date" value={qDate} min={today} class="w-full h-full min-h-[64px] pt-6 pb-2 px-3 border border-sand-dark/40 rounded-lg text-stone text-sm md:text-base font-medium bg-white focus:outline-none focus:border-ocean" />
+        </label>
+
+        <div class="relative">
+          <button type="button" @click="passengerOpen = !passengerOpen" class="w-full h-full min-h-[64px] pt-6 pb-2 px-3 border border-sand-dark/40 rounded-lg text-stone text-sm md:text-base font-medium bg-white text-left focus:outline-none focus:border-ocean cursor-pointer">
+            <span class="absolute top-2 left-3 text-[10px] uppercase tracking-wider text-stone-light font-semibold">Passenger</span>
+            <span x-text="passengerSummary()"></span>
+            <Icon name="expand_more" class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+          </button>
+          <input type="hidden" name="adults" x-bind:value="adults" />
+          <input type="hidden" name="children" x-bind:value="children" />
+          <input type="hidden" name="infants" x-bind:value="infants" />
+          <div x-show="passengerOpen" x-cloak @click.outside="passengerOpen = false" x-transition class="absolute right-0 top-full mt-1 w-80 bg-white rounded-xl shadow-2xl border border-sand-dark/20 p-4 z-30">
+            <div class="flex items-center justify-between py-3">
+              <div><p class="font-semibold text-stone">Adult</p><p class="text-xs text-stone-light">Ages 12 or above</p></div>
+              <div class="flex items-center gap-3">
+                <button type="button" @click.prevent="dec('adults', 1)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="adults <= 1">−</button>
+                <span class="min-w-[24px] text-center font-bold text-stone" x-text="adults"></span>
+                <button type="button" @click.prevent="inc('adults', maxAdults)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="adults >= maxAdults">+</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between py-3 border-t border-sand-dark/10">
+              <div><p class="font-semibold text-stone">Child</p><p class="text-xs text-stone-light">Ages 12 below</p></div>
+              <div class="flex items-center gap-3">
+                <button type="button" @click.prevent="dec('children', 0)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="children <= 0">−</button>
+                <span class="min-w-[24px] text-center font-bold text-stone" x-text="children"></span>
+                <button type="button" @click.prevent="inc('children', maxChildren)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="children >= maxChildren">+</button>
+              </div>
+            </div>
+            {enableInfant && (
+              <div class="flex items-center justify-between py-3 border-t border-sand-dark/10">
+                <div><p class="font-semibold text-stone">Infant</p><p class="text-xs text-stone-light" x-text="'Max infant ' + maxInfants"></p></div>
+                <div class="flex items-center gap-3">
+                  <button type="button" @click.prevent="dec('infants', 0)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="infants <= 0">−</button>
+                  <span class="min-w-[24px] text-center font-bold text-stone" x-text="infants"></span>
+                  <button type="button" @click.prevent="inc('infants', maxInfants)" class="w-8 h-8 rounded-full border border-ocean text-ocean hover:bg-ocean hover:text-white transition-colors flex items-center justify-center disabled:opacity-30" x-bind:disabled="infants >= maxInfants">+</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <button type="submit" class="min-h-[64px] px-6 md:px-8 bg-coral hover:bg-coral-dark text-white font-semibold rounded-lg uppercase tracking-wider text-sm transition-colors shadow-md">
+          {submitText}
+        </button>
+      </div>
+      <input type="hidden" name="sort" value={qSort} />
+    </form>
+  </div>
+
+  <div class:list={['relative z-10 mx-auto px-4 mt-8 md:mt-10 mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3', containerClass]}>
+    <div>
+      <h3 class="font-display text-xl md:text-2xl text-ocean">{listingTitle}</h3>
+      <p class="text-sm text-stone-light"><span class="font-semibold text-ocean">{items.length}</span> {listingSubtitle}</p>
+    </div>
+    <form method="get" class="flex items-center gap-2">
+      {qFrom && <input type="hidden" name="from" value={qFrom} />}
+      {qTo && <input type="hidden" name="to" value={qTo} />}
+      {qDate && <input type="hidden" name="date" value={qDate} />}
+      <input type="hidden" name="adults" value={qAdults} />
+      <input type="hidden" name="children" value={qChildren} />
+      <input type="hidden" name="infants" value={qInfants} />
+      <input type="hidden" name="trip" value={qTrip} />
+      <label class="text-xs uppercase tracking-wider text-stone-light font-semibold">Sort by</label>
+      <select name="sort" onchange="this.form.submit()" class="px-3 py-2 border border-sand-dark/40 rounded-lg text-sm text-stone bg-white cursor-pointer focus:outline-none focus:border-ocean">
+        {sortOptions.map((o) => <option value={o.value} selected={qSort === o.value}>{o.label}</option>)}
+      </select>
+    </form>
+  </div>
+
+  <div class:list={['relative z-10 mx-auto px-4 pb-16 md:pb-20', containerClass]}>
+    {error && <p class="text-center text-coral">Error loading items: {error}</p>}
+    {!error && items.length === 0 && <p class="text-center text-stone-light py-10">No trips match your search. Try adjusting the filters.</p>}
+    {items.length > 0 && (
+      <div class="grid grid-cols-1 gap-5">
+        {items.map((item: any) => {
+          const dateAttr = qDate ? `?date=${qDate}` : ''
+          return (
+            <div>
+              <FerryTicketsCard ferryTicket={item} hrefBase={detailBase + dateAttr} variant={cardVariant} background={cardBg} />
+            </div>
+          )
+        })}
+      </div>
+    )}
+  </div>
+</section>
+
+<script>
+  // Phase 4.61.7 — self-init Alpine (not initialized elsewhere in project yet).
+  // All component state lives inline in the x-data attribute above; this
+  // script only bootstraps Alpine itself so the directives get processed.
+  import Alpine from 'alpinejs'
+  ;(window as any).Alpine = Alpine
+  if (!(window as any).__dnjAlpineStarted) {
+    (window as any).__dnjAlpineStarted = true
+    Alpine.start()
+  }
+</script>
+
+<style>[x-cloak] { display: none !important; }</style>

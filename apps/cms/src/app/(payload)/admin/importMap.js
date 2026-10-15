@@ -1,3 +1,10 @@
+import { default as default_fc6d56327bdeaacca57c2d3b4a2fac23 } from '../../../admin/BookingRequestAlert'
+import { default as default_c886095dba6d6143039705c2acf0c68c } from '../../../admin/BookingAdminActions'
+import { default as default_89e1373e9d75473f75a7c5e015d32ddc } from '../../../admin/cells/PriceCell'
+import { default as default_1cc38f346512d4f7f75add2738bb7fb4 } from '../../../admin/BookingStatusFilterBar'
+import { default as default_71206546ade6f3e51000b567a053879f } from '../../../admin/SidebarTabs'
+import { default as default_51a6c3a6d17463139b3a0c8a76281abf } from '../../../admin/cells/StatusCell'
+import { default as default_646f34edcebed27cce5af4613beb5f20 } from '../../../admin/cells/RelativeDateCell'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -22,13 +29,54 @@ import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { HeadingFeatureClient as HeadingFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ParagraphFeatureClient as ParagraphFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { default as default_da3b373a276c153dce234a7b6af2f237 } from '../../../components/IconPickerField'
+import { default as default_bdf34549d93d2f3ad9f92f8d63d4ab79 } from '../../../admin/GalleryBulkUpload'
+import { default as default_23885d6272f4ed228f60c129608ba160 } from '../../../admin/GalleryGrid'
+import { default as default_6b8ecc267399acc536623c5290b13b83 } from '../../../components/ColorSwatchField'
+import { default as default_cb06065eae342f52962c1f033278ce97 } from '../../../blocks/BlockLabel'
+import { default as default_04daaed38d896c965644730d165dbccd } from '../../../admin/DescriptionsToTooltips'
+import { default as default_9a90d1d9ab5d46e542ff149734aa056f } from '../../../admin/WheelTimePicker'
+import { default as default_1c92e7be3d0b00b59e07a7b5dc0a1281 } from '../../../admin/DurationLock'
+import { default as default_fbbe93644a08c47194796d3f9db1c72d } from '../../../admin/LocationPortInfo'
+import { default as default_1627ac66536d0cded911072e398701b0 } from '../../../admin/GalleryMediaPicker'
+import { default as default_702836522fac5cda63df7aed9b79266c } from '../../../admin/cells/TemplateCell'
+import { default as default_8ffc032821a76393b4b822391a838861 } from '../../../admin/cells/BlockCountCell'
+import { default as default_4c2ec00ea115e2699bb215dc8a5b472d } from '../../../admin/MediaThumbnailCell'
+import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { default as default_f125baa29bb109655620d04723c42d5b } from '../../../admin/MediaSelectionBar'
 import { MenuChildRowLabel as MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d } from '../../../components/MenuChildRowLabel'
 import { MenuItemRowLabel as MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091 } from '../../../components/MenuItemRowLabel'
+import { default as default_68a1ee296a4d669462449170f13ac89f } from '../../../admin/cells/UserAvatarCell'
+import { default as default_7d0add3028cddc531ec476c2b888fa4a } from '../../../admin/PasswordGeneratorButton'
+import { default as default_662c92c1b3d2933aea12433e4ed474d2 } from '../../../admin/ForceUnlockButton'
+import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
+import { TemplatePickerField as TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed } from '../../../components/TemplatePickerField'
+import { TemplateImportExport as TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2 } from '../../../components/TemplateImportExport'
+import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../components/FooterLayoutRowLabel'
+import { default as default_717e86c8ff0d6e16710fe7573de37930 } from '../../../admin/ServiceModulesManager'
+import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
+import { default as default_88541c286955dbac4d90fb5ed606381c } from '../../../admin/graphics/Logo'
+import { default as default_64c2e44a9325dc37c881505671c0a779 } from '../../../admin/SidebarFooter'
+import { default as default_792c0d3ac257e3b6841a35f0f9e3982d } from '../../../admin/NavAccordion'
 import { default as default_fafa156b7e0b046667cba8c807e70577 } from '../../../admin/DashboardStats'
+import { default as default_7c1a55be352b3f1b9b1733a61137e6fe } from '../../../admin/BeforeLogin'
+import { default as default_c7f94ec6c782a5d98a056d471ed23545 } from '../../../admin/Giattech'
+import { default as default_63426120d5a18e206c5d223aa70a260c } from '../../../admin/NavDashboardLink'
+import { default as default_901f7f3b3bb38a7ce0b6851f39b0b655 } from '../../../admin/AdminStyles'
+import { default as default_59e5997061b2252debbddcc96648def1 } from '../../../admin/MediaListEnhancer'
+import { default as default_bd18a6d6300bc040c70a2d345f4c6906 } from '../../../admin/MediaFolderSidebar'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/admin/BookingRequestAlert#default": default_fc6d56327bdeaacca57c2d3b4a2fac23,
+  "/admin/BookingAdminActions#default": default_c886095dba6d6143039705c2acf0c68c,
+  "/admin/cells/PriceCell#default": default_89e1373e9d75473f75a7c5e015d32ddc,
+  "/admin/BookingStatusFilterBar#default": default_1cc38f346512d4f7f75add2738bb7fb4,
+  "/admin/SidebarTabs#default": default_71206546ade6f3e51000b567a053879f,
+  "/admin/cells/StatusCell#default": default_51a6c3a6d17463139b3a0c8a76281abf,
+  "/admin/cells/RelativeDateCell#default": default_646f34edcebed27cce5af4613beb5f20,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -53,8 +101,42 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#HeadingFeatureClient": HeadingFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ParagraphFeatureClient": ParagraphFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "/components/IconPickerField#default": default_da3b373a276c153dce234a7b6af2f237,
+  "/admin/GalleryBulkUpload#default": default_bdf34549d93d2f3ad9f92f8d63d4ab79,
+  "/admin/GalleryGrid#default": default_23885d6272f4ed228f60c129608ba160,
+  "/components/ColorSwatchField#default": default_6b8ecc267399acc536623c5290b13b83,
+  "/blocks/BlockLabel#default": default_cb06065eae342f52962c1f033278ce97,
+  "/admin/DescriptionsToTooltips#default": default_04daaed38d896c965644730d165dbccd,
+  "/admin/WheelTimePicker#default": default_9a90d1d9ab5d46e542ff149734aa056f,
+  "/admin/DurationLock#default": default_1c92e7be3d0b00b59e07a7b5dc0a1281,
+  "/admin/LocationPortInfo#default": default_fbbe93644a08c47194796d3f9db1c72d,
+  "/admin/GalleryMediaPicker#default": default_1627ac66536d0cded911072e398701b0,
+  "/admin/cells/TemplateCell#default": default_702836522fac5cda63df7aed9b79266c,
+  "/admin/cells/BlockCountCell#default": default_8ffc032821a76393b4b822391a838861,
+  "/admin/MediaThumbnailCell#default": default_4c2ec00ea115e2699bb215dc8a5b472d,
+  "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "/admin/MediaSelectionBar#default": default_f125baa29bb109655620d04723c42d5b,
   "/components/MenuChildRowLabel#MenuChildRowLabel": MenuChildRowLabel_b6cc9a544f0bcb8dd2f8ac20700a721d,
   "/components/MenuItemRowLabel#MenuItemRowLabel": MenuItemRowLabel_5b953595a6fbd20597beb8dbaa64c091,
+  "/admin/cells/UserAvatarCell#default": default_68a1ee296a4d669462449170f13ac89f,
+  "/admin/PasswordGeneratorButton#default": default_7d0add3028cddc531ec476c2b888fa4a,
+  "/admin/ForceUnlockButton#default": default_662c92c1b3d2933aea12433e4ed474d2,
+  "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
+  "/components/TemplatePickerField#TemplatePickerField": TemplatePickerField_fe97e271bfaca0a20bca1d35b91309ed,
+  "/components/TemplateImportExport#TemplateImportExport": TemplateImportExport_d8e5d75c28d9f0104c649493c811c0c2,
+  "/components/FooterLayoutRowLabel#default": default_2d7391d3e6c490e87ec696da441ef264,
+  "/admin/ServiceModulesManager#default": default_717e86c8ff0d6e16710fe7573de37930,
+  "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,
+  "/admin/graphics/Logo#default": default_88541c286955dbac4d90fb5ed606381c,
+  "/admin/SidebarFooter#default": default_64c2e44a9325dc37c881505671c0a779,
+  "/admin/NavAccordion#default": default_792c0d3ac257e3b6841a35f0f9e3982d,
   "/admin/DashboardStats#default": default_fafa156b7e0b046667cba8c807e70577,
+  "/admin/BeforeLogin#default": default_7c1a55be352b3f1b9b1733a61137e6fe,
+  "/admin/Giattech#default": default_c7f94ec6c782a5d98a056d471ed23545,
+  "/admin/NavDashboardLink#default": default_63426120d5a18e206c5d223aa70a260c,
+  "/admin/AdminStyles#default": default_901f7f3b3bb38a7ce0b6851f39b0b655,
+  "/admin/MediaListEnhancer#default": default_59e5997061b2252debbddcc96648def1,
+  "/admin/MediaFolderSidebar#default": default_bd18a6d6300bc040c70a2d345f4c6906,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

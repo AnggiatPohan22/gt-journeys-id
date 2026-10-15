@@ -1,12 +1,17 @@
 ---
 import PageLayout from '@layouts/PageLayout.astro'
 import BlockRenderer from '@components/blocks/BlockRenderer.astro'
-import { getPages, getPageBySlug } from '@lib/payload'
+import StructuredData from '@components/common/StructuredData.astro'
+import {
+  getPages, getPageBySlug,
+  getTours, getAccommodations, getWaterActivities, getYachts,
+  getRestaurants, getVenues, getRentals, getSpas, getFerryTickets,
+} from '@lib/payload'
 import { getResolvedServiceTypes } from '@lib/serviceTypes'
+import { webPageSchema, itemListSchema, breadcrumbListSchema, SERVICE_DETAIL_BASE } from '@lib/structuredData'
 
-// Catch-all for CMS-driven pages. Runs AFTER static routes like /tours,
-// /accommodations, etc., so those service module URLs are never overridden
-// by a CMS Page even if a Page with that slug exists.
+// Catch-all for CMS-driven pages. Runs AFTER static routes and _redirects,
+// so plural listing/detail URLs (301 → singular) are never handled here.
 export async function getStaticPaths() {
   const { docs } = await getPages({ limit: 500 })
   return docs
@@ -27,8 +32,39 @@ const svcMeta = svcTypes.find((s) => s.slug === slug) ?? null
 
 const title = page.seo?.metaTitle ?? svcMeta?.metaTitle ?? page.title
 const description = page.seo?.metaDescription ?? svcMeta?.metaDescription ?? undefined
+
+// ── JSON-LD (D-tech) ──────────────────────────────────────────────
+const site = Astro.site?.href
+const pageUrl = `/${slug}`
+const schemas: Record<string, unknown>[] = [
+  webPageSchema({ name: title, description, url: pageUrl, site }),
+  breadcrumbListSchema([{ name: 'Home', url: '/' }, { name: page.title, url: pageUrl }], site),
+]
+
+// Service listing page → tambahkan ItemList produk (detail URLs singular).
+const svcBlock = (page.content ?? []).find((b: any) => b.blockType === 'serviceListing') as any
+if (svcBlock?.serviceType && SERVICE_DETAIL_BASE[svcBlock.serviceType]) {
+  const base = SERVICE_DETAIL_BASE[svcBlock.serviceType]
+  const fetchers: Record<string, () => Promise<{ docs: any[] }>> = {
+    tours: () => getTours({ limit: 50 }),
+    accommodations: () => getAccommodations({ limit: 50 }),
+    'water-activities': () => getWaterActivities({ limit: 50 }),
+    yachts: () => getYachts({ limit: 50 }),
+    restaurants: () => getRestaurants({ limit: 50 }),
+    venues: () => getVenues({ limit: 50 }),
+    rentals: () => getRentals({ limit: 50 }),
+    spa: () => getSpas({ limit: 50 }),
+    'ferry-tickets': () => getFerryTickets({ limit: 50 }),
+  }
+  const { docs } = await fetchers[svcBlock.serviceType]().catch(() => ({ docs: [] }))
+  const urls = docs.filter((d) => d?.slug).map((d) => `${base}/${d.slug}`)
+  if (urls.length) {
+    schemas.push(itemListSchema({ name: title, description, urls, site }))
+  }
+}
 ---
 
 <PageLayout title={title} description={description}>
   <BlockRenderer blocks={page.content} />
+  <StructuredData schema={schemas} />
 </PageLayout>

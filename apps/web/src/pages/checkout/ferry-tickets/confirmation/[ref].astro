@@ -1,0 +1,1014 @@
+---
+/**
+ * Booking confirmation — Ferry Ticket
+ * (Phase 4.62 → 4.63 → 4.65.1 confirmation UI sync).
+ *
+ * Phase 4.65.1 (confirmation): Sync visual language dengan checkout page
+ * (referensi-1) — stepper card 3-step (step 3 active), dark ocean numbered
+ * section headers, Booking Summary sidebar (Show/Hide Details), CTA
+ * proporsional. English copy end-to-end.
+ *
+ * SSR: fetch booking by ref → resolve active checkout channel → render
+ * summary + primary handoff button. Manual-WhatsApp is today's default;
+ * the same page will keep working when a gateway channel is added.
+ *
+ * Data flow, field names, endpoint, dan channel logic TIDAK berubah dari
+ * versi 4.62 — hanya markup + Tailwind + copy.
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import { getBookingByRefAndToken } from '@lib/checkout/store'
+import { resolveChannel, getManualWaHandoff } from '@lib/checkout/channels'
+import { formatPrice } from '@shared/utils/format-price'
+import { maskPassport } from '@lib/checkout/mask'
+import type { Media } from '@shared/types/payload-types'
+
+export const prerender = false
+
+const { ref } = Astro.params
+if (!ref) return Astro.redirect('/')
+
+// Phase 4.66.5 — access token wajib. Tanpa token yang valid, kirim 404
+// generik (bukan 403) supaya attacker tidak bisa membedakan ref yang
+// eksis dari yang tidak → mempersulit enumerate.
+const token = new URL(Astro.request.url).searchParams.get('t') ?? ''
+const booking = await getBookingByRefAndToken(ref, token)
+if (!booking) return Astro.redirect('/404')
+
+// Phase 4.66.6 — defense-in-depth di atas _headers (Phase 4.66.3):
+// pastikan tidak ada cache intermediate (CDN, reverse proxy, browser
+// history restore) yang menyimpan halaman ini + tandai noindex/nofollow.
+// `_headers` sudah menetapkan aturan sama, tapi header dari response
+// menang atas file `_headers` di CDN edge yang caching aggresif.
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate')
+Astro.response.headers.set('Pragma', 'no-cache')
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+
+const currency = (booking.currency as 'IDR' | 'USD' | undefined) ?? 'IDR'
+const unit = booking.unitPrice != null ? formatPrice(booking.unitPrice, currency) : null
+const total = booking.totalEstimate != null ? formatPrice(booking.totalEstimate, currency) : null
+
+// Resolve active channel (currently always `manual_wa`) — the primary
+// button uses this. When a gateway is added later (Xendit/Midtrans),
+// `resolveChannel` will return that, and this same page will render its
+// handoff button unchanged. The manual-WA fallback below still stays.
+const channel = await resolveChannel('ferry-ticket')
+const handoff = await channel.handle(booking)
+
+const manualHandoff =
+  channel.slug === 'manual_wa' ? handoff : await getManualWaHandoff(booking)
+
+// Ferry meta from the (possibly populated) relationship.
+const ferryObj =
+  typeof booking.ferryTicket === 'object' && booking.ferryTicket
+    ? (booking.ferryTicket as { title?: string; slug?: string; featuredImage?: Media | number | string })
+    : null
+const ferryTitle = ferryObj?.title ?? null
+const ferrySlug = ferryObj?.slug ?? ''
+const detailUrl = ferrySlug ? `/ferry-tickets/${ferrySlug}` : '/ferry-tickets'
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const heroImg = asMedia(ferryObj?.featuredImage)
+const heroUrl = heroImg?.sizes?.card?.url ?? heroImg?.url ?? ''
+
+const adults = booking.adults ?? 1
+const children = booking.children ?? 0
+const paxSummary = `${adults} adult${adults > 1 ? 's' : ''}${children > 0 ? ` · ${children} child${children > 1 ? 'ren' : ''}` : ''}`
+
+const departureDateISO = booking.departureDate ? String(booking.departureDate).slice(0, 10) : ''
+const depDateFmt = (() => {
+  if (!departureDateISO) return '—'
+  try {
+    return new Date(departureDateISO).toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    })
+  } catch { return departureDateISO }
+})()
+
+const routeLabel = [booking.originLocation, booking.destinationLocation].filter(Boolean).join(' → ')
+
+const passengers = Array.isArray(booking.passengers) ? booking.passengers : []
+const totalPax = passengers.length || adults + children
+
+// ── Phase 4.67.2f — Round-trip 2-leg render ─────────────────────────
+// Booking record (4.67.2e persist) membawa `tripType` + 10 return field.
+// Mode round-trip: tampil Return section di sidebar + 2 price breakdown.
+// Mode one-way: zero visual change (section Return di-skip, Price
+// Breakdown single).
+const isRoundTrip = (booking as any).tripType === 'round-trip'
+const returnFerryObj =
+  isRoundTrip && typeof (booking as any).returnFerryTicket === 'object' && (booking as any).returnFerryTicket
+    ? ((booking as any).returnFerryTicket as { title?: string; slug?: string; featuredImage?: Media | number | string; ferryClasses?: Array<{ classType?: string; childPrice?: number }> })
+    : null
+const returnFerryTitle = returnFerryObj?.title ?? null
+const returnDateISO = isRoundTrip && (booking as any).returnDate ? String((booking as any).returnDate).slice(0, 10) : ''
+const returnDepDateFmt = (() => {
+  if (!returnDateISO) return '—'
+  try {
+    return new Date(returnDateISO).toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    })
+  } catch { return returnDateISO }
+})()
+const returnRouteLabel = isRoundTrip
+  ? [(booking as any).returnOriginLocation, (booking as any).returnDestinationLocation].filter(Boolean).join(' → ')
+  : ''
+const returnScheduleTimeLabel = isRoundTrip ? ((booking as any).returnScheduleTimeLabel ?? '') : ''
+const returnClassName = isRoundTrip ? ((booking as any).returnFerryClassName ?? '') : ''
+const returnUnitPriceNum: number | null = isRoundTrip ? ((booking as any).returnUnitPrice ?? null) : null
+const returnUnit = returnUnitPriceNum != null ? formatPrice(returnUnitPriceNum, currency) : null
+
+// Child unit price lookup — ambil dari populated ferryClasses supaya price
+// breakdown match aktual (bukan sekadar `total - adult*unit`). Fallback 50%
+// konsisten dgn checkout page (4.63.2) & API endpoint (4.66.4/4.67.2e).
+function childUnitOf(ferry: unknown, classType: string | undefined, unitPrice: number | null): number {
+  const classes = Array.isArray((ferry as any)?.ferryClasses) ? (ferry as any).ferryClasses : []
+  const cls = classes.find((c: any) => c?.classType === classType) ?? classes[0]
+  if (cls && typeof cls.childPrice === 'number' && cls.childPrice > 0) return cls.childPrice
+  if (unitPrice != null) return Math.round(unitPrice / 2)
+  return 0
+}
+const outboundChildUnit = childUnitOf(ferryObj, booking.ferryClassType ?? undefined, booking.unitPrice ?? null)
+const returnChildUnit   = childUnitOf(returnFerryObj, (booking as any).returnFerryClassType ?? undefined, returnUnitPriceNum)
+
+const outboundAdultLine = (booking.unitPrice ?? 0) * adults
+const outboundChildLine = outboundChildUnit * children
+const outboundSubtotal  = outboundAdultLine + outboundChildLine
+const returnAdultLine   = (returnUnitPriceNum ?? 0) * adults
+const returnChildLine   = returnChildUnit * children
+const returnSubtotal    = returnAdultLine + returnChildLine
+
+const crumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Ferry Tickets', url: '/ferry-tickets' },
+  { name: 'Confirmation', url: `/checkout/ferry-tickets/confirmation/${ref}` },
+]
+---
+
+<PageLayout title={`Booking ${booking.bookingRef}`} description={`Booking confirmation for ${ferryTitle ?? 'Ferry Ticket'}.`} noindex={true}>
+  <section class="container-content py-8 lg:py-10">
+
+    {/* ─── Stepper + Breadcrumb card ─── */}
+    <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 mb-8 border border-sand-dark/10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs text-stone-light font-medium">
+          <a href="/" class="hover:text-ocean transition">Home</a>
+          <span class="text-sand-dark">/</span>
+          <a href="/ferry-tickets" class="hover:text-ocean transition">Ferry Tickets</a>
+          <span class="text-sand-dark">/</span>
+          {ferryTitle && (
+            <>
+              <a href={detailUrl} class="hover:text-ocean transition inline-block truncate max-w-[10rem] align-bottom">{ferryTitle}</a>
+              <span class="text-sand-dark">/</span>
+            </>
+          )}
+          <span class="text-ocean font-semibold">Confirmation</span>
+        </nav>
+
+        <ol class="flex items-center gap-2 sm:gap-4 overflow-x-auto py-1">
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <Icon name="check" class="w-3.5 h-3.5" />
+            </span>
+            <span class="text-xs font-semibold text-emerald-800">1. Select Trip</span>
+          </li>
+          <li class="w-6 h-[2px] bg-emerald-200 shrink-0"></li>
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <Icon name="check" class="w-3.5 h-3.5" />
+            </span>
+            <span class="text-xs font-semibold text-emerald-800">2. Passenger Info</span>
+          </li>
+          <li class="w-6 h-[2px] bg-emerald-200 shrink-0"></li>
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-ocean text-white flex items-center justify-center text-[11px] font-bold shadow-sm ring-4 ring-ocean/10">3</span>
+            <span class="text-xs font-bold text-ocean">3. Confirmation</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    {/* ─── Main grid ─── */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      {/* ─── LEFT column ─── */}
+      <div class="lg:col-span-8 space-y-6">
+
+        {/* Success hero card */}
+        <div class="bg-white rounded-2xl shadow-sm p-6 sm:p-8 border border-sand-dark/10 relative overflow-hidden">
+          <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-leaf via-emerald-400 to-leaf"></div>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-5">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-leaf/15 text-leaf shrink-0 self-center sm:self-auto">
+              <Icon name="check_circle" class="w-10 h-10" />
+            </div>
+            <div class="text-center sm:text-left flex-1 min-w-0">
+              <p class="text-[11px] uppercase tracking-widest text-emerald-700 font-bold mb-1 flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <span>Booking Created</span>
+                {isRoundTrip && (
+                  <span class="bg-ocean text-white text-[10px] px-2 py-0.5 rounded-full tracking-wider inline-flex items-center gap-1">
+                    <Icon name="swap_horiz" class="w-3 h-3" />
+                    Round Trip
+                  </span>
+                )}
+              </p>
+              <h1 class="font-display text-2xl sm:text-3xl text-ocean tracking-tight leading-tight">
+                Your booking is submitted successfully
+              </h1>
+              <p class="text-sm text-stone mt-2 leading-relaxed">
+                {isRoundTrip
+                  ? 'Your round-trip booking includes both outbound and return legs. Click the WhatsApp button to send us the summary — our admin will confirm availability & payment instructions.'
+                  : 'Please keep your reference number below. Click the WhatsApp button to send us the summary — our admin will confirm availability & payment instructions.'}
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-5 border-t border-sand-dark/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <p class="text-[11px] uppercase tracking-wider text-stone-light font-semibold">Booking Reference</p>
+              <p class="font-mono font-bold text-lg sm:text-xl text-ocean tracking-wider mt-0.5" id="booking-ref">{booking.bookingRef}</p>
+            </div>
+            <button
+              type="button"
+              id="copy-ref"
+              data-ref={booking.bookingRef}
+              class="inline-flex items-center justify-center gap-1.5 self-start sm:self-auto px-3.5 py-2 rounded-lg bg-sand hover:bg-sand-dark/40 text-ocean text-xs font-bold uppercase tracking-wider transition"
+            >
+              <Icon name="content_copy" class="w-3.5 h-3.5" />
+              <span id="copy-ref-label">Copy</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ─── Section 1: Contact Information ─── */}
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-sand-dark/10">
+          <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center font-bold text-sm shrink-0 ring-1 ring-white/20">1</span>
+              <div class="min-w-0">
+                <h2 class="text-base font-bold tracking-wide text-white">Contact Information</h2>
+                <p class="text-xs text-white/85 mt-0.5">Booking confirmation & payment receipt</p>
+              </div>
+            </div>
+            <span class="hidden sm:inline-block bg-emerald-400/20 text-emerald-100 text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap ring-1 ring-emerald-300/30">
+              Primary Contact
+            </span>
+          </div>
+
+          <div class="p-5 sm:p-7">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8 text-sm">
+              <dt class="text-[11px] uppercase tracking-wider text-stone-light font-semibold">Full Name</dt>
+              <dd class="text-ocean font-semibold -mt-3 sm:mt-0">{booking.customerName || '—'}</dd>
+
+              <dt class="text-[11px] uppercase tracking-wider text-stone-light font-semibold">WhatsApp</dt>
+              <dd class="text-ocean font-medium -mt-3 sm:mt-0">
+                {booking.customerWhatsapp || '—'}
+                {booking.contactPhoneIsWhatsapp && (
+                  <span class="ml-2 inline-block bg-leaf/15 text-leaf-dark text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Verified WA</span>
+                )}
+              </dd>
+
+              {booking.customerEmail && (
+                <>
+                  <dt class="text-[11px] uppercase tracking-wider text-stone-light font-semibold">Email</dt>
+                  <dd class="text-ocean font-medium -mt-3 sm:mt-0 break-all">{booking.customerEmail}</dd>
+                </>
+              )}
+              {booking.customerCountry && (
+                <>
+                  <dt class="text-[11px] uppercase tracking-wider text-stone-light font-semibold">Country</dt>
+                  <dd class="text-ocean font-medium -mt-3 sm:mt-0">{booking.customerCountry}</dd>
+                </>
+              )}
+              {booking.customerNotes && (
+                <>
+                  <dt class="text-[11px] uppercase tracking-wider text-stone-light font-semibold sm:col-span-2 mt-1">Additional Notes</dt>
+                  <dd class="text-stone text-xs sm:text-sm sm:col-span-2 -mt-3 sm:mt-0 bg-sand/60 border border-sand-dark/20 rounded-lg p-3 leading-relaxed">{booking.customerNotes}</dd>
+                </>
+              )}
+            </dl>
+          </div>
+        </div>
+
+        {/* ─── Section 2: Passenger Information ─── */}
+        {passengers.length > 0 && (
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-sand-dark/10">
+            <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                  <Icon name="group" class="w-5 h-5" />
+                </span>
+                <div class="min-w-0">
+                  <h2 class="text-base font-bold tracking-wide text-white flex items-center gap-2 flex-wrap">
+                    Passenger Information
+                    <span class="text-[11px] font-semibold text-emerald-100 bg-emerald-400/20 px-2 py-0.5 rounded-full ring-1 ring-emerald-300/30">
+                      {totalPax} pax
+                    </span>
+                  </h2>
+                  <p class="text-xs text-white/85 mt-0.5">Passport numbers are partially masked for privacy</p>
+                </div>
+              </div>
+              <span class="hidden sm:flex items-center gap-1.5 text-xs text-white/85 whitespace-nowrap">
+                <Icon name="verified_user" class="w-3.5 h-3.5" />
+                Secured
+              </span>
+            </div>
+
+            <div class="divide-y divide-sand-dark/20">
+              {passengers.map((p, i) => {
+                const titleCap = p.title ? p.title.charAt(0).toUpperCase() + p.title.slice(1) + '.' : ''
+                const fullName = [titleCap, p.firstName, p.lastName].filter(Boolean).join(' ')
+                const isChild = p.passengerType === 'child'
+                const bodyId = `confpax-body-${i}`
+                const iconId = `confpax-icon-${i}`
+                const isFirst = i === 0
+                const paxNumSameType = (() => {
+                  const same = passengers.slice(0, i + 1).filter((q) => (q.passengerType === 'child') === isChild)
+                  return same.length
+                })()
+                const badgeLabel = isChild ? `C${paxNumSameType}` : `P${paxNumSameType}`
+                const typeTag = isChild ? 'Child' : 'Adult (≥12 yrs)'
+                return (
+                  <div class="passenger-item">
+                    <button
+                      type="button"
+                      class="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-3 bg-sand/40 hover:bg-sand/80 transition text-left cursor-pointer"
+                      aria-expanded={isFirst ? 'true' : 'false'}
+                      aria-controls={bodyId}
+                      data-accordion-target={bodyId}
+                      data-accordion-icon={iconId}
+                    >
+                      <div class="flex items-center gap-3 min-w-0">
+                        <span class={`w-7 h-7 rounded-lg ${isChild ? 'bg-leaf-dark' : 'bg-ocean'} text-white flex items-center justify-center font-bold text-[11px] shadow-sm shrink-0`}>
+                          {badgeLabel}
+                        </span>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-ocean text-sm sm:text-base truncate">
+                              {fullName || `Passenger ${i + 1}`}
+                              {isFirst && <span class="text-stone-light font-normal"> · Primary</span>}
+                            </span>
+                          </div>
+                          <p class="text-xs text-stone-light font-medium mt-0.5">
+                            {p.nationality ? p.nationality : 'Nationality not provided'}
+                            {p.passportNumber && (
+                              <span> · Passport <span class="font-mono text-ocean font-semibold">{maskPassport(p.passportNumber)}</span></span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="hidden md:inline-block bg-sand-dark/20 text-stone text-[11px] px-2.5 py-1 rounded-full font-semibold">
+                          {typeTag}
+                        </span>
+                        <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-sand-dark/20 text-stone">
+                          <span
+                            data-accordion-chevron={iconId}
+                            class:list={['inline-flex transform transition-transform duration-200', isFirst && 'rotate-180']}
+                          >
+                            <Icon name="expand_more" class="w-4 h-4" />
+                          </span>
+                        </span>
+                      </div>
+                    </button>
+
+                    <div
+                      id={bodyId}
+                      class:list={['p-5 sm:p-7 bg-white', !isFirst && 'hidden']}
+                    >
+                      <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3 text-xs">
+                        {p.title && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Title</dt>
+                            <dd class="text-ocean font-semibold -mt-2 md:mt-0 capitalize">{p.title}</dd>
+                          </>
+                        )}
+                        {p.gender && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Gender</dt>
+                            <dd class="text-ocean font-semibold -mt-2 md:mt-0 capitalize">{p.gender}</dd>
+                          </>
+                        )}
+                        {p.nationality && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Nationality</dt>
+                            <dd class="text-ocean font-semibold -mt-2 md:mt-0">{p.nationality}</dd>
+                          </>
+                        )}
+                        {p.dateOfBirth && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Date of Birth</dt>
+                            <dd class="text-ocean font-semibold -mt-2 md:mt-0">{String(p.dateOfBirth).slice(0, 10)}</dd>
+                          </>
+                        )}
+                        {p.passportNumber && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Passport No.</dt>
+                            <dd class="text-ocean font-mono font-bold -mt-2 md:mt-0">{maskPassport(p.passportNumber)}</dd>
+                          </>
+                        )}
+                        {p.passportIssueDate && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Issue Date</dt>
+                            <dd class="text-ocean font-semibold -mt-2 md:mt-0">{String(p.passportIssueDate).slice(0, 10)}</dd>
+                          </>
+                        )}
+                        {p.passportExpiryDate && (
+                          <>
+                            <dt class="text-stone-light uppercase tracking-wider font-semibold text-[10px]">Expiry Date</dt>
+                            <dd class="text-ocean font-semibold -mt-2 md:mt-0">{String(p.passportExpiryDate).slice(0, 10)}</dd>
+                          </>
+                        )}
+                      </dl>
+                      <p class="text-[11px] text-stone-light mt-4 italic">
+                        Full passport number is stored securely and only accessible to our admin for ticket issuance.
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ─── Handoff / Next step card ─── */}
+        <div class="bg-gradient-to-br from-ocean via-ocean to-midnight text-white rounded-2xl p-6 sm:p-8 shadow-lg relative overflow-hidden">
+          <div class="absolute -top-8 -right-8 w-40 h-40 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="relative">
+            <p class="text-[11px] uppercase tracking-widest text-emerald-200 font-bold mb-2 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></span>
+              Next Step
+            </p>
+            <h2 class="font-display text-2xl sm:text-3xl mb-2 leading-tight">
+              Confirm via {handoff.channelLabel}
+            </h2>
+            <p class="text-sm text-white/85 mb-6 max-w-xl leading-relaxed">
+              Tap the button below to send us the booking summary. Our admin will reply with availability, payment instructions, and a payment receipt (PDF) once payment is confirmed. The official ferry ticket is issued by the operator at check-in.
+            </p>
+
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <a
+                href={handoff.redirectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center gap-2 bg-white text-ocean hover:bg-sand active:scale-[0.99] transition-all px-7 py-3.5 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg no-underline group"
+              >
+                <Icon name="chat" class="w-5 h-5 text-emerald-600" />
+                <span>{handoff.buttonLabel}</span>
+                <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+                </svg>
+              </a>
+
+              {channel.slug !== 'manual_wa' && manualHandoff.redirectUrl !== handoff.redirectUrl && (
+                <a
+                  href={manualHandoff.redirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center justify-center gap-2 border border-white/40 text-white hover:bg-white/10 transition px-6 py-3.5 rounded-xl font-semibold text-sm uppercase tracking-wider no-underline"
+                >
+                  <Icon name="headset_mic" class="w-5 h-5" />
+                  Manual WhatsApp
+                </a>
+              )}
+            </div>
+
+            <div class="mt-6 pt-5 border-t border-white/15 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/85">
+              <div class="flex items-center gap-2">
+                <Icon name="verified_user" class="w-4 h-4 text-emerald-300 shrink-0" />
+                <span>Encrypted request</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <Icon name="badge" class="w-4 h-4 text-emerald-300 shrink-0" />
+                <span>Official partner tickets</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <Icon name="check_circle" class="w-4 h-4 text-emerald-300 shrink-0" />
+                <span>Reply typically &lt; 30 min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Phase 4.69.9 — Request Reschedule / Cancel ─── */}
+        {(() => {
+          // Phase 4.70.2.4 + 4.70.2.9 — Semua customer-triggered change
+          // request HANYA pre-payment (reschedule & cancel sama-sama).
+          // Setelah e-ticket terkirim (`confirmed`), customer kontak admin
+          // langsung via WhatsApp — mencegah refund loop & operator reissue
+          // overhead.
+          // Phase 4.70.2.7 — One-shot: `hasRequestedChange === true` →
+          // button HILANG permanen (prevent spam).
+          const ACTIVE = new Set(['awaiting_review', 'awaiting_payment', 'payment_review', 'pending'])
+          const PENDING_REQ = new Set(['reschedule_request', 'cancel_request'])
+          const status = String((booking as any).status ?? '')
+          const hasRequestedChange = Boolean((booking as any).hasRequestedChange)
+          const canReschedule = !hasRequestedChange && ACTIVE.has(status)
+          const canCancel = !hasRequestedChange && ACTIVE.has(status)
+          const canRequest = canReschedule || canCancel
+          const alreadyRequested = PENDING_REQ.has(status)
+          const isConfirmed = status === 'confirmed'
+          const requestKind = String((booking as any).customerRequestKind ?? '')
+          const requestReason = String((booking as any).customerRequestReason ?? '')
+          return (
+            <div
+              class="rounded-2xl bg-white border border-sand-dark/15 p-5 sm:p-6 shadow-sm"
+              data-request-change
+              data-booking-ref={booking.bookingRef}
+              data-access-token={token}
+            >
+              <h3 class="font-display text-base sm:text-lg text-ocean mb-1 flex items-center gap-2">
+                <Icon name="edit_note" class="w-5 h-5 text-ocean" />
+                Need to change your booking?
+              </h3>
+              <p class="text-xs sm:text-sm text-stone leading-relaxed mb-4">
+                {isConfirmed
+                  ? 'Your ticket is already issued. Reschedule or cancellation is no longer available online — please contact admin directly via WhatsApp for exceptional cases.'
+                  : 'If your plan changed, you can request a reschedule or cancellation. Our admin will reply by email with the next steps.'}
+              </p>
+
+              {alreadyRequested && (
+                <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900 mb-3" role="status">
+                  <strong>Request submitted:</strong> {requestKind === 'cancel' ? 'Cancellation' : 'Reschedule'}.
+                  Our admin will contact you shortly. You can reply by email once we respond.
+                  {requestReason && (
+                    <p class="mt-2 text-amber-800/90 italic">"{requestReason}"</p>
+                  )}
+                </div>
+              )}
+
+              {canRequest && (
+                <div class="flex flex-col sm:flex-row gap-2">
+                  {canReschedule && (
+                    <button
+                      type="button"
+                      data-request-btn="reschedule"
+                      class="inline-flex items-center justify-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+                    >
+                      <Icon name="autorenew" class="w-4 h-4" />
+                      Request Reschedule
+                    </button>
+                  )}
+                  {canCancel && (
+                    <button
+                      type="button"
+                      data-request-btn="cancel"
+                      class="inline-flex items-center justify-center gap-2 bg-coral-50 hover:bg-coral-100 text-coral-900 border border-coral-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+                    >
+                      <Icon name="close" class="w-4 h-4" />
+                      Request Cancellation
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {isConfirmed && (
+                <p class="text-[11px] text-stone-light italic mt-3">
+                  Note: After the ticket has been issued, both reschedule and cancellation require admin assistance. Please contact admin via WhatsApp for exceptional cases.
+                </p>
+              )}
+
+              {!canRequest && !alreadyRequested && (
+                <p class="text-xs text-stone-light italic">
+                  {hasRequestedChange
+                    ? 'A change request has already been submitted and processed for this booking. For further assistance, please contact admin via WhatsApp.'
+                    : `This booking is ${status} — change requests are no longer available.`}
+                </p>
+              )}
+            </div>
+          )
+        })()}
+
+        {/* Modal (hidden by default) */}
+        <div data-request-modal class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="req-modal-title">
+          <div class="bg-white rounded-xl max-w-md w-full p-5 sm:p-6 shadow-xl">
+            <h3 id="req-modal-title" class="font-display text-lg text-ocean mb-2" data-request-modal-title>Request Reschedule</h3>
+            <p class="text-xs text-stone mb-4" data-request-modal-desc>
+              Please briefly describe your reason. Our admin will reply by email.
+            </p>
+            <label class="block text-xs font-semibold text-stone mb-1" for="req-reason">Reason (10–500 characters)</label>
+            <textarea
+              id="req-reason"
+              data-request-reason
+              rows="4"
+              maxlength="500"
+              class="w-full border border-sand-dark/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ocean/40"
+              placeholder="e.g. my flight was delayed, I'd like to shift to the next day..."
+            ></textarea>
+            <p class="text-[11px] text-stone-light mt-1" data-request-char-count>0 / 500</p>
+            <div data-request-error class="hidden mt-2 rounded bg-coral-50 border border-coral-200 text-coral-900 text-xs p-2" role="alert"></div>
+            <div class="mt-4 flex gap-2 justify-end">
+              <button type="button" data-request-cancel class="px-4 py-2 rounded-lg border border-sand-dark/40 text-sm text-stone hover:bg-sand/40">Cancel</button>
+              <button type="button" data-request-submit class="px-4 py-2 rounded-lg bg-ocean text-white text-sm font-semibold hover:bg-ocean-dark disabled:opacity-60 disabled:cursor-not-allowed">Submit Request</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Back link */}
+        <div class="pt-2 flex items-center justify-between gap-4">
+          <a href={detailUrl} class="inline-flex items-center gap-1.5 text-sm font-semibold text-stone hover:text-ocean transition">
+            <span aria-hidden="true">←</span>
+            <span>Back to Ferry Details</span>
+          </a>
+          <a href="/" class="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-light hover:text-ocean transition">
+            <span>Home</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+
+      {/* ─── RIGHT column: Booking Summary sidebar ─── */}
+      <aside class="lg:col-span-4">
+        <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-md overflow-hidden border border-sand-dark/10">
+
+          {/* Dark navy header banner — Phase 4.67.3 polish-2 selaraskan
+              dgn style section "Contact Information" / "Passenger Information"
+              (ocean bg + icon ring + title besar + badge status). */}
+          <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                <Icon name="receipt_long" class="w-5 h-5" />
+              </span>
+              <div class="min-w-0">
+                <h2 class="text-base font-bold tracking-wide text-white">Booking Summary</h2>
+                <p class="text-xs text-white/85 mt-0.5">{isRoundTrip ? 'Round-trip · 2 legs confirmed' : 'One-way · confirmed'}</p>
+              </div>
+            </div>
+            <span class="hidden sm:inline-block bg-emerald-400/20 text-emerald-100 text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap ring-1 ring-emerald-300/30">
+              {isRoundTrip ? 'Round Trip' : 'Confirmed'}
+            </span>
+          </div>
+
+          {/* Body */}
+          <div class="px-5 pt-4 pb-5 space-y-4">
+
+            {/* Hero + title */}
+            {(heroUrl || ferryTitle) && (
+              <div class="flex gap-3 pb-4 border-b border-sand-dark/15">
+                {heroUrl ? (
+                  <div class="w-12 h-12 rounded-lg overflow-hidden bg-sand shrink-0">
+                    <img src={heroUrl} alt={ferryTitle ?? ''} class="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                ) : (
+                  <div class="w-12 h-12 rounded-lg bg-ocean/10 text-ocean shrink-0 flex items-center justify-center">
+                    <Icon name="ship" class="w-6 h-6" />
+                  </div>
+                )}
+                <div class="min-w-0">
+                  <h2 class="font-display text-sm text-ocean line-clamp-2 leading-snug">{ferryTitle ?? 'Ferry Ticket'}</h2>
+                  {booking.ferryClassName && (
+                    <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{booking.ferryClassName}</span></p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Departure header + Show Details toggle */}
+            <div>
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-sm font-bold text-ocean leading-snug">
+                  Departure <span class="font-normal text-stone-light mx-0.5">—</span> <span class="text-ocean">{depDateFmt}</span>
+                </h3>
+                <button
+                  id="toggleSummaryDetails"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="collapsibleDetails"
+                  class="inline-flex items-center text-[11px] font-semibold text-coral hover:text-coral-dark transition-colors cursor-pointer select-none shrink-0"
+                >
+                  <span id="toggleDetailsText">Show Details</span>
+                  <svg id="toggleDetailsIcon" class="w-3 h-3 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  </svg>
+                </button>
+              </div>
+
+              {routeLabel && (
+                <p class="text-xs font-medium text-stone mt-1.5 leading-relaxed">
+                  {routeLabel}
+                </p>
+              )}
+              {booking.scheduleTimeLabel && (
+                <p class="text-[11px] text-stone-light mt-1 flex items-center gap-1">
+                  <Icon name="schedule" class="w-3 h-3 text-coral" />
+                  <span>{booking.scheduleTimeLabel}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Phase 4.67.2f — Return heading (round-trip only) */}
+            {isRoundTrip && (
+              <div class="pt-3 border-t border-sand-dark/15">
+                <h3 class="text-sm font-bold text-leaf-dark leading-snug flex items-center gap-1.5">
+                  <Icon name="event_repeat" class="w-3.5 h-3.5" />
+                  Return <span class="font-normal text-stone-light mx-0.5">—</span> <span class="text-ocean">{returnDepDateFmt}</span>
+                </h3>
+                {returnRouteLabel && (
+                  <p class="text-xs font-medium text-stone mt-1.5 leading-relaxed">
+                    {returnRouteLabel}
+                  </p>
+                )}
+                {returnScheduleTimeLabel && (
+                  <p class="text-[11px] text-stone-light mt-1 flex items-center gap-1">
+                    <Icon name="schedule" class="w-3 h-3 text-leaf-dark" />
+                    <span>{returnScheduleTimeLabel}</span>
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Collapsible details */}
+            <div id="collapsibleDetails" class="hidden space-y-4 transition-all duration-200">
+
+              <div class="pt-4 border-t border-sand-dark/15 space-y-2 text-xs">
+                {ferryTitle && (
+                  <div class="flex justify-between items-center">
+                    <span class="text-stone-light">Ferry</span>
+                    <span class="font-semibold text-ocean text-right truncate max-w-[60%]">{ferryTitle}</span>
+                  </div>
+                )}
+                {booking.ferryClassName && (
+                  <div class="flex justify-between items-center">
+                    <span class="text-stone-light">Class</span>
+                    <span class="font-semibold text-ocean">{booking.ferryClassName}</span>
+                  </div>
+                )}
+                <div class="flex justify-between items-center">
+                  <span class="text-stone-light">Passengers</span>
+                  <span class="font-semibold text-ocean">{paxSummary}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-stone-light">Booking Ref</span>
+                  <span class="font-mono font-bold text-ocean">{booking.bookingRef}</span>
+                </div>
+              </div>
+
+              {/* Phase 4.67.2f — Price breakdown: single section (one-way)
+                  atau 2 section (round-trip). Child line pakai
+                  outboundChildUnit/returnChildUnit actual (populated
+                  ferryClasses), bukan `total - adult` approximate. */}
+              {unit && (
+                <div class="pt-4 border-t border-sand-dark/15 space-y-2">
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-stone-light">
+                    {isRoundTrip ? 'Outbound Breakdown' : 'Price Breakdown'}
+                  </p>
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-stone">Adult <span class="text-stone-light">({adults} × {unit})</span></span>
+                    <span class="font-semibold text-ocean tabular-nums">{formatPrice(outboundAdultLine, currency)}</span>
+                  </div>
+                  {children > 0 && outboundChildUnit > 0 && (
+                    <div class="flex justify-between items-center text-xs">
+                      <span class="text-stone">Child <span class="text-stone-light">({children} × {formatPrice(outboundChildUnit, currency)})</span></span>
+                      <span class="font-semibold text-ocean tabular-nums">{formatPrice(outboundChildLine, currency)}</span>
+                    </div>
+                  )}
+                  <div class="pt-2 border-t border-sand-dark/15 flex justify-between items-center text-xs">
+                    <span class="text-stone font-semibold">Subtotal <span class="font-normal text-stone-light">(Departure)</span></span>
+                    <span class="font-bold text-ocean tabular-nums">{formatPrice(outboundSubtotal, currency)}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Return breakdown (round-trip only) */}
+              {isRoundTrip && returnUnit && (
+                <div class="pt-4 border-t border-sand-dark/15 space-y-2">
+                  <p class="text-[10px] font-bold uppercase tracking-wider text-leaf-dark flex items-center gap-1.5">
+                    <Icon name="event_repeat" class="w-3 h-3" />
+                    Return Breakdown
+                  </p>
+                  {returnFerryTitle && (
+                    <div class="text-xs flex justify-between items-center">
+                      <span class="text-stone-light">Ferry</span>
+                      <span class="font-semibold text-ocean text-right truncate max-w-[60%]">{returnFerryTitle}</span>
+                    </div>
+                  )}
+                  {returnClassName && (
+                    <div class="text-xs flex justify-between items-center">
+                      <span class="text-stone-light">Class</span>
+                      <span class="font-semibold text-ocean">{returnClassName}</span>
+                    </div>
+                  )}
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-stone">Adult <span class="text-stone-light">({adults} × {returnUnit})</span></span>
+                    <span class="font-semibold text-ocean tabular-nums">{formatPrice(returnAdultLine, currency)}</span>
+                  </div>
+                  {children > 0 && returnChildUnit > 0 && (
+                    <div class="flex justify-between items-center text-xs">
+                      <span class="text-stone">Child <span class="text-stone-light">({children} × {formatPrice(returnChildUnit, currency)})</span></span>
+                      <span class="font-semibold text-ocean tabular-nums">{formatPrice(returnChildLine, currency)}</span>
+                    </div>
+                  )}
+                  <div class="pt-2 border-t border-sand-dark/15 flex justify-between items-center text-xs">
+                    <span class="text-stone font-semibold">Subtotal <span class="font-normal text-stone-light">(Return)</span></span>
+                    <span class="font-bold text-ocean tabular-nums">{formatPrice(returnSubtotal, currency)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* TOTAL */}
+            {total && (
+              <div class="pt-3 border-t border-sand-dark/25 flex items-baseline justify-between">
+                <span class="text-sm font-bold text-ocean">Estimated Total</span>
+                <span class="font-display text-xl sm:text-2xl font-bold text-coral tabular-nums leading-none">
+                  {total}
+                </span>
+              </div>
+            )}
+
+            {/* Disclaimer */}
+            <p class="text-[11px] leading-relaxed text-stone-light">
+              This amount is an estimate. Final payment instructions & any surcharges will be sent via WhatsApp once availability is confirmed.
+            </p>
+
+            {/* Helper info box */}
+            <div class="bg-leaf/10 border border-leaf/20 rounded-lg p-3 text-[11px] text-stone-dark">
+              <div class="flex items-start gap-2">
+                <Icon name="chat" class="w-3.5 h-3.5 text-leaf-dark shrink-0 mt-0.5" />
+                <span>Click <b>Confirm via WhatsApp</b> above to send this summary to our admin. Please keep this page or bookmark it for reference.</span>
+              </div>
+            </div>
+
+            {/* Guarantee badges */}
+            <div class="pt-3 border-t border-sand-dark/15 flex items-center justify-around text-[10px] text-stone-light">
+              <span class="flex items-center gap-1">
+                <Icon name="verified_user" class="w-3 h-3 text-leaf-dark" />
+                <span>Official Tickets</span>
+              </span>
+              <span class="text-sand-dark">|</span>
+              <span class="flex items-center gap-1">
+                <Icon name="badge" class="w-3 h-3 text-ocean-light" />
+                <span>No Admin Fees</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</PageLayout>
+
+<script>
+  // Phase 4.65.1 (confirmation) — progressive-enhancement:
+  //   (1) accordion per-passenger (same pattern as checkout)
+  //   (2) sidebar "Show Details" toggle
+  //   (3) copy-to-clipboard for booking ref
+  document.addEventListener('DOMContentLoaded', () => {
+    // (1) Accordions
+    document.querySelectorAll<HTMLButtonElement>('[data-accordion-target]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const bodyId = btn.dataset.accordionTarget!
+        const iconId = btn.dataset.accordionIcon!
+        const body = document.getElementById(bodyId)
+        const icon = document.querySelector<HTMLElement>(`[data-accordion-chevron="${iconId}"]`)
+        if (!body) return
+        const willOpen = body.classList.contains('hidden')
+        if (willOpen) {
+          body.classList.remove('hidden')
+          icon?.classList.add('rotate-180')
+          btn.setAttribute('aria-expanded', 'true')
+        } else {
+          body.classList.add('hidden')
+          icon?.classList.remove('rotate-180')
+          btn.setAttribute('aria-expanded', 'false')
+        }
+      })
+    })
+
+    // (2) Sidebar details toggle
+    const toggle = document.getElementById('toggleSummaryDetails')
+    const collapsible = document.getElementById('collapsibleDetails')
+    const txt = document.getElementById('toggleDetailsText')
+    const icon = document.getElementById('toggleDetailsIcon')
+    if (toggle && collapsible && txt && icon) {
+      toggle.addEventListener('click', () => {
+        const willShow = collapsible.classList.contains('hidden')
+        if (willShow) {
+          collapsible.classList.remove('hidden')
+          txt.textContent = 'Hide Details'
+          icon.classList.add('rotate-180')
+          toggle.setAttribute('aria-expanded', 'true')
+        } else {
+          collapsible.classList.add('hidden')
+          txt.textContent = 'Show Details'
+          icon.classList.remove('rotate-180')
+          toggle.setAttribute('aria-expanded', 'false')
+        }
+      })
+    }
+
+    // (3) Copy booking ref
+    const copyBtn = document.getElementById('copy-ref') as HTMLButtonElement | null
+    const copyLabel = document.getElementById('copy-ref-label')
+    if (copyBtn && copyLabel) {
+      copyBtn.addEventListener('click', async () => {
+        const ref = copyBtn.dataset.ref ?? ''
+        if (!ref) return
+        try {
+          await navigator.clipboard.writeText(ref)
+          copyLabel.textContent = 'Copied!'
+          copyBtn.classList.add('bg-leaf/20', 'text-leaf-dark')
+          setTimeout(() => {
+            copyLabel.textContent = 'Copy'
+            copyBtn.classList.remove('bg-leaf/20', 'text-leaf-dark')
+          }, 1600)
+        } catch {
+          // Fallback: select the ref text so the user can Ctrl+C manually
+          const el = document.getElementById('booking-ref')
+          if (el) {
+            const range = document.createRange()
+            range.selectNodeContents(el)
+            const sel = window.getSelection()
+            sel?.removeAllRanges()
+            sel?.addRange(range)
+          }
+        }
+      })
+    }
+
+    // (4) Phase 4.69.9 — Request Reschedule/Cancel modal flow.
+    const wrap = document.querySelector<HTMLElement>('[data-request-change]')
+    const modal = document.querySelector<HTMLElement>('[data-request-modal]')
+    const modalTitle = document.querySelector<HTMLElement>('[data-request-modal-title]')
+    const reasonEl = document.querySelector<HTMLTextAreaElement>('[data-request-reason]')
+    const charCount = document.querySelector<HTMLElement>('[data-request-char-count]')
+    const errBox = document.querySelector<HTMLElement>('[data-request-error]')
+    const cancelBtn = document.querySelector<HTMLButtonElement>('[data-request-cancel]')
+    const submitBtn = document.querySelector<HTMLButtonElement>('[data-request-submit]')
+
+    if (wrap && modal && reasonEl && submitBtn && cancelBtn && modalTitle && errBox && charCount) {
+      let currentAction: 'reschedule' | 'cancel' = 'reschedule'
+
+      const showError = (msg: string) => {
+        errBox.textContent = msg
+        errBox.classList.remove('hidden')
+      }
+      const hideError = () => {
+        errBox.classList.add('hidden')
+        errBox.textContent = ''
+      }
+      const openModal = (action: 'reschedule' | 'cancel') => {
+        currentAction = action
+        modalTitle.textContent = action === 'reschedule' ? 'Request Reschedule' : 'Request Cancellation'
+        reasonEl.value = ''
+        charCount.textContent = '0 / 500'
+        hideError()
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        setTimeout(() => reasonEl.focus(), 50)
+      }
+      const closeModal = () => {
+        modal.classList.add('hidden')
+        modal.classList.remove('flex')
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('[data-request-btn]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const kind = btn.getAttribute('data-request-btn') as 'reschedule' | 'cancel'
+          openModal(kind)
+        })
+      })
+      cancelBtn.addEventListener('click', closeModal)
+      modal.addEventListener('click', (e) => { if (e.target === modal) closeModal() })
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal()
+      })
+      reasonEl.addEventListener('input', () => {
+        charCount.textContent = `${reasonEl.value.length} / 500`
+      })
+
+      submitBtn.addEventListener('click', async () => {
+        hideError()
+        const reason = reasonEl.value.trim()
+        if (reason.length < 10) {
+          showError('Please enter at least 10 characters so we can help you better.')
+          return
+        }
+        submitBtn.disabled = true
+        submitBtn.textContent = 'Submitting…'
+        try {
+          const bookingRef = wrap.getAttribute('data-booking-ref') ?? ''
+          const accessToken = wrap.getAttribute('data-access-token') ?? ''
+          const res = await fetch('/api/bookings/request-change', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingRef, accessToken, action: currentAction, reason }),
+          })
+          const data = await res.json().catch(() => ({}))
+          if (!res.ok || !data.ok) {
+            showError(data.message ?? data.error ?? `Request failed (HTTP ${res.status}).`)
+            submitBtn.disabled = false
+            submitBtn.textContent = 'Submit Request'
+            return
+          }
+          // Success → reload page supaya SSR tampilkan status baru.
+          submitBtn.textContent = 'Submitted ✓'
+          setTimeout(() => window.location.reload(), 600)
+        } catch (e: any) {
+          showError(e?.message ?? 'Network error.')
+          submitBtn.disabled = false
+          submitBtn.textContent = 'Submit Request'
+        }
+      })
+    }
+  })
+</script>

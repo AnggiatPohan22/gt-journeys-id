@@ -1,337 +1,162 @@
-# DB-SCHEMA-CHANGES.md — Panduan Menangani Perubahan Skema Database
+# DB Schema Changes — Runbook
 
-Panduan self-service untuk menangani prompt & error yang muncul saat schema
-Payload/Drizzle berubah (biasanya karena tambah/edit/hapus field di
-`apps/cms/src/collections/` atau `apps/cms/src/blocks/`).
+> **Since 2026-09-12 this project uses Payload migrations as the
+> single source of truth for the DB schema.** Everything below reflects
+> that workflow. The old push-based workflow (with its Drizzle prompts,
+> preflight/finalize scripts, and "please answer y/N to data-loss
+> warnings") is retired. Historical notes are at the bottom.
 
-Baca ini setiap kali `pnpm dev` di `apps/cms` menampilkan:
-- Prompt **"Is X column created or renamed…"**
-- Error **"Exceeded max identifier length for table or enum name of 63 characters"**
-- Error **"Cannot add NOT NULL column…"** atau schema push gagal di tengah jalan
+## The workflow
 
----
+### 1. Change your CMS code
+Edit a collection, global, block — whatever schema-relevant.
 
-## 1. Prompt "Created or renamed?"
-
-### Kapan muncul
-Drizzle mendeteksi ada kolom BARU dan kolom LAMA yang mungkin berkaitan
-(nama mirip, tipe kompatibel). Dia tidak yakin apakah kamu:
-- **Buat kolom baru** (dan kolom lama tetap ada / akan di-drop terpisah)
-- **Rename kolom lama** (nama beda, tapi data sebenarnya sama)
-
-Contoh output:
-```
-Is media_type column in tours_blocks_service_listing table created or renamed from another column?
-❯ + media_type                                   create column
-  ~ hero_background_type › media_type            rename column
-  ~ hero_background_image_id › media_type        rename column
-```
-
-### Decision Tree
-
-```
-Apakah field lama & baru punya SEMANTIK yang sama?
-(nilai/tipe/range/domain sama, cuma nama berubah)
-│
-├─ YA → Pilih "rename column"
-│       Data lama tetap dipertahankan.
-│       Contoh: `subtitle` → `tagline` (sama-sama text pendek)
-│
-└─ TIDAK → Pilih "+ create column"
-        Kolom lama akan di-drop di prompt terpisah.
-        Data lama HILANG (accept trade-off ini).
-        Contoh: enum `{image, video}` → enum `{single, multiple, video, none}`
-```
-
-### Contoh Kasus Nyata
-
-| Situasi | Pilih | Alasan |
-|---------|-------|--------|
-| Rename field CMS (`title` → `heading`), tipe sama | rename | Data lama valid untuk field baru |
-| Ubah enum options (`{a,b}` → `{x,y}`) | create | Nilai lama tidak match enum baru |
-| Ubah tipe (`text` → `richText`) | create | Bentuk data beda, migrasi manual perlu |
-| Ubah struktur group (flat → grouped) | create | Path field beda |
-| Field baru yang tidak ada padanan lama | create | Default option, tidak ada risiko |
-
-### Kalau Ragu
-**Pilih `create column`.** Aman jika kamu masih di fase development (data
-belum production). Kalau data penting sudah ada di field lama, backup dulu
-via `curl http://localhost:3030/api/[collection]` → simpan JSON → lakukan
-"create column" → re-input via API/admin.
-
----
-
-## 2. Error "Exceeded max identifier length of 63 characters"
-
-### Penyebab
-Postgres batasi nama tabel/kolom/enum maksimal **63 karakter**. Payload +
-Drizzle auto-generate nama kolom/enum berdasarkan path field bersarang.
-
-Contoh:
-```
-enum_water_activities_blocks_service_listing_image_slider_image_position
-= 76 karakter ❌
-```
-
-Sumber panjang: `namaCollection_blocks_namaBlock_namaArray_namaField`.
-Semakin dalam nesting + semakin panjang nama collection/block/field →
-semakin besar risiko overflow.
-
-### Fix Options
-
-#### Option A — Shorten via `dbName`
-Payload semua field type (array, group, select, upload) mendukung prop
-`dbName` untuk override nama yang dipakai di DB tanpa mengubah nama field
-di API/frontend.
-
-```typescript
-{
-  name: 'imageSlider',
-  type: 'array',
-  dbName: 'slides',           // ← DB pakai 'slides', API tetap 'imageSlider'
-  fields: [...],
-}
-```
-
-Untuk field select yang panjang:
-```typescript
-{
-  name: 'imagePosition',
-  type: 'select',
-  enumName: 'enum_sl_img_pos',  // ← override auto-generated enum name
-  options: [...],
-}
-```
-
-#### Option B — Shorten field name
-Kalau field masih baru dan belum ada data:
-```typescript
-// Before
-{ name: 'backgroundImage', type: 'upload', ... }
-// After (jauh lebih pendek path-nya)
-{ name: 'image', type: 'upload', ... }
-```
-
-#### Option C — Flatten struktur
-Kalau field ada di dalam `group`, hoist ke parent level:
-```typescript
-// Before (path: block.heroBackground.overlayOpacity)
-{ name: 'heroBackground', type: 'group', fields: [
-  { name: 'overlayOpacity', type: 'number' },
-]}
-// After (path: block.heroOverlayOpacity)
-{ name: 'heroOverlayOpacity', type: 'number' }
-```
-
-#### Option D — Drop field yang tidak esensial
-Kalau nested field yang overflow tidak wajib, hilangkan:
-```typescript
-// Array element originally had per-slide fit/position → drop, pakai
-// block-level fit/position sebagai default untuk semua slide.
-```
-
-### Cara Menghitung Panjang Sebelum Push
-
-Rumus enum name yang di-generate Payload:
-```
-enum_<collection>_blocks_<block>_<field_path_underscored>
-```
-
-Cek dengan grep collection terpanjang:
-```bash
-ls apps/cms/src/collections/ | awk '{ print length, $0 }' | sort -rn | head
-```
-
-Kalau ServiceListing block dipakai di `water_activities` (16 char) via
-`additionalBlocks`, prefix tabel = `water_activities_blocks_service_listing`
-= 40 char. Sisa untuk field path & prefix `enum_` = 23 char. Ketat sekali.
-
-**Aturan praktis:** kalau block bisa nested via additionalBlocks di
-collection dengan nama panjang (>10 char), semua field path di dalamnya
-harus ≤ 18 char.
-
----
-
-## 2.5. Prompt "created or renamed" MUNCUL BERULANG Setiap Restart
-
-### Symptom
-Kamu sudah jawab `+ create column` untuk semua prompt & konfirmasi `y` untuk
-drop kolom lama. Restart CMS. Prompt yang SAMA muncul lagi. Berulang tanpa
-progres.
-
-### Root Cause
-Drizzle-kit di SQLite adapter melakukan schema push via pattern:
-1. Buat shadow table `__new_<tablename>` dengan schema baru
-2. COPY data dari table lama → shadow
-3. DROP table lama
-4. RENAME `__new_<tablename>` → `<tablename>`
-
-Kalau step 3 gagal (biasanya FK constraint, atau child table masih
-reference table lama), migrasi rollback tapi **shadow `__new_*` tetap
-tertinggal**. Setiap restart, Drizzle re-plan migration tapi tidak bisa
-lanjut karena shadow menghalangi.
-
-### Diagnosis
+### 2. Generate a migration
+From `apps/cms/`:
 ```powershell
-# Dari apps/cms/, jalankan inspector (script sudah ada di src/scripts/)
-pnpm tsx src/scripts/inspect-schema.ts __new
+pnpm schema:new -- --name short-kebab-description
 ```
-Kalau output menampilkan `__new_<sesuatu>` table, itu shadow orphan.
+Payload writes `apps/cms/src/migrations/<timestamp>_<name>.ts` — a
+TypeScript file with `up()` (apply) and `down()` (roll back) SQL, plus
+a matching `<timestamp>_<name>.json` snapshot that future runs diff
+against.
 
-### Fix
+### 3. Review the migration
+Open the generated file. Confirm the SQL matches your intent. Common
+things to check on SQLite:
+
+- **New table:** the `CREATE TABLE` lists every column with the right
+  type, default, and FK.
+- **New relationship field:** the migration should
+  `ALTER TABLE payload_locked_documents_rels ADD <slug>_id INTEGER
+  REFERENCES <slug>(id)` and add a matching index.
+- **Enum-like `select` fields:** Payload stores these as plain `text`
+  columns; the CHECK constraint is enforced at the application layer,
+  not by SQLite. So adding a new option to a `select` field usually
+  produces NO SQL diff, which is correct — the value just becomes
+  accepted at the API layer.
+- **Dropped/renamed fields:** the down() function should recreate them
+  if you care about rollback fidelity. Most of the time you don't and
+  it's fine to leave whatever Payload generated.
+
+If drizzle-kit generated something obviously wrong (e.g. a duplicated
+`CREATE INDEX` because a block is embedded in multiple field paths),
+edit the file by hand. Once. Never again — the file is committed and
+that fix stays forever.
+
+### 4. Commit the migration file
+Both the `.ts` and the `.json` snapshot. They belong to the git history
+of the schema.
+
+### 5. Apply
 ```powershell
-# 1. Stop CMS (Ctrl+C)
-# 2. Bersihkan shadow tables:
-pnpm tsx src/scripts/cleanup-shadow-tables.ts
-
-# 3. Restart CMS
-pnpm dev
+pnpm schema:migrate
 ```
-Kalau prompt masih muncul, jawab `+ create column` untuk semua. Kali ini
-migration bakal complete karena shadow sudah hilang.
+This runs `up()` for every migration not yet in the `payload_migrations`
+table. On success:
+- `payload_migrations` gains a row `{name, batch, timestamps}`.
+- Payload boots at `pnpm --filter cms dev` normally (no push, no prompts).
 
-### Kalau Masih Gagal
-Kemungkinan besar table lama punya data yang bentrok dengan schema baru
-(mis: NOT NULL column baru tanpa default, atau FK dari child table).
-Backup data → clear rows → migrate → restore data:
-
+### 6. Regenerate types
 ```powershell
-# 1. Backup rows via API sebelum clear
-curl "http://localhost:3030/api/pages?depth=2&limit=100" > backup-pages.json
-
-# 2. Clear rows di table yg bermasalah
-pnpm tsx -e "
-import { createClient } from '@libsql/client'
-import path from 'path'
-const c = createClient({ url: 'file:' + path.resolve('cms.db') })
-await c.execute('DELETE FROM pages_blocks_service_listing_accommodation_types')
-await c.execute('DELETE FROM pages_blocks_service_listing')
-console.log('cleared')
-process.exit(0)
-"
-
-# 3. Cleanup shadow lagi (biasanya masih ada dari attempt sebelumnya)
-pnpm tsx src/scripts/cleanup-shadow-tables.ts
-
-# 4. Restart CMS — migration bakal lancar karena table kosong
-pnpm dev
-
-# 5. Re-seed data (kalau ada seed script)
-pnpm tsx src/scripts/seed-landing-pages.ts
+pnpm generate:types
 ```
 
----
+Done. If the schema change involved a new collection, the frontend can
+now query it via `apps/web/src/lib/payload.ts`.
 
-## 3. Error "Payload initError" / Schema Push Gagal Mid-Way
+## Other commands
 
-### Symptom
-CMS crash saat startup. Log berisi `payloadInitError: true` dan error
-tentang column/table yang tidak konsisten (mis: kolom sudah ada tapi tipe
-beda, atau enum yang seharusnya di-drop masih ter-reference).
+| Command | Purpose |
+|---|---|
+| `pnpm schema:status` | Show which migrations are executed and which are pending. |
+| `pnpm schema:down` | Roll back the last-run migration (uses its `down()` function). |
+| `pnpm schema:refresh` | Roll back all, then re-apply. Dev only. |
+| `pnpm schema:fresh` | Drop the DB and re-run every migration from scratch. Destructive. |
+| `pnpm schema:new -- --name X` | Generate a new migration for the current code-vs-snapshot diff. |
+| `pnpm schema:migrate` | Apply all pending migrations. |
 
-### Kenapa
-Drizzle push adalah operasi non-transactional untuk sebagian besar
-perubahan. Kalau push kena error di tengah (mis: 63-char limit), sebagian
-tabel/enum sudah dibuat, sebagian belum. Schema jadi "stuck in between".
+## Prod / Cloudflare deploy
 
-### Recovery — SQLite (dev lokal)
+- Migrations run on prod boot when `PAYLOAD_MIGRATING=true` is set OR
+  when `pnpm schema:migrate` is called by the deploy pipeline before
+  the app starts. Choose one.
+- The `payload_migrations` table exists on prod exactly as in dev; the
+  same numbered files apply in the same order.
+- The D1 adapter is a drop-in replacement — same migration files run
+  against it. Only the driver in `payload.config.ts` changes.
+
+## Common problems
+
+### "It looks like you've run Payload in dev mode … proceed?"
+Payload sees dev-push evidence (a `batch=-1` row in `payload_migrations`)
+and warns before running migrations. **Answer `y` when your migrations
+are additive** (only CREATE / ADD COLUMN), since additive migrations
+against a dev-pushed schema are safe. Never answer `y` blindly when a
+migration also drops columns — data loss is real then.
+
+### "SQLITE_ERROR: no such column: X_id"
+Some new collection was added to the config but the corresponding
+migration wasn't generated / applied. Fix:
 ```powershell
-# 1. Stop CMS
-# 2. Backup database
-Copy-Item apps/cms/dnjourneysbali.db apps/cms/dnjourneysbali.db.backup
-
-# 3. Cek tabel yang bermasalah
-sqlite3 apps/cms/dnjourneysbali.db ".schema" | grep "service_listing"
-
-# 4. Drop tabel/kolom bermasalah manual
-sqlite3 apps/cms/dnjourneysbali.db "DROP TABLE IF EXISTS pages_blocks_service_listing_hero_background;"
-
-# 5. Restart CMS — Payload recreate fresh schema
-cd apps/cms; pnpm dev
+pnpm schema:new -- --name add-<slug>
+pnpm schema:migrate
 ```
 
-### Recovery — Postgres
-```bash
-# Cek tabel bermasalah
-psql -c "\dt *service_listing*"
+### "table X already exists"
+The migration is trying to CREATE a table that's already in the DB
+from a pre-migrations dev push. Two fixes:
+1. If the existing table is truly disposable: manually
+   `DROP TABLE X`, then run `pnpm schema:migrate`.
+2. If it has data: hand-edit the migration to use
+   `CREATE TABLE IF NOT EXISTS` and confirm the existing structure
+   matches — or write a follow-up migration that reconciles column
+   differences.
 
-# Drop stale
-psql -c "DROP TABLE IF EXISTS pages_blocks_service_listing_hero_background CASCADE;"
-psql -c "DROP TYPE IF EXISTS enum_pages_blocks_service_listing_hero_background_type CASCADE;"
+### "index already exists"
+Same as above — leftover from a pre-migrations push. Drop it manually
+(`DROP INDEX X`) then re-run migrate. In new migration files, drizzle-kit
+occasionally emits a duplicated `CREATE INDEX` when a block is embedded
+in multiple field paths. Hand-edit the migration to remove the
+duplicate.
 
-# Restart CMS
-```
+### "Cannot add NOT NULL column without default"
+SQLite doesn't allow adding a non-nullable column without a default to
+a table with existing rows. Change your field to include `defaultValue`,
+regenerate the migration, or edit it to first ADD the column as
+nullable, backfill data, then ALTER to NOT NULL (SQLite requires a
+table recreate for that last step).
 
-### Recovery — Production (Cloudflare D1)
-Jangan pernah manual DROP di production tanpa backup + approval user.
-Buat migration file di `apps/cms/src/migrations/` dan test di staging dulu.
+### Identifier length errors (Postgres only)
+Not applicable on SQLite. If we ever swap to Postgres (or D1 in a
+future release), block table names in deeply-nested paths can exceed
+63 characters. Rename the block or shorten field names. Example fix
+in [apps/cms/src/blocks/index.ts:895](../apps/cms/src/blocks/index.ts:895).
+
+## What NOT to do
+
+- **Do not set `PAYLOAD_FORCE_PUSH=true`.** The env var is a legacy
+  escape hatch. If you need to change schema, write a migration.
+- **Do not add fields directly to the DB with a script.** Every schema
+  change belongs in a migration file.
+- **Do not `payload_migrations` row-hack** except during the one-time
+  bootstrap (2026-09-12). If you need to reconcile drift, generate an
+  empty migration and hand-write the SQL, so the fix is visible in
+  git.
+- **Do not commit `cms.db`.** The migration files are the schema; the
+  DB is a build artifact.
 
 ---
 
-## 4. Pre-Flight Checklist Sebelum Ubah Schema
+## Historical: the old push-based workflow
 
-Setiap kali kamu edit `apps/cms/src/collections/*` atau
-`apps/cms/src/blocks/*` (terutama tambah/rename/hapus field), lakukan
-checklist ini SEBELUM `pnpm dev`:
+Before 2026-09-12, this project relied on Payload's `push: true` dev
+schema push, which turned every collection change into a firefight
+(RSC parallel-init race → "index already exists", missing FK columns
+in central rels tables, schema drift accumulating without a clean
+history). Sixteen (16) one-off scripts under
+`apps/cms/src/scripts/archive/pre-migrations-era/` chronicle that era.
 
-```
-[ ] Field name yang baru tidak > 25 char (aman untuk nesting)
-[ ] Kalau block, cek apakah dipakai di `additionalBlocks` collection
-    manapun (grep: `additionalBlocks` di src/collections/)
-[ ] Kalau iya, hitung: len('enum_') + len(collection) + len('_blocks_')
-    + len(block_slug) + len('_') + len(field_path_underscored) ≤ 63
-[ ] Field baru punya default value ATAU non-required (avoid NOT NULL
-    error di rows existing)
-[ ] Kalau rename field yang punya data, siap jawab prompt "rename"
-[ ] Kalau ubah semantik enum, siap jawab "create" (data hilang)
-[ ] Backup DB dev kalau eksperimen besar
-```
-
----
-
-## 5. Quick Reference — Prompt Answers
-
-Ketika `pnpm dev` di apps/cms tampilkan prompt interaktif:
-
-| Prompt | Kapan pilih apa |
-|--------|----------------|
-| `+ create column` | Field baru, ATAU semantik berubah, ATAU ragu |
-| `~ rename column` | HANYA kalau nama berubah tapi data & tipe identik |
-| `+ create table` | Array/relationship baru → selalu ini |
-| `+ create enum` | Select field baru → selalu ini |
-| `Drop column X?` (y/N) | `y` kalau field lama sudah tidak dipakai di config |
-| `Drop table X?` (y/N) | `y` HANYA kalau yakin tabel legacy tidak dipakai |
-| `Truncate table X?` (y/N) | `N` — jangan pernah kecuali eksplisit diminta |
-
-Untuk task besar dengan banyak prompt: baca satu-per-satu, jangan spam
-Enter — salah satu bisa drop table produksi.
-
----
-
-## 6. When to Ask AI Agent for Help
-
-Panggil AI agent kalau:
-- Prompt yang muncul melibatkan kolom yang berisi data production
-- Ada > 10 prompt sekaligus dan bingung urutannya
-- Setelah recovery, CMS masih tidak start
-- Perubahan skema akan di-deploy ke production (butuh migration file)
-
-**Format melapor ke AI:**
-```
-Aku mau ubah [collection/block X].
-Perubahan: [add field Y, rename Z → W, dst]
-Prompt yang muncul: [copy paste log]
-Ada data production di [table/field]? [ya/tidak]
-```
-
-Jangan panik & jawab `y` ke semua prompt tanpa baca — bisa hilangkan data.
-Lebih baik `Ctrl+C` di CMS, tanya AI, baru retry.
-
----
-
-## 7. Related Docs
-
-- [AGENTS.md §11](../AGENTS.md) — Safety rules (jangan install package/ubah schema tanpa approval)
-- [WORKFLOW.md §3](../WORKFLOW.md) — Workflow edit existing collection (rename field)
-- [docs/06-MAINTENANCE-RUNBOOK.md](./06-MAINTENANCE-RUNBOOK.md) — Runbook maintenance lain
-- [docs/PROGRESS.md](./PROGRESS.md) — Log fase, cek Known Issues untuk error pattern yang sudah pernah kena
+The migration bootstrap is documented in
+[docs/reports/schema-management-audit.md](reports/schema-management-audit.md)
+Section 3c. The audit doc explains the "why".

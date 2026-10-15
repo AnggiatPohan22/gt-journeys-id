@@ -1,0 +1,632 @@
+/*
+ * GtJourneysID — Role-based dashboard styles (Phase 4.1 → 4.3)
+ * ------------------------------------------------------------------
+ * Scoped under `.dnj-dash` (+ one `.dashboard` hide rule) so it can never
+ * leak into Payload's core UI (forms, lists, editor).
+ *
+ * Layout follows ai/cms/dashboard-design2: dense stat row + a balanced
+ * two-column grid (left: Analytics + Quick Access · right: Recent Activity
+ * + System Health) so space is filled proportionally — no empty gaps.
+ *
+ * Palette: hybrid — surfaces/text use Payload theme vars (light & dark),
+ * brand accents (ocean/coral/leaf/stone) via --dnj-* (defined in
+ * admin-global.css, fallbacks here).
+ * ------------------------------------------------------------------
+ */
+
+.dnj-dash {
+  --dnj-ocean: #1b3a4b;
+  --dnj-coral: #e07a5f;
+  --dnj-leaf: #6b9080;
+  --dnj-stone: #3d405b;
+  --dnj-radius: 14px;
+  --dnj-gap: 18px;
+  margin-bottom: 8px;
+}
+
+/* Hide default Payload dashboard content after our overview (no stacking).
+   Reversible: delete this rule to restore the default cards. */
+.dashboard > .dnj-dash ~ * {
+  display: none !important;
+}
+
+/* ── Header ─────────────────────────────────────────── */
+.dnj-dash__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.dnj-dash__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--theme-text);
+}
+.dnj-dash__subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--theme-elevation-500);
+}
+.dnj-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dnj-leaf);
+  background: color-mix(in srgb, var(--dnj-leaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dnj-leaf) 30%, transparent);
+  white-space: nowrap;
+}
+.dnj-status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dnj-leaf);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dnj-leaf) 25%, transparent);
+}
+
+/* ── Frame (stat row wrapper) ───────────────────────── */
+.dnj-frame {
+  border-radius: var(--dnj-radius);
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 16px;
+  margin-bottom: var(--dnj-gap);
+}
+.dnj-frame__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 2px 4px 12px;
+}
+.dnj-frame__title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-450);
+}
+.dnj-frame__hint {
+  font-size: 11px;
+  color: var(--theme-elevation-400);
+}
+
+/* Stat grid — SATU BARIS, compact & minimalis (tanpa swipe). Flex 1:1 supaya
+   6/5 kotak muat proporsional; wrap di layar sempit (responsif). */
+.dnj-statgrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.dnj-stat {
+  flex: 1 1 0;
+  min-width: 96px;
+  border-radius: 10px;
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.dnj-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(13, 27, 42, 0.08);
+}
+/* Phase 4.58.1 — clickable stat box (a.dnj-stat--link) */
+.dnj-stat--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.dnj-stat--link:hover {
+  border-color: var(--dnj-ocean);
+}
+.dnj-stat__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  margin-bottom: 4px;
+}
+.dnj-stat__icon svg { width: 15px; height: 15px; }
+.dnj-stat__value {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--theme-text);
+}
+.dnj-stat__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-500);
+}
+
+/* ── Two-column masonry grid ────────────────────────── */
+.dnj-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  gap: var(--dnj-gap);
+  align-items: start;
+}
+.dnj-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dnj-gap);
+  min-width: 0;
+}
+
+/* ── Analytics card ─────────────────────────────────── */
+.dnj-analytics {
+  border-radius: var(--dnj-radius);
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 20px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+}
+.dnj-analytics__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 8px 0;
+}
+.dnj-analytics__chart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+.dnj-analytics__chart svg { width: 28px; height: 28px; }
+.dnj-analytics__banner {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--dnj-leaf) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--dnj-leaf) 28%, transparent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  max-width: 460px;
+}
+.dnj-analytics__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--theme-elevation-500);
+  max-width: 420px;
+}
+
+/* ── Button (ghost brand) ───────────────────────────── */
+.dnj-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--dnj-ocean);
+  border: none;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+.dnj-btn svg { width: 16px; height: 16px; }
+
+/* ── Quick access ───────────────────────────────────── */
+.dnj-quick {
+  border-radius: var(--dnj-radius);
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 18px 20px;
+}
+.dnj-quick--prominent {
+  margin-bottom: var(--dnj-gap);
+}
+.dnj-quick__title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-450);
+  margin: 0 2px 14px;
+}
+/* Quick access IKON-ONLY: tombol kotak kecil ber-tint accent. Nama muncul via
+   TOOLTIP KUSTOM (::after, data-tip) di BAWAH box — slide turun saat hover,
+   slide naik (seolah masuk ke button) saat lepas. `overflow: visible` supaya
+   tooltip tak terpotong frame. */
+.dnj-quick,
+.dnj-quick__grid {
+  overflow: visible;
+}
+/* Phase 4.58.2 — cap Quick Access to single row.
+   Runtime slices to 12 (fits `.dnj-col--main` @ 2fr width ≈760px inner).
+   nowrap + min-width:0 prevents box growth if user picks too many at CMS
+   level; hidden overflow keeps card height stable. */
+.dnj-quick__grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+.dnj-qa {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+  /* background & color = tint(accent) via inline style */
+}
+.dnj-qa:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(13, 27, 42, 0.14);
+  filter: brightness(0.97);
+}
+.dnj-qa svg {
+  width: 22px;
+  height: 22px;
+}
+/* Tooltip kustom */
+.dnj-qa::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-top: 8px;
+  transform: translate(-50%, -8px); /* default: naik (masuk button), hidden */
+  padding: 5px 9px;
+  border-radius: 7px;
+  background: rgba(20, 20, 24, 0.96);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.dnj-qa:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0); /* turun ke bawah box */
+}
+
+/* ── Recent activity panel ──────────────────────────── */
+.dnj-panel {
+  border-radius: var(--dnj-radius);
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 18px 20px;
+}
+.dnj-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: var(--theme-text);
+}
+.dnj-panel__title svg { width: 17px; height: 17px; color: var(--theme-elevation-500); }
+.dnj-activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dnj-activity__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  border-top: 1px solid var(--theme-elevation-100);
+  transition: background 0.15s ease;
+}
+.dnj-activity__row:first-child { border-top: none; }
+.dnj-activity__row:hover { background: var(--theme-elevation-50); }
+.dnj-activity__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  min-width: 0;
+}
+.dnj-activity__dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.dnj-activity__dot svg { width: 16px; height: 16px; }
+.dnj-activity__badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-elevation-600);
+}
+.dnj-activity__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--theme-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dnj-activity__time {
+  font-size: 12px;
+  color: var(--theme-elevation-500);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.dnj-activity__empty {
+  font-size: 13px;
+  color: var(--theme-elevation-500);
+}
+
+/* ── System health / media usage ────────────────────── */
+.dnj-health {
+  border-radius: var(--dnj-radius);
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 18px 20px;
+}
+.dnj-health__rows {
+  display: flex;
+  flex-direction: column;
+}
+.dnj-info {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 0;
+  border-top: 1px solid var(--theme-elevation-100);
+}
+.dnj-info:first-child { border-top: none; }
+.dnj-info__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+.dnj-info__icon svg { width: 16px; height: 16px; }
+.dnj-info__label {
+  font-size: 13px;
+  color: var(--theme-elevation-600);
+}
+.dnj-info__value {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-text);
+}
+.dnj-info__muted {
+  font-weight: 500;
+  color: var(--theme-elevation-450);
+}
+.dnj-health__link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dnj-ocean);
+  text-decoration: none;
+}
+.dnj-health__link:hover { color: var(--dnj-coral); }
+
+/* ── System Health HORIZONTAL (memanjang, di bawah Quick Access) ──
+   Info rows jadi chip berjajar (wrap) → panel lebar & pendek, bukan tinggi. */
+.dnj-health--row {
+  margin-top: var(--dnj-gap, 18px);
+}
+.dnj-health--row .dnj-health__rows {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.dnj-health--row .dnj-info {
+  border-top: none;
+  border: 1px solid var(--theme-elevation-100);
+  border-radius: 10px;
+  padding: 8px 12px;
+  flex: 1 1 auto;
+  min-width: 150px;
+  background: var(--theme-elevation-0);
+}
+.dnj-health--row .dnj-health__link {
+  margin-top: 0;
+  align-self: center;
+  padding: 8px 4px;
+}
+
+/* ── Phase 4.58 — Dashboard Widgets (Smart Insight + Top Performing) ── */
+.dnj-widgets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--dnj-gap);
+  margin-bottom: var(--dnj-gap);
+}
+.dnj-insight,
+.dnj-toppf {
+  border-radius: var(--dnj-radius);
+  background: var(--theme-elevation-0);
+  border: 1px solid var(--theme-elevation-100);
+  padding: 18px 20px;
+}
+.dnj-insight__badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-450);
+  border: 1px solid var(--theme-elevation-100);
+}
+.dnj-insight__list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dnj-insight__row {
+  border-radius: 10px;
+  transition: background 0.14s ease;
+}
+.dnj-insight__row:hover {
+  background: var(--theme-elevation-50);
+}
+.dnj-insight__row--soon {
+  opacity: 0.75;
+}
+.dnj-insight__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  text-decoration: none;
+  color: inherit;
+}
+.dnj-insight__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dnj-insight__icon svg { width: 18px; height: 18px; }
+.dnj-insight__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dnj-insight__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-text);
+}
+.dnj-insight__hint {
+  font-size: 11.5px;
+  color: var(--theme-elevation-450);
+  line-height: 1.4;
+}
+.dnj-insight__count {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.dnj-insight__count--muted {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-400);
+}
+.dnj-toppf__empty {
+  padding: 14px 6px 4px;
+}
+.dnj-toppf__msg {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--theme-elevation-500);
+}
+.dnj-toppf__msg a {
+  color: var(--dnj-ocean);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dnj-toppf__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--theme-elevation-450);
+}
+.dnj-toppf__hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+  font-size: 11px;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 1023px) {
+  .dnj-cols {
+    grid-template-columns: 1fr;
+  }
+  .dnj-widgets {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .dnj-dash__title { font-size: 22px; }
+  /* Stat & quick-access sudah pakai flex-wrap → otomatis rapi di layar sempit. */
+  .dnj-stat { min-width: 84px; }
+}
+
+/* ── Dark mode: glossy card sheen (Phase 4.4) ──────────
+   Subtle diagonal highlight + top edge so cards feel like glass panes on
+   the near-black surface (design4 direction), instead of flat dark boxes. */
+html[data-theme='dark'] .dnj-frame,
+html[data-theme='dark'] .dnj-quick,
+html[data-theme='dark'] .dnj-analytics,
+html[data-theme='dark'] .dnj-health,
+html[data-theme='dark'] .dnj-panel,
+html[data-theme='dark'] .dnj-stat,
+html[data-theme='dark'] .dnj-qa,
+html[data-theme='dark'] .dnj-insight,
+html[data-theme='dark'] .dnj-toppf {
+  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.045) 0%, rgba(255, 255, 255, 0) 55%);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+html[data-theme='dark'] .dnj-stat:hover,
+html[data-theme='dark'] .dnj-qa:hover {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+/* Status pill + analytics banner keep their leaf tint but lift on black. */
+html[data-theme='dark'] .dnj-status {
+  background: linear-gradient(135deg, rgba(107, 144, 128, 0.22), rgba(107, 144, 128, 0.08));
+}

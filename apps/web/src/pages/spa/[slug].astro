@@ -1,0 +1,362 @@
+---
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import BlockRenderer from '@components/blocks/BlockRenderer.astro'
+import RelatedServices from '@components/common/RelatedServices.astro'
+import { getSpas, getSpaBySlug, getSiteSettings } from '@lib/payload'
+import { resolveRelatedConfig } from '@lib/relatedServices'
+import { isModuleEnabled } from '@lib/features'
+import { generateWhatsAppLink, renderWhatsAppTemplate, spaMessage } from '@lib/whatsapp'
+import { getServiceWhatsApp, getServiceTypeByKey } from '@lib/serviceTypes'
+import { formatPrice } from '@shared/utils/format-price'
+import { siteConfig } from '@config/site'
+import { lexicalToPlainText } from '@lib/lexical'
+import Breadcrumbs from '@components/common/Breadcrumbs.astro'
+import StructuredData from '@components/common/StructuredData.astro'
+import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
+import { serviceItemSchema } from '@lib/structuredData'
+import type { Spa, Media } from '@shared/types/payload-types'
+
+export async function getStaticPaths() {
+  if (!(await isModuleEnabled('spa'))) return []
+  const { docs } = await getSpas({ limit: 200 })
+  return docs.map((r) => ({ params: { slug: r.slug } }))
+}
+
+const { slug } = Astro.params
+if (!slug) return Astro.redirect('/spa')
+
+const item = await getSpaBySlug(slug)
+if (!item) return Astro.redirect('/404')
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const dest = typeof item.destination === 'object' ? item.destination : null
+
+// ── Hero bento ─────────────────────────────────────────────
+const heroImg = asMedia(item.featuredImage)
+const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
+const heroAlt = heroImg?.alt ?? item.title
+// Hero + gallery merge lives inside <HeroBentoGallery /> — see 4.28.
+
+// ── Pricing tiers → cheapest for sidebar ───────────────────
+const tiers = item.pricingTiers ?? []
+const cheapestTier = tiers
+  .filter((t) => typeof t.price === 'number' && t.price > 0)
+  .sort((a, b) => (a.price ?? 0) - (b.price ?? 0))[0]
+const cheapestFormatted = cheapestTier ? formatPrice(cheapestTier.price, cheapestTier.currency ?? 'IDR') : null
+const durationLabelMap: Record<string, string> = {
+  hourly: 'hour', half_day: 'half day', full_day: 'day', weekly: 'week', monthly: 'month',
+}
+const durationSuffix = cheapestTier?.duration ? durationLabelMap[cheapestTier.duration] ?? 'day' : 'day'
+
+// ── Text + related data ────────────────────────────────────
+const descriptionText = lexicalToPlainText(item.description)
+const specs = item.specifications ?? {}
+const includes = (item.includes ?? []) as Array<{ item: string }>
+const features = ((item as any).features ?? []) as Array<{ name: string; icon?: string }>
+const requirements = item.requirements as string | undefined
+const subtitle = (item as any).subtitle as string | undefined
+
+const treatmentLabel: Record<typeof item.treatmentType, string> = {
+  'Balines Spa': '💆 Balinese Spa',
+  'Traditional Massage': '💆 Traditional Massage',
+  'Thai massage': '💆 Thai Massage',
+  'Honeymoon package': '💑 Honeymoon Package',
+  other: '💆 Spa',
+}
+
+// Sidebar tags — top features (parity dgn villa highlightTags)
+const topTags = features.slice(0, 4).map((f) => f.name)
+
+// Quick specs — CMS override or derive
+type QuickSpec = { iconName: string; label: string; subtitle?: string }
+const cmsQuickSpecs = ((item as any).quickSpecs ?? []) as QuickSpec[]
+const derivedQuickSpecs: QuickSpec[] = [
+  { iconName: 'badge',         label: specs.brand ?? '—',                  subtitle: 'Brand' },
+  { iconName: 'star',          label: specs.model ?? '—',                  subtitle: 'Model' },
+  { iconName: 'schedule',      label: specs.year ?? '—',                    subtitle: 'Year' },
+  { iconName: 'verified_user', label: `${features.length || '—'} Features`, subtitle: 'Included' },
+]
+const quickSpecs = cmsQuickSpecs.length > 0 ? cmsQuickSpecs.slice(0, 4) : derivedQuickSpecs
+
+// Custom super-admin blocks
+const additionalBlocks = ((item as any).additionalBlocks ?? []) as any[]
+
+// WhatsApp
+let waNumber = siteConfig.contact.whatsapp
+let siteSettings: any = null
+try {
+  siteSettings = await getSiteSettings()
+  waNumber = siteSettings?.contact?.whatsapp ?? siteConfig.contact.whatsapp
+} catch { /* fallback */ }
+const svcWa = await getServiceWhatsApp('spa', waNumber).catch(() => ({ number: waNumber, template: undefined }))
+waNumber = svcWa.number
+const waLink = generateWhatsAppLink(
+  waNumber,
+  item.whatsappMessage
+    ?? (svcWa.template ? renderWhatsAppTemplate(svcWa.template, { serviceName: item.title }) : spaMessage(item.title)),
+)
+
+// Phase 4.17 — Related Services cascade
+const svcType = await getServiceTypeByKey('spa').catch(() => null)
+const relatedConfig = resolveRelatedConfig(item, svcType, siteSettings)
+
+const title = item.seo?.metaTitle ?? `${item.title} — Spa`
+const description = item.seo?.metaDescription ?? descriptionText.slice(0, 160)
+
+// ── SEO: breadcrumbs + JSON-LD (D-tech) ──
+const detailUrl = `/spa/${slug}`
+const crumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Spas', url: '/spa' },
+  { name: item.title, url: detailUrl },
+]
+const itemSchema = serviceItemSchema({
+  serviceType: 'spa', name: item.title,
+  description: descriptionText ? descriptionText.slice(0, 300) : undefined,
+  url: detailUrl, image: heroUrl || undefined,
+  price: cheapestTier?.price ?? null, currency: cheapestTier?.currency ?? 'IDR',
+  addressLocality: dest?.name ?? undefined,
+  site: Astro.site?.href,
+})
+---
+
+<PageLayout title={title} description={description} ogType="product" ogImage={heroUrl || undefined}>
+  <Breadcrumbs items={crumbs} />
+  <StructuredData schema={itemSchema} />
+  {/* ═══ HERO BENTO GALLERY (shared component — 4.28) ═══ */}
+  <HeroBentoGallery id="spa-photos" heroImg={heroImg} heroAlt={heroAlt} gallery={item.gallery} />
+
+  {/* ═══ MAIN 12-COL LAYOUT ═══ */}
+  <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-24">
+    <div class="lg:col-span-8">
+
+      {/* ─── Title area + description ─── */}
+      <div class="mb-10 pb-10 border-b border-sand-dark/30">
+        <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
+          <div class="min-w-0">
+            <p class="text-xs uppercase tracking-widest text-coral mb-2 font-semibold">{treatmentLabel[item.treatmentType]}</p>
+            <h1 class="font-display text-3xl md:text-4xl lg:text-5xl text-ocean mb-2">{item.title}</h1>
+            {subtitle && <p class="text-stone-light text-sm md:text-base mb-3 italic">{subtitle}</p>}
+            {dest && (
+              <div class="flex items-center gap-2 text-stone">
+                <Icon name="location_on" class="w-4 h-4 text-coral" />
+                <span class="text-sm">{dest.name}, Bali</span>
+              </div>
+            )}
+          </div>
+          {cheapestFormatted && (
+            <div class="text-right hidden sm:block shrink-0">
+              <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-1">Starting from</p>
+              <p class="font-display text-xl md:text-2xl text-ocean">{cheapestFormatted} <span class="text-sm text-stone-light font-normal">/ {durationSuffix}</span></p>
+            </div>
+          )}
+        </div>
+        {descriptionText && <p class="text-stone text-base md:text-lg leading-relaxed mt-6">{descriptionText}</p>}
+      </div>
+
+      {/* ─── Quick Specs 4-card ─── */}
+      {quickSpecs.length > 0 && (
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+          {quickSpecs.map((spec) => (
+            <div class="flex flex-col items-center p-5 md:p-6 bg-white rounded-xl shadow-sm border border-sand-dark/10 text-center">
+              <div class="mb-3 text-coral"><Icon name={spec.iconName || 'star'} class="w-8 h-8" /></div>
+              <p class="font-semibold text-ocean text-sm md:text-base">{spec.label}</p>
+              {spec.subtitle && <p class="text-xs text-stone-light mt-1">{spec.subtitle}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Features (styled = villa Amenities) ─── */}
+      {features.length > 0 && (
+        <div class="mb-12 pb-12 border-b border-sand-dark/30">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-8">Features &amp; Services</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+            {features.map((f) => (
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-ocean/10 flex items-center justify-center text-ocean shrink-0">
+                  <Icon name={f.icon ?? 'star'} class="w-5 h-5" />
+                </div>
+                <span class="text-stone text-sm md:text-base">{f.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Location (styled = villa Location, brand/model/year sub-cards) ─── */}
+      {(specs.brand || specs.model || specs.year || specs.details) && (
+        <div class="mb-12 pb-12 border-b border-sand-dark/30">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Specifications</h2>
+          {specs.details && (
+            <div class="w-full min-h-[120px] bg-white rounded-2xl overflow-hidden border border-sand-dark/20 p-6 md:p-8 flex items-center">
+              <p class="text-stone text-sm md:text-base leading-relaxed whitespace-pre-line">{specs.details}</p>
+            </div>
+          )}
+          {(specs.brand || specs.model || specs.year) && (
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mt-8">
+              {specs.brand && (
+                <div class="p-5 md:p-6 bg-white rounded-xl border border-sand-dark/10 text-center">
+                  <p class="text-xs uppercase tracking-wider text-stone-light font-semibold mb-1">Brand</p>
+                  <p class="font-display text-lg text-ocean">{specs.brand}</p>
+                </div>
+              )}
+              {specs.model && (
+                <div class="p-5 md:p-6 bg-white rounded-xl border border-sand-dark/10 text-center">
+                  <p class="text-xs uppercase tracking-wider text-stone-light font-semibold mb-1">Model</p>
+                  <p class="font-display text-lg text-ocean">{specs.model}</p>
+                </div>
+              )}
+              {specs.year && (
+                <div class="p-5 md:p-6 bg-white rounded-xl border border-sand-dark/10 text-center">
+                  <p class="text-xs uppercase tracking-wider text-stone-light font-semibold mb-1">Year</p>
+                  <p class="font-display text-lg text-ocean">{specs.year}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Policies (styled = villa Policies, from requirements) ─── */}
+      {requirements && (
+        <div class="mb-12">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Requirements &amp; Policies</h2>
+          <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 text-stone text-sm whitespace-pre-line">
+            {requirements}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Options (styled = villa Room Options, per-tier card) ─── */}
+      {tiers.length > 0 && (
+        <div class="mb-12" id="options">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">Pricing Options</h2>
+          <div class="space-y-4">
+            {tiers.map((t) => (
+              <div class="bg-white rounded-xl border border-sand-dark/10 p-5 md:p-6 flex flex-wrap items-start gap-4 md:gap-6">
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-display text-lg text-ocean mb-2 capitalize">{(t.duration ?? '').replace(/_/g, ' ')}</h3>
+                  {t.note && <p class="text-sm text-stone">{t.note}</p>}
+                </div>
+                {typeof t.price === 'number' && t.price > 0 && (
+                  <div class="text-right shrink-0">
+                    <p class="text-coral font-semibold text-lg">{formatPrice(t.price, t.currency ?? 'IDR')}</p>
+                    <p class="text-xs text-stone-light">per {durationLabelMap[t.duration ?? 'full_day'] ?? 'day'}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ─── Includes (bonus, styled consistent) ─── */}
+      {includes.length > 0 && (
+        <div class="mb-12">
+          <h2 class="font-display text-2xl md:text-3xl text-ocean mb-6">What's Included</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
+            {includes.map((i) => (
+              <div class="flex items-start gap-3">
+                <span class="text-leaf mt-1">✓</span>
+                <span class="text-stone text-sm md:text-base">{i.item}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* ─── SIDEBAR (parity dgn villa sidebar) ─── */}
+    <aside class="lg:col-span-4">
+      <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-lg border border-sand-dark/10 p-6 md:p-8">
+        {topTags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mb-6">
+            {topTags.map((tag) => (
+              <span class="px-3 py-1 bg-ocean/10 text-ocean rounded-full text-[10px] uppercase tracking-wider font-bold">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        {cheapestFormatted && (
+          <div class="mb-6 flex justify-between items-end">
+            <div>
+              <p class="text-xs uppercase tracking-widest text-stone-light font-semibold mb-1">From</p>
+              <p class="font-display text-2xl md:text-3xl text-ocean">
+                {cheapestFormatted}
+                <span class="text-sm text-stone-light font-normal"> / {durationSuffix}</span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        <form class="space-y-4" onsubmit="return false;">
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Pick-up</span>
+              <div class="relative">
+                <input type="date" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
+                <Icon name="calendar_today" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              </div>
+            </label>
+            <label class="block">
+              <span class="block text-xs font-semibold text-stone mb-1">Return</span>
+              <div class="relative">
+                <input type="date" class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 text-sm text-stone focus:outline-none focus:border-ocean focus:ring-1 focus:ring-ocean transition-colors" />
+                <Icon name="calendar_today" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              </div>
+            </label>
+          </div>
+          <label class="block">
+            <span class="block text-xs font-semibold text-stone mb-1">Quantity</span>
+            <div class="relative">
+              <select class="w-full bg-sand border border-sand-dark/30 rounded-lg py-2.5 px-3 pl-9 pr-8 text-sm text-stone focus:outline-none focus:border-ocean appearance-none transition-colors cursor-pointer">
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => <option>{n} {n === 1 ? 'unit' : 'units'}</option>)}
+              </select>
+              <Icon name="badge" class="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+              <Icon name="expand_more" class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+            </div>
+          </label>
+
+          <a href={waLink} target="_blank" rel="noopener noreferrer" class="block w-full bg-coral hover:bg-coral-dark text-white text-center py-3.5 rounded-lg font-semibold text-sm uppercase tracking-wider transition-colors no-underline shadow-md hover:shadow-lg">Reserve Now</a>
+        </form>
+
+        {(specs.brand || specs.year) && (
+          <div class="mt-6 pt-6 border-t border-sand-dark/30 grid grid-cols-2 gap-3 text-center">
+            {specs.brand && (
+              <div>
+                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Brand</p>
+                <p class="text-sm font-semibold text-ocean mt-1">{specs.brand}</p>
+              </div>
+            )}
+            {specs.year && (
+              <div>
+                <p class="text-[10px] uppercase tracking-wider text-stone-light font-semibold">Year</p>
+                <p class="text-sm font-semibold text-ocean mt-1">{specs.year}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div class="mt-6 pt-6 border-t border-sand-dark/30 text-center">
+          <p class="text-xs text-stone-light mb-4">You won't be charged yet. Our concierge will confirm details.</p>
+          <a href={waLink} target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 w-full border border-ocean text-ocean hover:bg-ocean hover:text-white py-3 rounded-lg font-semibold text-sm no-underline transition-colors">
+            <Icon name="headset_mic" class="w-4 h-4" /> Contact Concierge
+          </a>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  {/* ═══ CUSTOM SECTIONS ═══ */}
+  {additionalBlocks.length > 0 && <BlockRenderer blocks={additionalBlocks} excludeId={item.id} />}
+
+  {/* ═══ RELATED SERVICES (Phase 4.17 — 3-layer cascade) ═══ */}
+  <RelatedServices
+    config={relatedConfig}
+    serviceType="spa"
+    excludeId={item.id}
+    extraWhere={item.treatmentType ? { treatmentType: { equals: item.treatmentType } } : undefined}
+  />
+</PageLayout>

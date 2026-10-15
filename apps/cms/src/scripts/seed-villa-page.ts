@@ -15,6 +15,12 @@ const SLUG = 'villa'
 const run = async () => {
   const payload = await getPayload({ config })
 
+  // Hero image for hero-immersive layout (B1 — standardize villa to match
+  // the other service landing pages). Pick any available media; owner can
+  // swap in CMS admin.
+  const mediaRes = await payload.find({ collection: 'media', limit: 30 })
+  const heroImage = mediaRes.docs[6 % Math.max(mediaRes.docs.length, 1)]?.id ?? mediaRes.docs[0]?.id
+
   const existing = await payload.find({
     collection: 'pages',
     where: { slug: { equals: SLUG } },
@@ -28,6 +34,9 @@ const run = async () => {
     content: [
       {
         blockType: 'serviceListing',
+        // B1: hero-immersive (was editorial-featured) — konsisten dgn
+        // /tour, /restaurant, /yacht, dst.
+        layout: 'hero-immersive',
         eyebrow: 'The Collection',
         heading: 'Curated Tropical Sanctuary',
         description: "Discover Bali's most exclusive villas and hotels, where refined luxury meets the untamed beauty of the Indonesian archipelago.",
@@ -35,10 +44,29 @@ const run = async () => {
         accommodationTypes: ['villa', 'hotel', 'resort'],
         limit: 24,
         featuredMode: 'auto',
+        // Hero media
+        mediaType: 'single',
+        singleImage: heroImage,
+        imageFit: 'cover',
+        imagePosition: 'center',
+        lazyLoad: true,
+        heroOverlayOpacity: 45,
+        heroMinHeight: 'md',
+        // Filter & search
         enableDestinationFilter: true,
         enableSearch: true,
         searchNamePlaceholder: 'Where are you staying?',
+        showDatePicker: true,
+        showGuestCount: true,
+        searchButtonText: 'Search Collection',
+        // Cards + pagination
+        cardVariant: 'detailed',
+        showLoadMore: true,
+        paginationType: 'pages',
+        initialVisibleCount: 3,
+        // Layout
         sectionPadding: 'normal',
+        contentAlignment: 'center',
         containerWidth: 'wide',
         entryAnimation: 'reveal',
       },
@@ -49,7 +77,7 @@ const run = async () => {
         primaryButtonText: 'Inquire Now',
         primaryButtonLink: 'https://wa.me/6282386357012',
         secondaryButtonText: 'All Accommodations',
-        secondaryButtonLink: '/accommodations',
+        secondaryButtonLink: '/villa',
         badges: [
           { iconName: 'verified_user', title: 'Verified',    subtitle: 'Inspected Property' },
           { iconName: 'support_agent', title: '24/7 Support', subtitle: 'On-Ground Help' },
@@ -61,7 +89,7 @@ const run = async () => {
       },
     ],
     seo: {
-      metaTitle: 'Villas & Hotels Collection | DnJourneysBali',
+      metaTitle: 'Villas & Hotels Collection | GtJourneysID',
       metaDescription: 'Curated luxury villas, hotels, and resorts across Bali, Nusa Penida, Lembongan, and Ceningan.',
     },
   }

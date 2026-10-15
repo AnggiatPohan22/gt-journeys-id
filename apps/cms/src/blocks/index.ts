@@ -1,8 +1,8 @@
 import type { Block } from 'payload'
 import { mediaFields, buildFitPositionRow, imageFitOptions, imagePositionOptions } from '../fields/media'
 import { advancedStyleFields, advancedStyleFieldsNoButton } from '../fields/advancedStyle'
-import { buildTextStyleField } from '../fields/textStyle'
 import { superAdminFieldAccess } from '../access/roles'
+import { iconField } from '../fields/iconOptions'
 
 // ── Testimonial source fields (inline vs collection) ─────────────────
 // Dipakai di block `testimonials` & `testimonialsCarousel`. Nama field select
@@ -39,6 +39,8 @@ const testimonialSourceFields = (defaultMax: number): any[] => [
           { label: 'Restaurants', value: 'restaurants' },
           { label: 'Weddings & Events', value: 'venues' },
           { label: 'Rentals', value: 'rentals' },
+          { label: 'Spa & Wellness', value: 'spa' },
+          { label: 'Ferry Tickets', value: 'ferry-tickets' },
         ],
       },
       { name: 'maxItems', type: 'number', defaultValue: defaultMax, min: 1, max: 60, admin: { width: '50%', description: 'Jumlah maksimal ditampilkan.' } },
@@ -53,9 +55,16 @@ const testimonialSourceFields = (defaultMax: number): any[] => [
 // Media legacy fields (backgroundImage, overlayOpacity) removed — replaced
 // by shared mediaFields (single/multi/video/none) and advancedStyleFields
 // (background & button styling). Frontend fallback safe untuk data lama.
+// ── Custom Label (Phase 4.8) ─────────────────────────────────────────
+// Same collapsed-row Label component for every block; colour + summary
+// resolved inside BlockLabel from `data.blockType`. Keeping the reference
+// in one const avoids repeating the same string 16 times.
+const BLOCK_LABEL = { Label: '/blocks/BlockLabel#default' } as const
+
 const Hero: Block = {
   slug: 'hero',
   labels: { singular: 'Hero', plural: 'Heroes' },
+  admin: { group: 'Layout', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -77,11 +86,8 @@ const Hero: Block = {
         },
         {
           label: 'Advanced',
-          description: 'Section padding, background override, button styling & hover animations',
-          fields: [
-            ...advancedStyleFields,
-            buildTextStyleField(['heading', 'subheading']),
-          ],
+          description: 'Layout, background, button, text styles & spacing — sections collapsed by default (klik untuk expand).',
+          fields: advancedStyleFields({ textElements: ['heading', 'subheading'] }),
         },
       ],
     },
@@ -107,6 +113,7 @@ const Hero: Block = {
 const RichText: Block = {
   slug: 'richText',
   labels: { singular: 'Text', plural: 'Text Blocks' },
+  admin: { group: 'Content', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -120,10 +127,7 @@ const RichText: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background, container width, entry animation, text style',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['paragraph']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['paragraph'] }),
         },
       ],
     },
@@ -140,6 +144,7 @@ const RichText: Block = {
 const ImageBlock: Block = {
   slug: 'image',
   labels: { singular: 'Image', plural: 'Images' },
+  admin: { group: 'Content', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -171,10 +176,7 @@ const ImageBlock: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background, container width, entry animation, caption style',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['caption']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['caption'] }),
         },
       ],
     },
@@ -186,6 +188,7 @@ const ImageBlock: Block = {
 const Gallery: Block = {
   slug: 'gallery',
   labels: { singular: 'Gallery', plural: 'Galleries' },
+  admin: { group: 'Content', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -238,10 +241,7 @@ const Gallery: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background, container width, entry animation, caption style',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['caption']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['caption'] }),
         },
       ],
     },
@@ -259,6 +259,7 @@ const Gallery: Block = {
 const CTA: Block = {
   slug: 'cta',
   labels: { singular: 'Call to Action', plural: 'CTAs' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -305,10 +306,7 @@ const CTA: Block = {
         {
           label: 'Advanced',
           description: 'Section padding, background override, button styling, entry animation, text styles',
-          fields: [
-            ...advancedStyleFields,
-            buildTextStyleField(['heading', 'description']),
-          ],
+          fields: advancedStyleFields({ textElements: ['heading', 'description'] }),
         },
       ],
     },
@@ -328,6 +326,7 @@ const CTA: Block = {
 const FAQ: Block = {
   slug: 'faq',
   labels: { singular: 'FAQ', plural: 'FAQs' },
+  admin: { group: 'Social Proof', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -344,10 +343,7 @@ const FAQ: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'quote']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'quote'] }),
         },
       ],
     },
@@ -358,6 +354,7 @@ const FAQ: Block = {
 const Testimonials: Block = {
   slug: 'testimonials',
   labels: { singular: 'Testimonials', plural: 'Testimonials' },
+  admin: { group: 'Social Proof', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -401,10 +398,7 @@ const Testimonials: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'quote']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'quote'] }),
         },
       ],
     },
@@ -415,6 +409,7 @@ const Testimonials: Block = {
 const ServiceGrid: Block = {
   slug: 'serviceGrid',
   labels: { singular: 'Service Grid', plural: 'Service Grids' },
+  admin: { group: 'Services', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -428,6 +423,8 @@ const ServiceGrid: Block = {
               { label: 'Water Activities', value: 'water-activities' }, { label: 'Yachts', value: 'yachts' },
               { label: 'Restaurants', value: 'restaurants' }, { label: 'Venues', value: 'venues' },
               { label: 'Rentals', value: 'rentals' },
+              { label: 'Spa & Wellness', value: 'spa' },
+              { label: 'Ferry Tickets', value: 'ferry-tickets' },
             ]},
             {
               type: 'row',
@@ -435,6 +432,68 @@ const ServiceGrid: Block = {
                 { name: 'limit', type: 'number', defaultValue: 6, min: 1, max: 12, admin: { width: '50%' } },
                 { name: 'featuredOnly', type: 'checkbox', defaultValue: false, admin: { width: '50%' } },
               ],
+            },
+            // Phase 4.15 — mirror ServiceListing's card variant so
+            // editors can pick between compact grid tiles and richer
+            // detailed cards. Default `compact` preserves current
+            // rendering byte-for-byte on existing pages.
+            {
+              name: 'cardVariant',
+              type: 'select',
+              defaultValue: 'compact',
+              options: [
+                { label: 'Compact (default — image + title + price)', value: 'compact' },
+                { label: 'Detailed (multi-image, rating, description, amenity badges, Book Now)', value: 'detailed' },
+                { label: 'Ticket (route card — ferry/transport only)', value: 'ticket' },
+              ],
+              admin: {
+                // Phase 4.61.1 — DEPRECATED: desain kartu kini ditentukan terpusat di
+                // Settings → Pengaturan Fitur → Modul Layanan (per-service). Field ini
+                // disembunyikan & diabaikan frontend. Kolom DB dibiarkan (non-destruktif).
+                description: 'DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.',
+                condition: () => false,
+              },
+            },
+            // ── Phase 4.16 (Pass 1) — template + selection mode ───
+            // `curated` template mirrors the hardcoded "Curated
+            // Alternatives" section on service detail pages: 3-col
+            // grid, taller image with hover-zoom, floating price chip,
+            // per-service-type meta line. `auto` selectionMode is the
+            // right pick when the block sits inside a service detail
+            // page's Custom Sections — it fetches same-serviceType,
+            // excludes the current doc, takes first N sorted.
+            {
+              name: 'template',
+              type: 'select',
+              defaultValue: 'default',
+              options: [
+                { label: 'Default (regular service grid)', value: 'default' },
+                { label: 'Curated (large image, price chip, per-type meta — matches "Curated Alternatives")', value: 'curated' },
+              ],
+              admin: {
+                description: 'Card presentation template. Curated is designed for the bottom of a service detail page.',
+              },
+            },
+            {
+              name: 'selectionMode',
+              type: 'select',
+              defaultValue: 'manual',
+              options: [
+                { label: 'Manual (respect serviceType + limit + featuredOnly)', value: 'manual' },
+                { label: 'Auto (same serviceType as current page, exclude current doc)', value: 'auto' },
+              ],
+              admin: {
+                description: 'How items are chosen. Auto only works when the block is placed inside a service detail page (Tour/Villa/etc. Custom Sections).',
+                condition: (_, sib) => (sib?.template ?? 'default') === 'curated',
+              },
+            },
+            {
+              name: 'sectionTitle',
+              type: 'text',
+              admin: {
+                description: 'Optional override for the section heading. Leave empty to use the default ("Curated Alternatives" / "More Yachts" etc. depending on serviceType).',
+                condition: (_, sib) => (sib?.template ?? 'default') === 'curated',
+              },
             },
             {
               type: 'collapsible',
@@ -479,10 +538,7 @@ const ServiceGrid: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
         },
       ],
     },
@@ -493,6 +549,7 @@ const ServiceGrid: Block = {
 const Contact: Block = {
   slug: 'contact',
   labels: { singular: 'Contact', plural: 'Contact Blocks' },
+  admin: { group: 'Utility', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -512,10 +569,7 @@ const Contact: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['paragraph']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['paragraph'] }),
         },
       ],
     },
@@ -525,17 +579,33 @@ const Contact: Block = {
 const Embed: Block = {
   slug: 'embed',
   labels: { singular: 'Embed', plural: 'Embeds' },
+  admin: { group: 'Content', components: BLOCK_LABEL },
   fields: [
-    { name: 'embedType', type: 'select', options: [
-      { label: 'YouTube', value: 'youtube' }, { label: 'Google Map', value: 'map' }, { label: 'Custom', value: 'custom' },
-    ]},
-    { name: 'embedCode', type: 'textarea', required: true },
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'embedType', type: 'select', options: [
+              { label: 'YouTube', value: 'youtube' }, { label: 'Google Map', value: 'map' }, { label: 'Custom', value: 'custom' },
+            ]},
+            { name: 'embedCode', type: 'textarea', required: true },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: advancedStyleFieldsNoButton(),
+        },
+      ],
+    },
   ],
 }
 
 const Spacer: Block = {
   slug: 'spacer',
   labels: { singular: 'Spacer', plural: 'Spacers' },
+  admin: { group: 'Layout', components: BLOCK_LABEL },
   fields: [
     { name: 'height', type: 'select', defaultValue: 'md', options: [
       { label: 'Small', value: 'sm' }, { label: 'Medium', value: 'md' },
@@ -552,6 +622,7 @@ const Spacer: Block = {
 const ValuePropsBanner: Block = {
   slug: 'valuePropsBanner',
   labels: { singular: 'Value Props Banner', plural: 'Value Props Banners' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -567,9 +638,7 @@ const ValuePropsBanner: Block = {
               maxRows: 6,
               admin: { description: '2-6 value props ditampilkan berjajar; biasanya dipasang overlap di bawah Hero' },
               fields: [
-                { name: 'iconName', type: 'text', required: true, admin: {
-                  description: 'Icon name (mis: badge, sell, support_agent, verified_user). Lihat frontend Icon.astro untuk daftar lengkap.',
-                }},
+                iconField({ name: 'iconName', required: true }),
                 { name: 'label', type: 'text', required: true },
                 { name: 'subtitle', type: 'text' },
               ],
@@ -578,10 +647,7 @@ const ValuePropsBanner: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['label', 'subheading']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['label', 'subheading'] }),
         },
       ],
     },
@@ -595,6 +661,7 @@ const ValuePropsBanner: Block = {
 const StatsBanner: Block = {
   slug: 'statsBanner',
   labels: { singular: 'Stats Banner', plural: 'Stats Banners' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -602,6 +669,18 @@ const StatsBanner: Block = {
         {
           label: 'Content',
           fields: [
+            {
+              name: 'theme',
+              type: 'select',
+              defaultValue: 'theme-1',
+              options: [
+                { label: 'Editorial Grid — big centered numbers + dividers (default)', value: 'theme-1' },
+                { label: 'Feature Cards — icon-left card with glass background', value: 'theme-2' },
+              ],
+              admin: {
+                description: 'Visual style. Pilih per-instance. Ganti tanpa mengubah data items.',
+              },
+            },
             { name: 'eyebrow', type: 'text', defaultValue: 'Why Choose Us' },
             { name: 'heading', type: 'text', required: true, defaultValue: 'Your Journey is Our Priority' },
             {
@@ -611,9 +690,7 @@ const StatsBanner: Block = {
               minRows: 2,
               maxRows: 6,
               fields: [
-                { name: 'iconName', type: 'text', required: true, admin: {
-                  description: 'Icon name (mis: sentiment_satisfied, location_on, star, headset_mic)',
-                }},
+                iconField({ name: 'iconName', required: true }),
                 { name: 'value', type: 'text', required: true, admin: { description: 'Nilai besar (mis: "1000+", "24/7", "50+")' }},
                 { name: 'caption', type: 'text', required: true, admin: { description: 'Label bawah nilai (mis: "Happy Clients")' }},
               ],
@@ -625,11 +702,10 @@ const StatsBanner: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            // Filter out background group to avoid column collision with existing backgroundImage field.
-            ...advancedStyleFieldsNoButton.filter((f: any) => f.name !== 'background'),
-            buildTextStyleField(['eyebrow', 'heading', 'label', 'caption']),
-          ],
+          fields: advancedStyleFieldsNoButton({
+            omitBackground: true, // legacy schema pakai kolom backgroundImage sendiri
+            textElements: ['eyebrow', 'heading', 'label', 'caption'],
+          }),
         },
       ],
     },
@@ -640,6 +716,7 @@ const StatsBanner: Block = {
 const TestimonialsCarousel: Block = {
   slug: 'testimonialsCarousel',
   labels: { singular: 'Testimonials Carousel', plural: 'Testimonials Carousels' },
+  admin: { group: 'Social Proof', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -689,10 +766,7 @@ const TestimonialsCarousel: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['eyebrow', 'heading', 'quote']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['eyebrow', 'heading', 'quote'] }),
         },
       ],
     },
@@ -707,6 +781,7 @@ const TestimonialsCarousel: Block = {
 const ServiceListing: Block = {
   slug: 'serviceListing',
   labels: { singular: 'Service Listing', plural: 'Service Listings' },
+  admin: { group: 'Services', components: BLOCK_LABEL },
   fields: [
     // Layout selector — super-admin only. Placed OUTSIDE tabs so it's
     // always visible at the top; determines which template renders.
@@ -718,6 +793,7 @@ const ServiceListing: Block = {
       options: [
         { label: 'Editorial Featured (default — heading, filter tabs, featured card, grid)', value: 'editorial-featured' },
         { label: 'Hero Immersive (hero image + floating filter, no featured card)', value: 'hero-immersive' },
+        { label: 'Ticket Search (trip + route + date + passenger — for ferry, train, flight)', value: 'ticket-search' },
       ],
       access: { update: superAdminFieldAccess },
       admin: {
@@ -745,6 +821,8 @@ const ServiceListing: Block = {
                 { label: 'Restaurants', value: 'restaurants' },
                 { label: 'Venues (Weddings)', value: 'venues' },
                 { label: 'Rentals', value: 'rentals' },
+                { label: 'Spa & Wellness', value: 'spa' },
+                { label: 'Ferry Tickets', value: 'ferry-tickets' },
               ],
             },
             {
@@ -776,8 +854,11 @@ const ServiceListing: Block = {
         },
         {
           label: 'Hero',
-          admin: { condition: (_, sib) => sib?.layout === 'hero-immersive' },
-          description: 'Hero background media + overlay (Hero Immersive layout only). Supports single image, multiple images with slider transition, or video background.',
+          // Phase 4.61.9 — Hero tab juga dipakai oleh layout 'ticket-search'
+          // (frontend sudah membaca mediaType / singleImage / imageSlider /
+          // videoFile / heroOverlayOpacity / heroMinHeight yang sama).
+          admin: { condition: (_, sib) => sib?.layout === 'hero-immersive' || sib?.layout === 'ticket-search' },
+          description: 'Hero background media + overlay (Hero Immersive & Ticket Search layouts). Supports single image, multiple images with slider transition, or video background.',
           fields: [
             // Drop per-slide fit/position row from imageSlider (slides inherit
             // block-level imageFit/imagePosition). Reason: the auto-generated
@@ -849,6 +930,132 @@ const ServiceListing: Block = {
               defaultValue: 'Search Collection',
               admin: { condition: (_, sib) => sib?.enableSearch !== false },
             },
+            // ── Phase 4.61.7 — Ticket Search template config ─────────
+            // Only shown when layout = 'ticket-search'. Reusable for ferry,
+            // train, flight, bus.
+            {
+              type: 'collapsible',
+              label: 'Ticket Search — Template 2 Config',
+              admin: { initCollapsed: false, condition: (_, sib) => sib?.layout === 'ticket-search' },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketEnableRoundTrip', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Round Trip / One Way pills. Filter & Search sudah support round-trip (return date + validation). Booking flow round-trip (2-leg checkout) aktif setelah Phase 4.65.' } },
+                    { name: 'ticketEnableInfant', type: 'checkbox', defaultValue: true, admin: { width: '50%', description: 'Show Infant counter in the passenger dropdown.' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketMaxAdults', type: 'number', defaultValue: 9, min: 1, max: 20, admin: { width: '34%' } },
+                    { name: 'ticketMaxChildren', type: 'number', defaultValue: 6, min: 0, max: 20, admin: { width: '33%' } },
+                    { name: 'ticketMaxInfants', type: 'number', defaultValue: 2, min: 0, max: 5, admin: { width: '33%' } },
+                  ],
+                },
+                {
+                  name: 'ticketLocationType',
+                  type: 'select',
+                  defaultValue: 'ferry-port',
+                  admin: { description: 'Filter dropdown options for Starting Point & Destination by Location type.' },
+                  options: [
+                    { label: 'Ferry Port', value: 'ferry-port' },
+                    { label: 'Train Station', value: 'train-station' },
+                    { label: 'Airport', value: 'airport' },
+                    { label: 'Bus Terminal', value: 'bus-terminal' },
+                    { label: 'City / General', value: 'city' },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketStartingPointLabel', type: 'text', defaultValue: 'Starting Point', admin: { width: '50%' } },
+                    { name: 'ticketDestinationLabel', type: 'text', defaultValue: 'Destination', admin: { width: '50%' } },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'ticketSubmitButtonText', type: 'text', defaultValue: 'Update', admin: { width: '50%' } },
+                    {
+                      name: 'ticketDefaultSort',
+                      type: 'select',
+                      defaultValue: 'earliest',
+                      admin: { width: '50%', description: 'Sort default saat halaman pertama kali dibuka.' },
+                      options: [
+                        { label: 'Earliest Departure', value: 'earliest' },
+                        { label: 'Latest Departure', value: 'latest' },
+                        { label: 'Cheapest', value: 'cheapest' },
+                        { label: 'Shortest Duration', value: 'shortest' },
+                      ],
+                    },
+                  ],
+                },
+                // Phase 4.61.11 — Super-admin memilih opsi Sort By mana saja
+                // yang tampil di dropdown listing. Kosong = pakai default
+                // (semua 4 opsi). Default value adalah `ticketDefaultSort`.
+                {
+                  name: 'ticketSortOptions',
+                  type: 'select',
+                  hasMany: true,
+                  defaultValue: ['earliest', 'latest', 'cheapest', 'shortest'],
+                  admin: {
+                    description:
+                      'Pilih opsi Sort By yang tampil di header Available Trips. Kosong = tampilkan semua opsi default (Earliest, Latest, Cheapest, Shortest).',
+                  },
+                  options: [
+                    { label: 'Earliest Departure', value: 'earliest' },
+                    { label: 'Latest Departure', value: 'latest' },
+                    { label: 'Cheapest', value: 'cheapest' },
+                    { label: 'Shortest Duration', value: 'shortest' },
+                  ],
+                },
+                // ── Phase 4.61.10 — Header eyebrow + value trust badges ──
+                {
+                  name: 'ticketStatusIndicator',
+                  type: 'text',
+                  defaultValue: 'Instant Confirmation · Multi-Route Coverage',
+                  admin: {
+                    description: 'Small eyebrow text di kanan atas kartu filter (header row). Kosongkan untuk sembunyikan.',
+                  },
+                },
+                {
+                  name: 'ticketBadges',
+                  type: 'array',
+                  minRows: 0,
+                  maxRows: 3,
+                  admin: {
+                    description: '3 trust badges di bawah kartu filter (desktop/tablet). Kosongkan seluruhnya untuk sembunyikan seksi ini.',
+                    initCollapsed: true,
+                  },
+                  defaultValue: [
+                    { label: 'Instant Confirmation', color: 'leaf' },
+                    { label: 'Flexible Rescheduling', color: 'ocean' },
+                    { label: 'Secure Online Payment', color: 'amber' },
+                  ],
+                  fields: [
+                    {
+                      type: 'row',
+                      fields: [
+                        { name: 'label', type: 'text', required: true, admin: { width: '60%' } },
+                        {
+                          name: 'color',
+                          type: 'select',
+                          defaultValue: 'leaf',
+                          admin: { width: '40%' },
+                          options: [
+                            { label: 'Leaf (green)', value: 'leaf' },
+                            { label: 'Ocean (navy)', value: 'ocean' },
+                            { label: 'Coral (orange-red)', value: 'coral' },
+                            { label: 'Amber (yellow)', value: 'amber' },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
           ],
         },
         {
@@ -861,8 +1068,13 @@ const ServiceListing: Block = {
               options: [
                 { label: 'Compact (default — image + title + price)', value: 'compact' },
                 { label: 'Detailed (multi-image, rating, description, amenity badges, Book Now)', value: 'detailed' },
+                { label: 'Ticket (route card — ferry/transport only)', value: 'ticket' },
               ],
-              admin: { description: 'Detailed variant matches Hero Immersive template but works with any layout.' },
+              admin: {
+                // Phase 4.61.1 — DEPRECATED: lihat catatan di block sebelumnya.
+                description: 'DEPRECATED — diatur di Settings → Pengaturan Fitur → Modul Layanan.',
+                condition: () => false,
+              },
             },
             {
               type: 'row',
@@ -881,13 +1093,48 @@ const ServiceListing: Block = {
                 {
                   name: 'initialVisibleCount',
                   type: 'number',
+                  label: 'Initial Visible Count (Desktop)',
                   defaultValue: 6,
                   min: 3,
                   max: 60,
                   admin: {
                     width: '50%',
                     condition: (_, sib) => sib?.showLoadMore === true,
-                    description: 'Items per page / per batch',
+                    description: 'Items per page / per batch pada layar Desktop (≥1024px)',
+                  },
+                },
+              ],
+            },
+            // Phase 4.53 — per-breakpoint pagination counts. Sebelumnya cuma
+            // 1 nilai (`initialVisibleCount`) yang dipakai global untuk semua
+            // ukuran layar. Sekarang tablet & mobile bisa dikonfigurasi
+            // terpisah, tanpa hardcode di komponen.
+            {
+              type: 'row',
+              admin: { condition: (_, sib) => sib?.showLoadMore === true },
+              fields: [
+                {
+                  name: 'initialVisibleCountTablet',
+                  type: 'number',
+                  label: 'Initial Visible Count (Tablet)',
+                  defaultValue: 4,
+                  min: 1,
+                  max: 60,
+                  admin: {
+                    width: '50%',
+                    description: 'Items per page / per batch pada Tablet (640–1023px). Kosongkan → pakai nilai Desktop.',
+                  },
+                },
+                {
+                  name: 'initialVisibleCountMobile',
+                  type: 'number',
+                  label: 'Initial Visible Count (Mobile)',
+                  defaultValue: 3,
+                  min: 1,
+                  max: 60,
+                  admin: {
+                    width: '50%',
+                    description: 'Items per page / per batch pada Mobile (<640px). Kosongkan → pakai nilai Desktop.',
                   },
                 },
               ],
@@ -896,10 +1143,7 @@ const ServiceListing: Block = {
         },
         {
           label: 'Advanced',
-          fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['eyebrow', 'heading', 'description']),
-          ],
+          fields: advancedStyleFieldsNoButton({ textElements: ['eyebrow', 'heading', 'description'] }),
         },
       ],
     },
@@ -911,6 +1155,7 @@ const ServiceListing: Block = {
 const TrustBadges: Block = {
   slug: 'trustBadges',
   labels: { singular: 'Trust Badges', plural: 'Trust Badges' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
   fields: [
     {
       type: 'tabs',
@@ -945,7 +1190,7 @@ const TrustBadges: Block = {
                 {
                   type: 'row',
                   fields: [
-                    { name: 'iconName', type: 'text', required: true, admin: { width: '40%', description: 'Icon name (mis: verified_user, support_agent, sell, star)' } },
+                    iconField({ name: 'iconName', required: true, admin: { width: '40%' } }),
                     { name: 'title', type: 'text', required: true, admin: { width: '30%' } },
                     { name: 'subtitle', type: 'text', admin: { width: '30%' } },
                   ],
@@ -956,10 +1201,369 @@ const TrustBadges: Block = {
         },
         {
           label: 'Advanced',
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'description'] }),
+        },
+      ],
+    },
+  ],
+}
+
+// ── Blog blocks (Phase 4.35) ────────────────────────────────────
+// PostList     — grid of latest / filtered posts.
+// FeaturedPost — 1 large card (2-col span) + 3 small cards.
+// CategoryGrid — tile grid keyed by Categories.module.
+// PopularPosts — analytics-driven ranking with isFeatured fallback.
+// AdSlot       — manual ad slot (AdSense or custom HTML).
+
+const PostList: Block = {
+  slug: 'postList',
+  labels: { singular: 'Post List', plural: 'Post Lists' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
           fields: [
-            ...advancedStyleFieldsNoButton,
-            buildTextStyleField(['heading', 'description']),
+            { name: 'heading', type: 'text', defaultValue: 'Latest Stories' },
+            { name: 'description', type: 'textarea' },
+            {
+              type: 'row',
+              fields: [
+                { name: 'limit', type: 'number', defaultValue: 6, min: 1, max: 24, admin: { width: '33%' } },
+                { name: 'featuredOnly', type: 'checkbox', defaultValue: false, admin: { width: '33%' } },
+                { name: 'columns', type: 'select', defaultValue: '3', options: [
+                  { label: '2 columns', value: '2' },
+                  { label: '3 columns', value: '3' },
+                  { label: '4 columns', value: '4' },
+                ], admin: { width: '34%' } },
+              ],
+            },
+            {
+              name: 'filterCategory',
+              type: 'relationship',
+              relationTo: 'blog-categories',
+              admin: { description: 'Filter by kategori tertentu (opsional).' },
+            },
+            {
+              type: 'collapsible',
+              label: 'View All Button',
+              admin: { initCollapsed: true },
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    { name: 'showViewAll', type: 'checkbox', defaultValue: true, admin: { width: '30%' } },
+                    { name: 'viewAllText', type: 'text', defaultValue: 'View All Articles', admin: { width: '35%' } },
+                    { name: 'viewAllLink', type: 'text', defaultValue: '/blog', admin: { width: '35%' } },
+                  ],
+                },
+              ],
+            },
           ],
+        },
+        {
+          label: 'Advanced',
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'description'] }),
+        },
+      ],
+    },
+  ],
+}
+
+const FeaturedPost: Block = {
+  slug: 'featuredPost',
+  labels: { singular: 'Featured Post', plural: 'Featured Posts' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Popular Posts' },
+            {
+              name: 'selectionMode',
+              type: 'select',
+              defaultValue: 'auto',
+              options: [
+                { label: 'Auto (isFeatured + latest — 1 large + 3 small)', value: 'auto' },
+                { label: 'Manual (pick specific posts)', value: 'manual' },
+              ],
+            },
+            {
+              name: 'featuredPost',
+              type: 'relationship',
+              relationTo: 'posts',
+              admin: {
+                condition: (_, sib) => sib?.selectionMode === 'manual',
+                description: 'Post besar (kolom 2-span).',
+              },
+            },
+            {
+              name: 'sidePosts',
+              type: 'relationship',
+              relationTo: 'posts',
+              hasMany: true,
+              maxRows: 3,
+              admin: {
+                condition: (_, sib) => sib?.selectionMode === 'manual',
+                description: 'Post kecil (3 kartu di kanan).',
+              },
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
+        },
+      ],
+    },
+  ],
+}
+
+const CategoryGrid: Block = {
+  slug: 'categoryGrid',
+  labels: { singular: 'Category Grid', plural: 'Category Grids' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Explore by Category' },
+            {
+              name: 'module',
+              type: 'select',
+              defaultValue: 'blog',
+              options: [
+                { label: 'Blog', value: 'blog' },
+                { label: 'Tours', value: 'tours' },
+                { label: 'Accommodations', value: 'accommodations' },
+                { label: 'Water Activities', value: 'water-activities' },
+                { label: 'Yachts', value: 'yachts' },
+                { label: 'Restaurants', value: 'restaurants' },
+                { label: 'Weddings & Events', value: 'venues' },
+                { label: 'Rentals', value: 'rentals' },
+                { label: 'Spa & Wellness', value: 'spa' },
+                { label: 'Ferry Tickets', value: 'ferry-tickets' },
+              ],
+              admin: { description: 'Kategori dari modul mana yang ditampilkan.' },
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'limit', type: 'number', defaultValue: 6, min: 2, max: 12, admin: { width: '50%' } },
+                { name: 'columns', type: 'select', defaultValue: '3', options: [
+                  { label: '2 columns', value: '2' },
+                  { label: '3 columns', value: '3' },
+                  { label: '4 columns', value: '4' },
+                  { label: '6 columns', value: '6' },
+                ], admin: { width: '50%' } },
+              ],
+            },
+            { name: 'showCount', type: 'checkbox', defaultValue: true, admin: { description: 'Tampilkan jumlah artikel per kategori.' } },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
+        },
+      ],
+    },
+  ],
+}
+
+const PopularPosts: Block = {
+  slug: 'popularPosts',
+  labels: { singular: 'Popular Posts', plural: 'Popular Posts' },
+  admin: { group: 'Blog', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', defaultValue: 'Popular Posts' },
+            {
+              type: 'row',
+              fields: [
+                { name: 'limit', type: 'number', defaultValue: 5, min: 3, max: 10, admin: { width: '50%' } },
+                { name: 'variant', type: 'select', defaultValue: 'sidebar', options: [
+                  { label: 'Sidebar (compact list)', value: 'sidebar' },
+                  { label: 'Grid (cards)', value: 'grid' },
+                ], admin: { width: '50%' } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'daysWindow', type: 'number', defaultValue: 30, min: 7, max: 365, admin: { width: '50%', description: 'Rentang hari untuk hitung view. Default: 30 hari.' } },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading'] }),
+        },
+      ],
+    },
+  ],
+}
+
+const AdSlot: Block = {
+  slug: 'adSlot',
+  labels: { singular: 'Ad Slot', plural: 'Ad Slots' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'slotName', type: 'text', required: true, admin: { description: 'Nama internal (mis: "sidebar-300x600", "mid-article"). Bukan dipakai di frontend, cuma untuk admin.' } },
+            {
+              name: 'size',
+              type: 'select',
+              required: true,
+              defaultValue: '300x600',
+              options: [
+                { label: '300 × 600 (Half Page, sidebar)', value: '300x600' },
+                { label: '300 × 250 (Medium Rectangle)', value: '300x250' },
+                { label: '728 × 90 (Leaderboard)', value: '728x90' },
+                { label: '336 × 280 (Large Rectangle)', value: '336x280' },
+                { label: 'Responsive (fills parent)', value: 'responsive' },
+              ],
+            },
+            {
+              name: 'provider',
+              type: 'select',
+              defaultValue: 'adsense',
+              options: [
+                { label: 'Google AdSense', value: 'adsense' },
+                { label: 'Custom HTML (super-admin only)', value: 'custom' },
+              ],
+            },
+            {
+              name: 'adsenseClient',
+              type: 'text',
+              admin: {
+                condition: (_, sib) => sib?.provider === 'adsense',
+                description: 'AdSense publisher ID (contoh: ca-pub-XXXXXXXXXXXXXXXX).',
+              },
+            },
+            {
+              name: 'adsenseSlotId',
+              type: 'text',
+              admin: {
+                condition: (_, sib) => sib?.provider === 'adsense',
+                description: 'Ad unit slot ID dari dashboard AdSense.',
+              },
+            },
+            {
+              name: 'customHtml',
+              type: 'textarea',
+              access: { update: superAdminFieldAccess },
+              admin: {
+                condition: (_, sib) => sib?.provider === 'custom',
+                description: 'Raw HTML / script tag. HANYA Super Admin. Tampil apa adanya di halaman.',
+              },
+            },
+            {
+              name: 'placement',
+              type: 'select',
+              defaultValue: 'inline',
+              options: [
+                { label: 'Sidebar', value: 'sidebar' },
+                { label: 'Inline (mid-article)', value: 'inline' },
+                { label: 'Bottom (after content)', value: 'bottom' },
+              ],
+              admin: { description: 'Label posisi. Aktual placement mengikuti dimana editor menaruh block-nya.' },
+            },
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+// ── Newsletter (Phase 4.35.2) ────────────────────────────────────
+// Inline email-capture section that reuses the /api/newsletter-subscribe
+// endpoint (Phase 4.33). Editor can drop it anywhere in Page.content
+// or a service's additionalBlocks. Same submit contract, honeypot, and
+// rate limit as the footer NewsletterSignup — but independent content
+// (heading/description/etc live on the block, not global).
+
+const Newsletter: Block = {
+  slug: 'newsletter',
+  labels: { singular: 'Newsletter Signup', plural: 'Newsletter Signups' },
+  admin: { group: 'Marketing', components: BLOCK_LABEL },
+  fields: [
+    {
+      type: 'tabs',
+      tabs: [
+        {
+          label: 'Content',
+          fields: [
+            { name: 'heading', type: 'text', required: true, defaultValue: 'Never Miss a Story' },
+            {
+              name: 'description',
+              type: 'textarea',
+              defaultValue: 'Subscribe to our newsletter for the latest travel insights, exclusive offers, and island inspiration delivered directly to your inbox.',
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'placeholderText', type: 'text', defaultValue: 'Your email address', admin: { width: '50%' } },
+                { name: 'buttonLabel', type: 'text', defaultValue: 'Subscribe', admin: { width: '50%' } },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                { name: 'successMessage', type: 'text', defaultValue: "Thanks! We'll be in touch.", admin: { width: '50%' } },
+                { name: 'errorMessage', type: 'text', defaultValue: 'Something went wrong. Please try again.', admin: { width: '50%' } },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Appearance',
+          fields: [
+            {
+              name: 'theme',
+              type: 'select',
+              defaultValue: 'sand',
+              options: [
+                { label: 'Sand — matches page background (seamless)', value: 'sand' },
+                { label: 'Ocean — dark section, light text', value: 'ocean' },
+                { label: 'Leaf — green accent', value: 'leaf' },
+                { label: 'White — elevated card look', value: 'white' },
+              ],
+              admin: { description: 'Palette dari site tokens. Sand = seamless dengan body.' },
+            },
+            {
+              name: 'layout',
+              type: 'select',
+              defaultValue: 'stacked',
+              options: [
+                { label: 'Stacked (title left, form right — for wide sections)', value: 'stacked' },
+                { label: 'Centered (title+form stacked in middle — for narrow / dedicated)', value: 'centered' },
+              ],
+              admin: { description: 'Layout dalam section. Stacked = 2-column match reference. Centered = single-column.' },
+            },
+          ],
+        },
+        {
+          label: 'Advanced',
+          fields: advancedStyleFieldsNoButton({ textElements: ['heading', 'description'] }),
         },
       ],
     },
@@ -971,4 +1575,6 @@ export const blocks: Block[] = [
   Testimonials, ServiceGrid, Contact, Embed, Spacer,
   ValuePropsBanner, StatsBanner, TestimonialsCarousel,
   ServiceListing, TrustBadges,
+  PostList, FeaturedPost, CategoryGrid, PopularPosts, AdSlot,
+  Newsletter,
 ]

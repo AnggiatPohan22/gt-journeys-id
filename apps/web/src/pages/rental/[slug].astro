@@ -2,13 +2,19 @@
 import PageLayout from '@layouts/PageLayout.astro'
 import Icon from '@components/common/Icon.astro'
 import BlockRenderer from '@components/blocks/BlockRenderer.astro'
+import RelatedServices from '@components/common/RelatedServices.astro'
 import { getRentals, getRentalBySlug, getSiteSettings } from '@lib/payload'
+import { resolveRelatedConfig } from '@lib/relatedServices'
 import { isModuleEnabled } from '@lib/features'
 import { generateWhatsAppLink, renderWhatsAppTemplate, rentalMessage } from '@lib/whatsapp'
-import { getServiceWhatsApp } from '@lib/serviceTypes'
+import { getServiceWhatsApp, getServiceTypeByKey } from '@lib/serviceTypes'
 import { formatPrice } from '@shared/utils/format-price'
 import { siteConfig } from '@config/site'
 import { lexicalToPlainText } from '@lib/lexical'
+import Breadcrumbs from '@components/common/Breadcrumbs.astro'
+import StructuredData from '@components/common/StructuredData.astro'
+import HeroBentoGallery from '@components/gallery/HeroBentoGallery.astro'
+import { serviceItemSchema } from '@lib/structuredData'
 import type { Rental, Media } from '@shared/types/payload-types'
 
 export async function getStaticPaths() {
@@ -30,12 +36,7 @@ const dest = typeof item.destination === 'object' ? item.destination : null
 const heroImg = asMedia(item.featuredImage)
 const heroUrl = heroImg?.sizes?.hero?.url ?? heroImg?.url ?? ''
 const heroAlt = heroImg?.alt ?? item.title
-const galleryImages = (item.gallery ?? [])
-  .map((g) => asMedia(g.image))
-  .filter((m): m is Media => !!m)
-const sideImg1 = galleryImages[0]
-const sideImg2 = galleryImages[1]
-const totalPhotos = 1 + galleryImages.length
+// Hero + gallery merge lives inside <HeroBentoGallery /> — see 4.28.
 
 // ── Pricing tiers → cheapest for sidebar ───────────────────
 const tiers = item.pricingTiers ?? []
@@ -80,9 +81,10 @@ const additionalBlocks = ((item as any).additionalBlocks ?? []) as any[]
 
 // WhatsApp
 let waNumber = siteConfig.contact.whatsapp
+let siteSettings: any = null
 try {
-  const settings = await getSiteSettings()
-  waNumber = settings?.contact?.whatsapp ?? siteConfig.contact.whatsapp
+  siteSettings = await getSiteSettings()
+  waNumber = siteSettings?.contact?.whatsapp ?? siteConfig.contact.whatsapp
 } catch { /* fallback */ }
 const svcWa = await getServiceWhatsApp('rentals', waNumber).catch(() => ({ number: waNumber, template: undefined }))
 waNumber = svcWa.number
@@ -92,48 +94,35 @@ const waLink = generateWhatsAppLink(
     ?? (svcWa.template ? renderWhatsAppTemplate(svcWa.template, { serviceName: item.title }) : rentalMessage(item.title)),
 )
 
-// Recommended — same type
-let recommended: Rental[] = []
-try {
-  const { docs } = await getRentals({
-    limit: 10,
-    where: { rentalType: { equals: item.rentalType } },
-    sort: 'sortOrder',
-  })
-  recommended = docs.filter((d) => d.id !== item.id).slice(0, 3)
-} catch { /* no recs */ }
+// Phase 4.17 — Related Services cascade
+const svcType = await getServiceTypeByKey('rentals').catch(() => null)
+const relatedConfig = resolveRelatedConfig(item, svcType, siteSettings)
 
 const title = item.seo?.metaTitle ?? `${item.title} — Rental`
 const description = item.seo?.metaDescription ?? descriptionText.slice(0, 160)
+
+// ── SEO: breadcrumbs + JSON-LD (D-tech) ──
+const detailUrl = `/rental/${slug}`
+const crumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Rentals', url: '/rental' },
+  { name: item.title, url: detailUrl },
+]
+const itemSchema = serviceItemSchema({
+  serviceType: 'rentals', name: item.title,
+  description: descriptionText ? descriptionText.slice(0, 300) : undefined,
+  url: detailUrl, image: heroUrl || undefined,
+  price: cheapestTier?.price ?? null, currency: cheapestTier?.currency ?? 'IDR',
+  addressLocality: dest?.name ?? undefined,
+  site: Astro.site?.href,
+})
 ---
 
-<PageLayout title={title} description={description}>
-  {/* ═══ HERO BENTO GALLERY ═══ */}
-  <section class="container-content pt-8 md:pt-12 mb-12 md:mb-16">
-    <div class="grid grid-cols-1 md:grid-cols-4 grid-rows-2 gap-3 md:gap-4 h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-lg">
-      <div class="md:col-span-3 row-span-2 relative group">
-        {heroUrl ? (
-          <img src={heroUrl} alt={heroAlt} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="eager" fetchpriority="high" />
-        ) : (
-          <div class="w-full h-full bg-sand flex items-center justify-center text-stone-light">No image</div>
-        )}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-      </div>
-      <div class="hidden md:block relative group overflow-hidden">
-        {sideImg1 ? <img src={sideImg1.sizes?.card?.url ?? sideImg1.url ?? ''} alt={sideImg1.alt ?? ''} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" /> : <div class="w-full h-full bg-sand"></div>}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-      </div>
-      <div class="hidden md:block relative group overflow-hidden">
-        {sideImg2 ? <img src={sideImg2.sizes?.card?.url ?? sideImg2.url ?? ''} alt={sideImg2.alt ?? ''} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" /> : <div class="w-full h-full bg-sand"></div>}
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
-        {galleryImages.length > 2 && (
-          <a href="#options" class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-semibold gap-2 no-underline">
-            <Icon name="filter_list" class="w-5 h-5" /> Show all {totalPhotos} photos
-          </a>
-        )}
-      </div>
-    </div>
-  </section>
+<PageLayout title={title} description={description} ogType="product" ogImage={heroUrl || undefined}>
+  <Breadcrumbs items={crumbs} />
+  <StructuredData schema={itemSchema} />
+  {/* ═══ HERO BENTO GALLERY (shared component — 4.28) ═══ */}
+  <HeroBentoGallery id="rental-photos" heroImg={heroImg} heroAlt={heroAlt} gallery={item.gallery} />
 
   {/* ═══ MAIN 12-COL LAYOUT ═══ */}
   <section class="container-content grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-24">
@@ -358,47 +347,13 @@ const description = item.seo?.metaDescription ?? descriptionText.slice(0, 160)
   </section>
 
   {/* ═══ CUSTOM SECTIONS ═══ */}
-  {additionalBlocks.length > 0 && <BlockRenderer blocks={additionalBlocks} />}
+  {additionalBlocks.length > 0 && <BlockRenderer blocks={additionalBlocks} excludeId={item.id} />}
 
-  {/* ═══ RECOMMENDED ALTERNATIVES ═══ */}
-  {recommended.length > 0 && (
-    <section class="container-content mb-24">
-      <div class="flex flex-wrap justify-between items-end gap-4 mb-10">
-        <h2 class="font-display text-2xl md:text-3xl text-ocean">Curated Alternatives</h2>
-        <a href="/rental" class="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-ocean hover:text-coral transition-colors no-underline">Explore All Rentals <Icon name="arrow_forward" class="w-4 h-4" /></a>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-        {recommended.map((rec) => {
-          const rImg = asMedia(rec.featuredImage)
-          const rUrl = rImg?.sizes?.card?.url ?? rImg?.url ?? ''
-          const rTiers = rec.pricingTiers ?? []
-          const rPrice = rTiers.filter((t) => typeof t.price === 'number' && t.price > 0).sort((a, b) => (a.price ?? 0) - (b.price ?? 0))[0]
-          const rPriceStr = rPrice ? formatPrice(rPrice.price, rPrice.currency ?? 'IDR') : null
-          const rDurSuffix = rPrice?.duration ? durationLabelMap[rPrice.duration] ?? 'day' : 'day'
-          return (
-            <a href={`/rental/${rec.slug}`} class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-transparent hover:border-sand-dark/20 hover:-translate-y-1 no-underline">
-              <div class="relative h-56 overflow-hidden">
-                {rUrl && <img src={rUrl} alt={rImg?.alt ?? rec.title} loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />}
-                {rPriceStr && (
-                  <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full">
-                    <span class="text-xs font-semibold text-ocean">{rPriceStr}<span class="font-normal text-stone-light">/{rDurSuffix}</span></span>
-                  </div>
-                )}
-              </div>
-              <div class="p-5">
-                <p class="text-xs uppercase tracking-wider text-coral font-semibold mb-1">{rentalTypeLabel[rec.rentalType]}</p>
-                <h3 class="font-display text-lg text-ocean mb-1 group-hover:text-coral transition-colors">{rec.title}</h3>
-                {rec.specifications?.brand && <p class="text-xs text-stone-light flex items-center gap-1"><Icon name="badge" class="w-3 h-3" /> {rec.specifications.brand} {rec.specifications.model ?? ''}</p>}
-              </div>
-            </a>
-          )
-        })}
-      </div>
-      <div class="mt-8 text-center sm:hidden">
-        <a href="/rental" class="inline-flex items-center gap-2 text-sm font-semibold text-ocean bg-ocean/10 px-6 py-3 rounded-lg no-underline">
-          Explore All Rentals <Icon name="arrow_forward" class="w-4 h-4" />
-        </a>
-      </div>
-    </section>
-  )}
+  {/* ═══ RELATED SERVICES (Phase 4.17 — 3-layer cascade) ═══ */}
+  <RelatedServices
+    config={relatedConfig}
+    serviceType="rentals"
+    excludeId={item.id}
+    extraWhere={item.rentalType ? { rentalType: { equals: item.rentalType } } : undefined}
+  />
 </PageLayout>

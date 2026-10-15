@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartTravel - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#717786",
+                        "secondary-fixed": "#dbe4ed",
+                        "tertiary": "#006b24",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#3f484f",
+                        "secondary": "#575f67",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#008730",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-primary-container": "#fefcff",
+                        "background": "#f1eef6", /* Soft lavender background */
+                        "on-surface-variant": "#414754",
+                        "primary-fixed": "#d8e2ff",
+                        "on-surface": "#191c1d",
+                        "primary": "#483679", /* Deep purple */
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#6650a4", /* Purple variant */
+                        "surface-container": "#edeeef",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-container-high": "#e7e8e9",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-fixed-variant": "#00531a",
+                        "surface-tint": "#005bc0",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#e0e2ec", /* Lighter borders */
+                        "on-tertiary-fixed": "#002106",
+                        "surface": "#ffffff", /* White cards */
+                        "surface-bright": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "primary-fixed-dim": "#adc7ff",
+                        "on-secondary-fixed": "#141d23",
+                        "on-tertiary-container": "#f7fff2",
+                        "on-background": "#191c1d",
+                        "on-primary-fixed-variant": "#004493",
+                        "on-secondary-container": "#5b646b",
+                        "tertiary-fixed-dim": "#66df75",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed": "#001a41",
+                        "secondary-container": "#d8e1ea",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#adc7ff",
+                        "tertiary-fixed": "#83fc8e",
+                        "secondary-fixed-dim": "#bfc8d0",
+                        
+                        /* Custom accent colors matching the prompt */
+                        "accent-green": "#2cc163",
+                        "accent-yellow": "#ffb902",
+                        "accent-blue": "#4559b3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1rem",
+                        "2xl": "1.5rem",
+                        "3xl": "2rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "settings-panel-width": "320px",
+                        "container-padding": "32px",
+                        "sidebar-width": "260px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "14px", "fontWeight": "500" }],
+                        "label-md": ["13px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    },
+                    "boxShadow": {
+                        "soft": "0 10px 40px -10px rgba(0,0,0,0.05), 0 4px 10px -2px rgba(0,0,0,0.02)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Floating card hover effect */
+        .floating-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .floating-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 45px -10px rgba(0,0,0,0.08), 0 5px 15px -2px rgba(0,0,0,0.04);
+        }
+
+        /* Sidebar leafy background pattern */
+        .sidebar-pattern {
+            background-color: #483679;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="%236650a4" fill-opacity="0.2" d="M45.7,-76.1C58.9,-69.3,68.9,-55.4,78.2,-41.2C87.5,-27,96,-13.5,95.1,-0.5C94.2,12.5,83.9,25,74.7,37.3C65.5,49.6,57.4,61.7,46,69.5C34.6,77.3,17.3,80.8,1.4,78.5C-14.5,76.2,-28.9,68,-42.6,60.2C-56.3,52.4,-69.3,44.9,-77.8,32.7C-86.3,20.5,-90.3,3.5,-85.4,-11.1C-80.5,-25.7,-66.7,-37.9,-53.4,-47.9C-40.1,-57.9,-27.3,-65.7,-13.6,-71.3C0.1,-76.9,13.8,-80.4,32.5,-82.7C51.2,-85,69.9,-86,45.7,-76.1Z" transform="translate(100 100)"/><path fill="%233a2a60" fill-opacity="0.3" d="M38.5,-63.3C52.6,-56.3,68.6,-50.2,77.6,-38.4C86.6,-26.6,88.5,-9.1,84.4,6.5C80.3,22.1,70.2,35.8,59.3,47.4C48.4,59,36.7,68.5,23.1,73.5C9.5,78.5,-6.1,79.1,-21.2,74.9C-36.3,70.7,-50.9,61.7,-61.8,49.5C-72.7,37.3,-79.9,21.9,-81.9,6C-83.9,-9.9,-80.7,-26.3,-72.1,-40.1C-63.5,-53.9,-49.5,-65,-35,-71.4C-20.5,-77.8,-5.5,-79.5,7.9,-77.2C21.3,-74.9,42.5,-68.5,38.5,-63.3Z" transform="translate(30 150) scale(0.8)"/></svg>');
+            background-size: cover;
+            background-position: bottom;
+            background-repeat: no-repeat;
+        }
+
+        /* Pill navigation cut-in effect */
+        .nav-pill-active {
+            border-top-left-radius: 9999px;
+            border-bottom-left-radius: 9999px;
+            position: relative;
+        }
+        .nav-pill-active::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-bottom-right-radius: 20px;
+            box-shadow: 10px 10px 0 0 #f1eef6;
+            pointer-events: none;
+        }
+        .nav-pill-active::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border-top-right-radius: 20px;
+            box-shadow: 10px -10px 0 0 #f1eef6;
+            pointer-events: none;
+        }
+        
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dbe4ed;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bfc8d0;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-hidden flex h-screen p-4 md:p-6 gap-6">
+<!-- SideNavBar -->
+<aside class="sidebar-pattern rounded-3xl h-full w-[260px] flex flex-col z-50 shrink-0 relative overflow-hidden shadow-soft hidden md:flex">
+<div class="p-8 pb-4 flex flex-col gap-2 relative z-10">
+<div class="flex items-center gap-3 mb-6 justify-center">
+<div class="w-12 h-12 bg-white/10 text-white rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+<span class="material-symbols-outlined text-3xl" data-icon="flight_takeoff">flight_takeoff</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-headline-md font-headline-md text-white font-black leading-tight">SmartTravel</h1>
+</div>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto py-4 relative z-10">
+<ul class="flex flex-col gap-2">
+<li>
+<a class="nav-pill-active bg-background text-primary ml-6 pl-6 py-4 font-bold shadow-sm flex items-center gap-4 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="text-label-md font-label-md">Bookings</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="text-label-md font-label-md">Destinations</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6" href="#">
+<span class="material-symbols-outlined" data-icon="hiking">hiking</span>
+<span class="text-label-md font-label-md">Tour Guides</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-label-md font-label-md">Customers</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="text-label-md font-label-md">Payments</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-label-md font-label-md">Reports</span>
+</a>
+</li>
+<li>
+<a class="text-white/70 hover:text-white px-10 py-3 flex items-center gap-4 transition-colors hover:bg-white/5 rounded-l-full ml-6 mt-8" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</li>
+</ul>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background rounded-3xl relative">
+<!-- TopNavBar (Floating style) -->
+<header class="bg-surface rounded-2xl shadow-soft flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40 shrink-0 mb-6 border border-outline-variant/30">
+<div class="flex items-center gap-4 w-1/2">
+<button class="md:hidden text-on-surface p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<div class="relative w-full max-w-md hidden md:block">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant" data-icon="search">search</span>
+<input class="w-full pl-12 pr-4 py-2.5 bg-background rounded-full text-body-md focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-shadow text-on-surface placeholder:text-outline border-none outline-none" placeholder="Search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<button class="p-2.5 text-outline hover:text-primary hover:bg-primary/5 rounded-full transition-all relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-accent-yellow rounded-full"></span>
+</button>
+<button class="p-2.5 text-outline hover:text-primary hover:bg-primary/5 rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+</button>
+</div>
+<button class="flex items-center gap-3 hover:bg-surface-container-low p-1.5 rounded-full transition-all pr-4 pl-1">
+<img alt="Administrator Profile" class="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm" data-alt="A professional headshot of a corporate admin, bright lighting, clean corporate background, high resolution, modern saas style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdehfqt4Bxdmg3mwNzGvz57Y7MkfG067YhlTwAJJB125r0XnrR67GT-27tRwbpXt_ezvme0slGjkWSbwi2HSceoCMqXCxEceKIYLkcTnP6q8KbHOiSOu-Cg6APuUrax25nn9rUlLCG3oPsYfpSn1bHu2WEmNck7f2sAsU0HrJP7pWt-ftWX2qru6xNY7MOXGntkQZZ5hhgybGT2oMKUgjGKEm6vZfOZ4gNDgHr3TLSoNXKAGPF7m_d"/>
+<div class="hidden md:flex flex-col items-start">
+<span class="text-label-md font-label-md text-on-surface leading-none">Admin User</span>
+</div>
+</button>
+</div>
+</header>
+<!-- Dashboard Content Canvas -->
+<div class="flex-1 overflow-y-auto pb-8 rounded-3xl">
+<div class="max-w-7xl mx-auto space-y-6">
+<!-- Header Metrics Grid (Top KPI Row) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Metric 1 -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card flex items-center gap-4 relative overflow-hidden">
+<div class="w-1.5 h-12 bg-[#ff8c94] absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"></div>
+<div class="w-14 h-14 rounded-2xl bg-[#ff8c94]/10 flex items-center justify-center text-[#ff8c94] shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="airplane_ticket">airplane_ticket</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline mb-1 font-semibold tracking-wider">Total Bookings</p>
+<h3 class="text-headline-lg font-headline-lg text-on-surface">1,248</h3>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card flex items-center gap-4 relative overflow-hidden">
+<div class="w-1.5 h-12 bg-primary absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"></div>
+<div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="explore">explore</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline mb-1 font-semibold tracking-wider">Active Destinations</p>
+<h3 class="text-headline-lg font-headline-lg text-on-surface">42</h3>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card flex items-center gap-4 relative overflow-hidden">
+<div class="w-1.5 h-12 bg-accent-yellow absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"></div>
+<div class="w-14 h-14 rounded-2xl bg-accent-yellow/10 flex items-center justify-center text-accent-yellow shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="payments">payments</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline mb-1 font-semibold tracking-wider">Total Revenue</p>
+<h3 class="text-headline-lg font-headline-lg text-on-surface">$84,500</h3>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card flex items-center gap-4 relative overflow-hidden">
+<div class="w-1.5 h-12 bg-accent-green absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full"></div>
+<div class="w-14 h-14 rounded-2xl bg-accent-green/10 flex items-center justify-center text-accent-green shrink-0">
+<span class="material-symbols-outlined text-3xl" data-icon="group">group</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline mb-1 font-semibold tracking-wider">Ongoing Tours</p>
+<h3 class="text-headline-lg font-headline-lg text-on-surface">18</h3>
+</div>
+</div>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+<!-- Left Column: Calendar & Trend Chart -->
+<div class="xl:col-span-1 flex flex-col gap-6">
+<!-- Calendar Widget -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-label-md font-label-md text-on-surface font-bold">Calendar &amp; Departures</h3>
+</div>
+<div class="flex justify-between items-center mb-6 px-2">
+<button class="w-8 h-8 rounded-full bg-[#ff8c94]/20 text-[#ff8c94] flex items-center justify-center hover:bg-[#ff8c94]/30 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<span class="text-label-md font-label-md font-bold">October, 2023</span>
+<button class="w-8 h-8 rounded-full bg-surface-container-low text-on-surface flex items-center justify-center hover:bg-surface-container transition-colors border border-outline-variant/50">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-7 gap-y-4 gap-x-2 text-center mb-6">
+<div class="text-xs font-semibold text-outline">Sun</div>
+<div class="text-xs font-semibold text-outline">Mon</div>
+<div class="text-xs font-semibold text-outline">Tue</div>
+<div class="text-xs font-semibold text-outline">Wed</div>
+<div class="text-xs font-semibold text-outline">Thu</div>
+<div class="text-xs font-semibold text-outline">Fri</div>
+<div class="text-xs font-semibold text-outline">Sat</div>
+<div class="text-sm text-outline-variant">29</div>
+<div class="text-sm text-outline-variant">30</div>
+<div class="text-sm text-on-surface font-medium">01</div>
+<div class="w-8 h-8 mx-auto rounded-full bg-accent-green text-white flex items-center justify-center text-sm font-bold shadow-sm">02</div>
+<div class="text-sm text-on-surface font-medium">03</div>
+<div class="text-sm text-on-surface font-medium">04</div>
+<div class="text-sm text-on-surface font-medium">05</div>
+<div class="text-sm text-on-surface font-medium">06</div>
+<div class="text-sm text-on-surface font-medium">07</div>
+<div class="text-sm text-on-surface font-medium">08</div>
+<div class="text-sm text-on-surface font-medium">09</div>
+<div class="text-sm text-on-surface font-medium">10</div>
+<div class="text-sm text-on-surface font-medium">11</div>
+<div class="w-8 h-8 mx-auto rounded-full bg-accent-yellow text-white flex items-center justify-center text-sm font-bold shadow-sm">12</div>
+<div class="text-sm text-on-surface font-medium">13</div>
+<div class="w-8 h-8 mx-auto rounded-full bg-primary/20 text-primary flex items-center justify-center text-sm font-bold">14</div>
+<div class="text-sm text-on-surface font-medium">15</div>
+<div class="text-sm text-on-surface font-medium">16</div>
+<div class="text-sm text-on-surface font-medium">17</div>
+<div class="text-sm text-on-surface font-medium">18</div>
+<div class="text-sm text-on-surface font-medium">19</div>
+<div class="text-sm text-on-surface font-medium">20</div>
+<div class="text-sm text-on-surface font-medium">21</div>
+<div class="text-sm text-on-surface font-medium">22</div>
+<div class="text-sm text-on-surface font-medium">23</div>
+<div class="text-sm text-on-surface font-medium">24</div>
+<div class="text-sm text-on-surface font-medium">25</div>
+<div class="text-sm text-on-surface font-medium">26</div>
+<div class="w-full col-span-3 rounded-full bg-accent-green/80 text-white flex items-center justify-around py-1 text-sm font-bold shadow-sm">
+<span>27</span>
+<span>28</span>
+<span>29</span>
+</div>
+<div class="text-sm text-on-surface font-medium">30</div>
+<div class="text-sm text-on-surface font-medium">31</div>
+<div class="text-sm text-outline-variant">01</div>
+<div class="text-sm text-outline-variant">02</div>
+</div>
+</div>
+<!-- Tour Performance Chart -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card flex-1">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-label-md font-label-md text-on-surface font-bold">Booking Trends</h3>
+<span class="text-xs text-outline">All data in percentage (%)</span>
+</div>
+<div class="flex items-end justify-between h-40 mb-6 relative">
+<!-- Grid lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="border-b border-outline-variant/30 w-full h-0 flex items-center"><span class="text-[10px] text-outline-variant absolute right-full mr-2">100</span></div>
+<div class="border-b border-outline-variant/30 w-full h-0 flex items-center"><span class="text-[10px] text-outline-variant absolute right-full mr-2">75</span></div>
+<div class="border-b border-outline-variant/30 w-full h-0 flex items-center"><span class="text-[10px] text-outline-variant absolute right-full mr-2">50</span></div>
+<div class="border-b border-outline-variant/30 w-full h-0 flex items-center"><span class="text-[10px] text-outline-variant absolute right-full mr-2">25</span></div>
+<div class="border-b border-outline-variant/30 w-full h-0 flex items-center"><span class="text-[10px] text-outline-variant absolute right-full mr-2">00</span></div>
+</div>
+<!-- Bars -->
+<div class="w-12 mx-auto relative z-10 flex items-end h-full">
+<div class="w-full bg-primary h-[85%] rounded-t-sm shadow-[inset_-6px_0_0_rgba(0,0,0,0.15)]"></div>
+</div>
+<div class="w-12 mx-auto relative z-10 flex items-end h-full">
+<div class="w-full bg-accent-yellow h-[60%] rounded-t-sm shadow-[inset_-6px_0_0_rgba(0,0,0,0.1)]"></div>
+</div>
+<div class="w-12 mx-auto relative z-10 flex items-end h-full">
+<div class="w-full bg-accent-green h-[75%] rounded-t-sm shadow-[inset_-6px_0_0_rgba(0,0,0,0.15)]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-3 mt-4">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-primary"></div>
+<div>
+<p class="text-xs font-bold text-on-surface">Luxury Packages</p>
+<p class="text-[10px] text-outline">Performance</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-accent-yellow"></div>
+<div>
+<p class="text-xs font-bold text-on-surface">Adventure Tours</p>
+<p class="text-[10px] text-outline">Performance</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-accent-green"></div>
+<div>
+<p class="text-xs font-bold text-on-surface">Family Trips</p>
+<p class="text-[10px] text-outline">Performance</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Center & Right Columns: Recent Bookings & Top Guides -->
+<div class="xl:col-span-2 flex flex-col gap-6">
+<!-- Top Row: Top Destinations Cards (Replacing list format) -->
+<div class="bg-surface rounded-3xl p-6 border border-outline-variant/30 shadow-soft floating-card">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-label-md font-label-md text-on-surface font-bold">Top Performing Destinations</h3>
+<div class="px-3 py-1.5 rounded-full border border-outline-variant/50 text-xs font-bold flex items-center gap-1 cursor-pointer hover:bg-background">
+                This Month <span class="material-symbols-outlined text-[14px]">expand_more</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Dest 1 -->
+<div class="bg-accent-green rounded-2xl p-4 text-white flex flex-col items-center text-center relative overflow-hidden shadow-sm">
+<div class="absolute top-0 right-0 opacity-10 scale-150 -translate-y-4 translate-x-4">
+<span class="material-symbols-outlined text-8xl" data-icon="celebration">celebration</span>
+</div>
+<img class="w-12 h-12 rounded-full border-2 border-white/50 mb-2 object-cover relative z-10" data-alt="Bali thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9hEnAL2PYeLDAJGbpYV2Jwjh_JeiPQuNl-1jmM5v97_4ZqvhCs-aDZlw6mLz16_OYqkY_IYIkIvOCyFqME1bOJ2vlESRyY-fgcuJZfjcyq3hn73oXzgfeoKV7cj53mneahkk8QNMPemkNVaFB_bOBhuUZ_ieIaS4jkhaCWSeexg-ZHzOJmlpfG6Y1LEDvroYdpk4xn3PA9hScvHIcPuIwrzyGmrHG4FsncHTqfEET247U3POxaqOE"/>
+<p class="text-sm font-bold relative z-10">Bali, Indonesia</p>
+<p class="text-xs text-white/80 mb-3 relative z-10">Tropical Retreat</p>
+<div class="text-xl font-black mb-3 relative z-10">85%</div>
+<div class="w-full bg-white/20 py-1.5 rounded-xl text-xs font-bold relative z-10">1st Top</div>
+</div>
+<!-- Dest 2 -->
+<div class="bg-primary rounded-2xl p-4 text-white flex flex-col items-center text-center relative overflow-hidden shadow-sm">
+<div class="absolute top-0 right-0 opacity-10 scale-150 -translate-y-4 translate-x-4">
+<span class="material-symbols-outlined text-8xl" data-icon="celebration">celebration</span>
+</div>
+<img class="w-12 h-12 rounded-full border-2 border-white/50 mb-2 object-cover relative z-10" data-alt="Swiss Alps thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbJu5hg6ws-wZnmPRCb6z-rWcuprZfyfSTSZy53182-jtm7NvkL1NaLo8ji39OE4Wad4pprbRXKukWUtCBiS9gAUcUxn31ikdLb5Eb5OKhoPLhJzMD2E2zAoLJ_8hOMd2PiGUm7UltE10cxE7nm7puAZ-2kl2RdH0RPrY8Cp2jIeETbsBGVZxHWCp7P3jsYIwWTd7f6v-kwyoSea7JeF8OZOAQiMfaiyV0uwGytA3zhXLOH4QQQwui"/>
+<p class="text-sm font-bold relative z-10">Swiss Alps</p>
+<p class="text-xs text-white/80 mb-3 relative z-10">Winter Adventure</p>
+<div class="text-xl font-black mb-3 relative z-10">72%</div>
+<div class="w-full bg-white/20 py-1.5 rounded-xl text-xs font-bold relative z-10">2nd Top</div>
+</div>
+<!-- Dest 3 -->
+<div class="bg-accent-yellow rounded-2xl p-4 text-white flex flex-col items-center text-center relative overflow-hidden shadow-sm">
+<div class="absolute top-0 right-0 opacity-10 scale-150 -translate-y-4 translate-x-4">
+<span class="material-symbols-outlined text-8xl" data-icon="celebration">celebration</span>
+</div>
+<img class="w-12 h-12 rounded-full border-2 border-white/50 mb-2 object-cover relative z-10" data-alt="Tokyo thumbnail" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC91rg-CiR6LgUKctyI7uMTGCY85eICr7L-tAKg-jtwBe6vTqoiGltiLxeQisx2fte0rpXTY8qdOZ5npPbvVIpp5sZNgfyKR40UYHjQWw2C-PjvJdkpEH3Wjze5F9UzbGsNIz0JiwMF_NEWGgd_OG7PzvGOXPu1T2EdHwtq4g6AIrsegY4ST_YO7zy0a7M39aAbN30yJ-O9r2NImwOBbl4vaENpv7oa85yqQZL0174WHyyKoW8Zk1pP"/>
+<p class="text-sm font-bold relative z-10">Tokyo, Japan</p>
+<p class="text-xs text-white/80 mb-3 relative z-10">City Explorer</p>
+<div class="text-xl font-black mb-3 relative z-10">65%</div>
+<div class="w-full bg-white/20 py-1.5 rounded-xl text-xs font-bold relative z-10">3rd Top</div>
+</div>
+</div>
+</div>
+<!-- Recent Bookings Table -->
+<div class="bg-surface rounded-3xl border border-outline-variant/30 shadow-soft flex flex-col flex-1 floating-card overflow-hidden">
+<div class="p-6 border-b border-outline-variant/20 flex justify-between items-center bg-surface">
+<h3 class="text-label-md font-label-md text-on-surface font-bold">Recent Bookings</h3>
+<button class="px-4 py-1.5 rounded-full border border-primary text-primary text-xs font-bold hover:bg-primary hover:text-white transition-colors">View All</button>
+</div>
+<div class="flex-1 overflow-x-auto p-4">
+<table class="w-full text-left border-collapse min-w-[600px]">
+<thead>
+<tr>
+<th class="px-4 py-3 text-xs font-semibold text-outline tracking-wide border-b border-outline-variant/30">Customer</th>
+<th class="px-4 py-3 text-xs font-semibold text-outline tracking-wide border-b border-outline-variant/30">Destination</th>
+<th class="px-4 py-3 text-xs font-semibold text-outline tracking-wide border-b border-outline-variant/30">Date</th>
+<th class="px-4 py-3 text-xs font-semibold text-outline tracking-wide border-b border-outline-variant/30">Amount</th>
+<th class="px-4 py-3 text-xs font-semibold text-outline tracking-wide border-b border-outline-variant/30">Status</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="hover:bg-background/50 transition-colors border-b border-outline-variant/10 last:border-0">
+<td class="px-4 py-3">
+<div class="flex items-center gap-3">
+<img class="w-9 h-9 rounded-full object-cover border border-outline-variant/30 shadow-sm" data-alt="Small avatar portrait of a customer smiling, bright lighting, high quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe4lWcG5PhiVyZbei0YWlxotOShBeKuVUazMh37y1fyi_oBUIKV5teef46c4VnskIOxj-Wz69x0epPEY_9hnNuOJotR-otZWX69YD_lYqmO9W6-JXKGfiExYvACbSdhnZIjLKE2gfh7GR6o2vTuHaP4sGIZfYYFg1gAIArGEjkMyb2avA0N_z1xox9-vyVmP-zEw9UEPku_SfpxzFJSThX-cySYRb43AJNrvUo1Hjr7QgbT0sU4i8I"/>
+<div>
+<p class="font-semibold text-on-surface">Sarah Jenkins</p>
+<p class="text-[11px] text-outline">sarah.j@email.com</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-3 text-on-surface font-medium">Bali Paradise Retreat</td>
+<td class="px-4 py-3 text-outline">Oct 15, 2023</td>
+<td class="px-4 py-3 font-bold text-on-surface">$1,450</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-accent-green/10 text-accent-green text-[11px] font-bold">Confirmed</span>
+</td>
+</tr>
+<tr class="hover:bg-background/50 transition-colors border-b border-outline-variant/10 last:border-0">
+<td class="px-4 py-3">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-[#ff8c94]/20 text-[#ff8c94] flex items-center justify-center font-bold text-sm shadow-sm border border-[#ff8c94]/30">
+                                MR
+                            </div>
+<div>
+<p class="font-semibold text-on-surface">Michael Ross</p>
+<p class="text-[11px] text-outline">m.ross@email.com</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-3 text-on-surface font-medium">Swiss Alps Adventure</td>
+<td class="px-4 py-3 text-outline">Nov 02, 2023</td>
+<td class="px-4 py-3 font-bold text-on-surface">$2,800</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-[#ff8c94]/10 text-[#ff8c94] text-[11px] font-bold">Pending</span>
+</td>
+</tr>
+<tr class="hover:bg-background/50 transition-colors border-b border-outline-variant/10 last:border-0">
+<td class="px-4 py-3">
+<div class="flex items-center gap-3">
+<img class="w-9 h-9 rounded-full object-cover border border-outline-variant/30 shadow-sm" data-alt="Small avatar portrait of a customer smiling, bright lighting, high quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgYenslnWwMOLIFOiJHFsCZcwxXADV5oF_bigmri18dBLRqVG6LWnedeK7e80nyhV0BpqKRJTZIMnGSogF2RdhJ9MZmlR9sjVtCZL8nO9UXt6wViLl2cZMmsFphp78XGOKp9Q0QU2KiOSt1h-l4m6e1HjKtd9877QPvqnfePRJ4Q4Gz9B3ORi4UB_nGtd6PGSJkZNIydCvwQcvbU7cyg_zempsDcwcmT6S64WYB9-5Y1YxKCCw7Mol"/>
+<div>
+<p class="font-semibold text-on-surface">Emily Chen</p>
+<p class="text-[11px] text-outline">emily.c@email.com</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-3 text-on-surface font-medium">Tokyo City Explorer</td>
+<td class="px-4 py-3 text-outline">Oct 28, 2023</td>
+<td class="px-4 py-3 font-bold text-on-surface">$1,950</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-accent-green/10 text-accent-green text-[11px] font-bold">Confirmed</span>
+</td>
+</tr>
+<tr class="hover:bg-background/50 transition-colors border-b border-outline-variant/10 last:border-0">
+<td class="px-4 py-3">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-outline-variant/50 text-outline flex items-center justify-center font-bold text-sm shadow-sm">
+                                DJ
+                            </div>
+<div>
+<p class="font-semibold text-on-surface">David Jones</p>
+<p class="text-[11px] text-outline">david.j@email.com</p>
+</div>
+</div>
+</td>
+<td class="px-4 py-3 text-on-surface font-medium">Machu Picchu Trek</td>
+<td class="px-4 py-3 text-outline">Dec 10, 2023</td>
+<td class="px-4 py-3 font-bold text-on-surface">$3,200</td>
+<td class="px-4 py-3">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-outline/10 text-outline text-[11px] font-bold">Cancelled</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

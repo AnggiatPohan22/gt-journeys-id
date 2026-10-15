@@ -1,0 +1,735 @@
+/*
+ * GtJourneysID — Global admin brand + theme (Phase 4.1 → 4.4)
+ * ==================================================================
+ * Loaded on EVERY admin route via `admin.components.providers`
+ * (AdminStyles.tsx). Additive & reversible; targets a small set of
+ * Payload classes + Payload's own base colour ramp.
+ *
+ * THEMING MODEL (see @payloadcms/ui colors.scss)
+ * ----------------------------------------------
+ * Payload derives every surface/text colour from ONE greyscale ramp
+ * `--color-base-0 … --color-base-1000`:
+ *   • light (:root)                 elevation-0 = base-0  (white)
+ *   • dark  (html[data-theme=dark]) elevation-0 = base-900 (near-black)
+ * Overriding the base ramp re-themes BOTH modes while keeping Payload's
+ * contrast relationships intact. We keep the ramp **neutral** (no navy/blue
+ * tint) so dark mode reads as a true BLACK, and add a subtle *glossy*
+ * gradient sheen on the sidebar + cards (see custom.css for cards).
+ *
+ * ACTIVE / HOVER use a brand GRADIENT (ocean → leaf).
+ *
+ * BRAND ACCENTS:  --dnj-ocean #1B3A4B  --dnj-coral #E07A5F
+ *                 --dnj-leaf  #6B9080  --dnj-stone #3D405B
+ * ==================================================================
+ */
+
+/* ─────────────────────────────────────────────────────────────
+   1. NEUTRAL RAMP (true black dark-end, no navy) + brand tokens
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --color-base-0: rgb(250, 250, 251);
+  --color-base-50: rgb(244, 244, 246);
+  --color-base-100: rgb(235, 235, 238);
+  --color-base-150: rgb(223, 223, 227);
+  --color-base-200: rgb(208, 208, 213);
+  --color-base-250: rgb(194, 194, 200);
+  --color-base-300: rgb(179, 179, 186);
+  --color-base-350: rgb(164, 164, 172);
+  --color-base-400: rgb(148, 148, 156);
+  --color-base-450: rgb(133, 133, 141);
+  --color-base-500: rgb(118, 118, 126);
+  --color-base-550: rgb(103, 103, 111);
+  --color-base-600: rgb(88, 88, 96);
+  --color-base-650: rgb(72, 72, 80);
+  --color-base-700: rgb(58, 58, 65);
+  --color-base-750: rgb(45, 45, 51);
+  --color-base-800: rgb(34, 34, 39); /* dark card */
+  --color-base-850: rgb(25, 25, 29); /* dark container-low */
+  --color-base-900: rgb(17, 17, 20); /* dark app background (near-black) */
+  --color-base-950: rgb(10, 10, 12);
+  --color-base-1000: rgb(4, 4, 6); /* deepest black */
+
+  /* Brand accents */
+  --dnj-ocean: #1b3a4b;
+  --dnj-ocean-hover: #14303d;
+  --dnj-coral: #e07a5f;
+  --dnj-leaf: #6b9080;
+  --dnj-stone: #3d405b;
+
+  /* Gradient brand (dipakai avatar + tombol login, BUKAN nav aktif) */
+  --dnj-active-grad: linear-gradient(135deg, #1b3a4b 0%, #4d7d66 100%);
+
+  /* Nav active/hover — SUBTLE (Phase 4.5 polish):
+     accent = warna aksen (teks/ikon/bar), active-bg = tint translucent,
+     hover-bg = geseran netral halus dari bg sidebar. Per-tema di bawah. */
+  --dnj-accent: #1b3a4b; /* ocean (light) */
+  --dnj-active-bg: rgba(27, 58, 75, 0.08); /* tint 8% (light) */
+  --dnj-hover-bg: rgba(0, 0, 0, 0.05); /* 5% lebih gelap (light) */
+
+  /* Per-item sidebar icons (mask-image, tinted with currentColor).
+     Each nav link sets --i; ::before renders it. */
+  --dnj-ic-default: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/></svg>");
+  --dnj-ic-home: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 11 9-8 9 8'/><path d='M5 10v10h14V10'/></svg>");
+  --dnj-ic-doc: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3v4a1 1 0 0 0 1 1h4'/><path d='M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z'/><path d='M9 13h6M9 17h6'/></svg>");
+  --dnj-ic-pin: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 21s-6-5.7-6-10a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z'/><circle cx='12' cy='11' r='2'/></svg>");
+  --dnj-ic-tag: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 5v6l9 9 8-8-9-9H3z'/><circle cx='7.5' cy='7.5' r='1'/></svg>");
+  --dnj-ic-grid: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='7' rx='1.5'/><rect x='14' y='3' width='7' height='7' rx='1.5'/><rect x='14' y='14' width='7' height='7' rx='1.5'/><rect x='3' y='14' width='7' height='7' rx='1.5'/></svg>");
+  --dnj-ic-star: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000'><path d='M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.77l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85Z'/></svg>");
+  --dnj-ic-layers: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m12 3 9 5-9 5-9-5 9-5Z'/><path d='m3 13 9 5 9-5'/></svg>");
+  --dnj-ic-menu: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 6h16M4 12h16M4 18h16'/></svg>");
+  --dnj-ic-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='3'/><circle cx='8.5' cy='8.5' r='1.5'/><path d='m21 15-5-5L5 21'/></svg>");
+  --dnj-ic-users: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/></svg>");
+  --dnj-ic-gear: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1l-.3-2.5h-4l-.3 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1Z'/></svg>");
+  --dnj-ic-layout: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><path d='M3 9h18M9 21V9'/></svg>");
+  /* Phase 4.47 — icon tambahan (newsletter subscribers, announcement bar,
+     promo banner, ferry tickets, pen untuk authors membedakan dari users). */
+  --dnj-ic-mail: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='5' width='20' height='14' rx='2'/><path d='m2 7 10 6 10-6'/></svg>");
+  --dnj-ic-megaphone: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m3 11 18-5v12L3 14z'/><path d='M11.6 16.8a3 3 0 1 1-5.8-1.6'/></svg>");
+  --dnj-ic-percent: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m19 5-14 14'/><circle cx='7' cy='7' r='2.5'/><circle cx='17' cy='17' r='2.5'/></svg>");
+  --dnj-ic-ship: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 21c1.2 0 2.4-.4 3.5-1 1.1.6 2.3 1 3.5 1s2.4-.4 3.5-1c1.1.6 2.3 1 3.5 1s2.4-.4 3.5-1c1.1.6 2.3 1 3.5 1'/><path d='M4 18l-2-7h20l-2 7'/><path d='M12 11V4'/><path d='M8 4h8'/></svg>");
+  --dnj-ic-pen: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20h9'/><path d='M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z'/></svg>");
+  /* Phase 4.50 — Chat Widget group. Bubble-with-dots (widget global),
+     user-check (chat visitors), stacked bubbles (chat messages),
+     shield-alert (blocked events). */
+  --dnj-ic-chat-bubble: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 12a8 8 0 0 1-11.6 7.15L3 21l1.85-6.4A8 8 0 1 1 21 12z'/><circle cx='9' cy='12' r='1' fill='%23000'/><circle cx='12' cy='12' r='1' fill='%23000'/><circle cx='15' cy='12' r='1' fill='%23000'/></svg>");
+  --dnj-ic-user-check: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='m17 11 2 2 4-4'/></svg>");
+  --dnj-ic-messages: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 9h8'/><path d='M8 13h6'/><path d='M17 3H7a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h2l3 3 3-3h2a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3z'/></svg>");
+  --dnj-ic-shield-alert: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-11V4l-8-2-8 2v7c0 7 8 11 8 11z'/><path d='M12 8v4'/><path d='M12 15.5v.5'/></svg>");
+  /* Phase 4.68.4 — Bookings (ticket) + Popup Settings (dialog window) + Locations (folded map). */
+  --dnj-ic-ticket: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z'/><path d='M13 7v2'/><path d='M13 13v2'/><path d='M13 17v0'/></svg>");
+  --dnj-ic-popup: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='M3 9h18'/><circle cx='6.5' cy='7' r='.5' fill='%23000'/><circle cx='8.5' cy='7' r='.5' fill='%23000'/></svg>");
+  --dnj-ic-map: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2z'/><path d='M9 3v16'/><path d='M15 5v16'/></svg>");
+}
+
+/* Dark: aksen mint (kontras tinggi di sidebar hitam); tint & hover lebih terang. */
+html[data-theme='dark'] {
+  --dnj-active-grad: linear-gradient(135deg, #24506a 0%, #6b9080 100%);
+  --dnj-accent: #8bd6b6; /* mint — terbaca di atas hitam */
+  --dnj-active-bg: rgba(139, 214, 182, 0.12); /* tint 12% (dark) */
+  --dnj-hover-bg: rgba(255, 255, 255, 0.05); /* 5% lebih terang (dark) */
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. SIDEBAR NAV
+   ───────────────────────────────────────────────────────────── */
+
+/* Glossy sidebar in dark (near-black gradient + faint edge highlight). */
+html[data-theme='dark'] .nav,
+html[data-theme='dark'] .template-default__nav {
+  /* Colour-only override (no border/size change) → toggling theme never
+     shifts the sidebar layout. */
+  background: linear-gradient(180deg, rgb(28, 28, 32) 0%, rgb(12, 12, 15) 100%);
+}
+
+/* Group labels (Content, Services, Site Builder, Administration, Settings) */
+.nav-group__toggle {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-450);
+}
+
+/* Nav links → padded rounded pills, with a per-item icon (::before).
+   Transition: hover bg 150ms; warna teks 200ms (juga untuk theme switch). */
+.nav__link {
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  padding-block: 8px;
+  padding-inline: 12px;
+  padding-inline-end: 14px;
+  margin-block: 2px;
+  transition: background-color 0.15s ease, color 0.2s ease;
+}
+.nav__link::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-inline-end: 10px;
+  background-color: currentColor;
+  opacity: 0.85;
+  -webkit-mask: var(--i, var(--dnj-ic-default)) center / contain no-repeat;
+  mask: var(--i, var(--dnj-ic-default)) center / contain no-repeat;
+}
+/* Icon mapping per nav href (list roots are end-anchored → precise). */
+.nav__link[href$='/admin'] { --i: var(--dnj-ic-home); }
+.nav__link[href$='/collections/pages'] { --i: var(--dnj-ic-doc); }
+.nav__link[href$='/collections/service-types'] { --i: var(--dnj-ic-layers); }
+.nav__link[href$='/collections/destinations'] { --i: var(--dnj-ic-pin); }
+.nav__link[href$='/collections/destination-types'] { --i: var(--dnj-ic-tag); }
+.nav__link[href$='/collections/categories'] { --i: var(--dnj-ic-grid); }
+.nav__link[href$='/collections/testimonials'] { --i: var(--dnj-ic-star); }
+/* Phase 4.47a — Ferry Tickets ikut icon layers biar seragam dengan
+   service lain (bukan icon ship terpisah). */
+.nav__link[href$='/collections/tours'],
+.nav__link[href$='/collections/accommodations'],
+.nav__link[href$='/collections/water-activities'],
+.nav__link[href$='/collections/yachts'],
+.nav__link[href$='/collections/restaurants'],
+.nav__link[href$='/collections/venues'],
+.nav__link[href$='/collections/rentals'],
+.nav__link[href$='/collections/spa'],
+.nav__link[href$='/collections/ferry-tickets'] { --i: var(--dnj-ic-layers); }
+.nav__link[href$='/collections/menus'] { --i: var(--dnj-ic-menu); }
+.nav__link[href$='/collections/media'] { --i: var(--dnj-ic-image); }
+.nav__link[href$='/collections/users'] { --i: var(--dnj-ic-users); }
+/* Phase 4.47 — Newsletter Subscribers (envelope). */
+.nav__link[href$='/collections/newsletter-subscribers'] { --i: var(--dnj-ic-mail); }
+.nav__link[href$='/globals/site-settings'] { --i: var(--dnj-ic-gear); }
+.nav__link[href$='/globals/header-settings'],
+.nav__link[href$='/globals/footer-settings'] { --i: var(--dnj-ic-layout); }
+.nav__link[href$='/globals/homepage-content'] { --i: var(--dnj-ic-home); }
+.nav__link[href$='/globals/site-features'] { --i: var(--dnj-ic-tag); }
+/* Phase 4.47 — Marketing globals: announcement bar (megaphone), promo banner (percent). */
+.nav__link[href$='/globals/announcement-bar'] { --i: var(--dnj-ic-megaphone); }
+.nav__link[href$='/globals/promo-banner'] { --i: var(--dnj-ic-percent); }
+.nav__link[href$='/collections/posts'] { --i: var(--dnj-ic-doc); }
+.nav__link[href$='/collections/blog-categories'] { --i: var(--dnj-ic-grid); }
+.nav__link[href$='/collections/tags'] { --i: var(--dnj-ic-tag); }
+/* Phase 4.47 — Authors pakai icon pen supaya beda dari Users (multi-person). */
+.nav__link[href$='/collections/authors'] { --i: var(--dnj-ic-pen); }
+/* Blog Settings global icon */
+.nav__link[href$='/globals/blog-settings'] { --i: var(--dnj-ic-doc); }
+/* Phase 4.50 — Chat Widget group. */
+.nav__link[href$='/globals/chat-widget']            { --i: var(--dnj-ic-chat-bubble); }
+.nav__link[href$='/collections/chat-visitors']      { --i: var(--dnj-ic-user-check); }
+.nav__link[href$='/collections/chat-messages']      { --i: var(--dnj-ic-messages); }
+.nav__link[href$='/collections/chat-blocked-events'] { --i: var(--dnj-ic-shield-alert); }
+/* Phase 4.68.4 — Bookings (own group now) + Popup Settings (moved to Marketing)
+   + Locations (Destinations group, previously default circle). */
+.nav__link[href$='/collections/bookings'] { --i: var(--dnj-ic-ticket); }
+.nav__link[href$='/globals/popup-settings'] { --i: var(--dnj-ic-popup); }
+.nav__link[href$='/collections/locations'] { --i: var(--dnj-ic-map); }
+
+/* Quick-add "+ Add X" link (Phase 4.35.3) — smaller, indented, subdued.
+   Injected by NavAccordion.tsx below the list-view link of select
+   editorial collections (posts, authors, tags, blog-categories). */
+.nav__link--quick-add {
+  padding-block: 4px;
+  padding-inline-start: 40px;
+  font-size: 0.85em;
+  opacity: 0.7;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.nav__link--quick-add::before {
+  display: none;
+}
+.nav__link--quick-add:hover {
+  opacity: 1;
+}
+
+/* Hover (non-active) → geseran netral halus (bukan gradient) */
+.nav__link:not(:has(.nav__link-indicator)):hover {
+  background: var(--dnj-hover-bg);
+  text-decoration: none;
+}
+
+/* Active link → tint aksen translucent + bar aksen 3px di kiri (BUKAN blob).
+   Teks & ikon (::before pakai currentColor) ikut warna aksen, weight 500. */
+.nav__link:has(.nav__link-indicator),
+.nav__link.active {
+  background: var(--dnj-active-bg);
+  color: var(--dnj-accent);
+  font-weight: 500;
+}
+.nav__link:has(.nav__link-indicator) .nav__link-label,
+.nav__link.active .nav__link-label {
+  color: var(--dnj-accent);
+  font-weight: 500;
+}
+.nav__link:has(.nav__link-indicator)::after,
+.nav__link.active::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--dnj-accent);
+}
+.nav__link-indicator {
+  display: none !important;
+}
+
+/* Item "Dashboard" (custom) — samakan PERSIS dengan label grup
+   (Content/Services/…/Setting): 11px, weight 700, uppercase, letter-spacing
+   0.08em, warna --theme-elevation-450. Warna tetap sama walau aktif (selaras). */
+.dnj-dashlink {
+  font-size: 11px;
+  line-height: 30px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--theme-elevation-450);
+}
+.dnj-dashlink .nav__link-label {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+}
+/* Jangan berubah warna/berat saat halaman aktif → tetap selaras dgn label grup
+   (indikator halaman aktif cukup dari pill + bar aksen). */
+.dnj-dashlink.active,
+.dnj-dashlink.active .nav__link-label {
+  color: var(--theme-elevation-450);
+  font-weight: 700;
+}
+/* Ikon Dashboard dikecilkan agar proporsional dengan label kecil. */
+.dnj-dashlink::before {
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Logout → full-width button so the bottom isn't empty ── */
+.nav__log-out {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 12px !important;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--dnj-coral) 35%, transparent);
+  background: color-mix(in srgb, var(--dnj-coral) 10%, transparent);
+  color: var(--dnj-coral) !important;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+.nav__log-out:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--dnj-coral) 22%, transparent), color-mix(in srgb, var(--dnj-coral) 8%, transparent));
+  border-color: color-mix(in srgb, var(--dnj-coral) 55%, transparent);
+  color: var(--dnj-coral) !important;
+}
+
+/* ── giattech developer logo (top of sidebar, fixed position) ──
+   Kedua <img> dirender; hanya warna/gambar yang berganti per tema — posisi &
+   tinggi kontainer TETAP supaya toggle tema tidak menggeser layout apa pun. */
+/* ── OPSI B: pakai tombol collapse NATIVE Payload (.template-default__nav-toggler,
+   di LUAR sidebar → tetap hidup saat collapse). Tombol dalam-sidebar
+   (`.nav__header`) & tombol custom DIHAPUS → cukup 1 tombol. Logo disejajarkan
+   dengan tombol native di band header atas. ── */
+
+/* Header row logo: band setinggi app-header. Tombol native dipaksa di KIRI
+   (blok di bawah), jadi logo didorong ke KANAN — TIDAK bertumpuk. Left padding
+   besar untuk mengosongkan zona tombol native. */
+.dnj-navhead {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* logo di kanan */
+  min-height: var(--app-header-height);
+  padding: 0 16px 0 64px; /* kiri 64px = ruang bebas untuk tombol native */
+  margin-bottom: 16px; /* GAP ke menu di bawah */
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--theme-elevation-100);
+  /* FIXED: dikeluarkan dari alur scroll (absolute ke `.nav`) → header tidak
+     ikut ter-scroll & tidak memakan area scroll. `.nav__scroll` diberi
+     padding-top = tinggi header (lihat blok `.nav` di bawah). */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  background: var(--theme-elevation-0);
+}
+/* Dark: samakan dengan bg atas sidebar (gradient) supaya menyatu. */
+html[data-theme='dark'] .dnj-navhead {
+  background: rgb(28, 28, 32);
+}
+.dnj-navhead__logo {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 0;
+}
+.dnj-giattech__img {
+  height: 30px; /* logo diperbesar */
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* `.nav__scroll` (area scroll menu) diberi ruang untuk header & footer yang
+   absolute → menu tidak tertutup, dan HANYA menu yang men-scroll. */
+.nav {
+  --nav-padding-block-start: calc(var(--app-header-height) + 12px); /* = tinggi header + gap */
+  --nav-padding-block-end: 150px; /* = tinggi footer (profil + toggle) */
+}
+
+/* Sembunyikan hamburger DALAM-sidebar bawaan (kita pakai yang app-level). */
+.nav__header {
+  display: none !important;
+}
+
+/* Tombol NATIVE app-level: PAKSA ke KIRI (berlawanan dgn logo di kanan). */
+.template-default__nav-toggler-wrapper {
+  left: 0 !important;
+  right: auto !important;
+}
+.template-default__nav-toggler-container {
+  padding-inline-start: 16px; /* jarak dari tepi kiri */
+}
+
+/* Styling tombol native: frame proporsional + IKON besar & jelas.
+   Struktur: .template-default__nav-toggler > .hamburger > svg. */
+.template-default__nav-toggler {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px; /* frame tipis → ikon dominan */
+  border-radius: 8px;
+  border: 1px solid var(--theme-elevation-200);
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-800); /* ikon lebih tegas/jelas */
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.template-default__nav-toggler:hover {
+  background: var(--dnj-hover-bg);
+  color: var(--dnj-accent);
+  border-color: var(--theme-elevation-300);
+}
+/* Ikon (panah/hamburger) DIBUAT BESAR & proporsional. */
+.template-default__nav-toggler .hamburger {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+}
+.template-default__nav-toggler .hamburger svg {
+  width: 22px;
+  height: 22px;
+}
+.template-default__nav-toggler .hamburger svg * {
+  stroke-width: 2; /* garis ikon lebih tebal → lebih jelas */
+}
+/* light/system → navy logo; dark → white logo (content swap only). */
+.dnj-giattech__img--dark { display: none; }
+html[data-theme='dark'] .dnj-giattech__img--light { display: none; }
+html[data-theme='dark'] .dnj-giattech__img--dark { display: block; }
+
+/* ─────────────────────────────────────────────────────────────
+   2b. SIDEBAR 3-SECTION LAYOUT (Phase 4.5)
+   Middle (.nav__scroll) scrolls; footer (.dnj-footer) di-pin sticky bottom
+   → SELALU terlihat walau menu overflow. Native .nav__controls (logout +
+   settings gear bawaan) disembunyikan (fungsinya dipindah ke SidebarFooter).
+   ───────────────────────────────────────────────────────────── */
+.nav__controls {
+  display: none !important;
+}
+
+/* Scrollbar menu — SELALU terlihat saat menu overflow (subtle), supaya user
+   tahu bisa scroll. `scroll-padding-block-end` = tinggi footer, biar item
+   terakhir (mis. grup Settings yang panjang) tidak ketutup footer sticky. */
+.nav__scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-elevation-300) transparent;
+  scroll-padding-block-end: 170px;
+  overscroll-behavior: contain;
+}
+.nav__scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.nav__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.nav__scroll::-webkit-scrollbar-thumb {
+  background: var(--theme-elevation-300);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
+}
+.nav__scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-elevation-400);
+}
+
+/* Smooth chevron 180° open/close (grup accordion). */
+.nav-group__toggle svg {
+  transition: transform 0.25s ease-in-out;
+}
+.nav-group--collapsed .nav-group__toggle svg {
+  transform: rotate(180deg);
+}
+/* Grup label transisi warna (hover + theme switch). */
+.nav-group__toggle {
+  transition: color 0.2s ease;
+}
+
+/* Theme-switch: transisi warna sidebar 200ms (background/border). */
+.nav,
+.template-default__nav,
+.dnj-footer,
+.dnj-user,
+.dnj-theme-toggle,
+.dnj-navhead {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* ── Pinned footer (profile + logout + theme toggle) ── */
+.dnj-footer {
+  /* FIXED: dikeluarkan dari alur scroll (absolute ke `.nav`) → footer selalu
+     di bawah & tidak memakan area scroll. `.nav__scroll` diberi padding-bottom
+     = tinggi footer (lihat blok `.nav`). */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 12px 16px calc(var(--base, 20px) * 1.5);
+  background: var(--theme-elevation-0);
+  border-top: 1px solid var(--theme-elevation-100);
+}
+/* Match glossy dark sidebar bottom colour so scrolled content hides cleanly. */
+html[data-theme='dark'] .dnj-footer {
+  background: rgb(13, 13, 16);
+}
+
+/* Profile card row: user info (link) + logout icon button */
+.dnj-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+}
+.dnj-user__main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 3px;
+  border-radius: 9px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.dnj-user__main:hover {
+  background: var(--dnj-hover-bg);
+}
+.dnj-user__avatar {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--dnj-active-grad);
+}
+.dnj-user__meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.dnj-user__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-elevation-800);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dnj-user__role {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--dnj-leaf);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dnj-user__logout {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--theme-elevation-500);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dnj-user__logout svg {
+  width: 18px;
+  height: 18px;
+}
+.dnj-user__logout:hover {
+  background: color-mix(in srgb, var(--dnj-coral) 14%, transparent);
+  color: var(--dnj-coral);
+}
+
+/* Theme toggle (inside footer) */
+.dnj-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--theme-elevation-150);
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-800);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.dnj-theme-toggle:hover {
+  background: var(--dnj-hover-bg);
+  border-color: var(--theme-elevation-200);
+  color: var(--dnj-coral);
+}
+.dnj-theme-toggle__icon {
+  display: inline-flex;
+}
+.dnj-theme-toggle__icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. LOGIN PAGE
+   ───────────────────────────────────────────────────────────── */
+.login .btn--style-primary {
+  background: var(--dnj-active-grad);
+  border: none;
+}
+.login .btn--style-primary:hover {
+  filter: brightness(1.06);
+}
+.dnj-login-welcome {
+  margin: 2px auto 22px;
+  max-width: 320px;
+  text-align: center;
+}
+.dnj-login-welcome p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--theme-elevation-500);
+}
+.login__brand {
+  margin-bottom: 6px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5. BREADCRUMB — logo situs (graphics.Icon) + sembunyikan HANYA panah ▾
+   ───────────────────────────────────────────────────────────── */
+
+/* Logo situs di breadcrumb (dari SiteSettings via graphics/Icon.tsx). */
+.dnj-brand-icon {
+  display: inline-flex;
+  align-items: center;
+  overflow: visible !important;
+  max-width: none !important;
+  width: auto !important;
+  height: auto !important;
+}
+.dnj-brand-icon__img {
+  display: block;
+  height: 28px;
+  width: auto;
+  max-width: 170px;
+  object-fit: contain;
+}
+/* Container ikon bawaan Payload (mis. .step-nav__home 18×18, atau span
+   .step-nav dengan overflow:hidden) memotong logo → beri ruang cukup. */
+.step-nav__home,
+.step-nav a:has(.dnj-brand-icon),
+.step-nav span:has(.dnj-brand-icon),
+.step-nav :has(> .dnj-brand-icon) {
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+/* Theme swap: light logo default; dark logo saat dark mode. */
+.dnj-brand-icon__img--dark { display: none; }
+html[data-theme='dark'] .dnj-brand-icon__img--light { display: none; }
+html[data-theme='dark'] .dnj-brand-icon__img--dark { display: block; }
+
+/* "Dashboard ▾" = react-select (.dashboard-breadcrumb-select) dari
+   ModularDashboard (Edit Dashboard / Reset Layout). Kita PERTAHANKAN teks
+   "Dashboard", tapi SEMBUNYIKAN panah ▾ + matikan interaksinya (popup tak bisa
+   dibuka) → tampil seperti label breadcrumb biasa. Bukan dihapus; lihat
+   docs/phases/phase-4-polish-launch/admin-ui/admin-dashboard/phase-4.7-dashboard-logo-and-cleanup.md untuk cara re-enable. */
+.dashboard-breadcrumb-select .rs__indicators {
+  display: none !important;
+}
+.dashboard-breadcrumb-select .rs__control {
+  pointer-events: none;
+  cursor: default;
+  min-height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.dashboard-breadcrumb-select .rs__value-container {
+  padding: 0 !important;
+}
+
+/* ─── WheelTimePicker (Phase 4.61.6) ─────────────────────────────
+   Hide scrollbar di kolom wheel (jam/menit). scrollbarWidth:'none' di JSX
+   sudah handle Firefox; ini untuk Chrome/Edge/Safari. */
+.field-type.text [role="listbox"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── DescriptionsToTooltips (Phase 4.61.6 refinement) ────────────
+   Icon "?" kecil di sebelah label field. Hover / focus → tooltip
+   berisi teks description asli (di-hide, disimpan di data-tt). */
+.dnj-tt-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-left: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--theme-elevation-300);
+  background: var(--theme-elevation-100);
+  color: var(--theme-elevation-500);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+  vertical-align: middle;
+  user-select: none;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.dnj-tt-icon:hover,
+.dnj-tt-icon:focus {
+  background: var(--theme-elevation-800, #333);
+  color: var(--theme-elevation-0, #fff);
+  border-color: transparent;
+  outline: none;
+}
+/* Collapsible section header hosts an invisible `.collapsible__toggle`
+   button that overlays the whole header row. Raise the ? icon above it
+   so hover works AND clicking the icon doesn't trigger a collapse. */
+.dnj-tt-icon--in-header {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+  margin-left: 8px;
+}
+/* Tooltip element (#dnj-tt-tip) di-append ke <body> by DescriptionsToTooltips.tsx
+   supaya lolos dari overflow:hidden ancestor (collapsible section / row).
+   Positioning + show/hide dilakukan via JS (fixed positioning + flip). */

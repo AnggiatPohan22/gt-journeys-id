@@ -1,6 +1,6 @@
 # 04 — RBAC (Role-Based Access Control)
 
-> Sistem hak akses proyek **DnJourneysBali** — 3 role (Super Admin / Admin / Editor) yang diimplementasikan di Payload CMS 3.x. Semua aturan didefinisikan di [apps/cms/src/access/roles.ts](apps/cms/src/access/roles.ts) dan di-attach per koleksi/global/field.
+> Sistem hak akses proyek **GtJourneysID** — 3 role (Super Admin / Admin / Editor) yang diimplementasikan di Payload CMS 3.x. Semua aturan didefinisikan di [apps/cms/src/access/roles.ts](apps/cms/src/access/roles.ts) dan di-attach per koleksi/global/field.
 
 ---
 
@@ -32,6 +32,9 @@ Legenda: ✅ boleh · ❌ tidak boleh · ⚠️ terbatas (lihat keterangan).
 | **Destinations** — delete | ✅ | ❌ | ❌ | ❌ | |
 | **Categories** — read | ✅ | ✅ | ✅ | ✅ | |
 | **Categories** — create / update / delete | idem Destinations | | | | |
+| **Destination Types** — read | ✅ | ✅ | ✅ | ✅ | Public read (Phase 3.23). |
+| **Destination Types** — create / delete | ✅ | ❌ | ❌ | ❌ | Super-admin only. |
+| **Destination Types** — update | ✅ | ⚠️ | ❌ | ❌ | Admin **hanya** saat toggle `destinationTypesEnabled` ON (soft-gate via async access baca SiteFeatures). Super-admin selalu. |
 | **Tours, Accommodations, WaterActivities, Yachts, Restaurants, Venues, Rentals** — read | ✅ | ✅ | ✅ | ✅ | |
 | Service — create | ✅ | ✅ | ❌ | ❌ | Editor tidak boleh tambah entry baru. |
 | Service — update | ✅ | ✅ | ✅ | ❌ | Editor boleh edit entry existing. |
@@ -41,6 +44,9 @@ Legenda: ✅ boleh · ❌ tidak boleh · ⚠️ terbatas (lihat keterangan).
 | **Global `footer-settings`** — update | ✅ | ❌ | ❌ | ❌ | Kolom footer. |
 | **Global `site-features`** — update | ✅ | ❌ | ❌ | ❌ | Toggle modul/section/fitur — keputusan owner, bukan editor. |
 | **Global `site-features`** — read | ✅ | ✅ | ✅ | ✅ | Publik: frontend butuh fetch tanpa auth. |
+| **Bookings** — read/create/update | ✅ | ✅ | ❌ | ❌ | Public REST ditutup (Phase 4.62). Public checkout page write via API-key user (`/api/bookings/create`). |
+| **Bookings** — delete | ✅ | ❌ | ❌ | ❌ | Super-admin only. |
+| **Bookings** — confirmation page public | — | — | — | ⚠️ | Phase 4.66.5: `/checkout/…/confirmation/<ref>` butuh query `?t=<accessToken>` 128-bit yang match record. Ref saja tidak cukup — mencegah IDOR. |
 
 ### 1.2 Field-level & Fitur Khusus
 
@@ -49,6 +55,7 @@ Legenda: ✅ boleh · ❌ tidak boleh · ⚠️ terbatas (lihat keterangan).
 | Field `users.role` | ✅ | ❌ | ❌ | Hanya super-admin bisa mengubah role user lain. |
 | Field `status` (draft/published) di semua service + destinations + categories + pages | ✅ | ✅ | ❌ | Editor tidak boleh **publish** — hanya edit isi. Guard: [fields/status.ts:14](apps/cms/src/fields/status.ts#L14) pakai `adminFieldAccess`. |
 | Field `additionalBlocks` (Custom Sections) di setiap service | ✅ | ❌ | ❌ | Block extra di detail page — super-admin only. Guard: `superAdminFieldAccess`. |
+| Field `bookings.passengers[].passportNumber` — update | ✅ | ❌ | ❌ | Phase 4.66.7: passport paling sensitif. Admin **read** (untuk ticketing) tapi tidak **update** — naik ke super-admin. |
 | Upload file baru ke Media Library | ✅ | ✅ | ✅ | Semua login. |
 | Hapus file Media | ✅ | ✅ | ❌ | |
 | Module toggle (Global `site-features.modules.*`) | ✅ | ❌ | ❌ | Sudah di CMS via [SiteFeatures.ts](apps/cms/src/globals/SiteFeatures.ts). Update = super-admin only; effect butuh rebuild frontend (SSG). |

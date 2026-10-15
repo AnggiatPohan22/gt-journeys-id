@@ -3,10 +3,12 @@ import type { Page } from '@shared/types/payload-types'
 import Icon from '@components/common/Icon.astro'
 import {
   getAccommodations, getTours, getWaterActivities, getYachts,
-  getRestaurants, getVenues, getRentals, getDestinations,
+  getRestaurants, getVenues, getRentals, getSpas, getFerryTickets, getDestinations,
+  getSiteFeatures,
 } from '@lib/payload'
 import { lexicalToPlainText } from '@lib/lexical'
 import { formatPrice } from '@shared/utils/format-price'
+import { resolveCardVariant, resolveCardBackground } from '@lib/serviceCards'
 import AccommodationCard from '@components/cards/AccommodationCard.astro'
 import TourCard from '@components/cards/TourCard.astro'
 import WaterActivityCard from '@components/cards/WaterActivityCard.astro'
@@ -14,8 +16,10 @@ import YachtCard from '@components/cards/YachtCard.astro'
 import RestaurantCard from '@components/cards/RestaurantCard.astro'
 import VenueCard from '@components/cards/VenueCard.astro'
 import RentalCard from '@components/cards/RentalCard.astro'
+import SpaCard from '@components/cards/SpaCard.astro'
+import FerryTicketsCard from '@components/cards/FerryTicketsCard.astro'
 import {
-  resolveContainer, resolvePadding, resolveEntryAnimation, resolveBackground,
+  resolveContainer, resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
@@ -44,7 +48,7 @@ let error: string | null = null
 
 try {
   const opts = { limit, sort: 'sortOrder' }
-  const destPromise = getDestinations({ limit: 20, sort: 'sortOrder' })
+  const destPromise = getDestinations({ limit: 100, sort: 'sortOrder' })
   let itemsPromise: Promise<any>
   switch (serviceType) {
     case 'tours':            itemsPromise = getTours(opts); break
@@ -53,6 +57,8 @@ try {
     case 'restaurants':      itemsPromise = getRestaurants(opts); break
     case 'venues':           itemsPromise = getVenues(opts); break
     case 'rentals':          itemsPromise = getRentals(opts); break
+    case 'spa':              itemsPromise = getSpas(opts); break
+    case 'ferry-tickets':    itemsPromise = getFerryTickets(opts); break
     default:                 itemsPromise = getAccommodations(opts); break
   }
   const [itemsData, destData] = await Promise.all([itemsPromise, destPromise])
@@ -75,10 +81,12 @@ const detailRouteMap: Record<string, string> = {
   accommodations: '/villa',
   tours: '/tour',
   rentals: '/rental',
+  spa: '/spa',
   'water-activities': '/water-activity',
   yachts: '/yacht',
   restaurants: '/restaurant',
   venues: '/venue',
+  'ferry-tickets': '/ferry-tickets',
 }
 const detailBase = detailRouteMap[serviceType] ?? '/'
 
@@ -132,14 +140,46 @@ const enableDestFilter = b.enableDestinationFilter !== false
 const enableSearch = b.enableSearch !== false
 const searchNamePlaceholder = b.searchNamePlaceholder ?? 'Search by name…'
 
+// ── Hierarchical destinations (Phase 3.22) ─────────────────────
+// Gated by Site Features. When ON: only "core" destinations (showInFilter)
+// become filter tabs; child destinations are matched to their core. When OFF:
+// flat behavior (every destination is its own tab, exact-match) — unchanged.
+const features = await getSiteFeatures().catch(() => null)
+const hierEnabled = (features as any)?.destinations?.hierarchicalFilter === true
+
+const destBySlug = new Map<string, any>()
+for (const d of destinations) if (d?.slug) destBySlug.set(d.slug, d)
+const parentSlugOf = (d: any): string | null => {
+  const p = d?.parent
+  if (!p) return null
+  return typeof p === 'object' ? (p.slug ?? null) : (destBySlug.get(String(p))?.slug ?? null)
+}
+const coreSlugOf = (slug: string): string => {
+  let cur = destBySlug.get(slug)
+  const seen = new Set<string>()
+  while (cur?.slug && !seen.has(cur.slug)) {
+    seen.add(cur.slug)
+    const ps = parentSlugOf(cur)
+    if (!ps) break
+    cur = destBySlug.get(ps)
+  }
+  return cur?.slug ?? slug
+}
+const coreNameOf = (slug: string): string => destBySlug.get(coreSlugOf(slug))?.name ?? ''
+
+const tabDestinations = hierEnabled
+  ? destinations.filter((d: any) => d?.showInFilter === true)
+  : destinations
+
 const filterDestinations = enableDestFilter
-  ? [{ label: 'All', value: 'all' }, ...destinations.map((d: any) => ({ label: d.name, value: d.slug ?? '' }))]
+  ? [{ label: 'All', value: 'all' }, ...tabDestinations.map((d: any) => ({ label: d.name, value: d.slug ?? '' }))]
   : []
 
 // ── Advanced styling ────────────────────────────────────────────
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const bgResolved = resolveBackground(b.background)
 
 const ts = b.ts ?? {}
@@ -151,10 +191,17 @@ const descColor = resolveTextColor(ts.descriptionColor)
 const descAnim = resolveTextAnimIn(ts.descriptionAnimIn)
 
 // Card variant + pagination
-const cardVariant: 'compact' | 'detailed' = b.cardVariant === 'detailed' ? 'detailed' : 'compact'
+// Phase 4.61.1: desain kartu ditentukan terpusat di SiteFeatures (per-service).
+const cardVariant = resolveCardVariant(serviceType, features)
+// Phase 4.61.3: background/corak kartu ticket (per-service).
+const cardBg = resolveCardBackground(serviceType, features)
 const showLoadMore = b.showLoadMore === true
 const paginationType: 'load-more' | 'pages' = b.paginationType === 'pages' ? 'pages' : 'load-more'
-const initialVisibleCount = typeof b.initialVisibleCount === 'number' ? b.initialVisibleCount : 6
+// Phase 4.53 — per-breakpoint pagination counts. Desktop = source of truth
+// untuk SSR & fallback; tablet/mobile fallback ke desktop kalau tak di-set.
+const perDesktop = typeof b.initialVisibleCount === 'number' ? b.initialVisibleCount : 6
+const perTablet = typeof b.initialVisibleCountTablet === 'number' ? b.initialVisibleCountTablet : perDesktop
+const perMobile = typeof b.initialVisibleCountMobile === 'number' ? b.initialVisibleCountMobile : perDesktop
 const loadMoreText = b.loadMoreText ?? 'Load More'
 
 // Unique id (multiple listings on same page possible)
@@ -162,7 +209,7 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
 
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
@@ -190,9 +237,10 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
       </div>
     )}
 
-    {/* Destination filter pills */}
+    {/* Destination filter pills — disembunyikan di mobile (Phase 4.53) supaya
+        area filter tetap ringkas; user filter via search bar. */}
     {enableDestFilter && filterDestinations.length > 1 && (
-      <div class="flex items-center justify-center gap-2 md:gap-3 mb-6 overflow-x-auto no-scrollbar py-2" data-role="dest-tabs" data-listing-id={listingId}>
+      <div class="hidden md:flex items-center justify-center gap-2 md:gap-3 mb-6 overflow-x-auto no-scrollbar py-2" data-role="dest-tabs" data-listing-id={listingId}>
         {filterDestinations.map((dest, i) => (
           <button
             type="button"
@@ -217,10 +265,15 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
             <input type="text" data-role="search-name" data-listing-id={listingId} placeholder={searchNamePlaceholder}
                    class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
           </label>
-          <label class="relative block">
-            <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
-            <input type="text" placeholder="Check-in — Check-out"
-                   class="w-full pl-12 pr-4 py-3 rounded-xl border-none bg-sand focus:bg-white focus:ring-2 focus:ring-ocean text-sm text-stone outline-none transition-all" />
+          <label class="relative block" data-role="date-range" data-listing-id={listingId}>
+            <Icon name="calendar_today" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none z-10" />
+            <div class="w-full pl-12 pr-3 py-2.5 rounded-xl bg-sand focus-within:bg-white focus-within:ring-2 focus-within:ring-ocean text-sm text-stone flex items-center gap-1 transition-all cursor-pointer">
+              <input type="date" data-role="checkin" aria-label="Check-in date"
+                     class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+              <span class="text-stone-light shrink-0">—</span>
+              <input type="date" data-role="checkout" aria-label="Check-out date"
+                     class="dnj-date-input bg-transparent outline-none flex-1 min-w-0 text-stone" />
+            </div>
           </label>
           <label class="relative block">
             <Icon name="group" class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
@@ -304,37 +357,51 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
         </div>
 
         <div
-          class:list={['grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8', showLoadMore && 'sl-swipe']}
+          class:list={[
+            'grid',
+            cardVariant === 'ticket'
+              ? 'grid-cols-1 gap-5'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8',
+          ]}
           data-role="grid"
           data-listing-id={listingId}
           data-pagination={showLoadMore ? paginationType : 'none'}
-          data-per-page={initialVisibleCount}
+          data-per-mobile={perMobile}
+          data-per-tablet={perTablet}
+          data-per-desktop={perDesktop}
         >
           {restItems.map((item: any, idx: number) => {
-            const destSlug = typeof item.destination === 'object' ? (item.destination?.slug ?? '') : ''
-            const name = (item.name ?? item.title ?? '').toLowerCase()
-            const hiddenByPagination = showLoadMore && idx >= initialVisibleCount
+            const ownDestSlug = typeof item.destination === 'object' ? (item.destination?.slug ?? '') : ''
+            const ownDestName = typeof item.destination === 'object' ? (item.destination?.name ?? '') : ''
+            const destSlug = hierEnabled && ownDestSlug ? coreSlugOf(ownDestSlug) : ownDestSlug
+            const name = [item.name ?? item.title ?? '', hierEnabled ? ownDestName : '', hierEnabled ? coreNameOf(ownDestSlug) : '']
+              .join(' ').trim().toLowerCase()
+            // SSR pakai per-desktop sebagai baseline (no-flash pada desktop).
+            // JS on-mount menyesuaikan visibility per breakpoint aktual.
+            const hiddenByPagination = showLoadMore && idx >= perDesktop
             return (
               <div
-                class:list={['sl-card', showLoadMore && 'sl-swipe-item', hiddenByPagination && 'sl-hidden-page']}
+                class:list={['sl-card', hiddenByPagination && 'sl-hidden-page']}
                 data-dest={destSlug}
                 data-name={name}
                 style={hiddenByPagination ? 'display:none' : undefined}
               >
-                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'tours' && <TourCard tour={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} />}
-                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} />}
+                {serviceType === 'accommodations' && <AccommodationCard accommodation={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'tours' && <TourCard tour={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'water-activities' && <WaterActivityCard activity={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'yachts' && <YachtCard yacht={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'restaurants' && <RestaurantCard restaurant={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'venues' && <VenueCard venue={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'rentals' && <RentalCard rental={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'spa' && <SpaCard spa={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
+                {serviceType === 'ferry-tickets' && <FerryTicketsCard ferryTicket={item} hrefBase={detailBase} variant={cardVariant} background={cardBg} />}
               </div>
             )
           })}
         </div>
 
         {/* Load More button (load-more mode only) */}
-        {showLoadMore && paginationType === 'load-more' && restItems.length > initialVisibleCount && (
+        {showLoadMore && paginationType === 'load-more' && restItems.length > Math.min(perMobile, perTablet, perDesktop) && (
           <div class="mt-10 text-center">
             <button
               type="button"
@@ -349,7 +416,7 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
 
         {/* Numbered pagination (pages mode only) */}
         {(() => {
-          const totalPg = Math.ceil(restItems.length / initialVisibleCount)
+          const totalPg = Math.ceil(restItems.length / perDesktop)
           return showLoadMore && paginationType === 'pages' && totalPg > 1 && (
             <nav class="mt-10 md:mt-12 flex items-center justify-center gap-2 flex-wrap" data-role="pagination" data-listing-id={listingId} aria-label="Pagination">
               <button type="button" data-role="page-prev" disabled
@@ -383,26 +450,28 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 
-  /* Mobile swipe for paginated grids */
-  @media (max-width: 767px) {
-    .sl-swipe {
-      display: flex !important;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      gap: 1rem;
-      padding-bottom: 0.5rem;
-    }
-    .sl-swipe::-webkit-scrollbar { display: none; }
-    .sl-swipe > .sl-swipe-item {
-      min-width: calc(100vw - 3rem);
-      width: calc(100vw - 3rem);
-      max-width: calc(100vw - 3rem);
-      flex-shrink: 0;
-      scroll-snap-align: start;
-    }
+  /* Phase 4.54 — native date input polish. Bikin field type=date terlihat
+     seamless dengan text input lain (no default border/bg), tap area luas
+     supaya nyaman di mobile, dan calendar indicator selalu tampil sebagai
+     petunjuk visual bahwa ini clickable. */
+  .dnj-date-input {
+    color-scheme: light;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    min-height: 1.5rem;
   }
+  .dnj-date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 150ms;
+  }
+  .dnj-date-input:hover::-webkit-calendar-picker-indicator { opacity: 1; }
+  .dnj-date-input:empty::before,
+  .dnj-date-input:not(:focus):in-range:placeholder-shown { color: var(--tw-stone-light, #94a3b8); }
 </style>
 
 <script>
@@ -415,6 +484,18 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
     })
   }
 
+  // Phase 4.53 — per-breakpoint pagination count.
+  // Mobile <640 · Tablet 640–1023 · Desktop ≥1024 (mengikuti tailwind sm/lg).
+  const readPerPage = (grid: HTMLElement): number => {
+    const w = window.innerWidth
+    const mobile = Number(grid.dataset.perMobile ?? grid.dataset.perDesktop ?? 6)
+    const tablet = Number(grid.dataset.perTablet ?? grid.dataset.perDesktop ?? 6)
+    const desktop = Number(grid.dataset.perDesktop ?? 6)
+    if (w < 640) return mobile
+    if (w < 1024) return tablet
+    return desktop
+  }
+
   // Multi-instance safe: scope by data-listing-id
   const initServiceListings = () => {
     // Only bind sl- prefixed ids (Editorial). Hero Immersive uses slh- prefix.
@@ -422,7 +503,7 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
     grids.forEach((grid) => {
       const id = grid.dataset.listingId!
       const paginationMode = grid.dataset.pagination ?? 'none'
-      const perPage = Number(grid.dataset.perPage ?? 6)
+      let perPage = readPerPage(grid)
       const tabs = document.querySelector<HTMLElement>(`[data-role="dest-tabs"][data-listing-id="${id}"]`)
       const nameInput = document.querySelector<HTMLInputElement>(`[data-role="search-name"][data-listing-id="${id}"]`)
       const searchBtn = document.querySelector<HTMLElement>(`[data-role="search-btn"][data-listing-id="${id}"]`)
@@ -540,8 +621,67 @@ const listingId = `sl-${Math.random().toString(36).slice(2, 9)}`
         loadMoreRevealed += perPage
         applyView()
       })
+
+      // Re-evaluate perPage saat viewport crossing breakpoint (mobile↔tablet↔desktop).
+      // Reset ke halaman 1 / batch awal supaya user tidak lihat state aneh.
+      let resizeTimer: number | undefined
+      const onResize = () => {
+        if (resizeTimer) window.clearTimeout(resizeTimer)
+        resizeTimer = window.setTimeout(() => {
+          const next = readPerPage(grid)
+          if (next !== perPage) {
+            perPage = next
+            currentPage = 1
+            loadMoreRevealed = 0
+            applyView()
+          }
+        }, 150)
+      }
+      window.addEventListener('resize', onResize)
+      window.addEventListener('orientationchange', onResize)
+
+      // Initial apply — cover kasus di mana SSR pakai desktop count tapi
+      // client-side viewport lain (mobile/tablet).
+      applyView()
     })
   }
   document.addEventListener('astro:page-load', initServiceListings)
   initServiceListings()
+
+  // Phase 4.54 — auto-open native calendar picker saat field date di-klik/focus.
+  // showPicker() supported di Chrome 99+, Edge 99+, Safari 16+, Firefox 101+.
+  // Fallback: klik ke field tetap trigger native picker via default browser behavior.
+  const initDatePickers = () => {
+    document.querySelectorAll<HTMLLabelElement>('[data-role="date-range"]').forEach((wrap) => {
+      if (wrap.dataset.dpBound === '1') return
+      wrap.dataset.dpBound = '1'
+      const checkin = wrap.querySelector<HTMLInputElement>('[data-role="checkin"]')
+      const checkout = wrap.querySelector<HTMLInputElement>('[data-role="checkout"]')
+
+      const openPicker = (input: HTMLInputElement | null) => {
+        if (!input) return
+        try { (input as any).showPicker?.() } catch { /* browser blocks (not user-initiated etc) */ }
+      }
+
+      // Click di area label/wrapper → open picker input terdekat.
+      wrap.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement
+        // Kalau klik langsung ke input atau indicator, biarkan native handler jalan.
+        if (target.tagName === 'INPUT') return
+        openPicker(checkin ?? checkout)
+      })
+      // Focus (keyboard tab) → juga buka picker biar aksesibel.
+      checkin?.addEventListener('focus', () => openPicker(checkin))
+      checkout?.addEventListener('focus', () => openPicker(checkout))
+      // Checkout min = checkin (cegah pilih tanggal sebelum check-in).
+      checkin?.addEventListener('change', () => {
+        if (checkout && checkin.value) {
+          checkout.min = checkin.value
+          if (checkout.value && checkout.value < checkin.value) checkout.value = checkin.value
+        }
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initDatePickers)
+  initDatePickers()
 </script>

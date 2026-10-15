@@ -2,13 +2,14 @@ import type { CollectionConfig } from 'payload'
 import { authenticatedRead, adminCreate, authenticatedUpdate, superAdminDelete } from '../access/roles'
 import { generateSlug } from '../hooks/generateSlug'
 import { statusField, sortOrderField } from '../fields/status'
+import { withStatusCell, updatedAtRelativeField } from '../fields/listCells'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
-    defaultColumns: ['name', 'module', 'status'],
+    group: 'Content & Pages',
+    defaultColumns: ['name', 'module', 'status', 'updatedAtRelative'],
   },
   access: {
     read: () => true,
@@ -43,6 +44,9 @@ export const Categories: CollectionConfig = {
         { label: 'Restaurants', value: 'restaurants' },
         { label: 'Weddings & Events', value: 'venues' },
         { label: 'Rentals', value: 'rentals' },
+        { label: 'Spa & Wellness', value: 'spa' },
+        { label: 'Ferry Tickets', value: 'ferry-tickets' },
+        // 'blog' retired (Phase 4.35.3) — moved to `blog-categories` collection.
       ],
     },
     {
@@ -69,7 +73,8 @@ export const Categories: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
     },
-    statusField,
+    withStatusCell(statusField),
     sortOrderField,
+    updatedAtRelativeField,
   ],
 }

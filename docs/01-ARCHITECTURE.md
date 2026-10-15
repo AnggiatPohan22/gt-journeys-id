@@ -1,6 +1,6 @@
 # 01 — ARCHITECTURE
 
-> Dokumentasi arsitektur teknis proyek **DnJourneysBali** — website travel agency berbasis monorepo (Astro + Payload CMS) yang di-hosting sepenuhnya di Cloudflare.
+> Dokumentasi arsitektur teknis proyek **GtJourneysID** — website travel agency berbasis monorepo (Astro + Payload CMS) yang di-hosting sepenuhnya di Cloudflare.
 
 Dokumen ini ditujukan untuk **developer** (yang perlu tahu di mana mengubah kode) dan juga **stakeholder / content manager non-teknis** (yang perlu paham kenapa perubahan CMS tidak selalu langsung tampil di website).
 
@@ -14,9 +14,9 @@ Ada tiga bagian utama:
 
 | Path | Nama Paket | Peran |
 | --- | --- | --- |
-| `apps/web` | `@dn-journeys/web` | **Front-End publik** — website yang dilihat pengunjung. Dibangun dengan **Astro** (static output) + Tailwind CSS. |
-| `apps/cms` | `@dn-journeys/cms` | **Back-End & Headless CMS** — panel admin untuk mengelola konten. Dibangun dengan **Payload CMS 3.x** di atas Next.js. |
-| `packages/shared` | `@dn-journeys/shared` | **Kode bersama** — type TypeScript (auto-generated dari Payload) dan utilitas kecil (mis. `format-price`) yang dipakai baik oleh `web` maupun `cms`. |
+| `apps/web` | `@gt-journeys/web` | **Front-End publik** — website yang dilihat pengunjung. Dibangun dengan **Astro** (static output) + Tailwind CSS. |
+| `apps/cms` | `@gt-journeys/cms` | **Back-End & Headless CMS** — panel admin untuk mengelola konten. Dibangun dengan **Payload CMS 3.x** di atas Next.js. |
+| `packages/shared` | `@gt-journeys/shared` | **Kode bersama** — type TypeScript (auto-generated dari Payload) dan utilitas kecil (mis. `format-price`) yang dipakai baik oleh `web` maupun `cms`. |
 
 ### Kenapa monorepo?
 
@@ -31,16 +31,16 @@ Ada tiga bagian utama:
 
 ```mermaid
 graph TD
-    subgraph Repo["dn-journeys-bali (monorepo, pnpm workspaces)"]
+    subgraph Repo["gt-journeys-id (monorepo, pnpm workspaces)"]
         Root["package.json<br/>pnpm-workspace.yaml"]
 
         subgraph Apps["apps/"]
-            Web["apps/web<br/>@dn-journeys/web<br/>Astro static site"]
-            CMS["apps/cms<br/>@dn-journeys/cms<br/>Payload CMS 3.x (Next.js)"]
+            Web["apps/web<br/>@gt-journeys/web<br/>Astro static site"]
+            CMS["apps/cms<br/>@gt-journeys/cms<br/>Payload CMS 3.x (Next.js)"]
         end
 
         subgraph Packages["packages/"]
-            Shared["packages/shared<br/>@dn-journeys/shared<br/>types + utils"]
+            Shared["packages/shared<br/>@gt-journeys/shared<br/>types + utils"]
         end
     end
 
@@ -241,7 +241,7 @@ Toggle per-modul saat ini di-drive dari `apps/web/src/config/` <!-- TODO: verifi
 ```bash
 # URL Payload CMS API yang di-fetch saat build (SSG)
 # Lokal: http://localhost:3030
-# Produksi: https://cms.dnjourneysbali.com
+# Produksi: https://cms.gtjourneysid.com
 CMS_URL=http://localhost:3030
 ```
 

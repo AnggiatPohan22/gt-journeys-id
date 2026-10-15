@@ -1,0 +1,220 @@
+---
+import { siteConfig } from '@config/site'
+import { getResolvedServiceTypes } from '@lib/serviceTypes'
+import { getFeatures } from '@lib/features'
+import { getSiteSettings, getFooterSettings } from '@lib/payload'
+import { defaultTemplateId } from '@shared/template-registry'
+import type { Media, SiteSetting } from '@shared/types/payload-types'
+import FooterTemplate1 from './templates/FooterTemplate1.astro'
+import FooterTemplate2 from './templates/FooterTemplate2.astro'
+import FooterTemplate3 from './templates/FooterTemplate3.astro'
+// Phase 4.33 — newsletter signup section above whichever footer template renders.
+import NewsletterSignup from '@components/common/NewsletterSignup.astro'
+
+let settings: SiteSetting | null = null
+let footerCfg: any = null
+try { settings = await getSiteSettings() } catch { /* fallback */ }
+try { footerCfg = await getFooterSettings() } catch { /* fallback */ }
+
+const menuToItems = (menu: any) => (menu && typeof menu === 'object' && Array.isArray(menu.items))
+  ? menu.items.map((it: any) => ({ label: it.label, url: it.url ?? '#', target: it.target ?? undefined }))
+  : []
+
+// Columns
+type FooterColumn = { label: string; items: { label: string; url: string; target?: string }[] }
+const footerColumns: FooterColumn[] = []
+for (const c of (footerCfg?.columns ?? []) as Array<{ columnLabel?: string; menu?: any }>) {
+  const items = menuToItems(c.menu)
+  if (items.length > 0) footerColumns.push({ label: c.columnLabel ?? 'Links', items })
+}
+const useFallbackQuickLinks = footerColumns.length === 0
+
+const siteName = settings?.siteName ?? siteConfig.name
+const tagline = settings?.tagline ?? siteConfig.tagline
+const logo = (typeof settings?.logo === 'object' ? settings.logo : null) as Media | null
+const logoUrl = logo?.url ?? ''
+const logoAlt = logo?.alt ?? siteName
+const contact = {
+  email: settings?.contact?.email ?? siteConfig.contact.email,
+  phone: settings?.contact?.phone ?? siteConfig.contact.phone,
+  address: settings?.contact?.address ?? siteConfig.contact.address,
+}
+const businessHours = settings?.whatsappDefaults?.businessHours
+const socialRaw = settings?.socialMedia ?? {}
+const socialUrl = (platform: string, raw?: string) => {
+  if (!raw) return ''
+  if (/^https?:\/\//.test(raw)) return raw
+  const bases: Record<string, string> = { instagram: 'https://instagram.com/', facebook: 'https://facebook.com/', tiktok: 'https://tiktok.com/@', youtube: 'https://youtube.com/@', tripadvisor: 'https://tripadvisor.com/' }
+  return (bases[platform] ?? '') + String(raw).replace(/^@/, '')
+}
+const social = {
+  instagram: socialUrl('instagram', (socialRaw as any).instagram),
+  facebook: socialUrl('facebook', (socialRaw as any).facebook),
+  tiktok: socialUrl('tiktok', (socialRaw as any).tiktok),
+  youtube: socialUrl('youtube', (socialRaw as any).youtube),
+}
+const copyright = settings?.footer?.copyrightText
+const additionalScripts = settings?.footer?.additionalScripts as string | undefined
+
+const showBrand = footerCfg?.showBrandColumn !== false
+const brandTagline = (footerCfg?.brandTaglineOverride as string | undefined) || tagline
+const showSocial = footerCfg?.showSocialLinks !== false
+
+const showServices = footerCfg?.showServicesColumn !== false
+const servicesLabel = footerCfg?.servicesColumnLabel || 'Our Services'
+
+// Phase 4.48.2 — filter auto-derived services by SiteFeatures modules gate.
+// ServiceType.key (kebab-case slug) ↔ SiteFeatures.modules key (camelCase).
+// Kalau modul disabled di CMS (`site-features.modules[key] === false`),
+// skip. Menu override (SA pilih manual) tidak difilter — override = intent
+// SA yang eksplisit.
+const SERVICE_KEY_TO_MODULE: Record<string, string> = {
+  'tours': 'tours',
+  'accommodations': 'accommodations',
+  'water-activities': 'waterActivities',
+  'yachts': 'yacht',
+  'restaurants': 'restaurants',
+  'venues': 'weddings',
+  'rentals': 'rentals',
+  'spa': 'spa',
+  'ferry-tickets': 'ferryTickets',
+}
+
+let servicesItems: Array<{ label: string; url: string; target?: string }>
+const servicesMenuItems = menuToItems(footerCfg?.servicesMenu)
+if (servicesMenuItems.length > 0) {
+  servicesItems = servicesMenuItems
+} else {
+  const svc = await getResolvedServiceTypes()
+  const feats = await getFeatures()
+  const enabled = svc.filter((s) => {
+    const modKey = SERVICE_KEY_TO_MODULE[s.key]
+    if (!modKey) return true // key belum di-map (mis. custom service) → include (safe default)
+    return (feats.modules as any)[modKey] !== false
+  })
+  servicesItems = enabled.map((s) => ({ label: s.name, url: `/${s.slug}` }))
+}
+
+const showContact = footerCfg?.showContactColumn !== false
+const contactLabel = footerCfg?.contactColumnLabel || 'Contact Us'
+const legalLinks = menuToItems(footerCfg?.legalLinks)
+const bottomRight = footerCfg?.bottomBarRightText || 'Designed with ♥ in Bali'
+const showNewsletter = footerCfg?.showNewsletter === true
+const currentYear = new Date().getFullYear()
+
+// ── Payment methods (Phase 4.48, source of truth = SiteSettings) ──
+type PaymentMethodOut = { label: string; logoUrl: string; logoAlt: string; url?: string }
+const paymentMethods: PaymentMethodOut[] = ((settings as any)?.paymentMethods ?? [])
+  .map((p: any) => {
+    const media = (typeof p?.logo === 'object' ? p.logo : null) as Media | null
+    return {
+      label: p?.label ?? '',
+      logoUrl: media?.url ?? '',
+      logoAlt: media?.alt ?? p?.label ?? '',
+      url: p?.url || undefined,
+    }
+  })
+  .filter((p: PaymentMethodOut) => p.logoUrl)
+
+// ── Layout Columns (Phase 4.48, flexible builder) ──
+// Kalau di-isi (>=1 row valid), footer-1 pakai layout ini.
+// Kosong → renderer template pakai fallback slot logic lama.
+type LayoutColumnOut = {
+  type: 'brand' | 'menuList' | 'services' | 'contact' | 'paymentMethods' | 'custom'
+  width: 'auto' | '25' | '33' | '50'
+  heading?: string
+  menuItems?: Array<{ label: string; url: string; target?: string }>
+  showSocialLinks?: boolean
+  showBusinessHours?: boolean
+  showPaymentMethods?: boolean
+  customContent?: any
+}
+const rawLayout = (footerCfg?.layoutColumns ?? []) as any[]
+const layoutColumns: LayoutColumnOut[] = []
+for (const c of rawLayout) {
+  if (!c?.type) continue
+  const type = c.type as LayoutColumnOut['type']
+  const width = (c.width ?? 'auto') as LayoutColumnOut['width']
+  const heading = (c.heading ?? '') as string
+  let menuItems: LayoutColumnOut['menuItems']
+  if (type === 'menuList' || type === 'services') {
+    menuItems = menuToItems(c.menu)
+    if (type === 'services' && (!menuItems || menuItems.length === 0)) {
+      // Services default = ServiceTypes auto
+      menuItems = servicesItems
+    }
+  }
+  layoutColumns.push({
+    type,
+    width,
+    heading: heading || undefined,
+    menuItems,
+    showSocialLinks: c.showSocialLinks !== false,
+    showBusinessHours: c.showBusinessHours !== false,
+    showPaymentMethods: c.showPaymentMethods === true,
+    customContent: c.customContent,
+  })
+}
+const useLayoutColumns = layoutColumns.length > 0
+
+// ── Advanced theming (Phase 4.43, mirror Header 4.41) ──
+// Default warna per-template — override lewat footerCfg.advanced.*.
+// Kosong (null/undefined) di CMS = pakai default → layout theme tetap.
+const templateId = footerCfg?.template || defaultTemplateId('footer')
+// Phase 4.45 — default divider pakai 8-digit hex (`#FFFFFF1A` = 10% alpha)
+// supaya CSS bisa langsung `border-color: var(--f-divider)` tanpa
+// `opacity: 0.10` di container (yang dulu meredupkan copyright juga).
+const templateDefaults: Record<string, Record<string, string>> = {
+  'footer-1': {
+    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF1A',
+  },
+  'footer-2': {
+    bg: '#1B3A4B', text: '#D9DEE1', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF1A',
+  },
+  'footer-3': {
+    bg: '#1B3A4B', text: '#B6C1C6', muted: '#8FA0A9', linkHover: '#FFFFFF', heading: '#FFFFFF', divider: '#FFFFFF1A',
+  },
+}
+const fd = templateDefaults[templateId] ?? templateDefaults['footer-1']
+const fadv = footerCfg?.advanced ?? {}
+// Phase 4.45 — regex diperluas untuk terima 3/4/6/8-digit hex (alpha).
+const pick = (v: string | null | undefined, fallback: string) =>
+  (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
+const themeVars = {
+  '--f-bg':          pick(fadv.bgColor,        fd.bg),
+  '--f-text':        pick(fadv.textColor,      fd.text),
+  '--f-muted':       pick(fadv.mutedTextColor, fd.muted),
+  '--f-link-hover':  pick(fadv.linkHoverColor, fd.linkHover),
+  '--f-heading':     pick(fadv.headingColor,   fd.heading),
+  '--f-divider':     pick(fadv.dividerColor,   fd.divider),
+}
+const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
+
+const ctx = {
+  siteName, brandTagline, logoUrl, logoAlt, contact, businessHours, social, showSocial,
+  copyright, footerColumns, useFallbackQuickLinks, showBrand, showServices, servicesLabel,
+  servicesItems, showContact, contactLabel, legalLinks, bottomRight, showNewsletter, currentYear,
+  themeStyle,
+  // Phase 4.48
+  paymentMethods, layoutColumns, useLayoutColumns,
+}
+
+const TEMPLATES: Record<string, any> = { 'footer-1': FooterTemplate1, 'footer-2': FooterTemplate2, 'footer-3': FooterTemplate3 }
+const Template = TEMPLATES[templateId] ?? FooterTemplate1
+---
+<NewsletterSignup />
+<Template {...ctx} />
+{additionalScripts && <Fragment set:html={additionalScripts} />}
+
+<style is:global>
+  /* Phase 4.43 — footer theming via CSS custom properties.
+     Vars injected inline pada #main-footer oleh setiap template. */
+  #main-footer { background-color: var(--f-bg); color: var(--f-text); }
+  #main-footer .dnj-f-muted { color: var(--f-muted); }
+  #main-footer .dnj-f-heading { color: var(--f-heading); }
+  #main-footer .dnj-f-divider { border-color: var(--f-divider); }
+  #main-footer a.dnj-f-link { color: var(--f-text); transition: color 200ms; }
+  #main-footer a.dnj-f-link:hover { color: var(--f-link-hover); }
+  #main-footer .dnj-f-social a { color: var(--f-text); transition: color 200ms; }
+  #main-footer .dnj-f-social a:hover { color: var(--f-link-hover); }
+</style>

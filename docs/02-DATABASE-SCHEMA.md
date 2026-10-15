@@ -1,8 +1,10 @@
 # 02 — DATABASE SCHEMA
 
-> Skema database proyek **DnJourneysBali**, di-generate dari definisi Payload CMS 3.x pada `apps/cms/src/collections/` dan `apps/cms/src/globals/`.
+> Skema database proyek **GtJourneysID**, di-generate dari definisi Payload CMS 3.x pada `apps/cms/src/collections/` dan `apps/cms/src/globals/`.
 >
 > Database: **Cloudflare D1** (SQLite-compatible) di produksi, SQLite file lokal (`apps/cms/cms.db`) saat development. Adapter: `@payloadcms/db-sqlite` (Drizzle ORM) — lihat [payload.config.ts](apps/cms/src/payload.config.ts).
+>
+> ⚠️ **Belum lengkap** — koleksi terbaru (Phase 4.62 Bookings + passengers + Phase 4.67.2a round-trip) belum dituliskan lengkap di sini. Detail schema Bookings ada di [`apps/cms/src/collections/Bookings.ts`](apps/cms/src/collections/Bookings.ts) + migrations `20260927_142814_phase_4_62_bookings`, `20260928_000355_phase_4_63_passengers`, `20260930_231200_phase_4_66_5_booking_access_token` (kolom `access_token` untuk IDOR fix Phase 4.66.5), dan `20261007_061355_phase_4_67_2a_bookings_roundtrip` (kolom `trip_type` + 10 kolom snapshot leg return — `return_date`, `return_ferry_ticket_id`, `return_origin_location`, `return_destination_location`, `return_schedule_time_label`, `return_ferry_class_name`, `return_ferry_class_type`, `return_unit_price`, `return_total_estimate` — plus index `bookings_return_ferry_ticket_idx`). Nama STRICT PARALLEL ke outbound (`departure_date ↔ return_date`, `ferry_ticket_id ↔ return_ferry_ticket_id`, dst) supaya migration path ke multi-city `legs[]` di masa depan cukup copy outbound→legs[0] + return→legs[1].
 
 ---
 
@@ -376,7 +378,9 @@ Access: read publik, delete = admin+.
 |---|---|---|---|---|
 | `name` | text | ✓ | — | |
 | `slug` | text | ✓ | ✓ | Auto-generated oleh hook `generateSlug` |
-| `type` | select | ✓ | — | `island` \| `mainland` |
+| `type` | relationship → destination-types | ✓ | — | **Phase 3.23**: dulu select `island`/`mainland`, kini FK ke `destination-types`. |
+| `parent` | relationship → destinations | — | — | **Phase 3.22**: self-relation, sub-lokasi (Kuta → Main Island) |
+| `showInFilter` | checkbox | — | — | **Phase 3.22**: core flag (Super Admin field access) |
 | `description` | richText | — | — | Lexical JSON |
 | `featuredImage` | upload → media | — | — | FK |
 | `gallery[]` | array | — | — | `{ image: media }` |
@@ -384,6 +388,17 @@ Access: read publik, delete = admin+.
 | `seo` | group | — | — | metaTitle / metaDescription / ogImage |
 | `status` | select | — | — | `draft` \| `published` (default draft) |
 | `sortOrder` | number | — | — | Lower = first |
+
+#### `destination-types` — [DestinationTypes.ts](apps/cms/src/collections/DestinationTypes.ts) *(Phase 3.23)*
+
+Taksonomi tipe destinasi, CRUD-able dari CMS. Internal — tidak dirender frontend.
+
+| Field | PL type | Req | Uniq | Deskripsi |
+|---|---|---|---|---|
+| `name` | text | ✓ | — | mis. "Island", "Mainland" |
+| `slug` | text | ✓ | ✓ | Auto (`generateSlug`) |
+| `isActive` | checkbox | — | — | default `true` |
+| `sortOrder` | number | — | — | Auto max+1 saat create; swap saat konflik (hook `autoSortOrder`) |
 
 #### `categories` — [Categories.ts](apps/cms/src/collections/Categories.ts)
 
@@ -493,7 +508,7 @@ Field khas: `title`, `subtitle`, `rentalType` (motorbike/car/bicycle/boat/surfbo
 #### `site-settings` — [SiteSettings.ts](apps/cms/src/globals/SiteSettings.ts)
 
 Setelan brand global. Fields:
-- `siteName` (req, default `DnJourneysBali`), `tagline`, `logo`, `logoDark`, `favicon` (semua upload → media)
+- `siteName` (req, default `GtJourneysID`), `tagline`, `logo`, `logoDark`, `favicon` (semua upload → media)
 - `contact` (group): `email, phone, whatsapp, address, mapEmbed`
 - `socialMedia` (group): `instagram, facebook, tiktok, youtube, tripadvisor`
 - `defaultSeo` (group): `metaTitle, metaDescription, ogImage, googleAnalyticsId`
@@ -612,8 +627,8 @@ Saat CMS start di dev, Drizzle akan mendeteksi perubahan schema dan menawarkan m
 4. Untuk produksi (Cloudflare D1):
 
 ```bash
-pnpm --filter @dn-journeys/cms payload migrate:create
-pnpm --filter @dn-journeys/cms payload migrate
+pnpm --filter @gt-journeys/cms payload migrate:create
+pnpm --filter @gt-journeys/cms payload migrate
 ```
 
 <!-- PLANNED: belum ada folder migrations/ di apps/cms — akan di-generate otomatis saat perintah migrate:create dijalankan pertama kali. -->
@@ -668,8 +683,8 @@ collections: [
 
 ```bash
 pnpm generate:types
-pnpm --filter @dn-journeys/cms payload migrate:create
-pnpm --filter @dn-journeys/cms payload migrate
+pnpm --filter @gt-journeys/cms payload migrate:create
+pnpm --filter @gt-journeys/cms payload migrate
 ```
 
 4. (Opsional) Tambah helper fetch di [apps/web/src/lib/payload.ts](apps/web/src/lib/payload.ts):
@@ -710,8 +725,8 @@ Setelah menambah relasi:
 
 ```bash
 pnpm generate:types            # tipe TS ter-update — FK sekarang typed sebagai `number | Destination`
-pnpm --filter @dn-journeys/cms payload migrate:create
-pnpm --filter @dn-journeys/cms payload migrate
+pnpm --filter @gt-journeys/cms payload migrate:create
+pnpm --filter @gt-journeys/cms payload migrate
 ```
 
 **Dampak pada shared types:** Payload meng-generate field relasi sebagai union `number | RelatedType`. Front-end harus handle `depth` fetch — kalau `depth: 0` hasilnya cuma ID number, `depth ≥ 1` sudah populated object. Helper `fetchBySlug` default `depth: 2`.
@@ -761,6 +776,23 @@ Ingat: di SQLite, kolom `json` **tidak** ter-indeks by default. Kalau butuh quer
 - Atau lakukan filter di aplikasi (Astro build) untuk dataset kecil (< beberapa ribu row).
 
 ---
+
+## Media Folders (Phase 4.60)
+
+Sejak Phase 4.60, Media memakai fitur **Folders bawaan Payload** (`folders: true`).
+Ini menambah:
+
+- Tabel sistem **`payload_folders`** (`id`, `name`, `folder_id` self-ref parent,
+  `updated_at`, `created_at`) + **`payload_folders_folder_type`** (array `folderType`,
+  di-scope ke `['media']`).
+- Kolom **`media.folder_id`** (FK → `payload_folders.id`, `ON DELETE set null`).
+- Kolom **`payload_locked_documents_rels.payload_folders_id`**.
+
+Media tanpa `folder_id` = root/Uncategorized. Struktur folder di-seed via
+`pnpm --filter cms seed:media-folders` (11 modul × Featured/Gallery + Uncategorized)
+dan di-maintain otomatis oleh hook `assignMediaFolder` di collection service + Posts.
+Migrasi: `20260924_032356_phase_4_60_media_folders` (batch 27). Detail:
+[`docs/reports/phase-media-folders.md`](reports/phase-media-folders.md).
 
 ## Referensi silang
 

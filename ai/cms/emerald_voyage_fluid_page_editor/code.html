@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OripioFin - Page Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-container": "#00714d",
+                      "on-surface": "#191c1e",
+                      "tertiary-fixed-dim": "#45dfa4",
+                      "outline": "#6f7973",
+                      "outline-variant": "#bec9c2",
+                      "on-primary": "#ffffff",
+                      "on-primary-fixed-variant": "#00513b",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-tertiary-container": "#47e0a5",
+                      "on-tertiary-fixed-variant": "#005137",
+                      "surface-dim": "#d8dadc",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#006c49",
+                      "surface-tint": "#1b6b51",
+                      "on-tertiary-fixed": "#002114",
+                      "on-primary-fixed": "#002116",
+                      "secondary-fixed-dim": "#4edea3",
+                      "surface": "#f7f9fb",
+                      "inverse-surface": "#2d3133",
+                      "on-secondary-fixed": "#002113",
+                      "on-background": "#191c1e",
+                      "error": "#ba1a1a",
+                      "surface-container": "#eceef0",
+                      "surface-container-low": "#f2f4f6",
+                      "surface-variant": "#e0e3e5",
+                      "tertiary-fixed": "#68fcbf",
+                      "on-error-container": "#93000a",
+                      "surface-container-lowest": "#ffffff",
+                      "on-primary-container": "#8bd6b7",
+                      "primary-fixed": "#a6f2d1",
+                      "inverse-on-surface": "#eff1f3",
+                      "on-secondary-fixed-variant": "#005236",
+                      "on-error": "#ffffff",
+                      "surface-bright": "#f7f9fb",
+                      "primary": "#004532",
+                      "surface-container-high": "#e6e8ea",
+                      "inverse-primary": "#8bd6b6",
+                      "on-secondary": "#ffffff",
+                      "primary-fixed-dim": "#8bd6b6",
+                      "background": "#f7f9fb",
+                      "primary-container": "#065f46",
+                      "tertiary": "#00462f",
+                      "secondary-container": "#6cf8bb",
+                      "error-container": "#ffdad6",
+                      "tertiary-container": "#006042",
+                      "on-surface-variant": "#3f4944",
+                      "secondary-fixed": "#6ffbbe"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "container-margin": "32px",
+                      "section-gap": "48px",
+                      "card-padding": "24px",
+                      "floating-offset": "16px",
+                      "gutter": "24px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Geist"],
+                      "body-md": ["Geist"],
+                      "label-md": ["Geist"],
+                      "display-lg": ["Geist"],
+                      "headline-md": ["Geist"],
+                      "headline-lg-mobile": ["Geist"],
+                      "label-sm": ["Geist"],
+                      "headline-lg": ["Geist"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .glow-accent {
+            box-shadow: 0 20px 40px rgba(0, 69, 50, 0.1);
+        }
+        .drag-handle:hover { cursor: grab; }
+        .drag-handle:active { cursor: grabbing; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen overflow-hidden flex font-body-md">
+<!-- SideNavBar -->
+<aside class="fixed left-floating-offset top-floating-offset bottom-floating-offset w-64 rounded-lg border-r border-outline-variant/10 shadow-xl bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl z-50 flex flex-col h-[calc(100vh-32px)] p-4 gap-y-6 hidden md:flex">
+<div class="flex items-center gap-3 px-2 mb-4">
+<div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary font-bold">O</div>
+<div class="flex flex-col">
+<span class="font-display-lg text-headline-md text-primary dark:text-primary-fixed tracking-tight">OripioFin</span>
+<span class="text-xs text-on-surface-variant">Tour &amp; Travel CMS</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-3 transition-colors hover:bg-surface-container-high dark:hover:bg-surface-variant/20 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-primary text-on-primary rounded-xl p-3 shadow-lg shadow-primary/20 scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_note</span>
+<span class="font-label-md text-label-md font-bold">Editor</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-3 transition-colors hover:bg-surface-container-high dark:hover:bg-surface-variant/20 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">photo_library</span>
+<span class="font-label-md text-label-md">Media</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-3 transition-colors hover:bg-surface-container-high dark:hover:bg-surface-variant/20 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu_open</span>
+<span class="font-label-md text-label-md">Menus</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-3 transition-colors hover:bg-surface-container-high dark:hover:bg-surface-variant/20 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">explore</span>
+<span class="font-label-md text-label-md">Services</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-3 transition-colors hover:bg-surface-container-high dark:hover:bg-surface-variant/20 transition-all duration-300 rounded-xl" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-4">
+<div class="bg-surface-container rounded-xl p-4 flex flex-col items-start gap-2 border border-outline-variant/20">
+<span class="font-label-md text-label-md text-on-surface">Upgrade Pro! 👑</span>
+<p class="text-xs text-on-surface-variant">Higher productivity with better organization</p>
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-4 py-2 rounded-full font-label-md text-label-md hover:shadow-lg transition-shadow">Upgrade</button>
+</div>
+<div class="flex flex-col gap-1 border-t border-outline-variant/10 pt-4">
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-2 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">help</span>
+<span class="font-label-md text-label-md">Help Desk</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant hover:text-primary p-2 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">logout</span>
+<span class="font-label-md text-label-md">Log out</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[calc(256px+32px)] mr-container-margin mt-floating-offset mb-floating-offset relative flex flex-col h-[calc(100vh-32px)]">
+<!-- TopNavBar -->
+<header class="bg-surface/60 dark:bg-inverse-surface/60 backdrop-blur-md rounded-lg h-16 shadow-sm border-b border-outline-variant/10 flex justify-between items-center px-6 w-full mb-6 z-40 relative">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">arrow_back</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">arrow_forward</span>
+</div>
+<div class="flex gap-2 font-label-sm text-label-sm text-on-surface-variant items-center">
+<span>OripioFin</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-bold">Editor</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all duration-200">help</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all duration-200">mail</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-all duration-200">notifications</span>
+</div>
+<div class="flex items-center gap-3">
+<img class="w-8 h-8 rounded-full object-cover border border-outline-variant/30" data-alt="A small circular profile picture of a professional user in a bright modern office setting, high resolution, soft lighting, business attire." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDerxZViEwuxdSWa4SEt8XEKdAuzFGp0mavDwCwrW_NF5MchchrkLPPUiKUKctguC-aUgy5zaqchYuJcccDJhDHGomviY7LskKGm3PKoaKIo3lD8yEo2Y6kwwG5Nmkv2lGcGfLmDvHZ7tl8d0uD2YUMvRdHt0cr4mFkodc3nLmd0Ao940HulPPec_31ImlF_U5lleAqtY_Hi6fkBrr0J6P0istU15LykzmkXZ3rFgUl-11AbbQA07LQ"/>
+<button class="bg-primary text-on-primary px-4 py-1.5 rounded-full flex items-center gap-2 font-label-sm text-label-sm hover:bg-primary-container transition-colors shadow-sm shadow-primary/20">
+                        Share <span class="material-symbols-outlined text-sm">share</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Editor Canvas -->
+<div class="flex-1 flex gap-6 overflow-hidden">
+<!-- Builder Area -->
+<div class="flex-1 bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-y-auto relative flex flex-col">
+<!-- Toolbar -->
+<div class="sticky top-0 bg-surface-container-lowest/90 backdrop-blur-md p-4 border-b border-outline-variant/10 flex justify-between items-center z-10">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md">Page: Explore Bali</span>
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container rounded text-xs font-medium ml-2">Draft</span>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">undo</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">redo</span>
+</button>
+<div class="w-px h-6 bg-outline-variant/30 mx-2"></div>
+<button class="text-primary font-medium hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors">Preview</button>
+<button class="bg-primary text-on-primary px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-shadow">Publish</button>
+</div>
+</div>
+<!-- Canvas -->
+<div class="p-8 max-w-4xl mx-auto w-full flex flex-col gap-6">
+<!-- Hero Block -->
+<div class="relative group glass-panel rounded-xl p-2 border-2 border-transparent hover:border-primary/30 transition-colors">
+<div class="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-2">
+<button class="p-1.5 bg-surface-container rounded-lg text-on-surface-variant hover:text-primary shadow-sm drag-handle">
+<span class="material-symbols-outlined text-sm">drag_indicator</span>
+</button>
+<button class="p-1.5 bg-surface-container rounded-lg text-error hover:bg-error-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<div class="relative h-64 rounded-lg overflow-hidden flex items-center justify-center bg-surface-container-high border border-dashed border-outline-variant">
+<div class="absolute inset-0 bg-cover bg-center opacity-60" data-alt="A sweeping, cinematic wide-angle shot of a lush Balinese rice terrace at sunrise, soft golden hour lighting piercing through mist, vibrant emerald greens, ultra-high resolution, evoking a sense of premium travel adventure." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDOVwKbfcKAqsoDXctSDxFp6phQcufllSOIMYX17KPxkC5IyxWRDFdlqoJbPhNf8LN1yh7Hok-1tcRwIPKB_kv-zExrt7V18Q4-D3lNY5X2b1ugXuvHBChgolLQYv4tXVAjpXwWICP-2qmKLQV_V9S0Awmm4Yc4dFZ7ojF7LWsu8F6jOxETwnxDHTO9ZeC-DMQ-I324Iks5GPOZeXno-F2Vdk6TnK-Gwt5Jr6tFB3XED0XPijKmuHfu')"></div>
+<div class="relative z-10 flex flex-col items-center gap-4 p-6 bg-surface-container-lowest/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20">
+<span class="material-symbols-outlined text-4xl text-primary">image</span>
+<h3 class="font-headline-md text-headline-md text-center">Hero Banner</h3>
+<button class="px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors">Edit Content</button>
+</div>
+</div>
+</div>
+<!-- Grid Layout Block -->
+<div class="relative group glass-panel rounded-xl p-6 border-2 border-primary/10 hover:border-primary/30 transition-colors">
+<div class="absolute -left-10 top-6 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-2">
+<button class="p-1.5 bg-surface-container rounded-lg text-on-surface-variant hover:text-primary shadow-sm drag-handle">
+<span class="material-symbols-outlined text-sm">drag_indicator</span>
+</button>
+<button class="p-1.5 bg-surface-container rounded-lg text-error hover:bg-error-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<div class="flex justify-between items-center mb-4 pb-2 border-b border-outline-variant/10">
+<span class="font-label-md text-label-md text-on-surface-variant">Featured Destinations Grid</span>
+<button class="text-primary hover:bg-primary/5 p-1 rounded"><span class="material-symbols-outlined text-sm">settings</span></button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant/20 flex flex-col items-center justify-center min-h-[120px] border-dashed text-on-surface-variant hover:text-primary hover:border-primary/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined mb-2">add_circle</span>
+<span class="text-sm">Add Card</span>
+</div>
+<div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant/20 flex flex-col items-center justify-center min-h-[120px] border-dashed text-on-surface-variant hover:text-primary hover:border-primary/50 cursor-pointer transition-colors">
+<span class="material-symbols-outlined mb-2">add_circle</span>
+<span class="text-sm">Add Card</span>
+</div>
+</div>
+</div>
+<!-- Add Block Button -->
+<button class="w-full py-4 border-2 border-dashed border-outline-variant/40 rounded-xl text-on-surface-variant flex items-center justify-center gap-2 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
+<span class="material-symbols-outlined">add</span>
+<span class="font-medium">Add New Block</span>
+</button>
+</div>
+</div>
+<!-- Settings Sidebar -->
+<div class="w-80 bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm flex flex-col overflow-hidden">
+<div class="p-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
+<span class="font-headline-md text-headline-md text-base">Page Settings</span>
+<button class="text-on-surface-variant hover:text-primary"><span class="material-symbols-outlined text-sm">close</span></button>
+</div>
+<div class="p-4 overflow-y-auto flex-1 flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Page Title</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all" type="text" value="Explore Bali"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">URL Slug</label>
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm text-on-surface-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all" type="text" value="/destinations/explore-bali"/>
+</div>
+<div class="h-px bg-outline-variant/20 w-full"></div>
+<div class="flex flex-col gap-3">
+<span class="font-label-md text-label-md text-on-surface">Status &amp; Visibility</span>
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Published</span>
+<div class="w-10 h-6 bg-surface-container-high rounded-full relative cursor-pointer">
+<div class="w-4 h-4 bg-outline-variant rounded-full absolute left-1 top-1 transition-transform"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-on-surface-variant">Show in Navigation</span>
+<div class="w-10 h-6 bg-primary rounded-full relative cursor-pointer">
+<div class="w-4 h-4 bg-white rounded-full absolute right-1 top-1 transition-transform"></div>
+</div>
+</div>
+</div>
+<div class="h-px bg-outline-variant/20 w-full"></div>
+<div class="flex flex-col gap-2">
+<label class="font-label-sm text-label-sm text-on-surface-variant">SEO Meta Description</label>
+<textarea class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-none" rows="3">Discover the beauty of Bali...</textarea>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

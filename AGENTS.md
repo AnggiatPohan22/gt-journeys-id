@@ -1,4 +1,4 @@
-# AGENTS.md — DnJourneysBali Master Rules
+# AGENTS.md — GtJourneysID Master Rules
 
 This file is the master rule for all AI agents working on this project.
 Read this file first before making any changes.
@@ -7,7 +7,7 @@ Read this file first before making any changes.
 
 ## 1. Project Identity
 
-**Project:** DnJourneysBali — Travel Website Template
+**Project:** GtJourneysID — Travel Website Template
 **Architecture:** Monorepo with separated Frontend + Backend CMS
 **Goal:** Reusable travel website template with 7 service modules,
 CMS-managed content, WhatsApp-first booking, deployable to Cloudflare.
@@ -20,7 +20,7 @@ This project is a monorepo with two independent applications.
 They share types but deploy separately. Never mix their concerns.
 
 ```
-dn-journeys-bali/
+gt-journeys-id/
 ├── apps/web/          ← FRONTEND (Astro static site)
 ├── apps/cms/          ← BACKEND  (Payload CMS on Next.js)
 ├── packages/shared/   ← SHARED types & utilities only
@@ -135,7 +135,7 @@ Developer pushes to GitHub
              ├── Build command:  cd apps/web && pnpm install && pnpm build
              ├── Output dir:     apps/web/dist
              ├── Build output:   Static HTML + CSS + JS + images
-             └── Result:         Live at dnjourneysbali.com
+             └── Result:         Live at gtjourneysid.com
 
 Size: typically 5-20 MB (HTML + optimized assets)
 Cost: $0/month (Cloudflare Pages free tier)
@@ -160,7 +160,7 @@ Developer runs: cd apps/cms && pnpm deploy
         ├── Worker bundle:   .open-next/worker.js
         ├── Database:        Cloudflare D1 (managed, no file in repo)
         ├── Media storage:   Cloudflare R2 (managed, no file in repo)
-        └── Result:          Live at cms.dnjourneysbali.com
+        └── Result:          Live at cms.gtjourneysid.com
 
 Size: Worker bundle ~3-10 MB (Cloudflare limit: varies by plan)
 Cost: $5/month (Workers paid plan)
@@ -238,8 +238,21 @@ Local dev:     SQLite file (auto-created by Payload)
 Production:    Cloudflare D1 (configured in wrangler.toml)
 ```
 
-Payload auto-generates tables from collection configs.
-No manual SQL. No migration files. Collections = schema.
+Payload generates the schema from collection configs. Since 2026-09-12
+the DB is evolved through **migrations**, not dev push.
+
+Workflow (from `apps/cms/`):
+```
+pnpm schema:new -- --name short-description   # generate diff migration
+# review the .ts + .json in src/migrations/, commit both
+pnpm schema:migrate                            # apply pending migrations
+pnpm generate:types                            # regenerate payload-types.ts
+```
+
+Never set `PAYLOAD_FORCE_PUSH=true`. Never write ad-hoc DDL scripts.
+See [`docs/DB-SCHEMA-CHANGES.md`](./docs/DB-SCHEMA-CHANGES.md) for the
+runbook and [`docs/reports/schema-management-audit.md`](./docs/reports/schema-management-audit.md)
+for the "why".
 
 ---
 
@@ -284,6 +297,12 @@ export const ModuleName: CollectionConfig = {
 - `isFeaturedField` — show on homepage
 - `whatsappField` — pre-filled WA message template
 - `locationFields` — address, map embed, coordinates
+
+**Service tab config** (in `src/config/serviceTabsConfig.ts`):
+- Centralized labels, icons, and colors for all 8 service collection tabs
+- `sectionClass(color, icon)` helper generates accordion CSS classNames
+- Edit this file (NOT individual collection files) to rename tabs or swap icons
+- See `docs/guides/service-tabs-config-guide.md` for full details
 
 ---
 
@@ -436,10 +455,11 @@ When reusing this template for a new travel client:
 2. `apps/web/tailwind.config.mjs` — change brand colors
 3. `apps/web/src/config/modules.ts` — toggle services on/off
 4. `apps/web/public/fonts/` — swap fonts if needed
-5. `apps/cms/wrangler.toml` — change worker/DB/bucket names
-6. `apps/web/.env` — point to new CMS URL
-7. Deploy CMS → create super-admin → populate content
-8. Deploy frontend → point domain → done
+5. `apps/cms/src/config/serviceTabsConfig.ts` — rename CMS tab labels/icons per industry
+6. `apps/cms/wrangler.toml` — change worker/DB/bucket names
+7. `apps/web/.env` — point to new CMS URL
+8. Deploy CMS → create super-admin → populate content
+9. Deploy frontend → point domain → done
 
 **What changes:** Colors, fonts, enabled modules, content, domain.
 **What stays:** All code, collections, components, animations, layouts.
@@ -509,8 +529,21 @@ laporan dalam file terpisah.
 | Infra / deploy berubah | `docs/05-INFRA.md` |
 | Runbook / maintenance berubah | `docs/06-MAINTENANCE-RUNBOOK.md` |
 | Keputusan arsitektur baru | `docs/07-DECISION-LOG.md` |
+| **Pekerjaan security** (audit, hardening, patch CVE, pengetatan RBAC, dsb.) | `docs/08-SECURITY-PATCH.md` — tambah 1 baris di tabel series yang relevan (atau buka series baru). Isi ringkas saja; detail tetap di phase report. |
 | Apapun yang selesai | `docs/PROGRESS.md` |
 | **Selalu** | `docs/reports/phase-[nama].md` (buat baru) |
+
+### Aturan khusus Security (Phase 4.66+)
+
+Semua perintah user yang menyentuh **security** (audit, hardening, patch, pengetatan access control, CSP, rate-limit, secret rotation, dsb.) wajib:
+
+1. Dijalankan sebagai phase bernomor di `docs/phases/phase-<N>-*.md` seperti task biasa.
+2. **DITAMBAHKAN entri garis-besar** di [`docs/08-SECURITY-PATCH.md`](docs/08-SECURITY-PATCH.md) — satu baris per phase, dengan finding ID, severity, link, status.
+3. Jangan menduplikasi isi phase report ke `08-SECURITY-PATCH.md`. File itu adalah **index**, bukan laporan.
+4. Series security baru (bukan sub-phase dari series yang sudah ada) dibuat sebagai **section baru** di `08-SECURITY-PATCH.md`, mengikuti template yang ada di akhir file tsb.
+5. PROGRESS.md tetap diupdate seperti biasa untuk timeline keseluruhan proyek — security bukan pengecualian.
+
+Rasionale: developer yang masuk project butuh satu tempat untuk cek "proteksi apa saja yang sudah terpasang" tanpa harus scroll PROGRESS.md yang bercampur dengan pekerjaan UI/content/CMS.
 
 ### Format Ringkas (untuk update inline di chat / commit message)
 

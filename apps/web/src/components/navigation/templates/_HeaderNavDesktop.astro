@@ -1,0 +1,77 @@
+---
+// Shared desktop nav — sub-menu dropdown dibuka via KLIK (bukan hover).
+// Dipakai HeaderTemplate1/2/3. Parent ber-children = tombol toggle; item
+// `asSpan` tanpa children = teks non-link.
+// Phase 4.41: warna teks link via .dnj-nav-link + CSS vars di #main-header.
+import Icon from '@components/common/Icon.astro'
+const { items = [], currentPath = '/', ulClass = '' } = Astro.props as any
+const isActive = (url: string): boolean => url === '/' ? currentPath === '/' : currentPath === url || currentPath.startsWith(url + '/')
+---
+<ul class:list={['hidden lg:flex items-center gap-5 xl:gap-6 text-sm font-semibold', ulClass]}>
+  {items.map((item: any) => {
+    const hasChildren = item.children && item.children.length > 0
+    const active = isActive(item.url)
+    return (
+      <li class={hasChildren ? 'relative' : ''} data-dd={hasChildren ? '' : undefined}>
+        {hasChildren ? (
+          <>
+            <button type="button" data-dd-toggle class:list={['dnj-nav-link flex items-center gap-1 no-underline', active && 'dnj-nav-link--active']} aria-expanded="false" aria-haspopup="true">
+              {item.label}
+              <Icon name="expand_more" class="w-4 h-4 transition-transform duration-200" />
+            </button>
+            <div data-dd-panel class="hidden absolute top-full left-0 pt-3 z-50">
+              <ul class="bg-white rounded-xl shadow-xl p-2 min-w-[220px] border border-sand-dark/10">
+                {item.children.map((child: any) => (
+                  <li>
+                    {child.asSpan ? (
+                      <span class="block px-4 py-2.5 text-stone-light font-semibold uppercase tracking-wider text-xs">{child.label}</span>
+                    ) : (
+                      <a href={child.url} target={child.target ?? undefined} rel={child.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-nav-link block px-4 py-2.5 hover:bg-sand rounded-md no-underline text-sm">{child.label}</a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
+        ) : item.asSpan ? (
+          <span class="inline-block text-stone-light cursor-default">{item.label}</span>
+        ) : (
+          <a href={item.url} target={item.target ?? undefined} rel={item.target === '_blank' ? 'noopener noreferrer' : undefined} class:list={['dnj-nav-link inline-block no-underline', active && 'dnj-nav-link--active']} aria-current={active ? 'page' : undefined}>{item.label}</a>
+        )}
+      </li>
+    )
+  })}
+</ul>
+
+<script>
+  const initDesktopDropdowns = () => {
+    const dds = Array.from(document.querySelectorAll<HTMLElement>('[data-dd]'))
+    if (dds.length === 0) return
+    const closeAll = (except?: HTMLElement) => {
+      dds.forEach((dd) => {
+        if (dd === except) return
+        dd.querySelector('[data-dd-panel]')?.classList.add('hidden')
+        const btn = dd.querySelector('[data-dd-toggle]')
+        btn?.setAttribute('aria-expanded', 'false')
+        btn?.querySelector('svg')?.classList.remove('rotate-180')
+      })
+    }
+    dds.forEach((dd) => {
+      const btn = dd.querySelector<HTMLElement>('[data-dd-toggle]')
+      const panel = dd.querySelector<HTMLElement>('[data-dd-panel]')
+      if (!btn || !panel) return
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const isOpen = !panel.classList.contains('hidden')
+        closeAll(dd)
+        panel.classList.toggle('hidden', isOpen)
+        btn.setAttribute('aria-expanded', String(!isOpen))
+        btn.querySelector('svg')?.classList.toggle('rotate-180', !isOpen)
+      })
+    })
+    document.addEventListener('click', () => closeAll())
+    document.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Escape') closeAll() })
+  }
+  document.addEventListener('astro:page-load', initDesktopDropdowns)
+  initDesktopDropdowns()
+</script>

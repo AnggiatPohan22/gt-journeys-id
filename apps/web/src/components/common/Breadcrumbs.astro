@@ -1,0 +1,35 @@
+---
+/**
+ * Breadcrumbs — visual nav + BreadcrumbList JSON-LD (self-contained).
+ * Pola: Home › [Service] › [Item].
+ */
+import { breadcrumbListSchema, type Crumb } from '@lib/structuredData'
+
+interface Props {
+  items: Crumb[]
+  /** Tambahan class untuk wrapper (mis. warna teks di hero gelap). */
+  class?: string
+}
+const { items, class: className = '' } = Astro.props
+const site = Astro.site?.href ?? undefined
+const jsonLd = breadcrumbListSchema(items, site)
+---
+
+{items.length > 0 && (
+  <nav aria-label="Breadcrumb" class={`container-content pt-6 text-sm ${className}`}>
+    <ol class="flex flex-wrap items-center gap-2 text-stone-light">
+      {items.map((c, i) => (
+        <li class="flex items-center gap-2">
+          {i > 0 && <span class="text-stone-light/50" aria-hidden="true">/</span>}
+          {i < items.length - 1 ? (
+            <a href={c.url} class="hover:text-ocean transition-colors no-underline">{c.name}</a>
+          ) : (
+            <span class="text-ocean font-medium" aria-current="page">{c.name}</span>
+          )}
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />

@@ -2,7 +2,7 @@
 import type { Page, Media } from '@shared/types/payload-types'
 import {
   resolveFitClass, resolvePosClass, resolveAlignment, resolveContainer,
-  resolvePadding, resolveEntryAnimation, resolveBackground, resolveButtonClasses,
+  resolvePadding, resolvePaddingOverrideStyle, resolveEntryAnimation, resolveBackground, resolveButtonClasses,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
 
@@ -53,8 +53,9 @@ const hasMedia = (mediaType === 'single' && !!mediaUrl) || isScrollCols || isDua
 // ── Advanced styling ─────────────────────────────────────────
 const align = resolveAlignment(b.contentAlignment)
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const bgResolved = resolveBackground(b.background, 'bg-sand')
 
 // Text styles per-element
@@ -70,10 +71,13 @@ const descTextAnim = resolveTextAnimIn(ts.descriptionAnimIn)
 const btn = b.button ?? {}
 const hasNewButton = btn.variant !== undefined || btn.color !== undefined
 let btnClasses: string[]
+let btnStyle = ''
 let isWA = false
 
 if (hasNewButton) {
-  btnClasses = resolveButtonClasses(btn)
+  const r = resolveButtonClasses(btn)
+  btnClasses = r.classes
+  btnStyle = r.style
 } else {
   // Legacy fallback
   const legacyStyle = block.style ?? 'primary'
@@ -112,7 +116,8 @@ const descColorClass = descTextColor || defaultDesc
     isScrollCols && 'bg-midnight',
   ]}
   data-animate={entry.dataAnimate}
->
+
+  style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {/* Background image (from Advanced tab) — only when no media background */}
   {!isBg && !isScrollCols && bgResolved.imageUrl && (
     <>
@@ -136,7 +141,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={[align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-5xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
         <div class="scrolling-cols relative h-[500px] md:h-[600px] overflow-hidden rounded-xl">
           <div class="scroll-col scroll-col-a absolute inset-y-0 left-0 w-[calc(50%-8px)] flex flex-col gap-4">
@@ -164,7 +169,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={[align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-5xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
         <div class="relative aspect-square max-w-lg mx-auto md:mx-0 md:ml-auto w-full">
           {/* Back card */}
@@ -191,7 +196,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={[align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-4xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
       </div>
     ) : isStack ? (
@@ -201,7 +206,7 @@ const descColorClass = descTextColor || defaultDesc
         <div class:list={['w-full max-w-3xl', align.text, contentColorClass]}>
           <h2 class:list={['font-display text-3xl md:text-4xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
           {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+          <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
         </div>
       </div>
     ) : (
@@ -209,32 +214,15 @@ const descColorClass = descTextColor || defaultDesc
       <div class:list={['max-w-3xl', align.text, align.margin, contentColorClass]}>
         <h2 class:list={['font-display text-3xl md:text-4xl mb-4', headingColorClass, headingTextAnim]}>{block.heading}</h2>
         {block.description && <p class:list={['mb-8', descColorClass, descTextAnim]}>{block.description}</p>}
-        <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses}>{block.buttonText}</a>
+        <a href={block.buttonLink} target={target} rel={rel} class:list={btnClasses} style={btnStyle || undefined}>{block.buttonText}</a>
       </div>
     )}
   </div>
 </section>
 
 <style>
-  .entry-fade,
-  .entry-zoom,
-  .entry-slide-left,
-  .entry-slide-right {
-    animation-duration: 900ms;
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-    animation-fill-mode: both;
-  }
-  .entry-fade { animation-name: cFade; }
-  .entry-zoom { animation-name: cZoom; }
-  .entry-slide-left  { animation-name: cSlideLeft; }
-  .entry-slide-right { animation-name: cSlideRight; }
-  @keyframes cFade { from{opacity:0} to{opacity:1} }
-  @keyframes cZoom { from{opacity:0;transform:scale(.92)} to{opacity:1;transform:scale(1)} }
-  @keyframes cSlideLeft  { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
-  @keyframes cSlideRight { from{opacity:0;transform:translateX(40px)}  to{opacity:1;transform:translateX(0)} }
-  @media (prefers-reduced-motion: reduce) {
-    .entry-fade,.entry-zoom,.entry-slide-left,.entry-slide-right { animation: none; }
-  }
+  /* Phase 4.56 — .entry-* class dipindah ke global.css (scroll-triggered
+     via IntersectionObserver). Style lokal dihapus. */
 
   /* Scrolling columns (CTA template 1) — vertical infinite loop.
      Each column duplicated in DOM; animation translates -50% (exactly one

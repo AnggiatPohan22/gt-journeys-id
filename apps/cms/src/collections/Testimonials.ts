@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { authenticatedRead, adminCreate, authenticatedUpdate, superAdminDelete } from '../access/roles'
 import { statusField, sortOrderField, isFeaturedField } from '../fields/status'
+import { withStatusCell, updatedAtRelativeField } from '../fields/listCells'
 
 /**
  * Testimonials — real client testimonials, dipakai:
@@ -14,8 +15,8 @@ export const Testimonials: CollectionConfig = {
   labels: { singular: 'Testimonial', plural: 'Testimonials' },
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
-    defaultColumns: ['name', 'location', 'rating', 'isFeatured', 'status'],
+    group: 'Content & Pages',
+    defaultColumns: ['name', 'location', 'rating', 'isFeatured', 'status', 'updatedAtRelative'],
   },
   access: {
     read: () => true,
@@ -62,6 +63,8 @@ export const Testimonials: CollectionConfig = {
             { label: 'Restaurants', value: 'restaurants' },
             { label: 'Weddings & Events', value: 'venues' },
             { label: 'Rentals', value: 'rentals' },
+            { label: 'Spa & Wellness', value: 'spa' },
+            { label: 'Ferry Tickets', value: 'ferry-tickets' },
           ],
           defaultValue: 'general',
         },
@@ -90,7 +93,8 @@ export const Testimonials: CollectionConfig = {
       ],
     },
     isFeaturedField,
-    statusField,
+    withStatusCell(statusField),
     sortOrderField,
+    updatedAtRelativeField,
   ],
 }

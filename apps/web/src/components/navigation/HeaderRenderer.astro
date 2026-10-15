@@ -1,0 +1,238 @@
+---
+import { siteConfig } from '@config/site'
+import { getSiteSettings, getMenuBySlug, getHeaderSettings } from '@lib/payload'
+import { defaultTemplateId } from '@shared/template-registry'
+import type { Media, Menu, SiteSetting } from '@shared/types/payload-types'
+import HeaderTemplate1 from './templates/HeaderTemplate1.astro'
+import HeaderTemplate2 from './templates/HeaderTemplate2.astro'
+import HeaderTemplate3 from './templates/HeaderTemplate3.astro'
+
+interface Props { transparent?: boolean }
+const { transparent: transparentProp } = Astro.props
+
+// ── Fetch ───────────────────────────────────────────────
+let settings: SiteSetting | null = null
+let headerCfg: any = null
+try { settings = await getSiteSettings() } catch { /* fallback */ }
+try { headerCfg = await getHeaderSettings() } catch { /* fallback */ }
+
+// ── Menu resolution (primaryMenu populated, else fallback slug) ──
+let menu: Menu | null = null
+const primaryMenuData = headerCfg?.primaryMenu
+if (primaryMenuData && typeof primaryMenuData === 'object' && Array.isArray(primaryMenuData.items)) {
+  menu = primaryMenuData as Menu
+} else {
+  try { menu = await getMenuBySlug('main-navigation') } catch { /* fallback nav */ }
+}
+
+const siteName = settings?.siteName ?? siteConfig.name
+const logo = (typeof settings?.logo === 'object' ? settings.logo : null) as Media | null
+const logoUrl = logo?.url ?? ''
+const logoAlt = logo?.alt ?? siteName
+
+// ── CTA ─────────────────────────────────────────────────
+const showCta = headerCfg?.showCtaButton !== false
+const ctaText = headerCfg?.ctaText || 'WhatsApp Booking'
+const ctaType = headerCfg?.ctaType || 'whatsapp'
+const waRaw = settings?.contact?.whatsapp ?? siteConfig.contact.whatsapp
+const waNumber = String(waRaw).replace(/\D/g, '')
+const ctaHref = ctaType === 'custom' && headerCfg?.ctaCustomLink ? headerCfg.ctaCustomLink : `https://wa.me/${waNumber}`
+const ctaIsExternal = ctaHref.startsWith('http')
+
+const transparent = transparentProp !== undefined ? transparentProp : (headerCfg?.transparentOnTop ?? false)
+// Phase 4.41.1 addendum — sticky sekarang benar-benar di-honor (dulu template
+// hardcode `fixed`). false → header in-flow (relative, tidak fixed di top).
+const sticky = headerCfg?.stickyOnScroll !== false
+
+// ── Nav items ───────────────────────────────────────────
+type NavItem = { label: string; url: string; target?: '_self' | '_blank' | null; children?: NavItem[]; asSpan?: boolean }
+const resolveChildUrl = (c: any): { url: string; asSpan: boolean } => {
+  if (c.type === 'none') return { url: '#', asSpan: true }
+  if (c.type === 'page' && typeof c.page === 'object' && c.page) return { url: `/${c.page.slug ?? ''}`, asSpan: false }
+  return { url: c.url ?? '#', asSpan: false }
+}
+const fallbackNav: NavItem[] = [
+  { label: 'Home', url: '/' },
+  { label: 'Tours', url: '/tour' },
+  { label: 'Contact', url: '/contact' },
+]
+const navItems: NavItem[] = (menu?.items ?? []).map((item: any) => {
+  const asSpan = item.type === 'none'
+  const url = asSpan ? '#'
+    : item.type === 'page' && typeof item.page === 'object' && item.page ? `/${item.page.slug ?? ''}`
+    : (item.url ?? '#')
+  return {
+    label: item.label, url, target: item.target, asSpan,
+    children: (item.children ?? []).map((c: any) => {
+      const { url, asSpan } = resolveChildUrl(c)
+      return { label: c.label, url, target: c.target, asSpan }
+    }),
+  }
+})
+const items = navItems.length > 0 ? navItems : fallbackNav
+const currentPath = new URL(Astro.request.url).pathname
+
+// ── Social + top bar (untuk template yang pakai slot ini) ──
+const socialRaw = settings?.socialMedia ?? {}
+const socialUrl = (platform: string, raw?: string) => {
+  if (!raw) return ''
+  if (/^https?:\/\//.test(raw)) return raw
+  const bases: Record<string, string> = {
+    instagram: 'https://instagram.com/', facebook: 'https://facebook.com/',
+    tiktok: 'https://tiktok.com/@', youtube: 'https://youtube.com/@', tripadvisor: 'https://tripadvisor.com/',
+  }
+  return (bases[platform] ?? '') + String(raw).replace(/^@/, '')
+}
+const social = {
+  instagram: socialUrl('instagram', (socialRaw as any).instagram),
+  facebook: socialUrl('facebook', (socialRaw as any).facebook),
+  tiktok: socialUrl('tiktok', (socialRaw as any).tiktok),
+  youtube: socialUrl('youtube', (socialRaw as any).youtube),
+}
+const topBar = {
+  showAddress: headerCfg?.showTopBarAddress !== false,
+  showPhone: headerCfg?.showTopBarPhone !== false,
+  address: settings?.contact?.address ?? '',
+  phone: settings?.contact?.phone ?? '',
+  text: headerCfg?.topBarText ?? '',
+}
+
+// ── Advanced theming (Phase 4.41) ───────────────────────
+// Per-template palette defaults — override lewat headerCfg.advanced.*.
+// Kosong (null/undefined) di CMS = pakai default → layout theme tetap.
+const templateId = headerCfg?.template || defaultTemplateId('header')
+const templateDefaults: Record<string, Record<string, string>> = {
+  'header-1': {
+    bg: '#FFFFFFD9', // ~85% alpha (was Tailwind bg-white/85)
+    menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
+    ctaBg: '#1B3A4B', ctaBgHover: '#2D5F73', ctaText: '#FFFFFF',
+    icon: '#1B3A4B',
+    topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
+  },
+  'header-2': {
+    bg: '#FFFFFFE6', // ~90% alpha
+    menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
+    ctaBg: '#1B3A4B', ctaBgHover: '#2D5F73', ctaText: '#FFFFFF',
+    icon: '#1B3A4B',
+    topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
+  },
+  'header-3': {
+    bg: '#FFFFFFE6',
+    menuDefault: '#3D405B', menuHover: '#1B3A4B', menuActive: '#1B3A4B',
+    ctaBg: '#E07A5F', ctaBgHover: '#C4583E', ctaText: '#FFFFFF',
+    icon: '#1B3A4B',
+    topBarBg: '#1B3A4B', topBarText: '#FFFFFF',
+  },
+}
+const d = templateDefaults[templateId] ?? templateDefaults['header-1']
+const adv = headerCfg?.advanced ?? {}
+// Phase 4.45 — regex diperluas untuk terima 3/4/6/8-digit hex (alpha).
+const pick = (v: string | null | undefined, fallback: string) => (v && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v) ? v : fallback)
+
+// CTA button shape → CSS radius (Phase 4.42). Keep in sync with
+// packages/cms `buttonStyle.ts BUTTON_RADIUS_CSS`.
+const CTA_RADIUS_CSS: Record<string, string> = {
+  pill: '9999px',
+  rounded: '12px',
+  'rounded-md': '6px',
+  square: '0px',
+}
+const ctaRadius = CTA_RADIUS_CSS[adv.ctaRadius ?? 'pill'] ?? '9999px'
+
+const themeVars = {
+  '--h-bg':            pick(adv.bgColor,          d.bg),
+  '--h-menu-text':     pick(adv.menuDefaultColor, d.menuDefault),
+  '--h-menu-hover':    pick(adv.menuHoverColor,   d.menuHover),
+  '--h-menu-active':   pick(adv.menuActiveColor,  d.menuActive),
+  '--h-cta-bg':        pick(adv.ctaBgColor,       d.ctaBg),
+  '--h-cta-bg-hover':  pick(adv.ctaBgHoverColor,  d.ctaBgHover),
+  '--h-cta-text':      pick(adv.ctaTextColor,     d.ctaText),
+  '--h-cta-radius':    ctaRadius,
+  '--h-icon':          pick(adv.iconColor,        d.icon),
+  '--h-topbar-bg':     pick(adv.topBarBgColor,    d.topBarBg),
+  '--h-topbar-text':   pick(adv.topBarTextColor,  d.topBarText),
+}
+const themeStyle = Object.entries(themeVars).map(([k, v]) => `${k}:${v}`).join(';')
+
+const ctx = {
+  siteName, logoUrl, logoAlt, items, currentPath, transparent, sticky,
+  cta: { show: showCta, text: ctaText, href: ctaHref, external: ctaIsExternal },
+  showSearch: headerCfg?.showSearch !== false,
+  showSocial: headerCfg?.showSocialLinks !== false,
+  social, topBar,
+  themeStyle,
+}
+
+const TEMPLATES: Record<string, any> = {
+  'header-1': HeaderTemplate1,
+  'header-2': HeaderTemplate2,
+  'header-3': HeaderTemplate3,
+}
+const Template = TEMPLATES[templateId] ?? HeaderTemplate1
+---
+<Template {...ctx} />
+
+{/* Phase 4.41 — inject header theme vars ke :root supaya bisa dijangkau
+    juga oleh overlay mobile menu yang di-render di luar #main-header. */}
+<style is:global set:html={`:root{${themeStyle}}`}></style>
+
+<style is:global>
+  /* Phase 4.41 — header theming via CSS custom properties.
+     Class-based (bukan scoped ke #main-header) supaya overlay mobile menu
+     yang di-render di luar #main-header (mis. #mobile-menu, #mobile-menu-t3)
+     tetap ikut tone warna dari CMS. */
+  .dnj-nav-link { color: var(--h-menu-text); transition: color 200ms; }
+  .dnj-nav-link:hover { color: var(--h-menu-hover); }
+  .dnj-nav-link--active { color: var(--h-menu-active); font-weight: 700; }
+  .dnj-cta { background-color: var(--h-cta-bg); color: var(--h-cta-text); border-radius: var(--h-cta-radius, 9999px); transition: background-color 200ms; }
+  .dnj-cta:hover { background-color: var(--h-cta-bg-hover); }
+  #main-header .dnj-icon-btn { color: var(--h-icon); }
+  #main-header .dnj-topbar { background-color: var(--h-topbar-bg); color: var(--h-topbar-text); }
+  #main-header .dnj-topbar a { color: var(--h-topbar-text); }
+
+  /* Phase 4.41.1 addendum — header surface & transparent-on-top.
+     Frosted panel (bg + blur + shadow + border) via satu class supaya
+     bisa toggle on/off saat mode transparent-on-top di posisi paling atas.
+     Selector dobel: match saat class ada di #main-header sendiri (Template
+     1 & 2) ATAU di descendant (Template 3 main bar). Sebelumnya cuma
+     descendant → T1 & T2 header transparent karena tidak kena rule. */
+  #main-header.dnj-header-surface,
+  #main-header .dnj-header-surface {
+    background-color: var(--h-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(212, 197, 169, 0.20);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: background-color 250ms, backdrop-filter 250ms, border-color 250ms, box-shadow 250ms;
+  }
+  /* Transparent mode ON + belum scroll → surface hilang total. Setelah scroll
+     lewat 40px, kembalikan surface penuh (bg + blur + border + shadow). */
+  #main-header[data-transparent-top="1"][data-scrolled="0"].dnj-header-surface,
+  #main-header[data-transparent-top="1"][data-scrolled="0"] .dnj-header-surface {
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+</style>
+
+<script>
+  // Phase 4.41.1 — scroll listener untuk transparent-on-top.
+  // Toggle data-scrolled="1" pada #main-header saat scrollY > 40 supaya CSS
+  // di atas bisa switch antara surface transparan (di paling atas) dan
+  // surface opaque (setelah user scroll turun).
+  const initHeaderScroll = () => {
+    const header = document.getElementById('main-header')
+    if (!header) return
+    if (header.dataset.hsBound === '1') return
+    header.dataset.hsBound = '1'
+    const update = () => {
+      header.dataset.scrolled = window.scrollY > 40 ? '1' : '0'
+    }
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+  }
+  document.addEventListener('astro:page-load', initHeaderScroll)
+  initHeaderScroll()
+</script>

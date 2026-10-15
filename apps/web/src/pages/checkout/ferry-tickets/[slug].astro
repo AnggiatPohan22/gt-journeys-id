@@ -1,0 +1,1802 @@
+---
+/**
+ * Checkout / Customer Information — Ferry Ticket
+ * (Phase 4.62 → 4.63 → 4.63.1 → 4.63.2 → 4.65 → 4.65.1).
+ *
+ * Phase 4.65   — Pure-UI refresh mengikuti `ai/reference/referensi-1`.
+ * Phase 4.65.1 — Pass 2: kontras teks di dark header dinaikkan (pakai
+ *   emerald-300 cerah, bukan project token leaf-light yg muted), sidebar
+ *   font & padding dikecilin biar hemat vertikal, semua copy diganti ke
+ *   English.
+ *
+ * Semua field name, hidden input, endpoint POST, validasi & business
+ * logic tetap sama — hanya markup + Tailwind classes + copy.
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import { getFerryTicketsBySlug } from '@lib/payload'
+import { isModuleEnabled } from '@lib/features'
+import { formatPrice } from '@shared/utils/format-price'
+import { resolveLocation, routeLabelFrom } from '@lib/location'
+import { issueFormStamp } from '@lib/checkout/signedToken'
+import { PHONE_REGIONS, DEFAULT_PHONE_REGION } from '@config/phoneRegions'
+import type { Media } from '@shared/types/payload-types'
+
+export const prerender = false
+
+const { slug } = Astro.params
+if (!slug) return Astro.redirect('/ferry-tickets')
+if (!(await isModuleEnabled('ferryTickets'))) return Astro.redirect('/')
+
+const item = await getFerryTicketsBySlug(slug)
+if (!item) return Astro.redirect('/404')
+
+const asMedia = (v: unknown): Media | null => (v && typeof v === 'object' ? (v as Media) : null)
+const heroImg = asMedia(item.featuredImage)
+const heroUrl = heroImg?.sizes?.card?.url ?? heroImg?.url ?? ''
+
+const url = new URL(Astro.request.url)
+const qDate = url.searchParams.get('date') ?? ''
+const qAdults = Math.max(1, Math.min(10, Number(url.searchParams.get('adults')) || 1))
+const qChildren = Math.max(0, Math.min(6, Number(url.searchParams.get('children')) || 0))
+const qClass = url.searchParams.get('class') ?? ''
+const errCode = url.searchParams.get('err') ?? ''
+
+const detailUrl = `/ferry-tickets/${slug}`
+if (!qDate) return Astro.redirect(`${detailUrl}?err=needs_date`)
+
+type FerryClass = {
+  name: string
+  classType: 'ekonomi' | 'emerald'
+  currency?: string
+  adultPrice: number
+  childPrice?: number
+}
+const ferryClasses = ((item as any).ferryClasses ?? []) as FerryClass[]
+const sortedClasses = ferryClasses.slice().sort((a, b) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
+const preselected = sortedClasses.find((c) => c.classType === qClass) ?? sortedClasses[0] ?? null
+
+const routeLabel = routeLabelFrom(
+  (item as any).originLocation,
+  (item as any).arrivalLocation,
+  (item as any).origin,
+  (item as any).arrival,
+)
+const originLoc = resolveLocation((item as any).originLocation, (item as any).origin)?.name ?? ''
+const destinationLoc = resolveLocation((item as any).arrivalLocation, (item as any).arrival)?.name ?? ''
+// Phase 4.67.3 polish — slug origin/destination untuk link "Change trip"
+// kembali ke listing step 1 (bukan ke detail page).
+const outboundFromSlug = typeof (item as any).originLocation === 'object' ? ((item as any).originLocation?.slug ?? '') : ''
+const outboundToSlug = typeof (item as any).arrivalLocation === 'object' ? ((item as any).arrivalLocation?.slug ?? '') : ''
+
+const currency = preselected?.currency ?? 'IDR'
+const unitPrice = preselected?.adultPrice ?? null
+
+const formStamp = await issueFormStamp()
+
+// Error copy — English (Phase 4.65.1).
+const errorMessages: Record<string, string> = {
+  invalid_body: 'Something went wrong submitting the form. Please try again.',
+  invalid_fields: 'Please fill in all required fields (name, phone, email).',
+  past_departure_date: 'Departure date has already passed. Please pick a future date.',
+  return_before_departure: 'Return date cannot be earlier than the departure date.',
+  missing_return_date: 'Please pick a return date for a round-trip booking.',
+  invalid_passengers: 'Passenger data is incomplete — check first & last name for every passenger.',
+  invalid_passport_expiry: 'At least one passenger\'s passport expires within 6 months after departure.',
+  stamp_malformed: 'Session expired. Please reload the page.',
+  stamp_bad_signature: 'Session invalid. Please reload the page.',
+  stamp_too_fast: 'Please take a moment to fill in the form (min. 3 seconds) before submitting.',
+  stamp_expired: 'Form expired. Please reload and fill in again.',
+  store_misconfigured: 'Booking service is temporarily unavailable. Please contact us on WhatsApp.',
+  store_server_error: 'Failed to save the booking. Please try again or contact us on WhatsApp.',
+  rate_limited: 'Too many booking attempts from this device. Try again in 15 minutes or contact us on WhatsApp.',
+  // Phase 4.66.4 — server-side ferry verification failures.
+  invalid_ferry: 'Selected ferry is invalid. Please reload the page and try again.',
+  ferry_not_found: 'This ferry ticket is no longer available. Please pick another.',
+  ferry_slug_mismatch: 'Ferry data mismatch. Please reload the page and try again.',
+  ferry_no_class: 'This ferry has no class configured. Please contact us on WhatsApp.',
+  ferry_no_price: 'This ferry class has no price configured. Please contact us on WhatsApp.',
+  // Phase 4.67.2e — Return ferry verification failures (round-trip 2-leg).
+  past_return_date: 'Return date has already passed. Please pick a future date.',
+  invalid_return_ferry: 'Selected return ferry is invalid. Please reload and pick again.',
+  return_ferry_not_found: 'The return ferry is no longer available. Please pick another.',
+  return_ferry_slug_mismatch: 'Return ferry data mismatch. Please reload the page.',
+  return_ferry_no_class: 'The return ferry has no class configured. Please contact us on WhatsApp.',
+  return_ferry_no_price: 'The return ferry class has no price configured. Please contact us on WhatsApp.',
+  return_route_mismatch: 'Return route must be the reverse of your outbound (origin ↔ destination). Please pick a matching return ferry.',
+  return_currency_mismatch: 'Return ferry uses a different currency than outbound. Please pick a ferry with the same currency.',
+  // Phase 4.69.3 — Email verification failures (OTP wall).
+  email_not_verified: 'Please verify your email first (click "Verify" next to the email field).',
+  email_verification_expired: 'Email verification expired. Please verify again.',
+  email_mismatch: 'The email you entered differs from the verified one. Verify the current email or revert.',
+  // Phase 4.69.4 — Passenger inline validation (server guard mirrors UI validator).
+  passenger_passport_format: 'A passport number does not match the expected format for its nationality. Check the passenger section.',
+  passenger_passport_duplicate: 'Two or more passengers share the same passport number. Each passenger must have a unique passport.',
+  passenger_dob_invalid: 'A passenger\'s date of birth is invalid. Please re-check.',
+  passenger_dob_adult_too_young: 'An Adult passenger is under 12 years old at departure. Switch to Child or adjust the DOB.',
+  passenger_dob_child_out_of_range: 'A Child passenger is outside 2–11 years at departure. Switch category or adjust the DOB.',
+  passenger_issue_invalid: 'A passport issue date is invalid.',
+  passenger_issue_future: 'A passport issue date is in the future.',
+  passenger_issue_before_dob: 'A passport issue date is earlier than the passenger\'s date of birth.',
+  passenger_expiry_before_issue: 'A passport expiry date is before its issue date.',
+}
+const errorMsg = errCode ? errorMessages[errCode] ?? 'Something went wrong. Please try again.' : ''
+
+const titleOptions = [
+  { value: 'mr',     label: 'Mr' },
+  { value: 'mrs',    label: 'Mrs' },
+  { value: 'ms',     label: 'Ms' },
+  { value: 'master', label: 'Master' },
+  { value: 'miss',   label: 'Miss' },
+]
+
+const nationalityOptions = (() => {
+  const seen = new Set<string>()
+  return PHONE_REGIONS.filter((r) => {
+    if (seen.has(r.iso)) return false
+    seen.add(r.iso)
+    return true
+  }).map((r) => ({ value: r.name, label: `${r.flag} ${r.name}` }))
+})()
+
+const depDateFmt = (() => {
+  try {
+    return new Date(qDate).toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    })
+  } catch { return qDate }
+})()
+
+const passportMinExpiryLabel = (() => {
+  try {
+    const d = new Date(qDate)
+    d.setMonth(d.getMonth() + 6)
+    return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+  } catch { return '' }
+})()
+
+const childUnitPrice =
+  preselected?.childPrice != null && preselected.childPrice > 0
+    ? preselected.childPrice
+    : (unitPrice != null ? Math.round(unitPrice / 2) : 0)
+const adultLineTotal = (unitPrice ?? 0) * qAdults
+const childLineTotal = childUnitPrice * qChildren
+const ticketFare = adultLineTotal + childLineTotal
+
+const serviceFee = 0
+const discount = 0
+const subtotalDeparture = ticketFare + serviceFee - discount
+
+// ── Phase 4.67.2d — Round-trip 2-leg render ──────────────────────────
+// URL dari listing return-pick (4.67.2c) membawa `trip=round-trip` +
+// `return=<returnDate>` + `returnFerryId=<id>` + `returnTicketSlug=<slug>`
+// + optional `returnClass=<classType>`. Kalau prasyarat lengkap, kita
+// fetch return ferry dari CMS, hitung pricing leg return, dan render
+// 2 trip strip + 2 price breakdown row di sidebar.
+//
+// Guard SSR: `trip=round-trip` tapi `returnTicketSlug` kosong atau
+// ferry return tidak ketemu → redirect ke detail outbound dgn err.
+const qTrip = url.searchParams.get('trip') ?? ''
+const qReturnDateRaw = url.searchParams.get('return') ?? ''
+const qReturnDate = /^\d{4}-\d{2}-\d{2}$/.test(qReturnDateRaw) ? qReturnDateRaw : ''
+const qReturnFerryId = url.searchParams.get('returnFerryId') ?? ''
+const qReturnTicketSlug = url.searchParams.get('returnTicketSlug') ?? ''
+const qReturnClass = url.searchParams.get('returnClass') ?? ''
+const isRoundTrip = qTrip === 'round-trip'
+
+if (isRoundTrip && (!qReturnDate || !qReturnTicketSlug)) {
+  return Astro.redirect(`${detailUrl}?err=needs_return_ferry`)
+}
+
+let returnItem: typeof item | null = null
+let returnPreselected: FerryClass | null = null
+let returnRouteLabel = ''
+let returnOriginLoc = ''
+let returnDestinationLoc = ''
+let returnUnitPrice: number | null = null
+let returnChildUnitPrice = 0
+let returnAdultLineTotal = 0
+let returnChildLineTotal = 0
+let returnTicketFare = 0
+let returnSubtotal = 0
+let returnDepDateFmt = ''
+let returnHeroImg: Media | null = null
+let returnHeroUrl = ''
+
+if (isRoundTrip && qReturnTicketSlug) {
+  returnItem = await getFerryTicketsBySlug(qReturnTicketSlug)
+  if (!returnItem) {
+    return Astro.redirect(`${detailUrl}?err=return_ferry_not_found`)
+  }
+  // Verify id match (defense-in-depth — URL carries both slug & id).
+  if (qReturnFerryId && String((returnItem as any).id) !== qReturnFerryId) {
+    return Astro.redirect(`${detailUrl}?err=return_ferry_mismatch`)
+  }
+  const returnFerryClasses = (((returnItem as any).ferryClasses) ?? []) as FerryClass[]
+  const returnSorted = returnFerryClasses.slice().sort((a, b) => (a.adultPrice ?? 0) - (b.adultPrice ?? 0))
+  returnPreselected = returnSorted.find((c) => c.classType === qReturnClass) ?? returnSorted[0] ?? null
+  returnRouteLabel = routeLabelFrom(
+    (returnItem as any).originLocation,
+    (returnItem as any).arrivalLocation,
+    (returnItem as any).origin,
+    (returnItem as any).arrival,
+  ) ?? ''
+  returnOriginLoc = resolveLocation((returnItem as any).originLocation, (returnItem as any).origin)?.name ?? ''
+  returnDestinationLoc = resolveLocation((returnItem as any).arrivalLocation, (returnItem as any).arrival)?.name ?? ''
+  returnUnitPrice = returnPreselected?.adultPrice ?? null
+  returnChildUnitPrice =
+    returnPreselected?.childPrice != null && returnPreselected.childPrice > 0
+      ? returnPreselected.childPrice
+      : (returnUnitPrice != null ? Math.round(returnUnitPrice / 2) : 0)
+  returnAdultLineTotal = (returnUnitPrice ?? 0) * qAdults
+  returnChildLineTotal = returnChildUnitPrice * qChildren
+  returnTicketFare = returnAdultLineTotal + returnChildLineTotal
+  returnSubtotal = returnTicketFare
+  try {
+    returnDepDateFmt = new Date(qReturnDate).toLocaleDateString('en-GB', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    })
+  } catch { returnDepDateFmt = qReturnDate }
+  returnHeroImg = asMedia((returnItem as any).featuredImage)
+  returnHeroUrl = returnHeroImg?.sizes?.card?.url ?? returnHeroImg?.url ?? ''
+}
+
+const totalPrice = subtotalDeparture + returnSubtotal
+
+const priceFmt = (n: number) => formatPrice(n, currency)
+const totalPax = qAdults + qChildren
+---
+
+<PageLayout title={`Checkout — ${item.title}`} description={`Enter passenger details for ${item.title}.`} noindex={true}>
+  <section class="container-content py-8 lg:py-10">
+
+    {/* ─── Stepper + Breadcrumb card ─── */}
+    <div class="bg-white rounded-2xl shadow-sm p-4 sm:p-5 mb-8 border border-sand-dark/10">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs text-stone-light font-medium">
+          <a href="/" class="hover:text-ocean transition">Home</a>
+          <span class="text-sand-dark">/</span>
+          <a href="/ferry-tickets" class="hover:text-ocean transition">Ferry Tickets</a>
+          <span class="text-sand-dark">/</span>
+          <a href={detailUrl} class="hover:text-ocean transition inline-block truncate max-w-[10rem] align-bottom">{item.title}</a>
+          <span class="text-sand-dark">/</span>
+          <span class="text-ocean font-semibold">Checkout</span>
+        </nav>
+
+        <ol class="flex items-center gap-2 sm:gap-4 overflow-x-auto py-1">
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <Icon name="check" class="w-3.5 h-3.5" />
+            </span>
+            <span class="text-xs font-semibold text-emerald-800">1. Select Trip</span>
+          </li>
+          <li class="w-6 h-[2px] bg-emerald-200 shrink-0"></li>
+          <li class="flex items-center gap-2 shrink-0">
+            <span class="w-6 h-6 rounded-full bg-ocean text-white flex items-center justify-center text-[11px] font-bold shadow-sm ring-4 ring-ocean/10">2</span>
+            <span class="text-xs font-bold text-ocean">2. Passenger Info</span>
+          </li>
+          <li class="w-6 h-[2px] bg-sand-dark/40 shrink-0"></li>
+          <li class="flex items-center gap-2 shrink-0 opacity-60">
+            <span class="w-6 h-6 rounded-full bg-sand text-stone-light flex items-center justify-center text-[11px] font-semibold border border-sand-dark/30">3</span>
+            <span class="text-xs font-medium text-stone-light">3. Confirmation</span>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    {/* ─── Main grid ─── */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+      {/* ─── LEFT column: form ─── */}
+      <div class="lg:col-span-8 space-y-6">
+
+        {/* Page header + passport notice */}
+        <div class="space-y-4">
+          <div>
+            <h1 class="font-display text-2xl sm:text-3xl text-ocean tracking-tight">
+              Passenger & Contact Details
+            </h1>
+            <p class="text-sm text-stone mt-1 leading-relaxed">
+              Make sure the name and passport number match the physical document for ticket & immigration verification.
+            </p>
+          </div>
+
+          {/* Amber passport notice */}
+          <div class="bg-amber-50 border border-amber-200/60 rounded-2xl p-4 sm:p-5 flex items-start gap-3.5 shadow-sm">
+            <div class="p-2 rounded-xl bg-amber-100 text-amber-800 shrink-0 mt-0.5">
+              <Icon name="info" class="w-5 h-5" />
+            </div>
+            <div class="text-xs sm:text-sm text-amber-950 leading-relaxed">
+              <span class="font-bold block text-amber-900 mb-0.5">International Passport Notice</span>
+              Passport must be valid for at least <span class="font-semibold underline decoration-amber-400">6 months</span> from the departure date.
+              {passportMinExpiryLabel && (
+                <span> For a departure on <span class="font-semibold">{depDateFmt}</span>, your passport must remain valid at least until <span class="font-semibold">{passportMinExpiryLabel}</span>.</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Error banner */}
+        {errorMsg && (
+          <div class="p-4 bg-coral/10 border border-coral/30 rounded-xl text-sm text-stone">
+            <strong class="text-coral">Notice:</strong> {errorMsg}
+          </div>
+        )}
+
+        {/* Trip strip(s) — Phase 4.67.2d: outbound + optional return */}
+        <div class="space-y-2">
+          {/* Outbound */}
+          <div class="bg-sand/60 border border-sand-dark/30 rounded-2xl px-5 py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs md:text-sm text-stone shadow-sm">
+            <div class="flex flex-wrap items-center gap-4 md:gap-5 min-w-0">
+              {isRoundTrip && (
+                <span class="bg-ocean text-white text-[10px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0">Outbound</span>
+              )}
+              <span class="flex items-center gap-1.5 font-semibold text-ocean">
+                <Icon name="ship" class="w-4 h-4 text-coral shrink-0" />
+                <span class="truncate max-w-[10rem]">{item.title}</span>
+              </span>
+              {routeLabel && (
+                <span class="flex items-center gap-1.5 text-ocean">
+                  <Icon name="location_on" class="w-4 h-4 text-coral shrink-0" />
+                  <span>{routeLabel}</span>
+                </span>
+              )}
+              <span class="flex items-center gap-1.5 text-ocean">
+                <Icon name="calendar_today" class="w-4 h-4 text-coral shrink-0" />
+                <span>{depDateFmt}</span>
+              </span>
+              <span class="flex items-center gap-1.5 text-ocean">
+                <Icon name="group" class="w-4 h-4 text-coral shrink-0" />
+                <span>{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
+              </span>
+              {preselected && (
+                <span class="bg-ocean/10 text-ocean px-2.5 py-0.5 rounded-full text-xs font-semibold">{preselected.name}</span>
+              )}
+            </div>
+            {/* Phase 4.67.3 polish — "Change trip" sekarang kembali ke listing
+                step 1 (bukan ke detail page) supaya customer bisa langsung
+                ganti outbound tanpa bingung mendarat di halaman tiket spesifik. */}
+            <a href={isRoundTrip
+                 ? `/ferry-tickets?${new URLSearchParams({
+                     trip: 'round-trip',
+                     ...(outboundFromSlug ? { from: outboundFromSlug } : {}),
+                     ...(outboundToSlug ? { to: outboundToSlug } : {}),
+                     date: qDate,
+                     return: qReturnDate,
+                     adults: String(qAdults),
+                     ...(qChildren ? { children: String(qChildren) } : {}),
+                   }).toString()}`
+                 : detailUrl}
+               class="text-coral hover:text-coral-dark hover:underline font-semibold text-xs md:text-sm shrink-0 transition">
+              Change trip →
+            </a>
+          </div>
+
+          {/* Return (round-trip only) */}
+          {isRoundTrip && returnItem && (
+            <div class="bg-leaf/10 border border-leaf/30 rounded-2xl px-5 py-3 flex flex-wrap md:flex-nowrap items-center justify-between gap-3 text-xs md:text-sm text-stone shadow-sm">
+              <div class="flex flex-wrap items-center gap-4 md:gap-5 min-w-0">
+                <span class="bg-leaf-dark text-white text-[10px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0">Return</span>
+                <span class="flex items-center gap-1.5 font-semibold text-ocean">
+                  <Icon name="ship" class="w-4 h-4 text-leaf-dark shrink-0" />
+                  <span class="truncate max-w-[10rem]">{returnItem.title}</span>
+                </span>
+                {returnRouteLabel && (
+                  <span class="flex items-center gap-1.5 text-ocean">
+                    <Icon name="location_on" class="w-4 h-4 text-leaf-dark shrink-0" />
+                    <span>{returnRouteLabel}</span>
+                  </span>
+                )}
+                <span class="flex items-center gap-1.5 text-ocean">
+                  <Icon name="event_repeat" class="w-4 h-4 text-leaf-dark shrink-0" />
+                  <span>{returnDepDateFmt}</span>
+                </span>
+                {returnPreselected && (
+                  <span class="bg-leaf/20 text-ocean px-2.5 py-0.5 rounded-full text-xs font-semibold">{returnPreselected.name}</span>
+                )}
+              </div>
+              {/* Phase 4.67.3 polish — "Change return" ke listing step 2 (reverse
+                  route + outbound metadata preserved) supaya customer bisa pick
+                  ferry return berbeda tanpa kehilangan outbound selection. */}
+              <a href={`/ferry-tickets?${new URLSearchParams({
+                   trip: 'round-trip',
+                   ...(outboundToSlug ? { from: outboundToSlug } : {}),      // reverse: return origin = outbound dest
+                   ...(outboundFromSlug ? { to: outboundFromSlug } : {}),   // reverse: return dest = outbound origin
+                   date: qReturnDate,
+                   return: qReturnDate,
+                   outbound: String(item.id),
+                   outboundSlug: slug,
+                   outboundClass: preselected?.classType ?? '',
+                   departure: qDate,
+                   adults: String(qAdults),
+                   ...(qChildren ? { children: String(qChildren) } : {}),
+                 }).toString()}`}
+                 class="text-leaf-dark hover:text-leaf-dark/80 hover:underline font-semibold text-xs md:text-sm shrink-0 transition">
+                Change return →
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* ─── Form ─── */}
+        <form
+          method="POST"
+          action="/api/bookings/create"
+          class="space-y-6"
+          id="checkout-form"
+          novalidate
+        >
+          {/* Phase 4.67.3 polish — Alert banner untuk field passenger yg
+              belum terisi. Dikontrol oleh script submit handler di bawah
+              (scan passenger first/last name, expand accordion yg invalid,
+              scroll ke sana, dan tampilkan daftar passenger yg kurang). */}
+          <div
+            id="checkoutValidationAlert"
+            class="hidden rounded-2xl border-2 border-coral/40 bg-coral/5 p-4 sm:p-5 shadow-sm"
+            role="alert"
+            aria-live="polite"
+          >
+            <div class="flex items-start gap-3">
+              <div class="p-2 rounded-xl bg-coral/15 text-coral shrink-0">
+                <Icon name="info" class="w-5 h-5" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-bold text-coral-dark leading-snug">Please complete the required fields</h3>
+                <p id="checkoutValidationList" class="text-xs text-stone mt-1 leading-relaxed">
+                  Some mandatory information is missing. The first incomplete field has been highlighted and focused.
+                </p>
+              </div>
+              <button type="button" id="checkoutValidationClose" aria-label="Dismiss alert"
+                      class="text-stone-light hover:text-stone shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-coral/10 transition">
+                <span class="text-lg leading-none">×</span>
+              </button>
+            </div>
+          </div>
+          <input type="hidden" name="slug" value={slug} />
+          <input type="hidden" name="ferryTicketId" value={String(item.id)} />
+          <input type="hidden" name="originLocation" value={originLoc} />
+          <input type="hidden" name="destinationLocation" value={destinationLoc} />
+          <input type="hidden" name="formStamp" value={formStamp} />
+          <input type="hidden" name="departureDate" value={qDate} />
+          <input type="hidden" name="adults" value={String(qAdults)} />
+          <input type="hidden" name="children" value={String(qChildren)} />
+          {preselected && (
+            <>
+              <input type="hidden" name="ferryClassType" value={preselected.classType} />
+              <input type="hidden" name="ferryClassName" value={preselected.name} />
+              <input type="hidden" name="unitPrice" value={String(preselected.adultPrice)} />
+              <input type="hidden" name="currency" value={preselected.currency ?? 'IDR'} />
+            </>
+          )}
+          {/* Phase 4.67.2d — Round-trip metadata (empty for one-way). */}
+          <input type="hidden" name="tripType" value={isRoundTrip ? 'round-trip' : 'one-way'} />
+          {isRoundTrip && returnItem && (
+            <>
+              <input type="hidden" name="returnDate" value={qReturnDate} />
+              <input type="hidden" name="returnFerryTicketId" value={String((returnItem as any).id)} />
+              <input type="hidden" name="returnTicketSlug" value={qReturnTicketSlug} />
+              {returnPreselected && (
+                <>
+                  <input type="hidden" name="returnFerryClassType" value={returnPreselected.classType} />
+                  <input type="hidden" name="returnFerryClassName" value={returnPreselected.name} />
+                </>
+              )}
+            </>
+          )}
+          <div class="hidden" aria-hidden="true">
+            <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+          </div>
+
+          {/* ─── Section 1: Contact ─── */}
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-sand-dark/10">
+            <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center font-bold text-sm shrink-0 ring-1 ring-white/20">1</span>
+                <div class="min-w-0">
+                  <h2 class="text-base font-bold tracking-wide text-white">Contact Information</h2>
+                  <p class="text-xs text-white/85 mt-0.5">For booking confirmation & final e-ticket delivery</p>
+                </div>
+              </div>
+              <span class="hidden sm:inline-block bg-emerald-400/20 text-emerald-100 text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap ring-1 ring-emerald-300/30">
+                Primary Contact
+              </span>
+            </div>
+
+            <div class="p-5 sm:p-7 space-y-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                    Full Name <span class="text-coral">*</span>
+                  </label>
+                  <input type="text" name="customerName" required minlength="2" maxlength="200" placeholder="e.g. Anggi Pohan"
+                    class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                </div>
+                {/* Phase 4.69.3 — Email with OTP verification wall.
+                    State machine: idle → sending → otp-input → verifying → verified.
+                    Submit disabled sampai verified (hidden input emailVerifiedToken terisi). */}
+                <div data-email-verify-root>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                    Email Address <span class="text-coral">*</span>
+                    <span data-email-badge class="ml-2 hidden items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-leaf-dark bg-leaf/15 px-2 py-0.5 rounded-full">
+                      <Icon name="check_circle" class="w-3 h-3" /> Verified
+                    </span>
+                  </label>
+                  <div class="flex gap-2">
+                    <input type="email" name="customerEmail" required maxlength="200" placeholder="you@example.com"
+                      data-email-input
+                      class="flex-1 min-w-0 bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                    <button type="button" data-email-verify-btn
+                      class="shrink-0 inline-flex items-center justify-center gap-1 px-4 py-3 bg-ocean hover:bg-ocean-dark active:scale-[0.99] text-white font-bold rounded-xl text-xs uppercase tracking-wider transition disabled:bg-stone-light disabled:cursor-not-allowed">
+                      <span data-email-verify-label>Verify</span>
+                    </button>
+                  </div>
+
+                  {/* OTP input panel — hidden sampai send sukses */}
+                  <div data-email-otp-panel class="hidden mt-3 bg-sand/60 rounded-xl p-3 space-y-2">
+                    <p class="text-xs font-semibold text-ocean leading-relaxed">
+                      <Icon name="mail" class="w-3.5 h-3.5 inline -mt-0.5" />
+                      Kode 6 digit dikirim ke email kamu. Berlaku <span data-otp-countdown class="font-bold text-coral">10:00</span>.
+                    </p>
+                    <div class="flex gap-2">
+                      <input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"
+                        placeholder="123456"
+                        data-email-otp-input
+                        class="flex-1 min-w-0 bg-white rounded-lg px-3 py-2.5 text-sm font-bold tracking-[0.3em] text-center text-ocean shadow-inner focus:outline-none focus:ring-2 focus:ring-leaf transition" />
+                      <button type="button" data-email-otp-submit
+                        class="shrink-0 inline-flex items-center justify-center gap-1 px-4 py-2.5 bg-leaf-dark hover:bg-leaf text-white font-bold rounded-lg text-xs uppercase tracking-wider transition disabled:bg-stone-light disabled:cursor-not-allowed">
+                        Check
+                      </button>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px]">
+                      <button type="button" data-email-resend
+                        class="font-semibold text-stone hover:text-ocean underline underline-offset-2 disabled:text-stone-light disabled:no-underline disabled:cursor-not-allowed">
+                        Kirim ulang kode
+                      </button>
+                      <span data-email-attempts class="text-stone-light"></span>
+                    </div>
+                  </div>
+
+                  {/* Error line */}
+                  <p data-email-error class="hidden mt-2 text-xs font-semibold text-coral"></p>
+
+                  {/* Hidden token input dikirim bersama form submit */}
+                  <input type="hidden" name="emailVerifiedToken" value="" data-email-token />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                    WhatsApp / Phone Number <span class="text-coral">*</span>
+                  </label>
+                  <div class="flex gap-2">
+                    <select name="contactPhoneRegion" required
+                      class="bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition min-w-[7rem] shrink-0">
+                      {PHONE_REGIONS.map((r) => (
+                        <option value={r.code} selected={r.code === DEFAULT_PHONE_REGION}>{r.flag} {r.code}</option>
+                      ))}
+                    </select>
+                    <input type="tel" name="contactPhone" required minlength="4" maxlength="20" placeholder="812-3456-7890"
+                      class="flex-1 min-w-0 bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+                  </div>
+                </div>
+              </div>
+
+              <label class="flex items-center gap-3 p-3 bg-sand/60 rounded-xl cursor-pointer hover:bg-sand transition select-none">
+                <input type="checkbox" name="contactPhoneIsWhatsapp" value="1" checked
+                  class="w-4 h-4 rounded accent-leaf-dark focus:ring-leaf focus:ring-2" />
+                <span class="text-xs sm:text-sm font-semibold text-ocean">
+                  The number above is also active on WhatsApp for booking updates
+                </span>
+              </label>
+
+              <div>
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                  Country (optional)
+                </label>
+                <input type="text" name="customerCountry" maxlength="100" placeholder="e.g. Indonesia"
+                  class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70" />
+              </div>
+
+              <div class="flex items-start gap-2 pt-1 text-xs text-stone-light font-medium leading-relaxed">
+                <Icon name="check_circle" class="w-4 h-4 text-leaf shrink-0 mt-0.5" />
+                <span>E-ticket & payment instructions will be sent to the email and WhatsApp number above once availability is confirmed by our admin.</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Section 2: Passengers (accordion) ─── */}
+          <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-sand-dark/10">
+            <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                  <Icon name="group" class="w-5 h-5" />
+                </span>
+                <div class="min-w-0">
+                  <h2 class="text-base font-bold tracking-wide text-white flex items-center gap-2 flex-wrap">
+                    Passenger Information
+                    <span class="text-[11px] font-semibold text-emerald-100 bg-emerald-400/20 px-2 py-0.5 rounded-full ring-1 ring-emerald-300/30">
+                      {totalPax} pax
+                    </span>
+                  </h2>
+                  <p class="text-xs text-white/85 mt-0.5">Must match the passport for ticket & immigration verification</p>
+                </div>
+              </div>
+              <span class="hidden sm:flex items-center gap-1.5 text-xs text-white/85 whitespace-nowrap">
+                <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
+                {totalPax} required
+              </span>
+            </div>
+
+            <div class="divide-y divide-sand-dark/20">
+              {Array.from({ length: totalPax }, (_, i) => {
+                const type: 'adult' | 'child' = i < qAdults ? 'adult' : 'child'
+                const paxNum = type === 'adult' ? i + 1 : i - qAdults + 1
+                const bodyId = `pax-body-${i}`
+                const iconId = `pax-icon-${i}`
+                const isFirst = i === 0
+                const badgeLabel = type === 'adult' ? `P${paxNum}` : `C${paxNum}`
+                const typeTag = type === 'adult' ? 'Adult (≥12 yrs)' : 'Child'
+                return (
+                  <div class="passenger-item" data-index={i}>
+                    <button
+                      type="button"
+                      class="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-3 bg-sand/40 hover:bg-sand/80 transition text-left cursor-pointer"
+                      aria-expanded={isFirst ? 'true' : 'false'}
+                      aria-controls={bodyId}
+                      data-accordion-target={bodyId}
+                      data-accordion-icon={iconId}
+                    >
+                      <div class="flex items-center gap-3 min-w-0">
+                        <span class={`w-7 h-7 rounded-lg ${type === 'adult' ? 'bg-ocean' : 'bg-leaf-dark'} text-white flex items-center justify-center font-bold text-[11px] shadow-sm shrink-0`}>
+                          {badgeLabel}
+                        </span>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-ocean text-sm sm:text-base">
+                              Passenger {i + 1}
+                              <span class="text-stone-light font-normal"> — {type === 'adult' ? 'Adult' : 'Child'} {paxNum}{isFirst ? ' (Primary)' : ''}</span>
+                            </span>
+                          </div>
+                          <p class="text-xs text-stone-light font-medium mt-0.5 pax-preview" data-pax-preview={String(i)}>
+                            Fill in the details as per passport
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="hidden md:inline-block bg-sand-dark/20 text-stone text-[11px] px-2.5 py-1 rounded-full font-semibold">
+                          {typeTag}
+                        </span>
+                        <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-sand-dark/20 text-stone">
+                          <span
+                            data-accordion-chevron={iconId}
+                            class:list={['inline-flex transform transition-transform duration-200', isFirst && 'rotate-180']}
+                          >
+                            <Icon name="expand_more" class="w-4 h-4" />
+                          </span>
+                        </span>
+                      </div>
+                    </button>
+
+                    <div
+                      id={bodyId}
+                      class:list={['p-5 sm:p-7 space-y-4 bg-white', !isFirst && 'hidden']}
+                    >
+                      <input type="hidden" name={`passengers[${i}][passengerType]`} value={type} />
+
+                      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-1">
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Title</label>
+                          <select name={`passengers[${i}][title]`}
+                            class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
+                            <option value="">Select…</option>
+                            {titleOptions.map((t) => <option value={t.value}>{t.label}</option>)}
+                          </select>
+                        </div>
+                        <div class="md:col-span-3">
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">
+                            Full Name (as per Passport) <span class="text-coral">*</span>
+                          </label>
+                          <div class="grid grid-cols-2 gap-3">
+                            <input type="text" name={`passengers[${i}][firstName]`} required minlength="1" maxlength="80" placeholder="First name" data-pax-first={String(i)}
+                              class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-semibold text-ocean uppercase shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70 placeholder:normal-case placeholder:font-normal" />
+                            <input type="text" name={`passengers[${i}][lastName]`} required minlength="1" maxlength="80" placeholder="Last name" data-pax-last={String(i)}
+                              class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-semibold text-ocean uppercase shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70 placeholder:normal-case placeholder:font-normal" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Date of Birth</label>
+                          <input type="date" name={`passengers[${i}][dateOfBirth]`} data-pax-dob={String(i)}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Gender</label>
+                          <select name={`passengers[${i}][gender]`}
+                            class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
+                            <option value="">Select…</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Nationality</label>
+                          <select name={`passengers[${i}][nationality]`} data-pax-nationality={String(i)}
+                            class="w-full bg-sand rounded-xl px-3 py-3 text-sm font-semibold text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition">
+                            <option value="">Select…</option>
+                            {nationalityOptions.map((n) => <option value={n.value}>{n.label}</option>)}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Number</label>
+                          <input type="text" name={`passengers[${i}][passportNumber]`} maxlength="30" autocomplete="off" placeholder="A12345678" data-pax-passport={String(i)}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-mono font-bold tracking-wider text-ocean uppercase shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70 placeholder:font-sans placeholder:font-normal placeholder:tracking-normal" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Issue Date</label>
+                          <input type="date" name={`passengers[${i}][passportIssueDate]`} data-pax-issue={String(i)}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
+                        </div>
+                        <div>
+                          <label class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Passport Expiry Date</label>
+                          <input type="date" name={`passengers[${i}][passportExpiryDate]`} data-pax-expiry={String(i)}
+                            class="w-full bg-sand rounded-xl px-4 py-3 text-sm font-medium text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition" />
+                        </div>
+                      </div>
+
+                      {/* Phase 4.69.4 — Inline passenger validation errors.
+                          Diisi oleh client script di akhir file saat user blur
+                          /change field passport/DOB/issue/expiry. */}
+                      <ul data-pax-errors={String(i)} class="hidden mt-1 space-y-1 text-xs font-semibold text-coral list-disc list-inside"></ul>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* ─── Notes ─── */}
+          <div class="bg-white rounded-2xl shadow-sm border border-sand-dark/10 p-5 sm:p-7">
+            <label class="block">
+              <span class="block text-[11px] font-bold uppercase tracking-wider text-stone mb-1.5">Additional Notes (optional)</span>
+              <textarea name="customerNotes" rows="3" maxlength="1000"
+                placeholder="e.g. WhatsApp number differs from phone, window seat request, hotel pickup, etc."
+                class="w-full bg-sand rounded-xl px-4 py-3 text-sm text-ocean shadow-inner focus:outline-none focus:bg-white focus:ring-2 focus:ring-leaf transition placeholder:text-stone-light/70"></textarea>
+            </label>
+          </div>
+
+          {/* Included benefits card */}
+          <div class="bg-leaf/10 border border-leaf/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="p-1.5 bg-leaf text-white rounded-lg shrink-0">
+                <Icon name="check" class="w-4 h-4" />
+              </span>
+              <span class="text-xs sm:text-sm font-semibold text-leaf-dark">
+                Official partner tickets · No admin fees · WhatsApp confirmation
+              </span>
+            </div>
+            <span class="hidden sm:inline-block font-bold text-leaf-dark uppercase tracking-wider text-[11px] whitespace-nowrap">Free Included</span>
+          </div>
+
+          {/* ─── CTA row ─── */}
+          <div class="pt-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4">
+            <a href={detailUrl} class="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-stone hover:text-ocean transition self-center sm:self-auto">
+              <span aria-hidden="true">←</span>
+              <span>Back to Ferry Details</span>
+            </a>
+            <button type="submit"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-3.5 px-8 bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-coral/20 transition group text-sm uppercase tracking-wider">
+              <span>Continue to Confirmation</span>
+              <svg class="w-4 h-4 transform group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ─── RIGHT column: Booking Summary sidebar (compact) ─── */}
+      <aside class="lg:col-span-4">
+        <div class="lg:sticky lg:top-28 bg-white rounded-2xl shadow-md overflow-hidden border border-sand-dark/10">
+
+          {/* Dark navy header banner — Phase 4.67.3 polish-2 disamakan dgn
+              style section "Contact Information" / "Passenger Information"
+              (ocean bg + icon ring + title besar + badge trip) biar selaras
+              dgn section lain di form. */}
+          <div class="bg-ocean text-white px-5 sm:px-6 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="w-9 h-9 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ring-1 ring-white/20">
+                <Icon name="receipt_long" class="w-5 h-5" />
+              </span>
+              <div class="min-w-0">
+                <h2 class="text-base font-bold tracking-wide text-white">Booking Summary</h2>
+                <p class="text-xs text-white/85 mt-0.5">{isRoundTrip ? 'Round-trip estimate · 2 legs' : 'One-way estimate'}</p>
+              </div>
+            </div>
+            <span class="hidden sm:inline-block bg-emerald-400/20 text-emerald-100 text-[11px] px-2.5 py-1 rounded-full font-semibold whitespace-nowrap ring-1 ring-emerald-300/30">
+              {isRoundTrip ? 'Round Trip' : 'One Way'}
+            </span>
+          </div>
+
+          {/* ── Session timer strip (Phase 4.67.1) ── */}
+          <div
+            id="sessionTimerStrip"
+            class="bg-amber-50 border-b border-amber-200/60 px-5 py-2.5 flex items-center justify-between gap-2 text-xs"
+            data-timer-seconds="900"
+          >
+            <span class="flex items-center gap-1.5 font-semibold text-amber-900">
+              <Icon name="info" class="w-3.5 h-3.5" />
+              <span>Session expires in</span>
+            </span>
+            <span
+              id="sessionTimerValue"
+              class="font-mono font-bold tabular-nums text-amber-900 text-sm"
+              aria-live="polite"
+              aria-atomic="true"
+            >15:00</span>
+          </div>
+
+          {/* Body — reduced padding & type sizes */}
+          <div class="px-5 pt-4 pb-5 space-y-4">
+
+            {/* Phase 4.67.3 polish-2 — Ringkasan atas: route singkat +
+                tanggal + pax strip + toggle "Show Details". Detail per-leg
+                di-collapse by default supaya sidebar tidak terlalu panjang
+                saat pertama muncul. Grand Total tetap selalu visible. */}
+            <div class="space-y-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="text-[10px] font-bold uppercase tracking-widest text-stone-light">Trip</p>
+                  <p class="text-sm font-bold text-ocean leading-snug mt-0.5">
+                    {routeLabel || item.title}
+                  </p>
+                  <p class="text-[11px] text-stone-light mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span class="inline-flex items-center gap-1">
+                      <Icon name="calendar_today" class="w-3 h-3 text-coral" />
+                      <span class="font-semibold text-ocean">{depDateFmt}</span>
+                    </span>
+                    {isRoundTrip && returnDepDateFmt && (
+                      <>
+                        <span class="text-sand-dark">·</span>
+                        <span class="inline-flex items-center gap-1">
+                          <Icon name="event_repeat" class="w-3 h-3 text-leaf-dark" />
+                          <span class="font-semibold text-ocean">{returnDepDateFmt}</span>
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </div>
+                <button
+                  id="bsDetailsToggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="bsCollapsibleBody"
+                  class="inline-flex items-center text-[11px] font-semibold text-coral hover:text-coral-dark transition-colors cursor-pointer select-none shrink-0"
+                >
+                  <span id="bsDetailsLabel">Show Details</span>
+                  <svg id="bsDetailsIcon" class="w-3 h-3 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Pax strip (ringkas, always visible) */}
+              <div class="flex items-center gap-2 text-[11px] text-stone-light">
+                <Icon name="group" class="w-3.5 h-3.5 text-stone-light shrink-0" />
+                <span>{qAdults} adult{qAdults > 1 ? 's' : ''}{qChildren > 0 ? ` · ${qChildren} child${qChildren > 1 ? 'ren' : ''}` : ''}</span>
+              </div>
+            </div>
+
+            {/* ─── Collapsible details: 2 BOX breakdown + fees ─── */}
+            <div id="bsCollapsibleBody" class="hidden space-y-4 transition-all duration-200">
+
+            {/* ─── OUTBOUND BOX ─── */}
+            <div class="rounded-xl border border-ocean/30 bg-ocean/[0.04] p-4 space-y-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="bg-ocean text-white text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0">
+                    {isRoundTrip ? 'Outbound' : 'Departure'}
+                  </span>
+                  <span class="text-xs font-semibold text-ocean truncate">{depDateFmt}</span>
+                </div>
+              </div>
+
+              {heroUrl && (
+                <div class="flex gap-2.5">
+                  <div class="w-11 h-11 rounded-lg overflow-hidden bg-sand shrink-0">
+                    <img src={heroUrl} alt={item.title} class="w-full h-full object-cover" loading="lazy" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-display text-sm text-ocean line-clamp-2 leading-snug">{item.title}</p>
+                    {preselected && (
+                      <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{preselected.name}</span></p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {routeLabel && (
+                <p class="text-xs font-medium text-stone leading-relaxed flex items-start gap-1.5">
+                  <Icon name="location_on" class="w-3.5 h-3.5 text-coral shrink-0 mt-0.5" />
+                  <span>{routeLabel}</span>
+                </p>
+              )}
+
+              <div class="pt-2 border-t border-ocean/15 space-y-1">
+                {unitPrice != null && (
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-stone-light">Adult × {qAdults}</span>
+                    <span class="font-semibold text-ocean tabular-nums">{priceFmt(adultLineTotal)}</span>
+                  </div>
+                )}
+                {qChildren > 0 && (
+                  <div class="flex justify-between items-center text-[11px]">
+                    <span class="text-stone-light">Child × {qChildren}</span>
+                    <span class="font-semibold text-ocean tabular-nums">{priceFmt(childLineTotal)}</span>
+                  </div>
+                )}
+                <div class="pt-1.5 mt-1 border-t border-ocean/15 flex justify-between items-center">
+                  <span class="text-xs font-bold text-ocean">Subtotal</span>
+                  <span class="font-bold text-sm text-ocean tabular-nums">{priceFmt(subtotalDeparture)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ─── RETURN BOX (round-trip only) ─── */}
+            {isRoundTrip && returnItem && (
+              <div class="rounded-xl border border-leaf/40 bg-leaf/[0.06] p-4 space-y-3">
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="bg-leaf-dark text-white text-[9px] uppercase tracking-widest px-2 py-0.5 rounded font-bold shrink-0 flex items-center gap-1">
+                      <Icon name="event_repeat" class="w-2.5 h-2.5" /> Return
+                    </span>
+                    <span class="text-xs font-semibold text-ocean truncate">{returnDepDateFmt}</span>
+                  </div>
+                </div>
+
+                <div class="flex gap-2.5">
+                  <div class="w-11 h-11 rounded-lg overflow-hidden bg-leaf/15 shrink-0 flex items-center justify-center">
+                    <Icon name="ship" class="w-5 h-5 text-leaf-dark" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-display text-sm text-ocean line-clamp-2 leading-snug">{returnItem.title}</p>
+                    {returnPreselected && (
+                      <p class="text-[11px] text-stone-light mt-0.5">Class: <span class="text-ocean font-semibold">{returnPreselected.name}</span></p>
+                    )}
+                  </div>
+                </div>
+
+                {returnRouteLabel && (
+                  <p class="text-xs font-medium text-stone leading-relaxed flex items-start gap-1.5">
+                    <Icon name="location_on" class="w-3.5 h-3.5 text-leaf-dark shrink-0 mt-0.5" />
+                    <span>{returnRouteLabel}</span>
+                  </p>
+                )}
+
+                <div class="pt-2 border-t border-leaf/25 space-y-1">
+                  {returnUnitPrice != null && (
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="text-stone-light">Adult × {qAdults}</span>
+                      <span class="font-semibold text-ocean tabular-nums">{priceFmt(returnAdultLineTotal)}</span>
+                    </div>
+                  )}
+                  {qChildren > 0 && (
+                    <div class="flex justify-between items-center text-[11px]">
+                      <span class="text-stone-light">Child × {qChildren}</span>
+                      <span class="font-semibold text-ocean tabular-nums">{priceFmt(returnChildLineTotal)}</span>
+                    </div>
+                  )}
+                  <div class="pt-1.5 mt-1 border-t border-leaf/25 flex justify-between items-center">
+                    <span class="text-xs font-bold text-ocean">Subtotal</span>
+                    <span class="font-bold text-sm text-ocean tabular-nums">{priceFmt(returnSubtotal)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {serviceFee > 0 && (
+              <div class="flex justify-between items-center text-xs px-1">
+                <span class="text-stone-light">Service fee</span>
+                <span class="font-medium text-ocean tabular-nums">{priceFmt(serviceFee)}</span>
+              </div>
+            )}
+            {discount > 0 && (
+              <div class="flex justify-between items-center text-xs px-1">
+                <span class="text-stone-light">Discount</span>
+                <span class="font-medium text-leaf tabular-nums">− {priceFmt(discount)}</span>
+              </div>
+            )}
+
+            </div>{/* /#bsCollapsibleBody */}
+
+            {/* ─── GRAND TOTAL ─── */}
+            <div class="rounded-xl bg-gradient-to-br from-coral/10 to-coral/5 border-2 border-coral/30 px-4 py-3 flex items-baseline justify-between gap-3">
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase tracking-widest font-bold text-coral/90">Total price</span>
+                <span class="text-[10px] text-stone-light">{isRoundTrip ? 'Outbound + Return' : 'Departure'}</span>
+              </div>
+              <span class="font-display text-xl sm:text-2xl font-bold text-coral tabular-nums leading-none">
+                {priceFmt(totalPrice)}
+              </span>
+            </div>
+
+            {/* Disclaimer */}
+            <p class="text-[11px] leading-relaxed text-stone-light">
+              You will not be charged now. The amount above is an estimate; final payment instructions are sent via WhatsApp once availability is confirmed by our admin.
+            </p>
+
+            {/* Helper info box */}
+            <div class="bg-leaf/10 border border-leaf/20 rounded-lg p-3 text-[11px] text-stone-dark">
+              <div class="flex items-start gap-2">
+                <Icon name="check_circle" class="w-3.5 h-3.5 text-leaf-dark shrink-0 mt-0.5" />
+                <span>Fill in contact & passenger details, then click <b>Continue to Booking Confirmation</b> to receive WhatsApp instructions.</span>
+              </div>
+            </div>
+
+            {/* Guarantee badges */}
+            <div class="pt-3 border-t border-sand-dark/15 flex items-center justify-around text-[10px] text-stone-light">
+              <span class="flex items-center gap-1">
+                <Icon name="verified_user" class="w-3 h-3 text-leaf-dark" />
+                <span>Official Tickets</span>
+              </span>
+              <span class="text-sand-dark">|</span>
+              <span class="flex items-center gap-1">
+                <Icon name="badge" class="w-3 h-3 text-ocean-light" />
+                <span>No Admin Fees</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {/* ── Session Expired modal (Phase 4.67.1) ── */}
+  <div
+    id="sessionExpiredModal"
+    class="hidden fixed inset-0 z-[100] items-center justify-center bg-ocean/70 backdrop-blur-sm px-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sessionExpiredTitle"
+    aria-describedby="sessionExpiredDesc"
+  >
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-sand-dark/10">
+      <div class="bg-coral px-6 py-4 flex items-center gap-3 text-white">
+        <span class="w-10 h-10 rounded-xl bg-white/15 ring-1 ring-white/25 flex items-center justify-center shrink-0">
+          <Icon name="info" class="w-5 h-5" />
+        </span>
+        <h2 id="sessionExpiredTitle" class="text-base font-bold tracking-wide">Session Expired</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <p id="sessionExpiredDesc" class="text-sm text-stone leading-relaxed">
+          You have exceeded the time limit to complete your booking. For security and seat-availability reasons, this booking session is no longer valid and <span class="font-semibold">has not been recorded</span>.
+          <br /><br />
+          Please go back to the ferry details page and start a new booking.
+        </p>
+        <button
+          type="button"
+          id="sessionExpiredOk"
+          data-return-url={detailUrl}
+          class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 bg-coral hover:bg-coral-dark active:scale-[0.99] text-white font-bold rounded-xl shadow-md shadow-coral/20 transition text-sm uppercase tracking-wider"
+          autofocus
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</PageLayout>
+
+<script>
+  // Phase 4.65 — progressive-enhancement:
+  //   (1) accordion per-passenger (open/close body, rotate chevron)
+  //   (2) live-preview name/passport on accordion header
+  //   (3) sidebar "Show Details" toggle
+  document.addEventListener('DOMContentLoaded', () => {
+    // (1) Accordions
+    document.querySelectorAll<HTMLButtonElement>('[data-accordion-target]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const bodyId = btn.dataset.accordionTarget!
+        const iconId = btn.dataset.accordionIcon!
+        const body = document.getElementById(bodyId)
+        const icon = document.querySelector<HTMLElement>(`[data-accordion-chevron="${iconId}"]`)
+        if (!body) return
+        const willOpen = body.classList.contains('hidden')
+        if (willOpen) {
+          body.classList.remove('hidden')
+          icon?.classList.add('rotate-180')
+          btn.setAttribute('aria-expanded', 'true')
+        } else {
+          body.classList.add('hidden')
+          icon?.classList.remove('rotate-180')
+          btn.setAttribute('aria-expanded', 'false')
+        }
+      })
+    })
+
+    // (2) Live preview text
+    const updatePreview = (i: string) => {
+      const first = document.querySelector<HTMLInputElement>(`[data-pax-first="${i}"]`)?.value.trim() ?? ''
+      const last = document.querySelector<HTMLInputElement>(`[data-pax-last="${i}"]`)?.value.trim() ?? ''
+      const passport = document.querySelector<HTMLInputElement>(`[data-pax-passport="${i}"]`)?.value.trim() ?? ''
+      const preview = document.querySelector<HTMLElement>(`[data-pax-preview="${i}"]`)
+      if (!preview) return
+      const name = [first, last].filter(Boolean).join(' ').toUpperCase()
+      if (!name && !passport) {
+        preview.textContent = 'Fill in the details as per passport'
+        preview.classList.remove('text-ocean')
+        preview.classList.add('text-stone-light')
+        return
+      }
+      const parts = [name || '—']
+      if (passport) parts.push(`Passport: ${passport.toUpperCase()}`)
+      preview.textContent = parts.join(' • ')
+      preview.classList.remove('text-stone-light')
+      preview.classList.add('text-ocean')
+    }
+    document.querySelectorAll<HTMLInputElement>('[data-pax-first], [data-pax-last], [data-pax-passport]').forEach((el) => {
+      const i = el.dataset.paxFirst ?? el.dataset.paxLast ?? el.dataset.paxPassport
+      if (!i) return
+      el.addEventListener('input', () => updatePreview(i))
+    })
+
+    // (3b) Session countdown timer (Phase 4.67.1)
+    //   - 15 min client-side countdown (server stamp TTL is 30 min).
+    //   - At <= 120s: coral + pulse warning.
+    //   - At 0: disable submit button, show blocking modal; OK → return to detail page.
+    const strip = document.getElementById('sessionTimerStrip')
+    const valueEl = document.getElementById('sessionTimerValue')
+    const modal = document.getElementById('sessionExpiredModal')
+    const okBtn = document.getElementById('sessionExpiredOk') as HTMLButtonElement | null
+    const form = document.getElementById('checkout-form') as HTMLFormElement | null
+    if (strip && valueEl && modal && okBtn && form) {
+      const total = Number(strip.dataset.timerSeconds ?? '900')
+      let remaining = Number.isFinite(total) && total > 0 ? total : 900
+      let expired = false
+
+      const fmt = (s: number) => {
+        const m = Math.floor(s / 60)
+        const r = s % 60
+        return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`
+      }
+
+      const render = () => {
+        valueEl.textContent = fmt(remaining)
+        if (remaining <= 120 && remaining > 0) {
+          strip.classList.remove('bg-amber-50', 'border-amber-200/60')
+          strip.classList.add('bg-coral/10', 'border-coral/40')
+          valueEl.classList.remove('text-amber-900')
+          valueEl.classList.add('text-coral', 'animate-pulse')
+          strip.querySelector('span.flex')?.classList.remove('text-amber-900')
+          strip.querySelector('span.flex')?.classList.add('text-coral')
+        }
+      }
+
+      const expire = () => {
+        if (expired) return
+        expired = true
+        remaining = 0
+        render()
+        // Disable form & submit — guarantees no POST reaches /api/bookings/create.
+        const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]')
+        if (submitBtn) {
+          submitBtn.disabled = true
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed')
+        }
+        form.addEventListener('submit', (e) => e.preventDefault(), { capture: true })
+        // Show modal.
+        modal.classList.remove('hidden')
+        modal.classList.add('flex')
+        // Prevent background scroll.
+        document.body.style.overflow = 'hidden'
+        // Focus OK.
+        setTimeout(() => okBtn.focus(), 0)
+      }
+
+      render()
+      const tick = setInterval(() => {
+        remaining -= 1
+        if (remaining <= 0) {
+          clearInterval(tick)
+          expire()
+          return
+        }
+        render()
+      }, 1000)
+
+      okBtn.addEventListener('click', () => {
+        const url = okBtn.dataset.returnUrl || '/ferry-tickets'
+        window.location.href = url
+      })
+      // Also respond to Enter key when modal open (OK has autofocus).
+      modal.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          okBtn.click()
+        }
+      })
+    }
+
+    // (3) Sidebar Booking Summary — collapsible "Show Details" (Phase 4.67.3 polish-2).
+    //     Default collapsed: hanya tampilan ringkas trip + grand total.
+    //     Expand: tampilkan OUTBOUND BOX, RETURN BOX, breakdown, service fee, dll.
+    const bsToggle = document.getElementById('bsDetailsToggle')
+    const bsCollapsible = document.getElementById('bsCollapsibleBody')
+    const bsLabel = document.getElementById('bsDetailsLabel')
+    const bsIcon = document.getElementById('bsDetailsIcon')
+    if (bsToggle && bsCollapsible && bsLabel && bsIcon) {
+      bsToggle.addEventListener('click', () => {
+        const willShow = bsCollapsible.classList.contains('hidden')
+        if (willShow) {
+          bsCollapsible.classList.remove('hidden')
+          bsLabel.textContent = 'Hide Details'
+          bsIcon.classList.add('rotate-180')
+          bsToggle.setAttribute('aria-expanded', 'true')
+        } else {
+          bsCollapsible.classList.add('hidden')
+          bsLabel.textContent = 'Show Details'
+          bsIcon.classList.remove('rotate-180')
+          bsToggle.setAttribute('aria-expanded', 'false')
+        }
+      })
+    }
+
+    // (4) Submit validation (Phase 4.67.3 polish-2) — custom validator yg
+    //     scan passenger first/last + contact fields. Kalau ada yg kurang:
+    //       - prevent submit
+    //       - auto-expand accordion passenger yg invalid
+    //       - scroll ke field pertama yg invalid + focus
+    //       - tampilkan banner #checkoutValidationAlert dgn ringkasan.
+    const checkoutFormEl = document.getElementById('checkout-form') as HTMLFormElement | null
+    const alertEl = document.getElementById('checkoutValidationAlert')
+    const alertList = document.getElementById('checkoutValidationList')
+    const alertClose = document.getElementById('checkoutValidationClose')
+    const hideAlert = () => alertEl?.classList.add('hidden')
+    alertClose?.addEventListener('click', hideAlert)
+    const expandPassenger = (idx: number) => {
+      const btn = document.querySelector<HTMLButtonElement>(`[data-accordion-target="pax-body-${idx}"]`)
+      const body = document.getElementById(`pax-body-${idx}`)
+      const chev = document.querySelector<HTMLElement>(`[data-accordion-chevron="pax-icon-${idx}"]`)
+      if (body && body.classList.contains('hidden')) {
+        body.classList.remove('hidden')
+        chev?.classList.add('rotate-180')
+        btn?.setAttribute('aria-expanded', 'true')
+      }
+    }
+    // (5) Phase 4.69.3 — Email verification wall (OTP).
+    //     State machine: idle → sending → otp-input → verifying → verified.
+    //     Email change setelah verified → reset ke idle (invalidate token).
+    const emailRoot = document.querySelector<HTMLElement>('[data-email-verify-root]')
+    if (emailRoot) {
+      const emailInput = emailRoot.querySelector<HTMLInputElement>('[data-email-input]')!
+      const verifyBtn = emailRoot.querySelector<HTMLButtonElement>('[data-email-verify-btn]')!
+      const verifyLabel = emailRoot.querySelector<HTMLElement>('[data-email-verify-label]')!
+      const otpPanel = emailRoot.querySelector<HTMLElement>('[data-email-otp-panel]')!
+      const otpInput = emailRoot.querySelector<HTMLInputElement>('[data-email-otp-input]')!
+      const otpSubmit = emailRoot.querySelector<HTMLButtonElement>('[data-email-otp-submit]')!
+      const resendBtn = emailRoot.querySelector<HTMLButtonElement>('[data-email-resend]')!
+      const attemptsHint = emailRoot.querySelector<HTMLElement>('[data-email-attempts]')!
+      const countdownEl = emailRoot.querySelector<HTMLElement>('[data-otp-countdown]')!
+      const errLine = emailRoot.querySelector<HTMLElement>('[data-email-error]')!
+      const badge = emailRoot.querySelector<HTMLElement>('[data-email-badge]')!
+      const tokenInput = emailRoot.querySelector<HTMLInputElement>('[data-email-token]')!
+
+      let countdownTimer: number | null = null
+      let verifiedEmail = ''  // email yang sudah ter-verify — invalidate kalau user edit email
+
+      const emailLooksValid = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())
+
+      const showErr = (msg: string) => {
+        errLine.textContent = msg
+        errLine.classList.remove('hidden')
+      }
+      const clearErr = () => {
+        errLine.textContent = ''
+        errLine.classList.add('hidden')
+      }
+
+      const setVerified = (email: string, token: string) => {
+        verifiedEmail = email
+        tokenInput.value = token
+        badge.classList.remove('hidden')
+        badge.classList.add('inline-flex')
+        verifyLabel.textContent = 'Verified'
+        verifyBtn.disabled = true
+        emailInput.readOnly = true
+        emailInput.classList.add('bg-leaf/5', 'text-stone')
+        otpPanel.classList.add('hidden')
+        if (countdownTimer) {
+          clearInterval(countdownTimer)
+          countdownTimer = null
+        }
+        clearErr()
+      }
+
+      const resetToIdle = () => {
+        verifiedEmail = ''
+        tokenInput.value = ''
+        badge.classList.add('hidden')
+        badge.classList.remove('inline-flex')
+        verifyBtn.disabled = false
+        verifyLabel.textContent = 'Verify'
+        emailInput.readOnly = false
+        emailInput.classList.remove('bg-leaf/5', 'text-stone')
+        otpPanel.classList.add('hidden')
+        otpInput.value = ''
+        if (countdownTimer) {
+          clearInterval(countdownTimer)
+          countdownTimer = null
+        }
+      }
+
+      const startCountdown = (ttlSeconds: number) => {
+        let remaining = ttlSeconds
+        const render = () => {
+          const m = String(Math.floor(remaining / 60)).padStart(2, '0')
+          const s = String(remaining % 60).padStart(2, '0')
+          countdownEl.textContent = `${m}:${s}`
+          if (remaining <= 60) countdownEl.classList.add('text-coral', 'animate-pulse')
+        }
+        if (countdownTimer) clearInterval(countdownTimer)
+        render()
+        countdownTimer = window.setInterval(() => {
+          remaining -= 1
+          if (remaining <= 0) {
+            clearInterval(countdownTimer!)
+            countdownTimer = null
+            otpSubmit.disabled = true
+            showErr('Kode OTP kadaluarsa. Klik "Kirim ulang kode" untuk minta baru.')
+            return
+          }
+          render()
+        }, 1000)
+      }
+
+      const callSend = async () => {
+        clearErr()
+        const email = emailInput.value.trim()
+        if (!emailLooksValid()) {
+          showErr('Format email tidak valid.')
+          emailInput.focus()
+          return
+        }
+        verifyBtn.disabled = true
+        verifyLabel.textContent = 'Sending...'
+        try {
+          const res = await fetch('/api/checkout/verify/email-send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          })
+          const data = (await res.json().catch(() => ({}))) as {
+            ok?: boolean
+            error?: string
+            ttlSeconds?: number
+            retryAfterSeconds?: number
+          }
+          if (data.ok) {
+            otpPanel.classList.remove('hidden')
+            otpInput.value = ''
+            otpSubmit.disabled = false
+            attemptsHint.textContent = ''
+            countdownEl.classList.remove('text-coral', 'animate-pulse')
+            startCountdown(data.ttlSeconds ?? 600)
+            verifyLabel.textContent = 'Sent'
+            verifyBtn.disabled = true
+            setTimeout(() => otpInput.focus(), 50)
+            return
+          }
+          if (data.error === 'rate_limited') {
+            const mins = Math.ceil((data.retryAfterSeconds ?? 900) / 60)
+            showErr(`Terlalu banyak permintaan. Coba lagi dalam ${mins} menit.`)
+          } else if (data.error === 'invalid_email') {
+            showErr('Format email tidak valid.')
+          } else if (data.error === 'send_failed') {
+            showErr('Gagal mengirim email verifikasi. Coba lagi atau gunakan email lain.')
+          } else {
+            showErr('Layanan verifikasi tidak tersedia. Hubungi admin via WhatsApp.')
+          }
+          verifyLabel.textContent = 'Verify'
+          verifyBtn.disabled = false
+        } catch {
+          showErr('Gangguan jaringan. Coba lagi.')
+          verifyLabel.textContent = 'Verify'
+          verifyBtn.disabled = false
+        }
+      }
+
+      const callCheck = async () => {
+        clearErr()
+        const otp = otpInput.value.trim()
+        const email = emailInput.value.trim()
+        if (!/^\d{6}$/.test(otp)) {
+          showErr('Masukkan 6 digit kode OTP.')
+          otpInput.focus()
+          return
+        }
+        otpSubmit.disabled = true
+        try {
+          const res = await fetch('/api/checkout/verify/email-check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp }),
+          })
+          const data = (await res.json().catch(() => ({}))) as {
+            ok?: boolean
+            error?: string
+            token?: string
+            attemptsLeft?: number
+          }
+          if (data.ok && data.token) {
+            setVerified(email, data.token)
+            return
+          }
+          if (data.error === 'otp_mismatch') {
+            const left = data.attemptsLeft ?? 0
+            showErr(`Kode salah. Sisa percobaan: ${left}.`)
+            attemptsHint.textContent = `${left} percobaan tersisa`
+            otpInput.value = ''
+            otpInput.focus()
+            otpSubmit.disabled = false
+          } else if (data.error === 'too_many_attempts') {
+            showErr('Terlalu banyak percobaan salah. Klik "Kirim ulang kode" untuk minta OTP baru.')
+            otpSubmit.disabled = true
+          } else if (data.error === 'no_active_otp') {
+            showErr('Kode tidak ditemukan atau sudah kadaluarsa. Klik "Kirim ulang kode".')
+            otpSubmit.disabled = true
+          } else {
+            showErr('Verifikasi gagal. Coba lagi.')
+            otpSubmit.disabled = false
+          }
+        } catch {
+          showErr('Gangguan jaringan. Coba lagi.')
+          otpSubmit.disabled = false
+        }
+      }
+
+      verifyBtn.addEventListener('click', callSend)
+      resendBtn.addEventListener('click', callSend)
+      otpSubmit.addEventListener('click', callCheck)
+      otpInput.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          e.preventDefault()
+          callCheck()
+        }
+      })
+
+      // Email change setelah verified → invalidate token (user harus verify ulang).
+      emailInput.addEventListener('input', () => {
+        if (verifiedEmail && emailInput.value.trim().toLowerCase() !== verifiedEmail.toLowerCase()) {
+          resetToIdle()
+        }
+      })
+    }
+
+    // (6) Phase 4.69.4 — Passenger inline validation (passport format,
+    //     DOB vs type, issue/expiry logic, duplicate passport). Mirror
+    //     dari `@lib/checkout/passengerValidation.ts` — client+server
+    //     share rule set. Dijalankan on blur/change tiap field, + full
+    //     pass di submit.
+    const ADULT_MIN = 12, CHILD_MIN = 2, CHILD_MAX = 11
+    const PASSPORT_SPECS: Record<string, { re: RegExp; hint: string }> = {
+      Indonesia:   { re: /^[A-Z]{1,2}\d{7}$/,    hint: '1-2 huruf + 7 digit' },
+      Singapore:   { re: /^[A-Z]\d{7}[A-Z]$/,    hint: '1 huruf + 7 digit + 1 huruf' },
+      Malaysia:    { re: /^[A-Z]\d{8}$/,         hint: '1 huruf + 8 digit' },
+      Philippines: { re: /^[A-Z]\d{7}[A-Z]?$/,   hint: '1 huruf + 7 digit (opsional huruf akhir)' },
+      Thailand:    { re: /^[A-Z]{1,2}\d{7}$/,    hint: '1-2 huruf + 7 digit' },
+      Vietnam:     { re: /^[A-Z]\d{7}$/,         hint: '1 huruf + 7 digit' },
+      'United States':  { re: /^\d{9}$/,         hint: '9 digit' },
+      'United Kingdom': { re: /^\d{9}$/,         hint: '9 digit' },
+      Australia:   { re: /^[A-Z]\d{7}$/,         hint: '1 huruf + 7 digit' },
+      Japan:       { re: /^[A-Z]{2}\d{7}$/,      hint: '2 huruf + 7 digit' },
+    }
+    const GENERIC_PP = /^[A-Z0-9]{6,12}$/
+    const normalizePP = (v: string) => v.replace(/[\s-]/g, '').toUpperCase()
+    const ageAt = (dobIso: string, refIso: string): number | null => {
+      const d = new Date(dobIso), r = new Date(refIso)
+      if (isNaN(d.getTime()) || isNaN(r.getTime())) return null
+      let a = r.getFullYear() - d.getFullYear()
+      const m = r.getMonth() - d.getMonth()
+      if (m < 0 || (m === 0 && r.getDate() < d.getDate())) a -= 1
+      return a
+    }
+    const todayISO = () => new Date().toISOString().slice(0, 10)
+
+    const departureDateInput = document.querySelector<HTMLInputElement>('[name="departureDate"]')
+    const getDeparture = () => (departureDateInput?.value ?? todayISO()).slice(0, 10)
+
+    const paxValidate = (idx: number): string[] => {
+      const item = document.querySelector<HTMLElement>(`.passenger-item[data-index="${idx}"]`)
+      if (!item) return []
+      const typeInput = item.querySelector<HTMLInputElement>(`[name="passengers[${idx}][passengerType]"]`)
+      const type = (typeInput?.value as 'adult' | 'child') ?? 'adult'
+      const pp = item.querySelector<HTMLInputElement>(`[data-pax-passport="${idx}"]`)
+      const dob = item.querySelector<HTMLInputElement>(`[data-pax-dob="${idx}"]`)
+      const issue = item.querySelector<HTMLInputElement>(`[data-pax-issue="${idx}"]`)
+      const expiry = item.querySelector<HTMLInputElement>(`[data-pax-expiry="${idx}"]`)
+      const nat = item.querySelector<HTMLSelectElement>(`[data-pax-nationality="${idx}"]`)
+      const msgs: string[] = []
+
+      // Clear previous ring highlights.
+      ;[pp, dob, issue, expiry].forEach((el) => el?.classList.remove('ring-2', 'ring-coral'))
+
+      // 1. Passport format.
+      if (pp?.value.trim()) {
+        const normalized = normalizePP(pp.value)
+        const natVal = (nat?.value ?? '').trim()
+        const spec = natVal && PASSPORT_SPECS[natVal] ? PASSPORT_SPECS[natVal] : null
+        const re = spec?.re ?? GENERIC_PP
+        const hint = spec?.hint ?? '6–12 huruf besar / angka'
+        if (!re.test(normalized)) {
+          msgs.push(`Format passport tidak sesuai (${hint}).`)
+          pp.classList.add('ring-2', 'ring-coral')
+        }
+      }
+
+      const dep = getDeparture()
+      // 2. DOB sanity.
+      if (dob?.value) {
+        const age = ageAt(dob.value, dep)
+        if (age === null || age < 0) {
+          msgs.push('Tanggal lahir tidak valid.')
+          dob.classList.add('ring-2', 'ring-coral')
+        } else {
+          if (type === 'adult' && age < ADULT_MIN) {
+            msgs.push(`Penumpang Adult harus berumur ≥ ${ADULT_MIN} tahun saat departure (ini ${age} tahun).`)
+            dob.classList.add('ring-2', 'ring-coral')
+          }
+          if (type === 'child' && (age < CHILD_MIN || age > CHILD_MAX)) {
+            msgs.push(`Penumpang Child harus berumur ${CHILD_MIN}–${CHILD_MAX} tahun saat departure (ini ${age} tahun).`)
+            dob.classList.add('ring-2', 'ring-coral')
+          }
+        }
+      }
+
+      // 3. Issue date <= today AND >= DOB.
+      if (issue?.value) {
+        const iT = new Date(issue.value).getTime()
+        const tT = new Date(todayISO()).getTime()
+        if (isNaN(iT)) {
+          msgs.push('Tanggal terbit passport tidak valid.')
+          issue.classList.add('ring-2', 'ring-coral')
+        } else {
+          if (iT > tT) {
+            msgs.push('Tanggal terbit passport tidak boleh di masa depan.')
+            issue.classList.add('ring-2', 'ring-coral')
+          }
+          if (dob?.value) {
+            const dT = new Date(dob.value).getTime()
+            if (!isNaN(dT) && iT < dT) {
+              msgs.push('Tanggal terbit passport tidak boleh sebelum tanggal lahir.')
+              issue.classList.add('ring-2', 'ring-coral')
+            }
+          }
+        }
+      }
+
+      // 4. Expiry > Issue.
+      if (issue?.value && expiry?.value) {
+        const iT = new Date(issue.value).getTime()
+        const eT = new Date(expiry.value).getTime()
+        if (!isNaN(iT) && !isNaN(eT) && eT <= iT) {
+          msgs.push('Masa berlaku passport harus setelah tanggal terbit.')
+          expiry.classList.add('ring-2', 'ring-coral')
+        }
+      }
+
+      // 5. Phase 4.59.2 (bug fix) — Expiry MUST be >= departureDate + 6 months.
+      // Dulu rule ini cuma di server → kalau gagal, server redirect
+      // dgn ?err=invalid_passport_expiry → page reload, form data + OTP token
+      // hilang. Sekarang client-side block sebelum submit → tidak pernah
+      // sampai server.
+      if (expiry?.value) {
+        const dep = getDeparture()
+        if (dep) {
+          const minExpiry = new Date(dep)
+          minExpiry.setMonth(minExpiry.getMonth() + 6)
+          const eT = new Date(expiry.value).getTime()
+          if (!isNaN(eT) && eT < minExpiry.getTime()) {
+            const label = minExpiry.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            msgs.push(`Masa berlaku passport harus minimal 6 bulan setelah tanggal keberangkatan (minimal ${label}).`)
+            expiry.classList.add('ring-2', 'ring-coral')
+          }
+        }
+      }
+
+      return msgs
+    }
+
+    const paxRenderErrors = (idx: number, msgs: string[]) => {
+      const ul = document.querySelector<HTMLUListElement>(`[data-pax-errors="${idx}"]`)
+      if (!ul) return
+      if (msgs.length === 0) {
+        ul.classList.add('hidden')
+        ul.innerHTML = ''
+      } else {
+        ul.classList.remove('hidden')
+        ul.innerHTML = msgs.map((m) => `<li>${m.replace(/</g, '&lt;')}</li>`).join('')
+      }
+    }
+
+    const paxCheckDuplicatesAcrossAll = (): Map<number, string[]> => {
+      const seen = new Map<string, number[]>()
+      const result = new Map<number, string[]>()
+      document.querySelectorAll<HTMLElement>('.passenger-item').forEach((item) => {
+        const idx = Number(item.dataset.index ?? '-1')
+        if (idx < 0) return
+        const pp = item.querySelector<HTMLInputElement>(`[data-pax-passport="${idx}"]`)
+        const val = pp?.value?.trim()
+        if (!val) return
+        const n = normalizePP(val)
+        const arr = seen.get(n) ?? []
+        arr.push(idx)
+        seen.set(n, arr)
+      })
+      for (const [, indices] of seen) {
+        if (indices.length < 2) continue
+        for (const i of indices) {
+          const others = indices.filter((x) => x !== i).map((x) => x + 1).join(', ')
+          const list = result.get(i) ?? []
+          list.push(`Nomor passport sama dengan Penumpang ${others}.`)
+          result.set(i, list)
+          const pp = document.querySelector<HTMLInputElement>(`[data-pax-passport="${i}"]`)
+          pp?.classList.add('ring-2', 'ring-coral')
+        }
+      }
+      return result
+    }
+
+    const paxValidateAll = (): number /* total issues */ => {
+      let total = 0
+      const dupMap = paxCheckDuplicatesAcrossAll()
+      document.querySelectorAll<HTMLElement>('.passenger-item').forEach((item) => {
+        const idx = Number(item.dataset.index ?? '-1')
+        if (idx < 0) return
+        const msgs = paxValidate(idx)
+        const dup = dupMap.get(idx) ?? []
+        const all = [...msgs, ...dup]
+        paxRenderErrors(idx, all)
+        total += all.length
+      })
+      return total
+    }
+
+    // Bind on blur / change for all passenger fields.
+    document.querySelectorAll<HTMLElement>('.passenger-item').forEach((item) => {
+      const idx = Number(item.dataset.index ?? '-1')
+      if (idx < 0) return
+      const fields = ['passport', 'dob', 'issue', 'expiry', 'nationality'] as const
+      for (const kind of fields) {
+        const el = item.querySelector<HTMLInputElement>(`[data-pax-${kind}="${idx}"]`)
+        if (!el) continue
+        const handler = () => {
+          // Normalize passport input to uppercase.
+          if (kind === 'passport' && el.value) {
+            const upper = el.value.toUpperCase()
+            if (upper !== el.value) {
+              el.value = upper
+            }
+          }
+          paxValidateAll()
+        }
+        el.addEventListener('blur', handler)
+        el.addEventListener('change', handler)
+      }
+    })
+
+    if (checkoutFormEl && alertEl && alertList) {
+      checkoutFormEl.addEventListener('submit', (e) => {
+        const issues: string[] = []
+        let firstInvalid: HTMLElement | null = null
+
+        // Phase 4.69.3 — Guard: email harus ter-verify.
+        const tokenEl = checkoutFormEl.querySelector<HTMLInputElement>('[data-email-token]')
+        if (tokenEl && !tokenEl.value) {
+          issues.push('Email verification (klik tombol "Verify" di sebelah email)')
+          const emailField = checkoutFormEl.querySelector<HTMLInputElement>('[data-email-input]')
+          if (emailField && !firstInvalid) firstInvalid = emailField
+        }
+
+        // Phase 4.69.4 — Passenger inline validation. Pre-scan + aggregate.
+        const paxErrorCount = paxValidateAll()
+        if (paxErrorCount > 0) {
+          const perPaxErrors: string[] = []
+          document.querySelectorAll<HTMLUListElement>('[data-pax-errors]').forEach((ul) => {
+            if (ul.classList.contains('hidden')) return
+            const idx = Number(ul.getAttribute('data-pax-errors') ?? '-1')
+            const liTexts = Array.from(ul.querySelectorAll('li')).map((li) => li.textContent ?? '')
+            for (const t of liTexts) {
+              perPaxErrors.push(`Penumpang ${idx + 1} — ${t}`)
+            }
+            if (!firstInvalid) {
+              firstInvalid = document.querySelector<HTMLElement>(`.passenger-item[data-index="${idx}"] input, .passenger-item[data-index="${idx}"] select`)
+              expandPassenger(idx)
+            }
+          })
+          issues.push(...perPaxErrors)
+        }
+
+        // Contact fields.
+        const contactChecks: Array<{ name: string; label: string }> = [
+          { name: 'customerName', label: 'Full Name (Contact)' },
+          { name: 'customerEmail', label: 'Email (Contact)' },
+          { name: 'contactPhone', label: 'WhatsApp / Phone Number (Contact)' },
+        ]
+        for (const c of contactChecks) {
+          const el = checkoutFormEl.querySelector<HTMLInputElement>(`[name="${c.name}"]`)
+          if (el && !el.value.trim()) {
+            issues.push(c.label)
+            if (!firstInvalid) firstInvalid = el
+          }
+        }
+
+        // Passenger first & last name per index (required).
+        const passengerItems = checkoutFormEl.querySelectorAll<HTMLElement>('.passenger-item')
+        passengerItems.forEach((item) => {
+          const idx = Number(item.dataset.index ?? '-1')
+          if (idx < 0) return
+          const first = item.querySelector<HTMLInputElement>(`[name="passengers[${idx}][firstName]"]`)
+          const last = item.querySelector<HTMLInputElement>(`[name="passengers[${idx}][lastName]"]`)
+          const missing: string[] = []
+          if (first && !first.value.trim()) missing.push('first name')
+          if (last && !last.value.trim()) missing.push('last name')
+          if (missing.length) {
+            issues.push(`Passenger ${idx + 1} — ${missing.join(' & ')}`)
+            expandPassenger(idx)
+            if (!firstInvalid) firstInvalid = (first && !first.value.trim() ? first : last)
+          }
+        })
+
+        if (issues.length === 0) {
+          hideAlert()
+          // Phase 4.59.2 (bug fix) — Disable beforeunload warning saat
+          // legitimate submit supaya redirect ke confirmation page tidak
+          // kena prompt browser.
+          ;(window as any).__checkoutSubmitting = true
+          return // allow native submit
+        }
+
+        e.preventDefault()
+        alertList.innerHTML =
+          `<strong>${issues.length} field${issues.length > 1 ? 's' : ''} need${issues.length > 1 ? '' : 's'} your attention:</strong><br/>` +
+          issues.map((s) => `• ${s}`).join('<br/>')
+        alertEl.classList.remove('hidden')
+        alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (firstInvalid) {
+          const el = firstInvalid as HTMLElement
+          setTimeout(() => {
+            el.focus({ preventScroll: true })
+            el.classList.add('ring-2', 'ring-coral')
+            setTimeout(() => el.classList.remove('ring-2', 'ring-coral'), 2200)
+          }, 420)
+        }
+      })
+    }
+
+    // Phase 4.59.2 (bug fix) — Prevent accidental refresh/close.
+    //
+    // Konteks: halaman checkout menyimpan OTP token (hasil verify email,
+    // 30 menit TTL) + semua data penumpang di memory state. Kalau user
+    // refresh → semua reset → user perlu kirim OTP ulang → berisiko kena
+    // rate-limit spam (3 send/15 menit).
+    //
+    // Solusi: beforeunload prompt kalau user sudah mulai interact dgn form.
+    // Browser modern hanya kasih prompt kalau user "engaged" (ada input
+    // event dulu). Clear flag saat legitimate submit (lihat submit handler
+    // di atas yang set `__checkoutSubmitting = true`).
+    let formDirty = false
+    const markDirty = () => { formDirty = true }
+    if (checkoutFormEl) {
+      checkoutFormEl.addEventListener('input', markDirty, { capture: true })
+      checkoutFormEl.addEventListener('change', markDirty, { capture: true })
+    }
+    window.addEventListener('beforeunload', (e) => {
+      if ((window as any).__checkoutSubmitting) return // allow legit submit
+      if (!formDirty) return // user belum interact → tidak prompt
+      // Modern browsers ignore custom message; cukup set returnValue untuk trigger native prompt.
+      e.preventDefault()
+      e.returnValue = ''
+    })
+  })
+</script>

@@ -49,8 +49,8 @@ wrangler --version      # harus terinstall (untuk CMS)
 
 ```powershell
 cd C:\laragon\www
-git clone https://github.com/giattech/dn-journeys-bali.git
-cd dn-journeys-bali
+git clone https://github.com/giattech/gt-journeys-id.git
+cd gt-journeys-id
 ```
 
 ### Step 2: Install Dependencies
@@ -170,23 +170,23 @@ cd apps/cms
 wrangler login
 
 # Buat D1 database
-wrangler d1 create dn-journeys-db
+wrangler d1 create gt-journeys-db
 # Output akan kasih database_id → copy ke wrangler.toml
 
 # Buat R2 bucket untuk media
-wrangler r2 bucket create dn-journeys-media
+wrangler r2 bucket create gt-journeys-media
 ```
 
 Edit `apps/cms/wrangler.toml`:
 ```toml
 [[d1_databases]]
 binding = "DB"
-database_name = "dn-journeys-db"
+database_name = "gt-journeys-db"
 database_id = "paste-id-dari-output-tadi"
 
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "dn-journeys-media"
+bucket_name = "gt-journeys-media"
 ```
 
 **Deploy:**
@@ -197,7 +197,7 @@ pnpm deploy
 ```
 
 Setelah deploy selesai, CMS live di:
-`https://dn-journeys-cms.<subdomain>.workers.dev/admin`
+`https://gt-journeys-cms.<subdomain>.workers.dev/admin`
 
 Buka URL tersebut → buat super-admin user → mulai isi content.
 
@@ -216,7 +216,7 @@ Buka URL tersebut → buat super-admin user → mulai isi content.
    ```
 5. Add environment variable:
    ```
-   CMS_URL = https://dn-journeys-cms.<subdomain>.workers.dev
+   CMS_URL = https://gt-journeys-cms.<subdomain>.workers.dev
    ```
 6. Deploy → site live di `<project>.pages.dev`
 7. (Optional) Add custom domain di Cloudflare Pages settings
@@ -228,7 +228,7 @@ Setiap push ke GitHub, frontend otomatis rebuild dan deploy.
 ```powershell
 cd apps/web
 pnpm build
-wrangler pages deploy dist/ --project-name=dn-journeys-web
+wrangler pages deploy dist/ --project-name=gt-journeys-web
 ```
 
 ### 4C. Setup Webhook — CMS Auto-rebuild Frontend
@@ -251,7 +251,7 @@ untuk spin up website travel client baru.
 
 ```powershell
 cd C:\laragon\www
-git clone https://github.com/giattech/dn-journeys-bali.git client-name-site
+git clone https://github.com/giattech/gt-journeys-id.git client-name-site
 cd client-name-site
 
 # Hapus git history lama, mulai fresh
@@ -406,10 +406,10 @@ Aturan update:
 
 ```powershell
 # Export D1 database
-wrangler d1 export dn-journeys-db --output=backup.sql
+wrangler d1 export gt-journeys-db --output=backup.sql
 
 # Sync R2 bucket ke local (menggunakan rclone atau wrangler)
-wrangler r2 object get dn-journeys-media/path/to/file
+wrangler r2 object get gt-journeys-media/path/to/file
 ```
 
 ### Monitoring

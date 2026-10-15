@@ -1,0 +1,164 @@
+---
+/**
+ * Phase 4.17 — Shared Related Services section.
+ *
+ * Renders the "Curated Alternatives" / "More X" section on service
+ * detail pages using config resolved from the 3-layer cascade
+ * (Global > Service Type > Individual Service).
+ *
+ * When config is null (disabled) → renders nothing.
+ */
+import type { RelatedConfig } from '@lib/relatedServices'
+import type { Media } from '@shared/types/payload-types'
+
+import TourCard from '@components/cards/TourCard.astro'
+import AccommodationCard from '@components/cards/AccommodationCard.astro'
+import WaterActivityCard from '@components/cards/WaterActivityCard.astro'
+import YachtCard from '@components/cards/YachtCard.astro'
+import RestaurantCard from '@components/cards/RestaurantCard.astro'
+import VenueCard from '@components/cards/VenueCard.astro'
+import RentalCard from '@components/cards/RentalCard.astro'
+import SpaCard from '@components/cards/SpaCard.astro'
+import CuratedCard from '@components/cards/CuratedCard.astro'
+import Icon from '@components/common/Icon.astro'
+
+import {
+  getTours, getAccommodations, getWaterActivities, getYachts,
+  getRestaurants, getVenues, getRentals, getSpas,
+} from '@lib/payload'
+
+type ServiceType =
+  | 'tours' | 'accommodations' | 'water-activities' | 'yachts'
+  | 'restaurants' | 'venues' | 'rentals' | 'spa'
+
+interface Props {
+  config: RelatedConfig | null
+  serviceType: ServiceType
+  excludeId: number | string
+  extraWhere?: Record<string, any>
+}
+
+const { config, serviceType, excludeId, extraWhere } = Astro.props
+
+if (!config || !config.enabled) return undefined
+
+// ── Fetch related services ───────────────────────────────────
+let items: any[] = []
+
+if (config.selectionMode === 'manual' && config.manualPicks?.length) {
+  items = config.manualPicks.filter((p: any) => p && typeof p === 'object')
+} else {
+  const fetchLimit = Math.max(config.maxItems + 2, 10)
+  const where: Record<string, any> = {
+    ...(extraWhere ?? {}),
+  }
+
+  if (config.selectionMode === 'same_destination') {
+    // Needs the current service's destination id — passed via extraWhere
+    // e.g. { destination: { equals: destId } }
+  }
+
+  const opts = { limit: fetchLimit, where, sort: 'sortOrder' }
+
+  try {
+    switch (serviceType) {
+      case 'tours':            items = (await getTours(opts)).docs; break
+      case 'accommodations':   items = (await getAccommodations(opts)).docs; break
+      case 'water-activities': items = (await getWaterActivities(opts)).docs; break
+      case 'yachts':           items = (await getYachts(opts)).docs; break
+      case 'restaurants':      items = (await getRestaurants(opts)).docs; break
+      case 'venues':           items = (await getVenues(opts)).docs; break
+      case 'rentals':          items = (await getRentals(opts)).docs; break
+      case 'spa':              items = (await getSpas(opts)).docs; break
+    }
+  } catch { /* fail silently — section renders empty */ }
+
+  // Exclude current doc
+  items = items.filter((d: any) => String(d?.id) !== String(excludeId))
+
+  // Random shuffle (deterministic per build, varies per deploy)
+  if (config.selectionMode === 'random') {
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[items[i], items[j]] = [items[j], items[i]]
+    }
+  }
+}
+
+// Cap to maxItems
+items = items.slice(0, config.maxItems)
+
+if (items.length === 0) return undefined
+
+// ── Title & Explore All defaults ─────────────────────────────
+const titleDefaults: Record<ServiceType, string> = {
+  tours:              'Curated Alternatives',
+  accommodations:     'Curated Alternatives',
+  spa:                'Curated Alternatives',
+  rentals:            'Curated Alternatives',
+  yachts:             'More Yachts',
+  'water-activities': 'More Activities',
+  restaurants:        'More Restaurants',
+  venues:             'More Venues',
+}
+const exploreDefaults: Record<ServiceType, string> = {
+  tours:              'Explore All Tours',
+  accommodations:     'Explore All Villas',
+  spa:                'Explore All Spas',
+  rentals:            'Explore All Rentals',
+  yachts:             'Explore All Yachts',
+  'water-activities': 'Explore All Activities',
+  restaurants:        'Explore All Restaurants',
+  venues:             'Explore All Venues',
+}
+const hrefMap: Record<ServiceType, string> = {
+  accommodations: '/villa', tours: '/tour', rentals: '/rental', spa: '/spa',
+  'water-activities': '/water-activity', yachts: '/yacht',
+  restaurants: '/restaurant', venues: '/venue',
+}
+
+const sectionTitle = config.sectionTitle || titleDefaults[serviceType]
+const exploreText = exploreDefaults[serviceType]
+const exploreHref = hrefMap[serviceType]
+const hrefBase = hrefMap[serviceType]
+
+const isCurated = config.cardStyle === 'curated'
+const variant = config.cardStyle === 'detailed' ? 'detailed' : 'compact'
+---
+
+<section class="container-content mb-24">
+  <div class="flex flex-wrap justify-between items-end gap-4 mb-10">
+    <h2 class="font-display text-2xl md:text-3xl text-ocean">{sectionTitle}</h2>
+    {config.showExploreAll && (
+      <a href={exploreHref} class="hidden sm:inline-flex items-center gap-2 text-sm font-semibold text-ocean hover:text-coral transition-colors no-underline">
+        {exploreText} <Icon name="arrow_forward" class="w-4 h-4" />
+      </a>
+    )}
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+    {items.map((item: any) => {
+      if (isCurated) {
+        return <CuratedCard item={item} serviceType={serviceType} hrefBase={hrefBase} />
+      }
+      switch (serviceType) {
+        case 'tours':            return <TourCard tour={item} hrefBase={hrefBase} variant={variant} />
+        case 'accommodations':   return <AccommodationCard accommodation={item} hrefBase={hrefBase} variant={variant} />
+        case 'water-activities': return <WaterActivityCard activity={item} hrefBase={hrefBase} variant={variant} />
+        case 'yachts':           return <YachtCard yacht={item} hrefBase={hrefBase} variant={variant} />
+        case 'restaurants':      return <RestaurantCard restaurant={item} hrefBase={hrefBase} variant={variant} />
+        case 'venues':           return <VenueCard venue={item} hrefBase={hrefBase} variant={variant} />
+        case 'rentals':          return <RentalCard rental={item} hrefBase={hrefBase} variant={variant} />
+        case 'spa':              return <SpaCard spa={item} hrefBase={hrefBase} variant={variant} />
+      }
+    })}
+  </div>
+
+  {config.showExploreAll && (
+    <div class="mt-8 text-center sm:hidden">
+      <a href={exploreHref} class="inline-flex items-center gap-2 text-sm font-semibold text-ocean bg-ocean/10 px-6 py-3 rounded-lg no-underline">
+        {exploreText} <Icon name="arrow_forward" class="w-4 h-4" />
+      </a>
+    </div>
+  )}
+</section>

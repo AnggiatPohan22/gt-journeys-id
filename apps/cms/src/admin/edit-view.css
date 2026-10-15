@@ -1,0 +1,329 @@
+/*
+ * GtJourneysID — Edit-view UX polish (Phase 4.8)
+ * ==================================================================
+ * Loaded on EVERY admin route via `AdminStyles` provider (import in
+ * AdminStyles.tsx). Additive & reversible — targets a small set of
+ * Payload's edit-view classes:
+ *   .doc-controls              → save/preview bar (sticky)
+ *   .document-fields__sidebar  → RIGHT settings sidebar (fixed layout)
+ *   .blocks-field              → blocks field wrapper
+ *   .blocks-field__row         → individual collapsed block row
+ *
+ * Class names verified against Payload 3.33 CSS.
+ *
+ * Applies to ALL collections/globals that use the default edit view.
+ * All rules gated by scope classes → no leakage to list/dashboard.
+ *
+ * NOTE (2026-08-27): The collapsible-sidebar toggle (Phase 4.8 Goal 3)
+ * was REMOVED per user request — the floating toggle button caused
+ * z-index/overlap bugs with the block picker drawer and, after scroll,
+ * detached from its intended position. The page-settings sidebar is
+ * now a static fixed layout (Payload default). Related component
+ * (EditSidebarToggle.tsx) has been deleted; provider unregistered
+ * in payload.config.ts.
+ * ==================================================================
+ */
+
+/* ─────────────────────────────────────────────────────────────
+   GOAL 5 — Sticky doc-controls (Save / Preview bar)
+   ───────────────────────────────────────────────────────────── */
+.doc-controls {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: saturate(1.15) blur(8px);
+  -webkit-backdrop-filter: saturate(1.15) blur(8px);
+  background: color-mix(in srgb, var(--theme-elevation-0) 88%, transparent);
+  border-bottom: 1px solid var(--theme-elevation-100);
+  transition: box-shadow 0.2s ease;
+}
+/* Subtle shadow only when the page has scrolled past — pure CSS via :has if supported. */
+.doc-controls:hover,
+.doc-controls:focus-within {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+html[data-theme='dark'] .doc-controls {
+  background: color-mix(in srgb, var(--theme-elevation-0) 82%, transparent);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GOAL 2 — Sidebar tabs (General / SEO / Publishing)
+   Rendered by SidebarTabs (ui field, first in sidebar). Writes
+   data-sidebar-tab on .document-fields__sidebar. CSS toggles which
+   named field wrappers are visible — Payload field wrappers carry
+   the field name as `data-field-name` (v3 UI convention).
+   ───────────────────────────────────────────────────────────── */
+.dnj-sidebar-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 14px;
+  border-radius: 10px;
+  background: var(--theme-elevation-50);
+  border: 1px solid var(--theme-elevation-100);
+}
+.dnj-sidebar-tabs__tab {
+  flex: 1 1 0;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--theme-elevation-500);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.dnj-sidebar-tabs__tab:hover {
+  color: var(--dnj-accent, #1b3a4b);
+}
+.dnj-sidebar-tabs__tab--active {
+  background: var(--theme-elevation-0);
+  color: var(--theme-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+html[data-theme='dark'] .dnj-sidebar-tabs__tab--active {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--theme-text);
+}
+
+/* Tab visibility rules — Payload wraps each sidebar field in a container
+   carrying className tokens that include the field name (e.g. `field-type`
+   plus `field--path-slug`). We rely on our own explicit CSS scope classes
+   (`sidebar-field--general` / `--seo` / `--status`) which we attach via
+   `admin.className` on each field. Fallback: `[id$='-field-slug']` etc. */
+.document-fields__sidebar[data-sidebar-tab="general"] .sidebar-field--seo,
+.document-fields__sidebar[data-sidebar-tab="general"] .sidebar-field--status,
+.document-fields__sidebar[data-sidebar-tab="seo"]     .sidebar-field--general,
+.document-fields__sidebar[data-sidebar-tab="seo"]     .sidebar-field--status,
+.document-fields__sidebar[data-sidebar-tab="status"]  .sidebar-field--general,
+.document-fields__sidebar[data-sidebar-tab="status"]  .sidebar-field--seo {
+  display: none !important;
+}
+/* The tab bar itself must NEVER be hidden by these rules. */
+.dnj-sidebar-tabs {
+  display: flex !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GOAL 4 — Content Blocks polish
+   Coloured left border on each collapsed row, driven by data-block-type
+   on our custom BlockLabel span. Handle emphasis + separation.
+   ───────────────────────────────────────────────────────────── */
+
+/* Custom label (colored badge + summary + row #). */
+.dnj-block-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.dnj-block-label__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  flex: 0 0 auto;
+}
+.dnj-block-label__summary {
+  font-weight: 500;
+  color: var(--theme-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.dnj-block-label__summary--empty {
+  font-style: italic;
+  color: var(--theme-elevation-400);
+  font-weight: 400;
+}
+.dnj-block-label__num {
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-elevation-400);
+  flex: 0 0 auto;
+}
+
+/* Coloured left border per block type — targets the whole row via :has
+   so the accent runs the full height of the collapsed row. Payload block
+   row = `.blocks-field__row`. */
+.blocks-field__row {
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.blocks-field__row:has(.dnj-block-label[data-block-type="hero"])                 { border-left-color: #1b3a4b; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="richText"])             { border-left-color: #3d405b; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="image"])                { border-left-color: #6b9080; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="gallery"])              { border-left-color: #6b9080; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="cta"])                  { border-left-color: #e07a5f; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="faq"])                  { border-left-color: #585860; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="testimonials"])         { border-left-color: #0d1b2a; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="testimonialsCarousel"]) { border-left-color: #0d1b2a; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="serviceGrid"])          { border-left-color: #24506a; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="contact"])              { border-left-color: #484850; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="embed"])                { border-left-color: #767680; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="spacer"])               { border-left-color: #94949c; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="valuePropsBanner"])     { border-left-color: #c98a5f; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="statsBanner"])          { border-left-color: #0d1b2a; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="serviceListing"])       { border-left-color: #1b3a4b; }
+.blocks-field__row:has(.dnj-block-label[data-block-type="trustBadges"])          { border-left-color: #e07a5f; }
+
+/* Row hover polish */
+.blocks-field__row:hover {
+  background: color-mix(in srgb, var(--theme-elevation-100) 40%, transparent);
+}
+html[data-theme='dark'] .blocks-field__row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Drag handle — bump visibility on hover. Payload uses .array-actions or
+   the collapsible drag grip class. Cover common selectors. */
+.blocks-field__row .drag-handle,
+.blocks-field__row [class*="DragHandle"],
+.blocks-field__row [class*="drag-handle"] {
+  opacity: 0.4;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  cursor: grab;
+}
+.blocks-field__row:hover .drag-handle,
+.blocks-field__row:hover [class*="DragHandle"],
+.blocks-field__row:hover [class*="drag-handle"] {
+  opacity: 1;
+  color: var(--dnj-accent, #1b3a4b);
+}
+
+/* Block-count indicator on the "Page Content" (blocks) field header. */
+.blocks-field .field-label,
+.blocks-field > label {
+  position: relative;
+}
+.blocks-field:has(.blocks-field__rows) > .field-label::after {
+  content: attr(data-count);
+  /* Actual count is CSS-only: use the number of rows via :has counting fallback below. */
+}
+
+/* Because CSS can't count arbitrary children yet, we render the count as a
+   small pill added by JS-free means: rely on Payload's own footer where the
+   "Add [Block]" button lives. Skip precise count → simple "N blocks" chip
+   would need JS; keeping this section as a hook for future enhancement. */
+
+/* Compact separation between rows */
+.blocks-field__rows > * + * {
+  margin-top: 6px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PHASE 4.10 — Main-Content Tabs Visual Polish (opt-in)
+   ---------------------------------------------------------------
+   Applied via `admin.className: 'dnj-main-tabs'` on the ROOT tabs
+   field of each collection (trial on Tours first). Scoping via the
+   marker class means Blocks' internal tabs (Hero → Content/Media/
+   Advanced etc.) are UNTOUCHED — they keep the Payload default.
+
+   What we change:
+   - Sticky tab bar → pinned below the sticky .doc-controls so tabs
+     stay visible while scrolling a long form.
+   - Active tab → pill background using brand accent (ocean/mint),
+     replacing the thin 2px underline.
+   - Inactive tab → clearer contrast (opacity 0.7 vs Payload's 0.5).
+   - Larger tap targets + smooth transition on tab swap.
+   - Dark-mode aware (brand tokens from admin-global.css).
+   ───────────────────────────────────────────────────────────── */
+
+.dnj-main-tabs > .tabs-field__tabs-wrap {
+  position: sticky;
+  /* Sits below the sticky .doc-controls (~55–64px tall in v3.33). */
+  top: 56px;
+  z-index: 15;
+  margin-bottom: 18px;
+  background: color-mix(in srgb, var(--theme-elevation-0) 92%, transparent);
+  backdrop-filter: saturate(1.15) blur(6px);
+  -webkit-backdrop-filter: saturate(1.15) blur(6px);
+}
+html[data-theme='dark'] .dnj-main-tabs > .tabs-field__tabs-wrap {
+  background: color-mix(in srgb, var(--theme-elevation-0) 82%, transparent);
+}
+
+/* Tab strip: remove the default hairline underline (we render our own
+   subtle divider under the pills). */
+.dnj-main-tabs > .tabs-field__tabs-wrap > .tabs-field__tabs {
+  border-bottom: 1px solid var(--theme-elevation-100);
+  padding-block: 4px;
+  gap: 2px;
+}
+
+/* Individual tab buttons — pill shape, better contrast. */
+.dnj-main-tabs .tabs-field__tab-button {
+  padding: 8px 14px !important;
+  padding-bottom: 8px !important;
+  margin: 0 !important;
+  border-radius: 8px;
+  opacity: 0.72;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--theme-elevation-700);
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+.dnj-main-tabs .tabs-field__tab-button:hover {
+  opacity: 0.95;
+  background: var(--dnj-hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+/* Kill the default 2px underline — we use a pill fill instead. */
+.dnj-main-tabs .tabs-field__tab-button::after {
+  display: none !important;
+}
+
+/* Active tab: filled pill with brand accent. */
+.dnj-main-tabs .tabs-field__tab-button--active {
+  opacity: 1 !important;
+  background: var(--dnj-active-bg, rgba(27, 58, 75, 0.10));
+  color: var(--dnj-accent, #1b3a4b);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dnj-accent, #1b3a4b) 22%, transparent);
+}
+
+/* Dark theme: brand accent shifts to mint. */
+html[data-theme='dark'] .dnj-main-tabs .tabs-field__tab-button {
+  color: var(--theme-elevation-600);
+}
+html[data-theme='dark'] .dnj-main-tabs .tabs-field__tab-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+html[data-theme='dark'] .dnj-main-tabs .tabs-field__tab-button--active {
+  background: rgba(139, 214, 182, 0.14);
+  color: var(--dnj-accent, #8bd6b6);
+  box-shadow: inset 0 0 0 1px rgba(139, 214, 182, 0.28);
+}
+
+/* Error state: preserve red pill (Payload's default was underline-red). */
+.dnj-main-tabs .tabs-field__tab-button--has-error {
+  color: var(--theme-error-500) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-error-500) 45%, transparent);
+}
+.dnj-main-tabs .tabs-field__tab-button--has-error.tabs-field__tab-button--active {
+  background: color-mix(in srgb, var(--theme-error-500) 12%, transparent);
+}
+
+/* Tab content: a hair of top spacing so the active tab visually connects
+   to its content. */
+.dnj-main-tabs > .tabs-field__content-wrap {
+  padding-top: 4px;
+}

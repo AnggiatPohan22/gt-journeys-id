@@ -1,6 +1,6 @@
 # 03 — CONTENT MODEL
 
-> Audit pemetaan konten proyek **DnJourneysBali** — mana yang sudah dikontrol dari **Payload CMS**, mana yang masih **hardcoded** di kode Astro, dan panduan pengelolaan untuk admin/content manager.
+> Audit pemetaan konten proyek **GtJourneysID** — mana yang sudah dikontrol dari **Payload CMS**, mana yang masih **hardcoded** di kode Astro, dan panduan pengelolaan untuk admin/content manager.
 >
 > Prinsip: *"No Hardcode"* — semua konten yang bisa berubah tanpa perubahan struktur/design harus dikelola dari CMS.
 
@@ -38,7 +38,8 @@ Cara Astro merespons: helper `fetchCollection` di [apps/web/src/lib/payload.ts:8
 | **Meeting/Pickup on Tour** | Tours: `pickupService.available` (bool) | Menampilkan section pickup di detail tour. |
 | **`enabled` per module** | [apps/web/src/config/modules.ts](apps/web/src/config/modules.ts) + [globals/SiteFeatures.ts](apps/cms/src/globals/SiteFeatures.ts) | **CMS Hybrid** — metadata (label/slug/icon) tetap di file, `enabled` flag di CMS global `site-features.modules.*`. Super Admin only. |
 | **`site-features.sections.*`** | [globals/SiteFeatures.ts](apps/cms/src/globals/SiteFeatures.ts) — `testimonials`, `faq`, `promoBanner` (reserved), `newsletter` (reserved) | Toggle section besar. `promoBanner` + `newsletter` reserved untuk Phase 4. |
-| **`site-features.features.whatsappFloat`** | [WhatsAppFloating.astro](apps/web/src/components/common/WhatsAppFloating.astro) via [`isFeatureEnabled`](apps/web/src/lib/features.ts) | Toggle floating WA button global. |
+| **`site-features.features.whatsappFloat`** | [ChatWidget.astro](apps/web/src/components/common/ChatWidget.astro) via [`isFeatureEnabled`](apps/web/src/lib/features.ts) | Master toggle chat widget global (Phase 4.50 — nama flag legacy, sudah channel-agnostic). |
+| **`chat-widget` global** | [ChatWidgetSettings.ts](apps/cms/src/globals/ChatWidgetSettings.ts) → [ChatWidget.astro](apps/web/src/components/common/ChatWidget.astro) | 8 tab: General, Appearance, Popup, Channels (blocks: WA/AI/LiveChat/Email), Availability, Behavior, Tracking, Security (5 layer anti-spam). |
 | **`site-features.features.announcementBar`** | reserved — komponen belum ada | Phase 4. |
 
 **Route guards**: kalau modul di-disable, `getStaticPaths` untuk `[slug].astro` return `[]` (tidak build detail pages) dan `index.astro` `Astro.rewrite('/404')`. Halaman [404.astro](apps/web/src/pages/404.astro) menangani state ini.
@@ -134,6 +135,8 @@ Pola sama untuk semua 8 modul (tours, accommodations, water-activities, yachts, 
 | `/weddings` + `/venue/[slug]` | idem venues | CMS Hybrid / CMS Dynamic | |
 | `/rentals` + `/rental/[slug]` | idem rentals | CMS Hybrid / CMS Dynamic | |
 | Empty-state text | tiap `<module>/index.astro` | — | Hardcoded generic Bahasa Indonesia ("Belum ada X tersedia. Silakan cek lagi nanti."). Instruksi CMS admin dihapus 2026-08-07 (Grup C — tidak perlu di CMS). |
+| Listing header (judul + subtitle, layout hero-immersive) | [ServiceListingHeroImmersive.astro](apps/web/src/components/blocks/ServiceListingHeroImmersive.astro) | **CMS Hybrid** (Phase 3.21) | Judul & subtitle baca `site-settings.sectionPages.{listingTitle,listingSubtitle}` dgn hardcoded fallback ("Luxury Collections" / "properties available in Bali & surrounding islands"). Angka jumlah hasil tetap live (filter/search JS). |
+| Filter destinasi (tab + search) di listing | ServiceListing* (immersive + editorial) | **CMS Dynamic** (Phase 3.22) | Digate `site-features.destinations.hierarchicalFilter` (Super Admin). ON → tab = destinasi `showInFilter` (core) saja; child (punya `parent`) disembunyikan tapi cocok saat core dipilih/dicari. OFF → flat (semua destinasi jadi tab). `showInFilter` = Super Admin only; `parent` = admin. |
 
 ### 2.6 Halaman Statis Khusus
 
@@ -240,7 +243,7 @@ Diurutkan berdasarkan dampak untuk content manager.
 
 #### 3.8 Meta tag default site-wide
 
-- **Sekarang**: `BaseLayout.astro` mem-format `siteTitle = "{title} — DnJourneysBali"` hardcoded.
+- **Sekarang**: `BaseLayout.astro` mem-format `siteTitle = "{title} — GtJourneysID"` hardcoded.
 - **Ideal**: **Option B** — `— {siteName}` dari `site-settings.siteName`.
 
 ### 🟢 Prioritas RENDAH — biarkan hardcoded
@@ -321,6 +324,29 @@ Tugas yang butuh perubahan kode di `apps/`:
 
 > Kalau kamu mengubah **isi** (teks/gambar/nomor/harga) — bisa dari CMS.
 > Kalau kamu mengubah **struktur** (field baru, block baru, layout baru) — panggil developer.
+
+---
+
+## 5. Media Library — Folder Organization (Phase 4.60)
+
+Media kini terorganisir dalam **folder** (fitur Folders bawaan Payload):
+
+- **Struktur otomatis**: tiap service (Tours, Accommodations, dst.) + Blog +
+  Pages punya folder sendiri, masing-masing dengan sub-folder **Featured** dan
+  **Gallery**. Media yang belum masuk folder ada di root (**Uncategorized**).
+- **Auto-routing saat simpan**: ketika SU/Admin menyimpan sebuah service/post,
+  `featuredImage`-nya dipindah ke `<Modul>/Featured` dan `gallery`-nya ke
+  `<Modul>/Gallery` — **hanya** jika media itu belum punya folder. Penempatan
+  manual (drag-drop) tidak pernah ditimpa. (Hook: `assignMediaFolder`.)
+- **Buat folder sendiri**: user bisa membuat folder & sub-folder baru langsung
+  dari view "Browse by Folder" dan memindah gambar via drag-drop.
+- **Tampilan**: view folder menampilkan struktur folder + kartu gambar, dengan
+  kontrol ukuran **Detail / S / M / L** (Detail = tampilan tabel; S/M/L = ukuran
+  kartu). Label folder & pemetaan modul diedit di
+  `apps/cms/src/config/mediaFolders.ts` (satu tempat).
+- **Pengelolaan**: seed struktur awal via `pnpm --filter cms seed:media-folders`.
+
+Panduan teknis lengkap: [`docs/reports/phase-media-folders.md`](reports/phase-media-folders.md).
 
 ---
 

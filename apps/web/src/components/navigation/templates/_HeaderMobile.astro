@@ -1,0 +1,50 @@
+---
+// Shared full-screen mobile menu overlay. Menutup seluruh viewport (fokus, tanpa
+// distraksi halaman di belakang) + scroll-lock body. Toggle (#mobile-toggle)
+// tetap di template masing-masing. Extras (search/social/cta) via <slot/>.
+import Icon from '@components/common/Icon.astro'
+import NavMobile from './_HeaderNavMobile.astro'
+const { items = [], currentPath = '/', siteName = '', logoUrl = '', logoAlt = '' } = Astro.props as any
+---
+<div id="mobile-menu" class="lg:hidden hidden fixed inset-0 z-[60] bg-sand overflow-y-auto overscroll-contain" aria-hidden="true">
+  <div class="sticky top-0 bg-sand/95 backdrop-blur-sm flex items-center justify-between h-20 px-4 border-b border-sand-dark/20">
+    <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0">
+      {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover shrink-0" /> : <span class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold shrink-0">{siteName.slice(0, 2)}</span>}
+      <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
+    </a>
+    <button id="mobile-close" type="button" class="p-2 text-ocean rounded-md hover:bg-white/60 transition-colors" aria-label="Close menu">
+      <Icon name="close" class="w-6 h-6" />
+    </button>
+  </div>
+  <div class="px-4 py-4">
+    <NavMobile items={items} currentPath={currentPath} />
+    <slot />
+  </div>
+</div>
+
+<script>
+  const initMobileOverlay = () => {
+    const toggle = document.getElementById('mobile-toggle')
+    const menu = document.getElementById('mobile-menu')
+    const closeBtn = document.getElementById('mobile-close')
+    if (!toggle || !menu) return
+    const openIcon = toggle.querySelector('.mobile-toggle-open')
+    const closeIcon = toggle.querySelector('.mobile-toggle-close')
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open))
+      menu.setAttribute('aria-hidden', String(!open))
+      menu.classList.toggle('hidden', !open)
+      openIcon?.classList.toggle('hidden', open)
+      closeIcon?.classList.toggle('hidden', !open)
+      document.body.style.overflow = open ? 'hidden' : ''
+    }
+    toggle.addEventListener('click', () => setOpen(menu.classList.contains('hidden')))
+    closeBtn?.addEventListener('click', () => setOpen(false))
+    // Tutup hanya saat klik link navigasi (bukan tombol accordion).
+    menu.querySelectorAll('a').forEach((l) => l.addEventListener('click', () => setOpen(false)))
+    document.addEventListener('keydown', (e) => { if ((e as KeyboardEvent).key === 'Escape' && !menu.classList.contains('hidden')) setOpen(false) })
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => { if (e.matches) setOpen(false) })
+  }
+  document.addEventListener('astro:page-load', initMobileOverlay)
+  initMobileOverlay()
+</script>

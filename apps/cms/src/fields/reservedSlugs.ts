@@ -8,14 +8,19 @@ import type { TextFieldSingleValidation } from 'payload'
  *
  * Lihat `docs/reports/hardcoded-pages-audit.md` §C.2.
  *
- * DILARANG untuk Page — hanya single-segment root yang punya file statis:
- *   listing roots (tours, accommodations, restaurants, rentals, weddings,
- *   water-activities, yacht) + utility (property, 404).
+ * DILARANG untuk Page — single-segment root yang di-handle file statis /
+ *   redirect Astro dan akan menang atas CMS Page:
+ *   plural listing roots (tours, accommodations, restaurants, rentals,
+ *   weddings, water-activities) + utility (property, 404).
+ *   Catatan: plural roots kini 301-redirect ke singular (C-opsi 1), tapi tetap
+ *   di-reserve karena redirect tetap men-shadow CMS Page ber-slug sama.
  *
  * TIDAK di-reserve (sengaja tersedia untuk CMS Page):
  *   - Slug singular bare (tour, villa, restaurant, rental, venue,
- *     water-activity) → dialokasikan untuk landing page per service
- *     (lihat `apps/web/src/lib/serviceTypes.ts` KEY_TO_SLUG).
+ *     water-activity, `yacht`) → dialokasikan untuk landing page per service
+ *     via `[...slug].astro` (lihat `apps/web/src/lib/serviceTypes.ts`
+ *     KEY_TO_SLUG). `yacht` DIKELUARKAN dari reserved (audit A2): `/yacht`
+ *     sekarang CMS landing page, bukan file statis.
  *   - `home` → homepage memang consume Page slug `home`.
  */
 export const RESERVED_PAGE_SLUGS = [
@@ -25,7 +30,6 @@ export const RESERVED_PAGE_SLUGS = [
   'rentals',
   'weddings',
   'water-activities',
-  'yacht',
   'property',
   '404',
 ] as const

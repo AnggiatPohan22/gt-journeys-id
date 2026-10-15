@@ -1,18 +1,23 @@
 ---
 import type { Page } from '@shared/types/payload-types'
+import { resolvePadding, resolvePaddingOverrideStyle } from '@lib/blockStyles'
 
 type Block = Extract<NonNullable<Page['content']>[number], { blockType: 'embed' }>
 interface Props { block: Block }
 const { block } = Astro.props
 
+const b = block as any
+
 const type = block.embedType ?? 'custom'
-// For youtube/map: expect user pasted full iframe embed code OR raw URL.
-// Simple heuristic: if starts with 'http', treat as URL and wrap in iframe; else render as-is.
 const isUrl = /^https?:\/\//.test(block.embedCode.trim())
 const iframeSrc = isUrl ? block.embedCode.trim() : ''
+
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
 ---
 
-<section class="section-padding" data-animate="reveal">
+<section class:list={[paddingClass]} data-animate="reveal"
+  style={padOverrideStyle}>
   <div class="container-content max-w-4xl">
     {isUrl && (type === 'youtube' || type === 'map') ? (
       <div class="aspect-video rounded-xl overflow-hidden bg-sand">

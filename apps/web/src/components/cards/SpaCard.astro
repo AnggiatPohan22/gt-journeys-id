@@ -1,0 +1,103 @@
+---
+import type { Spa } from '@shared/types/payload-types'
+import { formatPrice } from '@shared/utils/format-price'
+import { lexicalToPlainText } from '@lib/lexical'
+import DetailedCard from './DetailedCard.astro'
+import CardBgLayer from './CardBgLayer.astro'
+import type { CardBackground } from '@lib/serviceCards'
+
+interface Props {
+  spa: Spa
+  /** Detail route base (default '/spa', singular canonical). */
+  hrefBase?: string
+  variant?: 'compact' | 'detailed'
+  background?: CardBackground
+}
+const { spa, hrefBase = '/spa', variant = 'compact', background } = Astro.props
+
+const img = typeof spa.featuredImage === 'object' ? spa.featuredImage : null
+const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
+const imgAlt = img?.alt ?? spa.title
+const dest = typeof spa.destination === 'object' ? spa.destination : null
+
+const tiers = spa.pricingTiers ?? []
+const cheapest = tiers
+  .map((t) => t.price)
+  .filter((p): p is number => typeof p === 'number' && p > 0)
+  .sort((a, b) => a - b)[0]
+const cheapTier = tiers.find((t) => t.price === cheapest)
+const currency = cheapTier?.currency ?? 'IDR'
+
+const treatmentLabel: Record<Spa['treatmentType'], string> = {
+  'Balines Spa': 'Balinese Spa',
+  'Traditional Massage': 'Traditional Massage',
+  'Thai massage': 'Thai Massage',
+  'Honeymoon package': 'Honeymoon Package',
+  other: 'Spa',
+}
+
+const durationLabel: Record<NonNullable<NonNullable<Spa['pricingTiers']>[number]['duration']>, string> = {
+  hourly: '/ hour',
+  half_day: '/ half day',
+  full_day: '/ day',
+  weekly: '/ week',
+  monthly: '/ month',
+}
+
+const galleryFromArr = Array.isArray((spa as any).gallery)
+  ? (spa as any).gallery.map((g: any) => typeof g?.image === 'object' ? { url: g.image.sizes?.card?.url ?? g.image.url ?? '', alt: g.image.alt } : null).filter((x: any) => x && x.url)
+  : []
+const detailedImages = [imgUrl ? { url: imgUrl, alt: imgAlt } : null, ...galleryFromArr].filter(Boolean) as { url: string; alt?: string }[]
+const detailedDescription = (spa as any).subtitle ?? (spa.description ? lexicalToPlainText(spa.description).slice(0, 160) : '')
+const detailedAmenities = Array.isArray((spa as any).features)
+  ? (spa as any).features.slice(0, 4).map((f: any) => ({ name: f.name, icon: f.icon }))
+  : []
+---
+
+{variant === 'detailed' ? (
+  <DetailedCard
+    href={`${hrefBase}/${spa.slug}`}
+    images={detailedImages}
+    badge={treatmentLabel[spa.treatmentType]}
+    eyebrow={dest?.name}
+    title={spa.title}
+    description={detailedDescription}
+    amenities={detailedAmenities}
+    price={cheapest ? { value: cheapest, currency, unit: cheapTier?.duration ? durationLabel[cheapTier.duration] : undefined } : undefined}
+    bookText="Book Now"
+    background={background}
+  />
+) : (
+<article class="group relative bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+  <CardBgLayer background={background} />
+  <a href={`${hrefBase}/${spa.slug}`} class="relative block no-underline text-current">
+    <div class="relative aspect-[4/3] overflow-hidden bg-sand">
+      {imgUrl ? (
+        <img src={imgUrl} alt={imgAlt} loading="lazy"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      ) : (
+        <div class="w-full h-full flex items-center justify-center text-stone-light text-sm">No image</div>
+      )}
+      <span class="absolute top-3 left-3 px-2.5 py-1 bg-white/95 text-ocean text-xs font-semibold uppercase tracking-wider rounded">
+        {treatmentLabel[spa.treatmentType]}
+      </span>
+    </div>
+    <div class="p-5">
+      {dest && <p class="text-xs uppercase tracking-wider text-leaf mb-2">{dest.name}</p>}
+      <h3 class="font-display text-xl text-ocean mb-2 line-clamp-2 group-hover:text-coral transition-colors">
+        {spa.title}
+      </h3>
+      <div class="flex items-center justify-between pt-3 border-t border-sand-dark/10">
+        {cheapest ? (
+          <div>
+            <p class="text-coral font-semibold">{formatPrice(cheapest, currency)}</p>
+            <p class="text-xs text-stone-light font-normal">
+              {cheapTier?.duration ? durationLabel[cheapTier.duration] : 'from'}
+            </p>
+          </div>
+        ) : <span class="text-xs text-stone-light">Contact for price</span>}
+      </div>
+    </div>
+  </a>
+</article>
+)}

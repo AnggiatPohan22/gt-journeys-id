@@ -1,0 +1,61 @@
+---
+// Shared mobile nav (accordion). Parent ber-children = tombol toggle; sub-item
+// TERSEMBUNYI sampai di-klik. Dipakai di dalam overlay full-screen (_HeaderMobile).
+// Phase 4.41: warna via .dnj-nav-link + CSS vars di #main-header (fallback ke
+// warna default kalau overlay ini di-render di luar header — jarang).
+import Icon from '@components/common/Icon.astro'
+const { items = [], currentPath = '/' } = Astro.props as any
+const isActive = (url: string): boolean => url === '/' ? currentPath === '/' : currentPath === url || currentPath.startsWith(url + '/')
+---
+<ul class="flex flex-col divide-y divide-sand-dark/10 text-base font-semibold">
+  {items.map((item: any) => {
+    const hasChildren = item.children && item.children.length > 0
+    const active = isActive(item.url)
+    return (
+      <li data-acc={hasChildren ? '' : undefined}>
+        {hasChildren ? (
+          <>
+            <button type="button" data-acc-toggle class="dnj-nav-link w-full flex items-center justify-between px-2 py-4 text-left" aria-expanded="false">
+              <span>{item.label}</span>
+              <Icon name="expand_more" class="w-5 h-5 transition-transform duration-200 shrink-0" />
+            </button>
+            <ul data-acc-panel class="hidden pb-3 pl-4 space-y-1 text-sm font-normal">
+              {item.children.map((child: any) => (
+                <li>
+                  {child.asSpan ? (
+                    <span class="block px-2 py-2.5 text-stone-light font-semibold uppercase tracking-wider text-xs">{child.label}</span>
+                  ) : (
+                    <a href={child.url} target={child.target ?? undefined} rel={child.target === '_blank' ? 'noopener noreferrer' : undefined} class="dnj-nav-link block px-2 py-2.5 no-underline">{child.label}</a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : item.asSpan ? (
+          <span class="block px-2 py-4 text-stone-light font-semibold uppercase tracking-wider text-xs">{item.label}</span>
+        ) : (
+          <a href={item.url} target={item.target ?? undefined} rel={item.target === '_blank' ? 'noopener noreferrer' : undefined} class:list={['dnj-nav-link block px-2 py-4 no-underline', active && 'dnj-nav-link--active']} aria-current={active ? 'page' : undefined}>{item.label}</a>
+        )}
+      </li>
+    )
+  })}
+</ul>
+
+<script>
+  const initMobileAccordion = () => {
+    document.querySelectorAll<HTMLElement>('[data-acc] > [data-acc-toggle]').forEach((btn) => {
+      const panel = btn.parentElement?.querySelector<HTMLElement>('[data-acc-panel]')
+      if (!panel) return
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        const isOpen = !panel.classList.contains('hidden')
+        panel.classList.toggle('hidden', isOpen)
+        btn.setAttribute('aria-expanded', String(!isOpen))
+        btn.querySelector('svg')?.classList.toggle('rotate-180', !isOpen)
+      })
+    })
+  }
+  document.addEventListener('astro:page-load', initMobileAccordion)
+  initMobileAccordion()
+</script>

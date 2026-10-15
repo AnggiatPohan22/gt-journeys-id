@@ -120,7 +120,7 @@ const run = async () => {
           trustBadges({
             heading: 'Local Guides, Real Stories',
             description: 'Our tours are led by Balinese guides who share the culture, history, and hidden spots — not tourist scripts.',
-            primaryText: 'Plan My Trip', secondaryText: 'All Tours', secondaryLink: '/tours',
+            primaryText: 'Plan My Trip', secondaryText: 'All Tours', secondaryLink: '/tour',
             badges: [
               { iconName: 'verified_user', title: 'Licensed', subtitle: 'Certified Guides' },
               { iconName: 'group', title: 'Small Groups', subtitle: 'Max 10 Guests' },
@@ -129,7 +129,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Tours & Journeys | DnJourneysBali', metaDescription: 'Hand-crafted tours across Bali, Nusa Penida, and Lembongan — led by local Balinese guides.' },
+        seo: { metaTitle: 'Bali Tours & Journeys | GtJourneysID', metaDescription: 'Hand-crafted tours across Bali, Nusa Penida, and Lembongan — led by local Balinese guides.' },
       },
     },
     {
@@ -160,7 +160,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Private Yacht Charters Bali | DnJourneysBali', metaDescription: 'Charter catamarans, sailing yachts, and phinisi across Bali. Full crew, custom itineraries.' },
+        seo: { metaTitle: 'Private Yacht Charters Bali | GtJourneysID', metaDescription: 'Charter catamarans, sailing yachts, and phinisi across Bali. Full crew, custom itineraries.' },
       },
     },
     {
@@ -182,7 +182,7 @@ const run = async () => {
           trustBadges({
             heading: 'Reserve with Ease',
             description: 'We handle the booking so you focus on the meal. Priority tables, birthday setups, and dietary requests.',
-            primaryText: 'Reserve a Table', secondaryText: 'All Restaurants', secondaryLink: '/restaurants',
+            primaryText: 'Reserve a Table', secondaryText: 'All Restaurants', secondaryLink: '/restaurant',
             badges: [
               { iconName: 'verified_user', title: 'Verified', subtitle: 'Hand-Picked Spots' },
               { iconName: 'star', title: 'Top Rated', subtitle: 'Local Favorites' },
@@ -191,7 +191,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Restaurant Reservations | DnJourneysBali', metaDescription: 'Hand-picked restaurants across Bali. We handle bookings, dietary requests, and special occasions.' },
+        seo: { metaTitle: 'Bali Restaurant Reservations | GtJourneysID', metaDescription: 'Hand-picked restaurants across Bali. We handle bookings, dietary requests, and special occasions.' },
       },
     },
     {
@@ -213,7 +213,7 @@ const run = async () => {
           trustBadges({
             heading: 'Ride with Confidence',
             description: 'Every vehicle is insured, regularly serviced, and delivered to your accommodation. Roadside help available 24/7.',
-            primaryText: 'Book a Rental', secondaryText: 'All Rentals', secondaryLink: '/rentals',
+            primaryText: 'Book a Rental', secondaryText: 'All Rentals', secondaryLink: '/rental',
             badges: [
               { iconName: 'verified_user', title: 'Insured', subtitle: 'Full Coverage' },
               { iconName: 'sell', title: 'Best Rates', subtitle: 'No Hidden Fees' },
@@ -222,7 +222,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Rentals — Motorbike, Car, Gear | DnJourneysBali', metaDescription: 'Insured motorbikes, cars, and gear rentals across Bali. Delivered to your accommodation.' },
+        seo: { metaTitle: 'Bali Rentals — Motorbike, Car, Gear | GtJourneysID', metaDescription: 'Insured motorbikes, cars, and gear rentals across Bali. Delivered to your accommodation.' },
       },
     },
     {
@@ -244,7 +244,7 @@ const run = async () => {
           trustBadges({
             heading: 'Safety First, Fun Always',
             description: 'Certified guides, insured gear, and comprehensive safety briefings before every activity.',
-            primaryText: 'Ask Availability', secondaryText: 'All Activities', secondaryLink: '/water-activities',
+            primaryText: 'Ask Availability', secondaryText: 'All Activities', secondaryLink: '/water-activity',
             badges: [
               { iconName: 'verified_user', title: 'Certified', subtitle: 'PADI & Local Licensed' },
               { iconName: 'headset_mic', title: 'Safety Briefing', subtitle: 'Before Every Trip' },
@@ -253,7 +253,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Bali Water Activities | DnJourneysBali', metaDescription: 'Snorkeling, diving, surfing, and watersports across Bali and Nusa islands.' },
+        seo: { metaTitle: 'Bali Water Activities | GtJourneysID', metaDescription: 'Snorkeling, diving, surfing, and watersports across Bali and Nusa islands.' },
       },
     },
     {
@@ -275,7 +275,7 @@ const run = async () => {
           trustBadges({
             heading: 'Celebrate in Paradise',
             description: 'Full-service coordination from vendors to decor, so you can simply enjoy the moment.',
-            primaryText: 'Plan Event', secondaryText: 'All Venues', secondaryLink: '/weddings',
+            primaryText: 'Plan Event', secondaryText: 'All Venues', secondaryLink: '/venue',
             badges: [
               { iconName: 'verified_user', title: 'Trusted', subtitle: 'Vetted Venues' },
               { iconName: 'celebration', title: 'Full Service', subtitle: 'End-to-End Planning' },
@@ -284,7 +284,7 @@ const run = async () => {
             ],
           }),
         ],
-        seo: { metaTitle: 'Wedding & Event Venues Bali | DnJourneysBali', metaDescription: 'Beach, garden, cliff, chapel — venues for weddings and celebrations across Bali.' },
+        seo: { metaTitle: 'Wedding & Event Venues Bali | GtJourneysID', metaDescription: 'Beach, garden, cliff, chapel — venues for weddings and celebrations across Bali.' },
       },
     },
     // ── Explore Bali — multi-service showcase ────────────────────
@@ -353,7 +353,7 @@ const run = async () => {
             mediaType: 'none',
           },
         ],
-        seo: { metaTitle: 'Explore Bali — Tours, Stays & Adventures | DnJourneysBali', metaDescription: 'Discover everything Bali offers: tours, villas, water activities, yachts, dining, and events — curated by local experts.' },
+        seo: { metaTitle: 'Explore Bali — Tours, Stays & Adventures | GtJourneysID', metaDescription: 'Discover everything Bali offers: tours, villas, water activities, yachts, dining, and events — curated by local experts.' },
       },
     },
   ]

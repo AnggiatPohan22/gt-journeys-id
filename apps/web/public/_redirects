@@ -1,9 +1,18 @@
 # 301 redirects — Cloudflare Pages membaca file ini dari root output (dist/).
-# Konsolidasi template detail: plural (layout lama) → singular (layout premium).
-# Lihat docs/reports/hardcoded-pages-audit.md §C.1 (Keputusan 2: singular canonical).
 #
-# Hanya cocok untuk path dgn segment setelah slash (mis. /tours/abc), jadi
-# halaman listing (/tours, /accommodations, dst) TIDAK ikut ke-redirect.
+# Konsolidasi service routes ke SINGULAR canonical (lihat
+# docs/reports/service-listing-visual-audit.md §C-opsi 1 + hardcoded-pages-audit.md §C.1).
+# Plural = redirect ke singular. /yacht TIDAK di sini (sudah CMS landing page).
+
+# ── Listing roots (exact): plural → singular CMS landing page ──
+/tours               /tour            301
+/accommodations      /villa           301
+/restaurants         /restaurant      301
+/rentals             /rental          301
+/weddings            /venue           301
+/water-activities    /water-activity  301
+
+# ── Detail routes (splat): plural/[slug] → singular/[slug] ──
 /tours/*             /tour/:splat            301
 /accommodations/*    /villa/:splat           301
 /restaurants/*       /restaurant/:splat      301

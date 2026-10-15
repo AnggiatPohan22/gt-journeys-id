@@ -1,15 +1,15 @@
 {
-  "name": "dn-journeys-bali",
+  "name": "gt-journeys-id",
   "private": true,
   "description": "Travel website template — Astro + Payload CMS on Cloudflare",
   "scripts": {
-    "dev:cms": "pnpm --filter @dn-journeys/cms dev",
-    "dev:web": "pnpm --filter @dn-journeys/web dev",
-    "build:cms": "pnpm --filter @dn-journeys/cms build",
-    "build:web": "pnpm --filter @dn-journeys/web build",
-    "deploy:cms": "pnpm --filter @dn-journeys/cms deploy",
-    "deploy:web": "pnpm --filter @dn-journeys/web deploy",
-    "generate:types": "pnpm --filter @dn-journeys/cms generate:types"
+    "dev:cms": "pnpm --filter @gt-journeys/cms dev",
+    "dev:web": "pnpm --filter @gt-journeys/web dev",
+    "build:cms": "pnpm --filter @gt-journeys/cms build",
+    "build:web": "pnpm --filter @gt-journeys/web build",
+    "deploy:cms": "pnpm --filter @gt-journeys/cms deploy",
+    "deploy:web": "pnpm --filter @gt-journeys/web deploy",
+    "generate:types": "pnpm --filter @gt-journeys/cms generate:types"
   },
   "engines": {
     "node": ">=18.0.0"

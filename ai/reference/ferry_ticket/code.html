@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ferry Tickets - BintanEscape</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "inverse-surface": "#213242",
+                    "on-secondary-container": "#0c6d72",
+                    "on-tertiary": "#ffffff",
+                    "inverse-primary": "#98cbff",
+                    "surface-container-high": "#d8eaff",
+                    "secondary-fixed": "#a1f0f5",
+                    "tertiary": "#742f00",
+                    "on-tertiary-fixed-variant": "#783100",
+                    "surface-bright": "#f7f9ff",
+                    "on-surface-variant": "#414750",
+                    "on-secondary-fixed-variant": "#004f53",
+                    "surface-container-lowest": "#ffffff",
+                    "background": "#f7f9ff",
+                    "surface": "#f7f9ff",
+                    "accent-hover": "#007abf",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#e8f2ff",
+                    "tertiary-container": "#944514",
+                    "secondary": "#00696e",
+                    "tertiary-fixed": "#ffdbcb",
+                    "on-surface": "#0b1d2c",
+                    "surface-variant": "#d3e4f9",
+                    "surface-tint": "#08639b",
+                    "outline-variant": "#c0c7d1",
+                    "border-subtle": "#bfc7d2",
+                    "error-container": "#ffdad6",
+                    "surface-tonal": "#e3efff",
+                    "surface-elevated": "#ffffff",
+                    "primary-fixed-dim": "#98cbff",
+                    "tertiary-fixed-dim": "#ffb691",
+                    "on-primary-fixed": "#001d33",
+                    "surface-dim": "#cadcf1",
+                    "cta-hover": "#944614",
+                    "primary-container": "#006098",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed-variant": "#004a77",
+                    "surface-container-low": "#edf4ff",
+                    "primary-fixed": "#cee5ff",
+                    "outline": "#717881",
+                    "text-muted": "#404751",
+                    "on-background": "#0b1d2c",
+                    "on-secondary-fixed": "#002022",
+                    "secondary-container": "#9eedf2",
+                    "on-error": "#ffffff",
+                    "surface-container": "#e3efff",
+                    "surface-container-highest": "#d3e4f9",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#85d3d9",
+                    "on-primary": "#ffffff",
+                    "primary": "#004873",
+                    "on-tertiary-container": "#ffc9ae",
+                    "on-primary-container": "#b4d8ff",
+                    "on-tertiary-fixed": "#341100"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit-md": "16px",
+                    "container-max": "1200px",
+                    "unit-lg": "24px",
+                    "unit-sm": "8px",
+                    "margin-desktop": "64px",
+                    "margin-mobile": "20px",
+                    "unit-xl": "48px",
+                    "gutter": "24px",
+                    "unit-xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-xl": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-sm": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "headline-xl-mobile": [
+                            "Plus Jakarta Sans"
+                    ]
+            },
+            "fontSize": {
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-xl": [
+                            "48px",
+                            {
+                                    "lineHeight": "56px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-xl-mobile": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+        .custom-shadow { box-shadow: 0px 4px 20px rgba(26, 43, 59, 0.05); }
+        .hover-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0px 10px 30px rgba(26, 43, 59, 0.12); }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 shadow-sm bg-surface w-full">
+<div class="flex justify-between items-center h-20 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
+<div class="font-headline-md text-headline-md font-bold text-primary">
+                BintanEscape
+            </div>
+<div class="hidden md:flex gap-unit-lg items-center">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md px-2 py-1 rounded-lg hover:bg-surface-tonal duration-200" href="#">Home</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-body-md text-body-md px-2 py-1 -translate-y-0.5 transition-transform duration-200" href="#">Ferry Ticket</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md px-2 py-1 rounded-lg hover:bg-surface-tonal duration-200" href="#">Rental</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md px-2 py-1 rounded-lg hover:bg-surface-tonal duration-200" href="#">Tour Activities</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md px-2 py-1 rounded-lg hover:bg-surface-tonal duration-200" href="#">Hotel</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-body-md text-body-md px-2 py-1 rounded-lg hover:bg-surface-tonal duration-200" href="#">Contact</a>
+</div>
+<div class="flex items-center gap-unit-md">
+<button class="text-primary hover:bg-surface-tonal p-2 rounded-full transition-colors hidden md:flex items-center justify-center">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-unit-lg py-2 rounded-lg hover:bg-accent-hover hover:-translate-y-0.5 transition-all hidden md:block">
+                    Book Now
+                </button>
+<!-- Mobile Menu Button -->
+<button class="md:hidden text-primary p-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="flex-grow">
+<!-- Hero Section -->
+<section class="relative min-h-[500px] flex items-center justify-center pt-32 pb-20 px-margin-mobile md:px-margin-desktop overflow-hidden"><div class="absolute inset-0 z-0"><img alt="Ferry Hero" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI01hl0f1dDilPNEf9LWkEadK9y8GCLyIjEaWAjzVaHnvTGlDdVx3f1n9ivS9anhY4ScdgCY2yV0xw9wsKa9Vy0vJniwQBRpdrdJuOcfiLHo_AAObLb5mOvQbCQt-JHErWI-xxC8meRtGugAp1iZD-D-9g9fKBwhfuQRx_bJ7kz2c1kAh2Xul4h_0kgDRa6eUyX7ZRsCIdC0jFbW-jP1Or5QDH80BWPyou5bBdMxBrOJWhKgVGXtZ5FQ"/><div class="absolute inset-0 bg-black/40"></div></div>
+<div class="max-w-container-max mx-auto text-center space-y-unit-lg relative z-10">
+<h1 class="font-headline-xl-mobile md:font-headline-xl text-headline-xl-mobile md:text-headline-xl text-surface-bright [text-shadow:_0_2px_4px_rgba(0,0,0,0.5)]">Ferry Routes to Riau Islands, Singapore &amp; Malaysia</h1>
+<p class="font-body-lg text-body-lg text-surface-bright/90 max-w-2xl mx-auto [text-shadow:_0_1px_2px_rgba(0,0,0,0.5)]">Book your comfortable and fast ferry transfers across the archipelago. Secure your seats in minutes.</p>
+<!-- Booking Bar -->
+</div>
+</section><div class="relative z-20 px-margin-mobile md:px-margin-desktop -mt-12 mb-unit-xl"><div class="bg-surface-elevated custom-shadow rounded-xl p-unit-md flex flex-col md:flex-row items-center gap-unit-md w-full max-w-4xl mx-auto border border-border-subtle/30"><div class="flex-1 w-full relative"><label class="block text-label-sm font-label-sm text-text-muted mb-1 ml-1 text-left">Departure</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">location_on</span><select class="w-full pl-10 pr-4 py-3 bg-surface rounded-lg border border-border-subtle text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none"><option>Select Departure</option><option>Bintan (Bandar Bentan Telani)</option><option>Batam (Batam Centre)</option><option>Singapore (Tanah Merah)</option></select></div></div><button class="bg-surface-tonal p-2 rounded-full text-primary hover:bg-primary-fixed transition-colors md:mt-6 hidden md:block"><span class="material-symbols-outlined">sync_alt</span></button><div class="flex-1 w-full relative"><label class="block text-label-sm font-label-sm text-text-muted mb-1 ml-1 text-left">Destination</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">sailing</span><select class="w-full pl-10 pr-4 py-3 bg-surface rounded-lg border border-border-subtle text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none"><option>Select Destination</option><option>Singapore (Tanah Merah)</option><option>Batam (HarbourFront)</option><option>Malaysia (Stulang Laut)</option></select></div></div><div class="flex-1 w-full relative"><label class="block text-label-sm font-label-sm text-text-muted mb-1 ml-1 text-left">Date</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">calendar_month</span><input class="w-full pl-10 pr-4 py-3 bg-surface rounded-lg border border-border-subtle text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary" type="date"/></div></div><div class="flex-1 w-full relative"><label class="block text-label-sm font-label-sm text-text-muted mb-1 ml-1 text-left">Passengers</label><div class="relative"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">group</span><select class="w-full pl-10 pr-4 py-3 bg-surface rounded-lg border border-border-subtle text-body-md font-body-md text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none"><option>1 Adult</option><option>2 Adults</option><option>2 Adults, 1 Child</option></select></div></div><button class="w-full md:w-auto mt-6 bg-tertiary text-on-tertiary font-label-md text-label-md px-unit-lg py-3 rounded-lg hover:bg-tertiary-container transition-colors shadow-sm whitespace-nowrap">Search Ferries</button></div></div>
+<!-- Routes Grid -->
+<section class="py-unit-xl px-margin-mobile md:px-margin-desktop bg-surface-bright">
+<div class="max-w-container-max mx-auto">
+<div class="flex justify-between items-end mb-unit-lg">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Popular Routes</h2>
+<div class="hidden md:flex gap-2">
+<button class="bg-surface-elevated custom-shadow p-2 rounded-full text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="bg-surface-elevated custom-shadow p-2 rounded-full text-primary hover:text-accent-hover transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-unit-lg">
+<!-- Card 1 -->
+<div class="bg-surface-elevated rounded-xl overflow-hidden custom-shadow hover-lift border border-border-subtle/20 flex flex-col">
+<div class="h-48 relative w-full overflow-hidden">
+<div class="bg-cover bg-center w-full h-full" data-alt="A modern high-speed passenger ferry cruising steadily through bright blue tropical waters towards a coastal terminal. The sun is shining brightly, casting sparkling reflections on the gentle ocean waves. The overall aesthetic is bright, professional, and optimistic, utilizing a corporate light-mode palette with crisp white highlights and deep blue accents." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBVJl2hczziF01QJ91RWIA46flzC1vZM03pVj8mxdkJxCB1KhU5PjC9IugHh8QW1hs2TACjOhetNXR3o1OLrFX6o__aOCpWNzhTmxze3ijAytZaAzIdN1-YSKC12p-SoVQRckyVx3exA8tR5cljqj3GigcuuWJdGvexfCxrbRhnJEZlhCnST68tIcWqEeQPDX3I3H98hegSxQAzrAaMfU9W8lLjFMi2fzpPFAJh0CTVdpU2RTB7zsmX1g')"></div>
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle/50 text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 1h 00m
+                            </div>
+</div>
+<div class="p-unit-md flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Bintan <span class="material-symbols-outlined text-outline text-[20px] align-middle mx-1">arrow_forward</span> Singapore</h3>
+</div>
+<p class="font-body-md text-body-md text-text-muted mb-4">Bandar Bentan Telani to Tanah Merah Ferry Terminal.</p>
+<div class="mt-auto pt-4 border-t border-border-subtle/20 flex justify-between items-center">
+<div>
+<span class="text-label-sm font-label-sm text-text-muted block">Starting from</span>
+<span class="font-headline-md text-headline-md text-primary">$45</span>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:text-on-secondary-container transition-colors flex items-center gap-1">
+                                    Select <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-elevated rounded-xl overflow-hidden custom-shadow hover-lift border border-border-subtle/20 flex flex-col">
+<div class="h-48 relative w-full overflow-hidden">
+<div class="bg-cover bg-center w-full h-full" data-alt="A sleek modern ferry boat docked at a bustling island terminal under a clear daytime sky. Gentle waves lap at the terminal structure. The scene is brightly lit with a cheerful, inviting atmosphere, fitting a clean, corporate travel aesthetic dominated by blues, whites, and subtle sandy tones." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuApAf0NepBPAf349f6U_3q-B3tubrUdLvtF20699NSI_VEvBBfeMhdurZPESZizZeKyu-nBKacdXedhzlIJ6lSRW4UWqQ2zdokNWsKRNW6DTqAOM7CIJJzdQrt6SGp-w7CQDL1XibkULh7sRMaWYED_vukAbxFrBqkFGh-iQ0l1qPAk7VzLvSoucHDP2iGhMLoIowGG--E9boZ58KiiOeFdEQUgNV_mGdVyrK6COwu5W9Y21dZ4-Xln4Q')"></div>
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle/50 text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 1h 10m
+                            </div>
+</div>
+<div class="p-unit-md flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Batam <span class="material-symbols-outlined text-outline text-[20px] align-middle mx-1">arrow_forward</span> Singapore</h3>
+</div>
+<p class="font-body-md text-body-md text-text-muted mb-4">Batam Centre to HarbourFront Centre.</p>
+<div class="mt-auto pt-4 border-t border-border-subtle/20 flex justify-between items-center">
+<div>
+<span class="text-label-sm font-label-sm text-text-muted block">Starting from</span>
+<span class="font-headline-md text-headline-md text-primary">$35</span>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:text-on-secondary-container transition-colors flex items-center gap-1">
+                                    Select <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-elevated rounded-xl overflow-hidden custom-shadow hover-lift border border-border-subtle/20 flex flex-col">
+<div class="h-48 relative w-full overflow-hidden">
+<div class="bg-cover bg-center w-full h-full" data-alt="A dynamic shot of a large passenger ferry cutting through calm azure waters on a bright sunny day. The horizon is visible in the background, suggesting a journey between islands. The imagery is sharp, high-quality, and adheres to a bright, airy corporate design system with clean lighting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCa_axbvXRt9rTDhbyzo-QKwuaq-UZkgLpFobr3Glm1Syk4OmFQnvQUhCccApbEYyVgvmwBTn7-6_1xEtLNN1idpryNBtUr1TjS74M67u_gHefXhQjvXnQX5PrthxUecpBADjQKPDYqm0WfOl5HJkk2-RxoKv1R1Jp2MI6Ybqr0zY9dWDwmDCPukrWWBlr9J9FwxTCu0KYDE1lwfeiD_xkgrYVSMCqbO__Nqyagg-n1kBbp3qhmdSrqUg')"></div>
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle/50 text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 2h 30m
+                            </div>
+</div>
+<div class="p-unit-md flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Tanjungpinang <span class="material-symbols-outlined text-outline text-[20px] align-middle mx-1">arrow_forward</span> Malaysia</h3>
+</div>
+<p class="font-body-md text-body-md text-text-muted mb-4">Sri Bintan Pura to Stulang Laut Johor.</p>
+<div class="mt-auto pt-4 border-t border-border-subtle/20 flex justify-between items-center">
+<div>
+<span class="text-label-sm font-label-sm text-text-muted block">Starting from</span>
+<span class="font-headline-md text-headline-md text-primary">$40</span>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:text-on-secondary-container transition-colors flex items-center gap-1">
+                                    Select <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-elevated rounded-xl overflow-hidden custom-shadow hover-lift border border-border-subtle/20 flex flex-col">
+<div class="h-48 relative w-full overflow-hidden">
+<div class="bg-cover bg-center w-full h-full" data-alt="A wide view of a modern ferry terminal with a comfortable-looking ferry waiting at the dock. The sky is bright and blue, and the water is clear. The scene conveys reliability and comfort, fitting seamlessly into a clean, light-mode travel website aesthetic with subtle nautical color hints." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC40d5qbwrpH7ki8JoDa1N4RvB9Oh4m9bFDeYrpdJSqdjjYtRLi0XOCNn8Tp4zxrMKs2v7AesEhDHIH0sDS14NrfEcgcxHcI41O_okZ3AWS2Qpcee2Spvyon5auoKWsP34dkvURorQoHLR7fu4u4elJrYVSoN-rVn6aoChr2oa98sCGdycccY2rlX-f9rkkrS3wAyQAQVqjgyKvPzHJMcgDj2syo4l3Xdn64Lbqwurlgno7g9-jdTj1Xw')"></div>
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle/50 text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 1h 00m
+                            </div>
+</div>
+<div class="p-unit-md flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Singapore <span class="material-symbols-outlined text-outline text-[20px] align-middle mx-1">arrow_forward</span> Bintan</h3>
+</div>
+<p class="font-body-md text-body-md text-text-muted mb-4">Tanah Merah to Bandar Bentan Telani (Lagoi).</p>
+<div class="mt-auto pt-4 border-t border-border-subtle/20 flex justify-between items-center">
+<div>
+<span class="text-label-sm font-label-sm text-text-muted block">Starting from</span>
+<span class="font-headline-md text-headline-md text-primary">$48</span>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:text-on-secondary-container transition-colors flex items-center gap-1">
+                                    Select <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="bg-surface-elevated rounded-xl overflow-hidden custom-shadow hover-lift border border-border-subtle/20 flex flex-col">
+<div class="h-48 relative w-full overflow-hidden">
+<div class="bg-cover bg-center w-full h-full" data-alt="An elegant high-speed ferry navigating open waters under a soft, partly cloudy daytime sky. The wake of the boat is visible in the clean blue ocean. The image has a calm, professional tone with high-key lighting, perfect for a trustworthy travel booking platform." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAJgq8h3wtBlg8_j5umd97JRcFpXKmyqSnmb9yLznz5aB9oYrn0Aa7XNnaBLJDhD3sqm4WkU6k3CsGJknJN3_B1xy-PoBqBHnMNrPtg6eBG6nVFCnTgFVkbLjDb4UcrXmgd7JJok3IUV9IzNkoRIDZJQXwwxj2lIAU-38Q9XhTU_2UGhBkx50p3i9-fNh-oxBPmOhO48gUbVbZFOZn_VHu9VBNL-mn0TgCyILUotHkk3G-qCiCEYSbzyw')"></div>
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle/50 text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 1h 45m
+                            </div>
+</div>
+<div class="p-unit-md flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Malaysia <span class="material-symbols-outlined text-outline text-[20px] align-middle mx-1">arrow_forward</span> Batam</h3>
+</div>
+<p class="font-body-md text-body-md text-text-muted mb-4">Stulang Laut Johor to Batam Centre.</p>
+<div class="mt-auto pt-4 border-t border-border-subtle/20 flex justify-between items-center">
+<div>
+<span class="text-label-sm font-label-sm text-text-muted block">Starting from</span>
+<span class="font-headline-md text-headline-md text-primary">$38</span>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:text-on-secondary-container transition-colors flex items-center gap-1">
+                                    Select <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="bg-surface-elevated rounded-xl overflow-hidden custom-shadow hover-lift border border-border-subtle/20 flex flex-col">
+<div class="h-48 relative w-full overflow-hidden">
+<div class="bg-cover bg-center w-full h-full" data-alt="A smaller, swift inter-island ferry boat moving between lush green islands. The water is a tranquil turquoise, reflecting the clear, bright sky. The aesthetic is warm yet highly professional, matching a modern corporate light-theme UI focused on seamless island travel." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCBPEjW083_FeBshMsj0xJsa0Sjmxmxs03CYj2slR3tJJ6Uv4WBZMlOS_53IqnRQqiHfy5kuS8I7nSZhSDiIiY7QelQp5jURMozGzZbztGRjgaPYWZ6T_IHt-7rcVLIR9ud5xjxRqNKwBlxBC8PbXUyUBh4ufg4dm8HH4MhdYzqSAn7-hKQKBD3KdwINsmuXATQQvz5MRcFwGHkTv6fGO_mp_Jv4M6kALLBiqwTDlcSniaffMngMMFxyg')"></div>
+<div class="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-3 py-1 rounded-full border border-border-subtle/50 text-label-sm font-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span> 30m
+                            </div>
+</div>
+<div class="p-unit-md flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-headline-md text-headline-md text-on-surface leading-tight">Bintan <span class="material-symbols-outlined text-outline text-[20px] align-middle mx-1">arrow_forward</span> Batam</h3>
+</div>
+<p class="font-body-md text-body-md text-text-muted mb-4">Inter-island local ferry service.</p>
+<div class="mt-auto pt-4 border-t border-border-subtle/20 flex justify-between items-center">
+<div>
+<span class="text-label-sm font-label-sm text-text-muted block">Starting from</span>
+<span class="font-headline-md text-headline-md text-primary">$15</span>
+</div>
+<button class="text-secondary font-label-md text-label-md hover:text-on-secondary-container transition-colors flex items-center gap-1">
+                                    Select <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-unit-lg flex justify-center">
+<button class="bg-transparent border-2 border-primary text-primary font-label-md text-label-md px-unit-lg py-2 rounded-lg hover:bg-surface-container transition-colors">
+                        Load More Routes
+                    </button>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-unit-xl px-margin-mobile md:px-margin-desktop bg-surface">
+<div class="max-w-container-max mx-auto bg-surface-container-low rounded-2xl overflow-hidden custom-shadow flex flex-col md:flex-row border border-border-subtle/20">
+<div class="p-unit-xl md:w-1/2 flex flex-col justify-center">
+<h2 class="font-headline-lg text-headline-lg text-primary mb-unit-sm">Seamless Island Hopping</h2>
+<p class="font-body-lg text-body-lg text-text-muted mb-unit-lg">Experience the beauty of the Riau archipelago with our premium ferry partners. Enjoy fast boarding, comfortable seating, and stunning ocean views on every trip.</p>
+<div class="flex gap-4">
+<button class="bg-tertiary text-on-tertiary font-label-md text-label-md px-unit-lg py-3 rounded-lg hover:bg-tertiary-container transition-all hover-lift">
+                            Book Your Trip
+                        </button>
+<button class="bg-transparent text-primary font-label-md text-label-md px-unit-lg py-3 rounded-lg hover:bg-surface-container transition-colors border border-transparent hover:border-primary/20">
+                            View Schedules
+                        </button>
+</div>
+</div>
+<div class="md:w-1/2 h-64 md:h-auto relative min-h-[300px]">
+<div class="bg-cover bg-center w-full h-full absolute inset-0" data-alt="A stunning, wide panoramic view of a pristine tropical ocean with a ferry smoothly sailing towards a picturesque island in the distance. The sunlight dances on the waves in a bright, high-key lighting setup. The image embodies a modern, serene, and professional travel aesthetic with a palette of deep navy, crisp white, and bright azure." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBPKa6j8poOaEg6yST-r84-79nsF161IiPfUwjY5VvxctIGy5urfN4hiTfb13KhzWT4iWmskvLPgyRAj0yv7T_8Mm39nuq546u4VwJOqhJnBEAfhdHLEoGxmDHrBToyk2K3n3Tqs8CuRToFks5Pnbxo4qZtWukV39PTmJXsCBVEHIXhNzu8MYTDpP8onpNYOH8pXuJjMt5aR1tAqkMIgA2aoMKtcF9x0WweGN3r9K-xUopSD8yigBoO5A')"></div>
+<!-- Subtle gradient overlay to match aesthetic -->
+<div class="absolute inset-0 bg-gradient-to-r from-surface-container-low to-transparent md:w-1/3"></div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface mt-auto w-full">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-margin-mobile md:px-margin-desktop py-unit-xl max-w-container-max mx-auto w-full">
+<div class="flex flex-col gap-4">
+<div class="font-headline-sm text-headline-sm font-bold text-surface-bright">
+                    BintanEscape
+                </div>
+<p class="font-label-md text-label-md text-surface-variant opacity-80 mt-2">Your trusted partner for seamless travel in the Riau Islands.</p>
+</div>
+<div class="flex flex-col gap-3">
+<h4 class="font-label-md text-label-md font-bold text-on-tertiary mb-2">Company</h4>
+<a class="font-label-md text-label-md text-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-fixed transition-colors duration-200" href="#">About Us</a>
+<a class="font-label-md text-label-md text-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-fixed transition-colors duration-200" href="#">Contact Us</a>
+</div>
+<div class="flex flex-col gap-3">
+<h4 class="font-label-md text-label-md font-bold text-on-tertiary mb-2">Support</h4>
+<a class="font-label-md text-label-md text-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-fixed transition-colors duration-200" href="#">FAQ</a>
+<a class="font-label-md text-label-md text-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-fixed transition-colors duration-200" href="#">Payment Methods</a>
+</div>
+<div class="flex flex-col gap-3">
+<h4 class="font-label-md text-label-md font-bold text-on-tertiary mb-2">Legal</h4>
+<a class="font-label-md text-label-md text-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-fixed transition-colors duration-200" href="#">Terms of Service</a>
+<a class="font-label-md text-label-md text-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-fixed transition-colors duration-200" href="#">Privacy Policy</a>
+</div>
+</div>
+<div class="border-t border-surface-variant/20">
+<div class="px-margin-mobile md:px-margin-desktop py-6 max-w-container-max mx-auto w-full text-center md:text-left">
+<span class="font-label-sm text-label-sm text-surface-variant opacity-60">© 2024 BintanEscape Travel &amp; Tours. All rights reserved.</span>
+</div>
+</div>
+</footer>
+</body></html>

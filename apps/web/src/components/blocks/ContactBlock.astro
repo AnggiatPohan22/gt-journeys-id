@@ -3,7 +3,7 @@ import type { Page } from '@shared/types/payload-types'
 import { siteConfig } from '@config/site'
 import { lexicalToHtml } from '@lib/lexical'
 import {
-  resolveAlignment, resolveContainer, resolvePadding,
+  resolveAlignment, resolveContainer, resolvePadding, resolvePaddingOverrideStyle,
   resolveEntryAnimation, resolveBackground,
   resolveTextColor, resolveTextAnimIn,
 } from '@lib/blockStyles'
@@ -25,8 +25,9 @@ const address = siteConfig.contact.address
 
 const align = resolveAlignment(b.contentAlignment ?? 'left')
 const containerClass = resolveContainer(b.containerWidth)
-const paddingClass = resolvePadding(b.sectionPadding)
-const entry = resolveEntryAnimation(b.entryAnimation)
+const paddingClass = resolvePadding(b)
+const padOverrideStyle = resolvePaddingOverrideStyle(b)
+const entry = resolveEntryAnimation(b.entryAnimation, b.entrySpeed, b.entryDurMs)
 const bgResolved = resolveBackground(b.background)
 
 const ts = b.ts ?? {}
@@ -34,7 +35,7 @@ const pColor = resolveTextColor(ts.paragraphColor)
 const pAnim = resolveTextAnimIn(ts.paragraphAnimIn)
 ---
 
-<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate}>
+<section class:list={['relative overflow-hidden', paddingClass, bgResolved.bgClass]} data-animate={entry.dataAnimate} style={[padOverrideStyle, entry.style].filter(Boolean).join(";") || undefined}>
   {bgResolved.imageUrl && (
     <>
       <img src={bgResolved.imageUrl} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { isSuperAdmin } from '../access/roles'
+import { withStatusCell, updatedAtRelativeField } from '../fields/listCells'
 
 /**
  * Menus — collection untuk navigasi (Header, Footer columns, dst.).
@@ -16,8 +17,8 @@ export const Menus: CollectionConfig = {
   slug: 'menus',
   admin: {
     useAsTitle: 'name',
-    group: 'Site Builder',
-    defaultColumns: ['name', 'slug', 'status'],
+    group: 'Content & Pages',
+    defaultColumns: ['name', 'slug', 'status', 'updatedAtRelative'],
     hidden: ({ user }) => user?.role === 'editor',
   },
   access: { read: () => true, create: isSuperAdmin, update: isSuperAdmin, delete: isSuperAdmin },
@@ -30,6 +31,9 @@ export const Menus: CollectionConfig = {
       label: 'Menu Items',
       admin: {
         initCollapsed: true,
+        // Phase 4.13 — marker so `admin/menu-editor.css` can style
+        // ONLY this collection's array (main + nested children).
+        className: 'dnj-menu-editor',
         components: {
           RowLabel: '/components/MenuItemRowLabel#MenuItemRowLabel',
         },
@@ -97,6 +101,7 @@ export const Menus: CollectionConfig = {
         },
       ],
     },
-    { name: 'status', type: 'select', defaultValue: 'active', options: [{ label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }], admin: { position: 'sidebar' } },
+    withStatusCell({ name: 'status', type: 'select', defaultValue: 'active', options: [{ label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }], admin: { position: 'sidebar' } }),
+    updatedAtRelativeField,
   ],
 }

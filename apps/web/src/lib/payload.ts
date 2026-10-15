@@ -6,6 +6,8 @@ import type {
   Restaurant,
   Venue,
   Rental,
+  Spa,
+  FerryTicket,
   Destination,
   Category,
   Page,
@@ -103,8 +105,9 @@ export async function fetchBySlug<T>(
   return data.docs[0] || null
 }
 
-export async function fetchGlobal<T>(slug: string): Promise<T> {
-  const res = await fetch(`${CMS_URL}/api/globals/${slug}`)
+export async function fetchGlobal<T>(slug: string, depth = 0): Promise<T> {
+  const q = depth > 0 ? `?depth=${encodeURIComponent(String(depth))}` : ''
+  const res = await fetch(`${CMS_URL}/api/globals/${slug}${q}`)
   if (!res.ok) throw new Error(`CMS global error: ${res.status}`)
   return res.json() as Promise<T>
 }
@@ -141,6 +144,34 @@ export const getRentals = (opts?: Partial<FetchOptions>) =>
   fetchCollection<Rental>({ collection: 'rentals', ...opts })
 export const getRentalBySlug = (slug: string) => fetchBySlug<Rental>('rentals', slug)
 
+export const getSpas = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<Spa>({ collection: 'spa', ...opts })
+export const getSpaBySlug = (slug: string) => fetchBySlug<Spa>('spa', slug)
+
+export const getFerryTickets = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<FerryTicket>({ collection: 'ferry-tickets', ...opts })
+export const getFerryTicketsBySlug = (slug: string) =>
+  fetchBySlug<FerryTicket>('ferry-tickets', slug)
+
+// Phase 4.61.7 — Locations (ferry ports, train stations, etc.).
+export interface LocationDoc {
+  id: number
+  name: string
+  terminalName?: string
+  slug: string
+  code?: string
+  country?: string
+  timezone?: string
+  locationType?: 'ferry-port' | 'train-station' | 'airport' | 'bus-terminal' | 'city'
+  isActive?: boolean
+  mapEmbedUrl?: string
+  mapLink?: string
+}
+export const getLocations = (opts?: Partial<FetchOptions>) =>
+  // Locations don't have a `status` field — must fetch with status:'all' or
+  // the default status=published filter returns zero rows.
+  fetchCollection<LocationDoc>({ collection: 'locations', sort: 'sortOrder', limit: 200, status: 'all', ...opts })
+
 /**
  * ServiceType metadata doc. Typed locally (loose) so builds don't hard-depend
  * on regenerated payload-types before `generate:types` runs. Status enum is
@@ -161,6 +192,13 @@ export interface ServiceTypeDoc {
   whatsappTemplate?: string | null
   metaTitle?: string | null
   metaDescription?: string | null
+  relatedOverrideEnabled?: boolean | null
+  relatedEnabled?: boolean | null
+  relatedSectionTitle?: string | null
+  relatedCardStyle?: string | null
+  relatedMaxItems?: number | null
+  relatedSelectionMode?: string | null
+  relatedShowExploreAll?: boolean | null
 }
 
 export const getServiceTypes = (opts?: Partial<FetchOptions>) =>
@@ -188,7 +226,38 @@ export const getMenuBySlug = (slug: string) => fetchBySlug<Menu>('menus', slug)
 export const getSiteSettings = () => fetchGlobal<SiteSetting>('site-settings')
 export const getHeaderSettings = () => fetchGlobal<any>('header-settings')
 export const getFooterSettings = () => fetchGlobal<any>('footer-settings')
-export const getSiteFeatures = () => fetchGlobal<any>('site-features')
+// depth=1 supaya upload (ticket card background per-service) ter-populate jadi
+// objek media (url + sizes), bukan sekadar id. (Phase 4.61.3)
+export const getSiteFeatures = () => fetchGlobal<any>('site-features', 1)
 export const getHomepageContent = () => fetchGlobal<any>('homepage-content')
+export const getAnnouncementBar = () => fetchGlobal<any>('announcement-bar')
+export const getPromoBanner = () => fetchGlobal<any>('promo-banner')
+export const getBlogSettings = () => fetchGlobal<any>('blog-settings')
+export const getChatWidget = () => fetchGlobal<any>('chat-widget')
+// Phase 4.59.1 — Popup Settings global (Settings → Popup).
+export const getPopupSettings = () => fetchGlobal<any>('popup-settings')
 export const getTestimonials = (opts?: Partial<FetchOptions>) =>
   fetchCollection<any>({ collection: 'testimonials', sort: 'sortOrder', ...opts })
+
+// ── Blog ──────────────────────────────────────────────────────
+// Posts + Authors typed loosely — cast where needed until callers
+// specialize. Depth 2 pulls category + author relationships.
+export const getPosts = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'posts', sort: '-publishedAt', depth: 2, ...opts })
+export const getPostBySlug = (slug: string) =>
+  fetchBySlug<any>('posts', slug)
+
+export const getAuthors = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'authors', sort: 'sortOrder', ...opts })
+export const getAuthorBySlug = (slug: string) =>
+  fetchBySlug<any>('authors', slug)
+
+export const getBlogCategories = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'blog-categories', sort: 'sortOrder', ...opts })
+export const getBlogCategoryBySlug = (slug: string) =>
+  fetchBySlug<any>('blog-categories', slug)
+
+export const getTags = (opts?: Partial<FetchOptions>) =>
+  fetchCollection<any>({ collection: 'tags', sort: 'sortOrder', ...opts })
+export const getTagBySlug = (slug: string) =>
+  fetchBySlug<any>('tags', slug)

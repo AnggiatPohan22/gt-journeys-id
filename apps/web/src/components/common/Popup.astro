@@ -1,0 +1,268 @@
+---
+/**
+ * Popup — Phase 4.59.1.
+ *
+ * Reusable global confirm/alert popup, dikendalikan CMS via global
+ * `popup-settings` (Settings → Popup di admin panel). Terpasang sekali di
+ * PageLayout, siap dipanggil dari mana saja lewat helper global JS:
+ *
+ *   await window.dnjPopup.confirm({
+ *     title?: string,        // fallback ke settings.defaultTitle
+ *     message: string,       // WAJIB — body pesan (mendukung \n line-break)
+ *     confirmLabel?: string, // fallback ke settings.confirmLabel
+ *     cancelLabel?: string,  // fallback ke settings.cancelLabel; ''/null = sembunyikan
+ *     icon?: string,         // override ikon (material-symbols)
+ *     variant?: 'confirm' | 'alert', // 'alert' = 1 tombol (no cancel)
+ *   })
+ *   // → Promise<boolean> : true kalau OK, false kalau cancel/close/backdrop.
+ *
+ * Kalau `settings.enabled === false` atau global gagal di-fetch, helper
+ * jatuh ke `window.confirm()` bawaan browser supaya tetap berfungsi.
+ *
+ * Aksesibilitas: focus-trap ringan (Tab loop di dalam dialog), tombol Esc
+ * = cancel, backdrop click = cancel, aria-modal + role="dialog".
+ */
+import Icon from '@components/common/Icon.astro'
+import { getPopupSettings } from '@lib/payload'
+
+const s = (await getPopupSettings().catch(() => null)) ?? {}
+const enabled = s.enabled !== false
+const defaultTitle: string = s.defaultTitle || 'Confirm'
+const confirmLabel: string = s.confirmLabel || 'Continue'
+const cancelLabel: string = s.cancelLabel || 'Cancel'
+const showCloseButton = s.showCloseButton !== false
+const showIcon = s.showIcon !== false
+const iconName: string = s.iconName || 'help'
+const size: 'sm' | 'md' | 'lg' = (['sm', 'md', 'lg'].includes(s.size) ? s.size : 'md') as 'sm' | 'md' | 'lg'
+const radius: 'lg' | 'xl' | '2xl' | '3xl' = (['lg', 'xl', '2xl', '3xl'].includes(s.radius) ? s.radius : '2xl') as 'lg' | 'xl' | '2xl' | '3xl'
+const backdrop: 'solid' | 'blur' | 'transparent' = (['solid', 'blur', 'transparent'].includes(s.backdrop) ? s.backdrop : 'blur') as 'solid' | 'blur' | 'transparent'
+
+const sizeClass: Record<string, string> = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg' }
+const radiusClass: Record<string, string> = { lg: 'rounded-lg', xl: 'rounded-xl', '2xl': 'rounded-2xl', '3xl': 'rounded-3xl' }
+const backdropClass: Record<string, string> = {
+  solid: 'bg-black/50',
+  blur: 'bg-black/40 backdrop-blur-sm',
+  transparent: 'bg-black/20',
+}
+
+// Kirim setting minimal ke client via data-* JSON. Warna dipetakan ke
+// CSS variables agar tidak butuh Tailwind arbitrary values dinamis.
+const cssVars = [
+  s.bgColor && `--pop-bg:${s.bgColor}`,
+  s.titleColor && `--pop-title:${s.titleColor}`,
+  s.textColor && `--pop-text:${s.textColor}`,
+  s.iconColor && `--pop-icon:${s.iconColor}`,
+  s.confirmBg && `--pop-confirm-bg:${s.confirmBg}`,
+  s.confirmText && `--pop-confirm-text:${s.confirmText}`,
+  s.cancelBg && `--pop-cancel-bg:${s.cancelBg}`,
+  s.cancelText && `--pop-cancel-text:${s.cancelText}`,
+].filter(Boolean).join(';')
+
+const bootstrapCfg = JSON.stringify({
+  enabled,
+  defaultTitle,
+  confirmLabel,
+  cancelLabel,
+  iconName,
+  showIcon,
+  showCloseButton,
+})
+---
+
+<div id="dnj-popup-root"
+     class="fixed inset-0 z-[100] hidden items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="dnj-popup-title" aria-describedby="dnj-popup-body"
+     data-cfg={bootstrapCfg} style={cssVars || undefined}>
+  <div class:list={['absolute inset-0', backdropClass[backdrop]]} data-dnj-popup-backdrop></div>
+  <div class:list={['relative w-full bg-white shadow-2xl border border-black/5', sizeClass[size], radiusClass[radius]]}
+       data-dnj-popup-card>
+    {showCloseButton && (
+      <button type="button" data-dnj-popup-close
+              aria-label="Close"
+              class="absolute top-3 right-3 w-8 h-8 rounded-full text-stone-light/70 hover:text-stone hover:bg-sand transition-colors flex items-center justify-center">
+        <span class="text-lg leading-none">×</span>
+      </button>
+    )}
+    <div class="p-6 md:p-7">
+      {showIcon && (
+        <div class="mb-3 flex items-center justify-center">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center" data-dnj-popup-icon-wrap>
+            <Icon name={iconName} class="w-7 h-7" />
+          </div>
+        </div>
+      )}
+      <h3 id="dnj-popup-title" data-dnj-popup-title
+          class="font-display text-xl md:text-2xl text-center mb-2 leading-tight">
+        {defaultTitle}
+      </h3>
+      <p id="dnj-popup-body" data-dnj-popup-body
+         class="text-sm md:text-base text-center whitespace-pre-line leading-relaxed"></p>
+      {/* Phase 4.59.1 (patch) — tombol selalu satu baris (row-reverse:
+          Confirm kanan, Cancel kiri). Tidak lagi stack di mobile. */}
+      <div class="mt-6 flex flex-row-reverse gap-2.5">
+        <button type="button" data-dnj-popup-confirm
+                class="flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors whitespace-nowrap">
+          {confirmLabel}
+        </button>
+        <button type="button" data-dnj-popup-cancel
+                class="flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-colors whitespace-nowrap">
+          {cancelLabel}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #dnj-popup-root { display: none; }
+  #dnj-popup-root.is-open { display: flex; }
+
+  [data-dnj-popup-card] {
+    background: var(--pop-bg, #ffffff);
+    animation: dnjPopupIn 0.18s ease-out;
+  }
+  [data-dnj-popup-title] { color: var(--pop-title, #1B3A4B); }
+  [data-dnj-popup-body]  { color: var(--pop-text, #3D405B); }
+  [data-dnj-popup-icon-wrap] {
+    color: var(--pop-icon, #E07A5F);
+    background: color-mix(in srgb, var(--pop-icon, #E07A5F) 12%, transparent);
+  }
+  [data-dnj-popup-confirm] {
+    background: var(--pop-confirm-bg, #E07A5F);
+    color: var(--pop-confirm-text, #ffffff);
+  }
+  [data-dnj-popup-confirm]:hover { filter: brightness(0.94); }
+  [data-dnj-popup-cancel] {
+    background: var(--pop-cancel-bg, #F5F0E8);
+    color: var(--pop-cancel-text, #3D405B);
+  }
+  [data-dnj-popup-cancel]:hover { filter: brightness(0.96); }
+
+  @keyframes dnjPopupIn {
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-dnj-popup-card] { animation: none; }
+  }
+</style>
+
+<script>
+  // Phase 4.59.1 — global popup controller.
+  //
+  // Idempotent: guard supaya kalau PageLayout ter-render 2x (mis. view-
+  // transitions), event listener tidak double-bind & state tetap tunggal.
+  interface PopupOpts {
+    title?: string
+    message: string
+    confirmLabel?: string
+    cancelLabel?: string | null
+    icon?: string
+    variant?: 'confirm' | 'alert'
+  }
+  interface DnjPopupApi {
+    confirm(opts: PopupOpts): Promise<boolean>
+    alert(opts: Omit<PopupOpts, 'variant' | 'cancelLabel'>): Promise<void>
+  }
+
+  ;(() => {
+    if ((window as any).dnjPopup && (window as any).__dnjPopupBound) return
+
+    const install = () => {
+      const root = document.getElementById('dnj-popup-root') as HTMLElement | null
+      if (!root) return false
+      if ((root as any).__bound) return true
+      ;(root as any).__bound = true
+
+      const cfgRaw = root.dataset.cfg || '{}'
+      let cfg: Record<string, any> = {}
+      try { cfg = JSON.parse(cfgRaw) } catch { cfg = {} }
+
+      const $ = <T extends HTMLElement>(sel: string): T | null => root.querySelector(sel)
+      const titleEl = $('[data-dnj-popup-title]') as HTMLElement | null
+      const bodyEl = $('[data-dnj-popup-body]') as HTMLElement | null
+      const confirmBtn = $('[data-dnj-popup-confirm]') as HTMLButtonElement | null
+      const cancelBtn = $('[data-dnj-popup-cancel]') as HTMLButtonElement | null
+      const closeBtn = $('[data-dnj-popup-close]') as HTMLButtonElement | null
+      const backdrop = $('[data-dnj-popup-backdrop]') as HTMLElement | null
+
+      const defaults = {
+        title: cfg.defaultTitle || 'Confirm',
+        confirmLabel: cfg.confirmLabel || 'Continue',
+        cancelLabel: cfg.cancelLabel || 'Cancel',
+      }
+
+      let currentResolve: ((v: boolean) => void) | null = null
+      let lastFocus: HTMLElement | null = null
+
+      const close = (result: boolean) => {
+        root.classList.remove('is-open')
+        document.body.style.overflow = ''
+        if (currentResolve) { currentResolve(result); currentResolve = null }
+        if (lastFocus && typeof lastFocus.focus === 'function') {
+          try { lastFocus.focus() } catch {}
+        }
+      }
+
+      const onKey = (e: KeyboardEvent) => {
+        if (!root.classList.contains('is-open')) return
+        if (e.key === 'Escape') { e.preventDefault(); close(false) }
+        else if (e.key === 'Enter' && document.activeElement !== cancelBtn) {
+          e.preventDefault(); close(true)
+        }
+      }
+
+      confirmBtn?.addEventListener('click', () => close(true))
+      cancelBtn?.addEventListener('click', () => close(false))
+      closeBtn?.addEventListener('click', () => close(false))
+      backdrop?.addEventListener('click', () => close(false))
+      document.addEventListener('keydown', onKey)
+
+      const openPopup = (opts: PopupOpts): Promise<boolean> => {
+        // Fallback ke native confirm/alert kalau global di-disable.
+        if (cfg.enabled === false) {
+          if (opts.variant === 'alert') { window.alert(opts.message); return Promise.resolve(true) }
+          return Promise.resolve(window.confirm(opts.message))
+        }
+        lastFocus = document.activeElement as HTMLElement | null
+        if (titleEl) titleEl.textContent = opts.title ?? defaults.title
+        if (bodyEl) bodyEl.textContent = opts.message ?? ''
+        if (confirmBtn) confirmBtn.textContent = opts.confirmLabel ?? defaults.confirmLabel
+        // Cancel: hide untuk variant='alert', atau kalau cancelLabel=null/''.
+        const wantCancel = opts.variant !== 'alert' && opts.cancelLabel !== null && opts.cancelLabel !== ''
+        if (cancelBtn) {
+          if (wantCancel) {
+            cancelBtn.style.display = ''
+            cancelBtn.textContent = opts.cancelLabel ?? defaults.cancelLabel
+          } else {
+            cancelBtn.style.display = 'none'
+          }
+        }
+        root.classList.add('is-open')
+        document.body.style.overflow = 'hidden'
+        // Autofocus tombol utama supaya Enter = confirm.
+        setTimeout(() => { try { confirmBtn?.focus() } catch {} }, 30)
+        return new Promise<boolean>((resolve) => { currentResolve = resolve })
+      }
+
+      const api: DnjPopupApi = {
+        confirm: (opts) => openPopup({ ...opts, variant: 'confirm' }),
+        alert: (opts) => openPopup({ ...opts, variant: 'alert' }).then(() => undefined),
+      }
+      ;(window as any).dnjPopup = api
+      ;(window as any).__dnjPopupBound = true
+      return true
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', install, { once: true })
+    } else {
+      install()
+    }
+    // Astro view-transitions: re-install kalau root diganti.
+    document.addEventListener('astro:page-load', () => {
+      ;(window as any).__dnjPopupBound = false
+      install()
+    })
+  })()
+</script>

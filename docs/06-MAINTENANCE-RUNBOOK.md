@@ -1,6 +1,6 @@
 # 06 — MAINTENANCE RUNBOOK
 
-> Panduan operasional harian **DnJourneysBali** untuk pemilik solo developer. Kerjakan sebanyak mungkin **Tier 1** (via CMS admin, no-code, aman) → **Tier 2** kalau harus edit kode (dengan panduan step-by-step) → **Tier 3** hanya kalau memang butuh AI/developer.
+> Panduan operasional harian **GtJourneysID** untuk pemilik solo developer. Kerjakan sebanyak mungkin **Tier 1** (via CMS admin, no-code, aman) → **Tier 2** kalau harus edit kode (dengan panduan step-by-step) → **Tier 3** hanya kalau memang butuh AI/developer.
 >
 > Filosofi: *"Hal receh maintain sendiri; yang advance baru minta Claude Code."*
 
@@ -123,7 +123,50 @@ Role summary (detail di [04-RBAC.md](docs/04-RBAC.md)):
 - **Admin** — Editor + create + publish + toggle status service.
 - **Super Admin** — semua + globals, menus, pages, users.
 
-### 1.9 Toggle Module (semi-CMS)
+### 1.9 Chat Widget (Phase 4.50)
+
+Chat widget mengambang di kanan-bawah setiap halaman. Konfigurasi lengkap di `/admin/globals/chat-widget` (Super Admin only).
+
+**Master toggle**: `/admin/globals/site-features` → tab **Fitur Opsional** → `WhatsApp Floating Button` (nama flag legacy — sekarang mengontrol seluruh chat widget).
+
+**8 tab konfigurasi**:
+| Tab | Fungsi |
+|---|---|
+| General | enable, displayScope (all/home/custom), hide-mobile/desktop |
+| Appearance | posisi, offset, warna, ukuran, animasi |
+| Popup | title, subtitle, brand name, avatar header |
+| Channels | blocks: WhatsApp / AI Chatbot / Live Chat / Email — drag reorder = urutan di popup |
+| Availability | business hours + offline behavior (Phase 4.50.7 masih partial; UI ada, enforcement server datang kemudian) |
+| Behavior | delay, scroll trigger, auto-open, exit intent, dismissible |
+| Tracking | GA event name, UTM params, cookie consent gate |
+| Security | 5 layer anti-spam: rate-limit + Turnstile/reCAPTCHA + backend validation + bot signals + IP/country |
+
+**Menambah channel baru** (mis. buka WhatsApp CS baru):
+1. Buka tab **Channels** → **Add Block** → **WhatsApp**.
+2. Isi label, whatsappNumber (kosong = fallback ke SiteSettings.contact.whatsapp), prefilledMessage.
+3. Save. Kartu baru muncul di popup frontend.
+
+**Mengaktifkan AI Chatbot** (butuh env var + Anthropic API key):
+1. Set env `ANTHROPIC_API_KEY` via `wrangler secret put ANTHROPIC_API_KEY`.
+2. Set `CHAT_IP_HASH_SALT` (min 32 char) + `CHAT_VISITOR_COOKIE_SECRET` (min 32 char) sebagai secrets.
+3. Provision KV: `wrangler kv:namespace create chat-rl` → salin id ke `wrangler.toml` binding `CHAT_RATE_LIMIT_KV`.
+4. Di `/admin/globals/chat-widget` tab Channels → **Add Block** → **AI Chatbot** → isi provider=Anthropic, model, systemPrompt, welcomeMessage, `apiKeyRef=ANTHROPIC_API_KEY`.
+5. Deploy web app.
+
+**Audit trail** (`/admin/collections/*`):
+- `chat-visitors` — cookie ID + IP hash + status. Read-only.
+- `chat-messages` — inbound/outbound message log dengan content-hash + wasBlocked.
+- `chat-blocked-events` — audit per rule triggered (rate-limit / honeypot / verification fail).
+
+**Retention** — Otomatis via cron `0 3 * * *` (03:00 UTC = 10:00 WITA). Config di `chat-widget.auditRetentionDays` (default 30 hari). Manual jalankan:
+
+```bash
+cd apps/cms && pnpm retention:chat
+```
+
+Endpoint HTTP untuk external cron: `POST /api/chat-retention` dengan header `x-cron-key: <CHAT_RETENTION_CRON_KEY>`.
+
+### 1.10 Toggle Module (semi-CMS)
 
 ⚠️ **Saat ini toggle module masih di file kode** ([apps/web/src/config/modules.ts](apps/web/src/config/modules.ts)) — bukan di CMS. Untuk enable/disable modul (mis. matikan "Weddings" karena klien tidak menawarkan), lihat Tier 2 §2.6.
 
@@ -227,7 +270,7 @@ Rebuild + deploy. Cache browser mungkin tahan lama — test dengan hard refresh 
 
 ```ts
 defaultSeo: {
-  title: 'DnJourneysBali — Tours, Villas, Activities in Bali',
+  title: 'GtJourneysID — Tours, Villas, Activities in Bali',
   description: 'Discover the best of Bali...',
   ogImage: '/og-default.jpg',
 },
@@ -280,7 +323,7 @@ Contoh: tambah field `bookingLeadTime` (text) ke Tours.
    ```bash
    cd apps/cms
    pnpm payload migrate:create
-   wrangler d1 migrations apply dn-journeys-db --remote
+   wrangler d1 migrations apply gt-journeys-db --remote
    ```
 
 5. Deploy CMS: `pnpm deploy:cms`.
@@ -373,33 +416,33 @@ pnpm payload migrate:create   # bikin file migrasi baru
 pnpm payload migrate          # jalankan migrasi ke DB lokal
 
 # Production D1
-wrangler d1 migrations apply dn-journeys-db --remote
+wrangler d1 migrations apply gt-journeys-db --remote
 
 # Backup
-wrangler d1 export dn-journeys-db --remote --output=backup-$(date +%Y%m%d).sql
+wrangler d1 export gt-journeys-db --remote --output=backup-$(date +%Y%m%d).sql
 
 # Query manual
-wrangler d1 execute dn-journeys-db --remote --command "SELECT COUNT(*) FROM tours;"
+wrangler d1 execute gt-journeys-db --remote --command "SELECT COUNT(*) FROM tours;"
 ```
 
 ### Media (R2)
 
 ```bash
 wrangler r2 bucket list                           # cek bucket
-wrangler r2 object list dn-journeys-media --remote
+wrangler r2 object list gt-journeys-media --remote
 
 # Backup ke lokal (kecil-kecilan)
-wrangler r2 object get dn-journeys-media/<key> --file=./backup/<key>
+wrangler r2 object get gt-journeys-media/<key> --file=./backup/<key>
 
 # Backup masif → pakai rclone (setup sekali)
-rclone sync r2:dn-journeys-media ./r2-backup --transfers=8
+rclone sync r2:gt-journeys-media ./r2-backup --transfers=8
 ```
 
 ### Monitoring
 
 ```bash
-wrangler tail dn-journeys-cms                    # log real-time Worker
-wrangler tail dn-journeys-cms --status error     # error only
+wrangler tail gt-journeys-cms                    # log real-time Worker
+wrangler tail gt-journeys-cms --status error     # error only
 ```
 
 ### Secrets
@@ -450,7 +493,7 @@ git checkout <file>           # rollback file yang belum di-commit
 
 ### "Gambar tidak muncul di website"
 
-1. **Cek URL image** di browser DevTools → Network tab → status 404? → media file hilang di R2. Cek `wrangler r2 object list dn-journeys-media --remote`.
+1. **Cek URL image** di browser DevTools → Network tab → status 404? → media file hilang di R2. Cek `wrangler r2 object list gt-journeys-media --remote`.
 2. **CORS error** di console? → `SITE_URL` di CMS salah — update di `wrangler.toml [vars]` + redeploy.
 3. **`r2Storage` plugin belum di-register** di [payload.config.ts](apps/cms/src/payload.config.ts) — media disimpan di filesystem worker (ephemeral). Perbaikan: Tier 3.
 4. **Alt text kosong** — bukan error tapi bikin gambar tidak accessible; isi alt di Media entry.
@@ -505,13 +548,13 @@ Solusi:
 ### Harian (5 menit)
 
 - [ ] Cek CMS bisa login (`https://cms.<domain>/admin`) — kalau tidak bisa, lihat troubleshoot §5.
-- [ ] Sekilas cek `wrangler tail dn-journeys-cms --status error` — ada error unusual?
+- [ ] Sekilas cek `wrangler tail gt-journeys-cms --status error` — ada error unusual?
 - [ ] Balas inquiry WhatsApp yang masuk dari CTA site.
 
 ### Mingguan (15-30 menit)
 
-- [ ] **Backup D1**: `wrangler d1 export dn-journeys-db --remote --output=backup/db-$(date +%Y%m%d).sql`
-- [ ] **Backup R2**: `rclone sync r2:dn-journeys-media ./r2-backup` (setelah setup rclone sekali).
+- [ ] **Backup D1**: `wrangler d1 export gt-journeys-db --remote --output=backup/db-$(date +%Y%m%d).sql`
+- [ ] **Backup R2**: `rclone sync r2:gt-journeys-media ./r2-backup` (setelah setup rclone sekali).
 - [ ] Review Cloudflare Analytics — traffic normal? Ada spike error?
 - [ ] Cek Web Analytics — top pages, referrer, bounce rate.
 - [ ] Reply ke inquiries / update konten sesuai marketing plan.

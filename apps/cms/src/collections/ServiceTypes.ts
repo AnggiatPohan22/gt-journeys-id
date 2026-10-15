@@ -1,7 +1,10 @@
 import type { CollectionConfig } from 'payload'
 import { isAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
 import { generateSlug } from '../hooks/generateSlug'
-import { iconOptions } from '../fields/iconOptions'
+import { iconField } from '../fields/iconOptions'
+import { sidebarTabsFieldWith, withSidebarTab } from '../fields/sidebarTabs'
+import { withStatusCell, updatedAtRelativeField } from '../fields/listCells'
+import { relatedServicesTypeOverrideFields } from '../fields/relatedServices'
 
 /**
  * ServiceTypes — CMS-editable METADATA untuk 7 service vertical
@@ -28,8 +31,8 @@ export const ServiceTypes: CollectionConfig = {
   labels: { singular: 'Service Type', plural: 'Service Types' },
   admin: {
     useAsTitle: 'name',
-    group: 'Content',
-    defaultColumns: ['name', 'key', 'order', 'status'],
+    group: 'Destinations',
+    defaultColumns: ['name', 'key', 'order', 'status', 'updatedAtRelative'],
     defaultSort: 'order',
     description: 'Metadata untuk kategori layanan (label, ikon, hero, SEO, WhatsApp). Listing/produk tetap di collection masing-masing.',
   },
@@ -46,15 +49,18 @@ export const ServiceTypes: CollectionConfig = {
       required: true,
       admin: { description: 'Nama tampilan, mis: "Tours & Activities", "Villas & Hotels"' },
     },
-    {
+    // Phase 4.9 — 2-tab sidebar (General / Publishing). No SEO tab because
+    // SEO fields live in a collapsible in the main column, not the sidebar.
+    sidebarTabsFieldWith(['general', 'status']),
+    withSidebarTab({
       name: 'slug',
       type: 'text',
       required: true,
       unique: true,
       hooks: { beforeValidate: [generateSlug] },
       admin: { position: 'sidebar', description: 'Auto dari name. Dipakai untuk URL landing page (mis: /tour).' },
-    },
-    {
+    }, 'general'),
+    withSidebarTab({
       name: 'key',
       type: 'select',
       required: true,
@@ -72,9 +78,11 @@ export const ServiceTypes: CollectionConfig = {
         { label: 'Restaurants', value: 'restaurants' },
         { label: 'Weddings & Events (Venues)', value: 'venues' },
         { label: 'Rentals', value: 'rentals' },
+        { label: 'Spa & Wellness', value: 'spa' },
+        { label: 'Ferry Tickets', value: 'ferry-tickets' }
       ],
-    },
-    {
+    }, 'general'),
+    withSidebarTab(withStatusCell({
       name: 'status',
       type: 'select',
       defaultValue: 'active',
@@ -84,13 +92,14 @@ export const ServiceTypes: CollectionConfig = {
         { label: 'Draft', value: 'draft' },
         { label: 'Archived', value: 'archived' },
       ],
-    },
-    {
+    }), 'status'),
+    withSidebarTab({
       name: 'order',
       type: 'number',
       defaultValue: 0,
       admin: { position: 'sidebar', description: 'Urutan tampil. Angka kecil di atas.' },
-    },
+    }, 'status'),
+    updatedAtRelativeField,
     {
       name: 'description',
       type: 'richText',
@@ -99,12 +108,7 @@ export const ServiceTypes: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        {
-          name: 'iconName',
-          type: 'select',
-          options: iconOptions,
-          admin: { width: '50%', description: 'Ikon dari Icon.astro (dipakai di nav/footer/cards).' },
-        },
+        iconField({ name: 'iconName', admin: { width: '50%', description: 'Ikon dari Icon.astro (dipakai di nav/footer/cards).' } }),
         {
           name: 'coverImage',
           type: 'upload',
@@ -113,6 +117,8 @@ export const ServiceTypes: CollectionConfig = {
         },
       ],
     },
+    // Phase 4.17 — Related Services override per service type
+    relatedServicesTypeOverrideFields(),
     {
       type: 'collapsible',
       label: 'WhatsApp',

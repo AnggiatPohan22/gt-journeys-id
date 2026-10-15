@@ -1,0 +1,178 @@
+---
+import type { FerryTicket } from '@shared/types/payload-types'
+import { formatPrice } from '@shared/utils/format-price'
+import { lexicalToPlainText } from '@lib/lexical'
+import { routeLabelFrom, resolveLocation, tzLabel } from '@lib/location'
+import DetailedCard from './DetailedCard.astro'
+import TicketRouteCard from './TicketRouteCard.astro'
+import CardBgLayer from './CardBgLayer.astro'
+import type { CardBackground } from '@lib/serviceCards'
+
+interface Props {
+  ferryTicket: FerryTicket
+  /** Detail route base (default '/ferry-tickets'). */
+  hrefBase?: string
+  variant?: 'compact' | 'detailed' | 'ticket'
+  /** Phase 4.61.3/4.61.4 — corak/watermark dekoratif (semua desain). */
+  background?: CardBackground
+  /** Phase 4.61.9 — tanggal terpilih (ISO yyyy-mm-dd). Ditampilkan di bawah
+   * jam keberangkatan/kedatangan pada variant='ticket'. Default = hari ini. */
+  selectedDate?: string
+}
+const { ferryTicket, hrefBase = '/ferry-tickets', variant = 'compact', background, selectedDate } = Astro.props
+
+const img = typeof ferryTicket.featuredImage === 'object' ? ferryTicket.featuredImage : null
+const imgUrl = img?.sizes?.card?.url ?? img?.url ?? ''
+const imgAlt = img?.alt ?? ferryTicket.title
+const dest = typeof ferryTicket.destination === 'object' ? ferryTicket.destination : null
+
+const ferryClasses = ((ferryTicket as any).ferryClasses ?? []) as Array<{ adultPrice?: number; currency?: string; originalPrice?: number; classType?: string }>
+const cheapest = ferryClasses
+  .map((c) => c.adultPrice)
+  .filter((p): p is number => typeof p === 'number' && p > 0)
+  .sort((a, b) => a - b)[0]
+const cheapestObj = ferryClasses.find((c) => c.adultPrice === cheapest)
+const adultPrice = cheapest ?? null
+const currency = cheapestObj?.currency ?? 'IDR'
+
+// Origin/Arrival kini relationship → `locations` (Phase 4.61). Fallback ke
+// enum lama (`origin`/`arrival`) selama masa transisi.
+const routeLabel = routeLabelFrom(
+  (ferryTicket as any).originLocation,
+  (ferryTicket as any).arrivalLocation,
+  (ferryTicket as any).origin,
+  (ferryTicket as any).arrival,
+)
+const operator = (ferryTicket as any).operator as string | undefined
+const duration = (ferryTicket as any).duration as string | undefined
+
+// ── Ticket variant (Phase 4.61 Stage 5) ──────────────────────
+const detailHref = `${hrefBase}/${ferryTicket.slug}`
+// Phase 4.62 — Book Now di listing card → langsung ke checkout, konsisten
+// dgn detail page. More info tetap ke detail.
+const checkoutHref = `/checkout/ferry-tickets/${ferryTicket.slug}`
+const fromLoc = resolveLocation((ferryTicket as any).originLocation, (ferryTicket as any).origin)
+const toLoc = resolveLocation((ferryTicket as any).arrivalLocation, (ferryTicket as any).arrival)
+// Phase 4.61.6 — jadwal ferry pindah ke single (top-level departureTime/arrivalTime).
+// Fallback ke scheduleTime[0] lama untuk kompatibilitas data existing.
+const schedule0 = Array.isArray((ferryTicket as any).scheduleTime) ? (ferryTicket as any).scheduleTime[0] : null
+const topDeparture = (ferryTicket as any).departureTime as string | undefined
+const topArrival = (ferryTicket as any).arrivalTime as string | undefined
+const depTime = topDeparture || schedule0?.departureTime
+const arrTime = topArrival || schedule0?.arrivalTime
+const depTz = tzLabel(fromLoc?.timezone)
+const arrTz = tzLabel(toLoc?.timezone)
+const opLogo = typeof (ferryTicket as any).operatorLogo === 'object' ? (ferryTicket as any).operatorLogo : null
+const opLogoUrl = opLogo?.sizes?.thumbnail?.url ?? opLogo?.url ?? undefined
+
+// Phase 4.61.9 — format tanggal untuk tampil di bawah waktu keberangkatan.
+const fmtDate = (iso: string | undefined): string | undefined => {
+  if (!iso) return undefined
+  const d = new Date(iso + 'T00:00:00')
+  if (isNaN(d.getTime())) return undefined
+  return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+const todayISO = (() => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})()
+const displayDate = fmtDate(selectedDate || todayISO)
+const badges = (((ferryTicket as any).badges ?? []) as Array<{ text?: string; style?: 'ocean' | 'leaf' | 'coral' }>)
+  .filter((b) => b?.text)
+  .map((b) => ({ text: b.text as string, style: b.style }))
+const bookedCount = (ferryTicket as any).bookedCount as number | undefined
+const classTypeLabel: Record<string, string> = { ekonomi: 'Ekonomi', emerald: 'Emerald' }
+const ticketPrice = adultPrice
+  ? {
+      amount: adultPrice,
+      currency,
+      per: 'Per person',
+      className: cheapestObj?.classType ? classTypeLabel[cheapestObj.classType] ?? cheapestObj.classType : undefined,
+      original: cheapestObj?.originalPrice && cheapestObj.originalPrice > adultPrice ? cheapestObj.originalPrice : undefined,
+    }
+  : undefined
+
+const galleryFromArr = Array.isArray((ferryTicket as any).gallery)
+  ? (ferryTicket as any).gallery
+      .map((g: any) => typeof g?.image === 'object' ? { url: g.image.sizes?.card?.url ?? g.image.url ?? '', alt: g.image.alt } : null)
+      .filter((x: any) => x && x.url)
+  : []
+const detailedImages = [imgUrl ? { url: imgUrl, alt: imgAlt } : null, ...galleryFromArr].filter(Boolean) as { url: string; alt?: string }[]
+const detailedDescription = (ferryTicket as any).subtitle
+  ?? (ferryTicket.description ? lexicalToPlainText(ferryTicket.description).slice(0, 160) : '')
+const detailedAmenities = [
+  operator ? { name: operator, icon: 'ship' } : null,
+  duration ? { name: duration, icon: 'clock' } : null,
+].filter(Boolean) as { name: string; icon?: string }[]
+---
+
+{variant === 'ticket' ? (
+  <TicketRouteCard
+    href={detailHref}
+    bookHref={checkoutHref}
+    moreInfoHref={detailHref}
+    operator={{ name: operator, logo: opLogoUrl }}
+    badges={badges}
+    image={imgUrl ? { url: imgUrl, alt: imgAlt } : undefined}
+    from={{ name: fromLoc?.name ?? '—', terminal: fromLoc?.terminal, time: depTime ? (depTz ? `${depTime} ${depTz}` : depTime) : undefined, date: displayDate }}
+    to={{ name: toLoc?.name ?? '—', terminal: toLoc?.terminal, time: arrTime ? (arrTz ? `${arrTime} ${arrTz}` : arrTime) : undefined, date: displayDate }}
+    middle={{
+      label: 'Ferry',
+      icon: 'ship',
+      duration: schedule0?.duration ?? duration,
+      bookedLabel: typeof bookedCount === 'number' ? `${bookedCount.toLocaleString('en-US')} booked` : undefined,
+    }}
+    price={ticketPrice}
+    background={background}
+    bookText="Book Now"
+    moreInfoText="More info"
+  />
+) : variant === 'detailed' ? (
+  <DetailedCard
+    href={`${hrefBase}/${ferryTicket.slug}`}
+    images={detailedImages}
+    badge={routeLabel}
+    eyebrow={dest?.name}
+    title={ferryTicket.title}
+    description={detailedDescription}
+    amenities={detailedAmenities}
+    price={adultPrice ? { value: adultPrice, currency, unit: '/ pax' } : undefined}
+    bookText="Book Ferry"
+    background={background}
+  />
+) : (
+<article class="group relative bg-white rounded-xl overflow-hidden border border-sand-dark/10 hover:shadow-lg transition-shadow duration-300">
+  <CardBgLayer background={background} />
+  <a href={`${hrefBase}/${ferryTicket.slug}`} class="relative block no-underline text-current">
+    <div class="relative aspect-[4/3] overflow-hidden bg-sand">
+      {imgUrl ? (
+        <img src={imgUrl} alt={imgAlt} loading="lazy"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      ) : (
+        <div class="w-full h-full flex items-center justify-center text-stone-light text-sm">No image</div>
+      )}
+      {routeLabel && (
+        <span class="absolute top-3 left-3 px-2.5 py-1 bg-white/95 text-ocean text-xs font-semibold uppercase tracking-wider rounded">
+          {routeLabel}
+        </span>
+      )}
+    </div>
+    <div class="p-5">
+      {dest && <p class="text-xs uppercase tracking-wider text-leaf mb-2">{dest.name}</p>}
+      <h3 class="font-display text-xl text-ocean mb-2 line-clamp-2 group-hover:text-coral transition-colors">
+        {ferryTicket.title}
+      </h3>
+      {operator && <p class="text-sm text-stone-light mb-1">Operator: {operator}</p>}
+      {duration && <p class="text-sm text-stone-light mb-2">Duration: {duration}</p>}
+      <div class="flex items-center justify-between pt-3 border-t border-sand-dark/10">
+        {adultPrice ? (
+          <div>
+            <p class="text-coral font-semibold">{formatPrice(adultPrice, currency)}</p>
+            <p class="text-xs text-stone-light font-normal">/ pax</p>
+          </div>
+        ) : <span class="text-xs text-stone-light">Contact for price</span>}
+      </div>
+    </div>
+  </a>
+</article>
+)}

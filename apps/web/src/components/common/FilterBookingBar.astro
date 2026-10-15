@@ -15,10 +15,10 @@ import Icon from '@components/common/Icon.astro'
  * Contoh pakai:
  *   <FilterBookingBar
  *     destinations={[
- *       { label: 'All Bali', value: 'all' },
+ *       { label: 'All', value: 'all' },
  *       { label: 'Nusa Penida', value: 'nusa-penida' },
  *     ]}
- *     searchAction="/accommodations"
+ *     searchAction="/villa"
  *   />
  */
 
@@ -45,7 +45,7 @@ interface Props {
 
 const {
   destinations = [
-    { label: 'All Bali', value: 'all' },
+    { label: 'All', value: 'all' },
     { label: 'Bali Main Island', value: 'mainland-bali' },
     { label: 'Nusa Penida', value: 'nusa-penida' },
     { label: 'Nusa Lembongan', value: 'lembongan' },

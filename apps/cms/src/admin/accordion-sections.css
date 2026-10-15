@@ -1,0 +1,237 @@
+/*
+ * GtJourneysID — Accordion Sections + Color-Coded Tabs (Phase 4.18)
+ * ====================================================================
+ * Color-coded collapsible sections within service collection tabs.
+ * Each tab has ONE color; each section shares that color for its left
+ * border and badge background, with a unique icon per section.
+ *
+ * Visual language matches the block badge system (Phase 4.8 Goal 4):
+ * pill badge + 3px left border + icon.
+ *
+ * Icons use the same mask-image pattern as sidebar nav icons.
+ * ====================================================================
+ */
+
+/* ─────────────────────────────────────────────────────────────
+   TAB COLOR TOKENS
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --acc-overview:  #1b3a4b; /* ocean — core identity */
+  --acc-media:     #6b9080; /* leaf — visual content */
+  --acc-rooms:     #e07a5f; /* coral — commercial/pricing */
+  --acc-amenities: #1a8a7a; /* teal — features */
+  --acc-policies:  #585860; /* stone — formal/rules */
+  --acc-custom:    #0d1b2a; /* midnight — custom blocks */
+}
+html[data-theme='dark'] {
+  --acc-overview:  #5ba3c9;
+  --acc-media:     #8bd6b6;
+  --acc-rooms:     #f0a08a;
+  --acc-amenities: #5cd6c6;
+  --acc-policies:  #9494a0;
+  --acc-custom:    #7a8fa8;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BASE ACCORDION SECTION STYLING
+   ───────────────────────────────────────────────────────────── */
+.accordion-section {
+  border: 1px solid var(--theme-elevation-150) !important;
+  border-left-width: 3px !important;
+  border-radius: 10px !important;
+  margin-block: 8px !important;
+  background: var(--theme-elevation-0);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  overflow: hidden;
+}
+.accordion-section:first-child {
+  margin-top: 0 !important;
+}
+.accordion-section:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+html[data-theme='dark'] .accordion-section {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme='dark'] .accordion-section:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Toggle header — more padding, flex layout */
+.accordion-section > .collapsible__toggle-wrap {
+  padding: 10px 14px !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.accordion-section > .collapsible__toggle-wrap:hover {
+  background: color-mix(in srgb, var(--theme-elevation-100) 50%, transparent);
+}
+html[data-theme='dark'] .accordion-section > .collapsible__toggle-wrap:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Content area padding */
+.accordion-section > .collapsible__content {
+  padding: 4px 14px 14px;
+}
+
+/* Smooth expand/collapse */
+.accordion-section > .collapsible__content {
+  transition: max-height 0.25s ease-in-out, opacity 0.2s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION BADGE (icon + label pill in the toggle header)
+   Uses the collapsible label text, styled as a colored pill badge.
+   Icon injected via ::before on the toggle-wrap.
+   ───────────────────────────────────────────────────────────── */
+.accordion-section > .collapsible__toggle-wrap {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Icon — mask-image, inherits section color */
+.accordion-section > .collapsible__toggle-wrap::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background-color: var(--section-color, var(--acc-overview));
+  -webkit-mask: var(--section-icon) center / contain no-repeat;
+  mask: var(--section-icon) center / contain no-repeat;
+}
+
+/* Label text styling — pill badge appearance */
+.accordion-section .collapsible__label {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff !important;
+  background: var(--section-color, var(--acc-overview));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Chevron styling */
+.accordion-section .collapsible__toggle-icon {
+  margin-left: auto;
+  color: var(--theme-elevation-400);
+  transition: transform 0.25s ease, color 0.2s ease;
+}
+.accordion-section:not(.collapsible--collapsed) .collapsible__toggle-icon {
+  color: var(--section-color, var(--acc-overview));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   COLOR PER TAB — left border + badge + icon color
+   ───────────────────────────────────────────────────────────── */
+
+/* Overview — Ocean/Blue */
+.accordion-tab--overview {
+  --section-color: var(--acc-overview);
+  border-left-color: var(--acc-overview) !important;
+}
+
+/* Media — Leaf/Green */
+.accordion-tab--media {
+  --section-color: var(--acc-media);
+  border-left-color: var(--acc-media) !important;
+}
+
+/* Rooms & Pricing — Coral/Orange */
+.accordion-tab--rooms {
+  --section-color: var(--acc-rooms);
+  border-left-color: var(--acc-rooms) !important;
+}
+
+/* Amenities & Location — Teal/Cyan */
+.accordion-tab--amenities {
+  --section-color: var(--acc-amenities);
+  border-left-color: var(--acc-amenities) !important;
+}
+
+/* Policies — Stone/Gray */
+.accordion-tab--policies {
+  --section-color: var(--acc-policies);
+  border-left-color: var(--acc-policies) !important;
+}
+
+/* Custom Sections — Midnight/Indigo */
+.accordion-tab--custom {
+  --section-color: var(--acc-custom);
+  border-left-color: var(--acc-custom) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ICONS PER SECTION (mask-image SVGs)
+   Same inline SVG pattern as admin-global.css nav icons.
+   ───────────────────────────────────────────────────────────── */
+
+/* Overview tab */
+.section--overview-desc  { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 3v4a1 1 0 0 0 1 1h4'/><path d='M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2Z'/><path d='M9 9h1'/><path d='M9 13h6'/><path d='M9 17h6'/></svg>"); }
+.section--quick-specs    { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><path d='M18 17V9'/><path d='M13 17V5'/><path d='M8 17v-3'/></svg>"); }
+.section--highlights     { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z'/></svg>"); }
+
+/* Media tab */
+.section--featured-img   { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='9' cy='9' r='2'/><path d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'/></svg>"); }
+.section--gallery        { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 22H4a2 2 0 0 1-2-2V6'/><rect x='6' y='2' width='16' height='16' rx='2'/></svg>"); }
+
+/* Rooms & Pricing tab */
+.section--rooms          { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 4v16'/><path d='M2 8h18a2 2 0 0 1 2 2v10'/><path d='M2 17h20'/><path d='M6 8v9'/></svg>"); }
+.section--checkin        { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>"); }
+.section--booking        { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z'/></svg>"); }
+
+/* Amenities & Location tab */
+.section--amenities      { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z'/></svg>"); }
+.section--facilities     { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='4' y='2' width='16' height='20' rx='2' ry='2'/><path d='M9 22v-4h6v4'/><path d='M8 6h.01'/><path d='M16 6h.01'/><path d='M12 6h.01'/><path d='M12 10h.01'/><path d='M12 14h.01'/><path d='M16 10h.01'/><path d='M16 14h.01'/><path d='M8 10h.01'/><path d='M8 14h.01'/></svg>"); }
+.section--location       { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/><circle cx='12' cy='10' r='3'/></svg>"); }
+.section--experiences    { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polygon points='16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76'/></svg>"); }
+
+/* Policies tab */
+.section--policies       { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10'/></svg>"); }
+
+/* Shared service sections — Tab 3 (Coral) */
+.section--pricing        { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='12' y1='1' x2='12' y2='23'/><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg>"); }
+.section--packages       { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16.5 9.4 7.55 4.24'/><path d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/><polyline points='3.29 7 12 12 20.71 7'/><line x1='12' y1='22' x2='12' y2='12'/></svg>"); }
+.section--specs          { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/></svg>"); }
+
+/* Tours-specific */
+.section--itinerary      { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 17l6-6 4 4 8-8'/><path d='M14 7h7v7'/></svg>"); }
+.section--meeting        { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/><path d='M13.73 21a2 2 0 0 1-3.46 0'/></svg>"); }
+.section--includes       { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/><polyline points='22 4 12 14.01 9 11.01'/></svg>"); }
+.section--video          { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='5 3 19 12 5 21 5 3'/></svg>"); }
+
+/* Water Activities / Safety */
+.section--safety         { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10'/><path d='m9 12 2 2 4-4'/></svg>"); }
+
+/* Restaurant */
+.section--menu           { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2'/><path d='M7 2v20'/><path d='M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'/></svg>"); }
+.section--hours          { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='4' width='18' height='18' rx='2' ry='2'/><line x1='16' y1='2' x2='16' y2='6'/><line x1='8' y1='2' x2='8' y2='6'/><line x1='3' y1='10' x2='21' y2='10'/></svg>"); }
+.section--features       { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='9 11 12 14 22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg>"); }
+
+/* Venues */
+.section--testimonials   { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/></svg>"); }
+.section--capacity       { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>"); }
+
+/* Custom Sections tab */
+.section--related        { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='2'/><path d='M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14'/></svg>"); }
+.section--blocks         { --section-icon: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='7' rx='1'/><rect x='14' y='3' width='7' height='7' rx='1'/><rect x='14' y='14' width='7' height='7' rx='1'/><rect x='3' y='14' width='7' height='7' rx='1'/></svg>"); }
+
+/* ─────────────────────────────────────────────────────────────
+   DARK MODE — keep left-border colors visible
+   ───────────────────────────────────────────────────────────── */
+html[data-theme='dark'] .accordion-tab--overview  { border-left-color: var(--acc-overview) !important; }
+html[data-theme='dark'] .accordion-tab--media     { border-left-color: var(--acc-media) !important; }
+html[data-theme='dark'] .accordion-tab--rooms     { border-left-color: var(--acc-rooms) !important; }
+html[data-theme='dark'] .accordion-tab--amenities { border-left-color: var(--acc-amenities) !important; }
+html[data-theme='dark'] .accordion-tab--policies  { border-left-color: var(--acc-policies) !important; }
+html[data-theme='dark'] .accordion-tab--custom    { border-left-color: var(--acc-custom) !important; }

@@ -1,0 +1,77 @@
+---
+// HeaderTemplate2 — "Search & Social" (Logo | Search | Menu | Social)
+// Phase 4.41: warna via CSS vars (--h-*) di-inject di #main-header.
+// Phase 4.41.1: bg surface via `--h-bg` + `.dnj-header-surface`, sticky toggle-able,
+// transparent-on-top betul-betul bekerja.
+import Icon from '@components/common/Icon.astro'
+import SocialIcons from './_SocialIcons.astro'
+import NavDesktop from './_HeaderNavDesktop.astro'
+import HeaderMobile from './_HeaderMobile.astro'
+const { siteName, logoUrl, logoAlt, items = [], currentPath = '/', transparent = false, sticky = true, showSearch = true, showSocial = true, social = {}, cta = { show: false }, themeStyle = '' } = Astro.props as any
+const socials = [ social.instagram, social.facebook, social.tiktok, social.youtube ].filter(Boolean)
+---
+<header
+  id="main-header"
+  style={themeStyle}
+  data-transparent-top={transparent ? '1' : '0'}
+  data-scrolled="0"
+  class:list={[
+    'left-0 right-0 z-40 transition-all duration-300 dnj-header-surface',
+    sticky ? 'fixed top-0' : 'relative',
+  ]}
+>
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="flex items-center gap-4 h-20" aria-label="Main navigation">
+      <a href="/" class="flex items-center gap-3 no-underline text-current min-w-0 shrink lg:shrink-0">
+        {logoUrl ? <img src={logoUrl} alt={logoAlt} class="h-10 w-10 rounded-full object-cover shrink-0" /> : <span class="h-10 w-10 rounded-full bg-ocean text-white flex items-center justify-center font-display font-bold shrink-0">{siteName.slice(0,2)}</span>}
+        <span class="font-display text-lg font-bold text-ocean truncate">{siteName}</span>
+      </a>
+
+      {showSearch && (
+        <label class="relative hidden md:flex flex-1 max-w-xs">
+          <Icon name="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+          <input type="search" placeholder="Search…" class="w-full pl-10 pr-3 py-2 rounded-full border border-sand-dark/20 bg-sand/60 focus:bg-white focus:ring-2 focus:ring-ocean text-sm outline-none transition-all" />
+        </label>
+      )}
+
+      <NavDesktop items={items} currentPath={currentPath} ulClass="ml-auto" />
+
+      {showSocial && socials.length > 0 && (
+        <div class="hidden lg:flex items-center gap-2 pl-4 border-l border-sand-dark/20">
+          <SocialIcons social={social} linkClass="dnj-icon-btn w-8 h-8 rounded-full bg-sand hover:bg-leaf/20 flex items-center justify-center transition-colors" iconClass="w-4 h-4" />
+        </div>
+      )}
+
+      <button id="mobile-toggle" type="button" class="dnj-icon-btn lg:hidden p-2 rounded-md hover:bg-sand transition-colors ml-auto" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+        <Icon name="menu" class="w-6 h-6 mobile-toggle-open" />
+        <Icon name="close" class="w-6 h-6 mobile-toggle-close hidden" />
+      </button>
+    </nav>
+
+  </div>
+</header>
+
+<HeaderMobile items={items} currentPath={currentPath} siteName={siteName} logoUrl={logoUrl} logoAlt={logoAlt}>
+  {showSearch && (
+    <label class="relative flex mt-4 mb-1">
+      <Icon name="search" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-stone-light pointer-events-none" />
+      <input type="search" placeholder="Search…" class="w-full pl-10 pr-3 py-2.5 rounded-full border border-sand-dark/20 bg-white focus:ring-2 focus:ring-ocean text-sm outline-none" />
+    </label>
+  )}
+  {showSocial && socials.length > 0 && (
+    <div class="flex items-center justify-center gap-3 px-2 pt-5 mt-3 border-t border-sand-dark/10">
+      <SocialIcons social={social} linkClass="dnj-icon-btn w-10 h-10 rounded-full bg-white hover:bg-leaf/20 flex items-center justify-center transition-colors" iconClass="w-4 h-4" />
+    </div>
+  )}
+  {cta.show && cta.href && (
+    <a
+      href={cta.href}
+      target={cta.external ? '_blank' : undefined}
+      rel={cta.external ? 'noopener noreferrer' : undefined}
+      class="mt-6 w-full flex items-center justify-center gap-2 px-5 py-4 text-base font-semibold no-underline bg-[#25D366] hover:bg-[#1ebe57] text-white rounded-lg shadow-md transition-colors"
+    >
+      <Icon name="chat" class="w-5 h-5" />{cta.text}
+    </a>
+  )}
+</HeaderMobile>
+{sticky && <div class="h-20"></div>}
