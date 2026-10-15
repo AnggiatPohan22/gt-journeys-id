@@ -56,6 +56,7 @@ import * as migration_20261015_100000_phase_4_70_3_1_payment_receipt from './202
 import * as migration_20261015_110000_phase_4_70_3_1b_payment_audit_log from './20261015_110000_phase_4_70_3_1b_payment_audit_log';
 import * as migration_20261016_100000_phase_4_71_checkout_sync from './20261016_100000_phase_4_71_checkout_sync';
 import * as migration_20261016_120000_phase_4_71_1_payment_deadline from './20261016_120000_phase_4_71_1_payment_deadline';
+import * as migration_20261017_100000_phase_4_72_price_display from './20261017_100000_phase_4_72_price_display';
 
 export const migrations = [
   {
@@ -347,5 +348,10 @@ export const migrations = [
     up: migration_20261016_120000_phase_4_71_1_payment_deadline.up,
     down: migration_20261016_120000_phase_4_71_1_payment_deadline.down,
     name: '20261016_120000_phase_4_71_1_payment_deadline',
+  },
+  {
+    up: migration_20261017_100000_phase_4_72_price_display.up,
+    down: migration_20261017_100000_phase_4_72_price_display.down,
+    name: '20261017_100000_phase_4_72_price_display',
   },
 ];

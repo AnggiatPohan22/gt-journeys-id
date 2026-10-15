@@ -9,6 +9,8 @@
  * (admin "Send Payment Instructions" button, Phase 4.69.7).
  */
 
+import { formatPrice } from '@gt-journeys/shared'
+
 export type TemplateContext = Record<string, string | number | null | undefined>
 
 export const KNOWN_VARIABLES = new Set<string>([
@@ -35,6 +37,8 @@ export const KNOWN_VARIABLES = new Set<string>([
   'unitPrice',
   'totalEstimate',
   'currency',
+  // Phase 4.72 — Formatted total (contoh: "Rp 250.000") via shared formatPrice.
+  'totalEstimateDisplay',
   // Payment
   'bankAccountsBlock',
   'paymentDeadline',
@@ -158,6 +162,8 @@ export const OPTIONAL_VARIABLES = new Set<string>([
   'departureBlock',
   // Phase 4.71.1 — Formatted payment deadline (optional; hanya payment template yang pakai)
   'paymentDeadlineDisplay',
+  // Phase 4.72 — Formatted total via shared formatPrice (optional; template default pakai)
+  'totalEstimateDisplay',
 ])
 
 export interface RenderResult {
@@ -339,6 +345,9 @@ export function buildContext(
     unitPrice: booking.unitPrice ?? null,
     totalEstimate: booking.totalEstimate ?? null,
     currency: booking.currency ?? null,
+    // Phase 4.72 — Pre-formatted display string. `{{totalEstimate}}` tetap
+    // valid untuk admin yang mau raw number.
+    totalEstimateDisplay: formatPrice(booking.totalEstimate ?? null, booking.currency ?? null),
     passengerList: extras.passengerList ?? formatPassengerList(booking.passengers),
     ...extras,
   }

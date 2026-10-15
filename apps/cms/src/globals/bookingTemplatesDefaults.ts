@@ -161,7 +161,7 @@ export const DEFAULT_PAYMENT_EMAIL_BODY_HTML = shell(
       <tr>
         <td style="padding:20px 24px;">
           <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
-          <div style="margin-top:4px;font-size:28px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+          <div style="margin-top:4px;font-size:28px;font-weight:700;color:#fff;">{{totalEstimateDisplay}}</div>
         </td>
         <td align="right" style="padding:20px 24px;vertical-align:middle;">
           <div style="font-size:11px;color:rgba(255,255,255,0.75);">Pay before</div>
@@ -357,7 +357,7 @@ export const DEFAULT_RESCHEDULE_CONFIRM_EMAIL_BODY_HTML = shell(
       <tr>
         <td style="padding:20px 24px;">
           <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
-          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{totalEstimateDisplay}}</div>
         </td>
         <td align="right" style="padding:20px 24px;vertical-align:middle;">
           <div style="font-size:11px;color:rgba(255,255,255,0.75);">Status</div>
@@ -430,7 +430,7 @@ export const DEFAULT_RESCHEDULE_DECLINE_EMAIL_BODY_HTML = shell(
       <tr>
         <td style="padding:20px 24px;">
           <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
-          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{totalEstimateDisplay}}</div>
         </td>
         <td align="right" style="padding:20px 24px;vertical-align:middle;">
           <div style="font-size:11px;color:rgba(255,255,255,0.75);">Status</div>
@@ -544,7 +544,7 @@ export const DEFAULT_CANCEL_DECLINE_EMAIL_BODY_HTML = shell(
       <tr>
         <td style="padding:20px 24px;">
           <div style="font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.75);font-weight:600;">Total due</div>
-          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{currency}} {{totalEstimate}}</div>
+          <div style="margin-top:4px;font-size:24px;font-weight:700;color:#fff;">{{totalEstimateDisplay}}</div>
         </td>
         <td align="right" style="padding:20px 24px;vertical-align:middle;">
           <div style="font-size:11px;color:rgba(255,255,255,0.75);">Status</div>
