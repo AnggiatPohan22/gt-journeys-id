@@ -114,6 +114,26 @@ function parsePassengers(form: FormData): Passenger[] | null {
   return out
 }
 
+/**
+ * Phase 4.71 — Compose `scheduleTimeLabel` dari FerryTickets.departureTime
+ * + arrivalTime. FerryTickets collection TIDAK punya field `scheduleTimeLabel`
+ * (field lama di-hide sejak Phase 4.61.6 → sekarang pakai single-schedule
+ * `departureTime` + `arrivalTime` di scheduleOverview). Sebelum fix ini,
+ * create endpoint baca `ferry.scheduleTimeLabel` yang always undefined →
+ * Bookings.scheduleTimeLabel selalu null → waktu jam tidak muncul di CMS
+ * dan email template.
+ *
+ * Separator: U+2192 "→" (pretty, HTML-safe). PDF renderer punya
+ * `sanitizeForPdfText` yang convert → ke "->" untuk WinAnsi safety.
+ */
+function composeTimeLabel(dep: unknown, arr: unknown): string | null {
+  const d = typeof dep === 'string' ? dep.trim() : ''
+  const a = typeof arr === 'string' ? arr.trim() : ''
+  if (!d && !a) return null
+  if (d && a) return `${d} → ${a}`.slice(0, 100)
+  return (d || a).slice(0, 100)
+}
+
 function passportExpiryOk(passengers: Passenger[], departureDate: string): boolean {
   const dep = new Date(departureDate)
   if (isNaN(dep.getTime())) return false
@@ -296,10 +316,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     resolveLocation((ferry as any).originLocation, (ferry as any).origin)?.name ?? null
   const destinationName =
     resolveLocation((ferry as any).arrivalLocation, (ferry as any).arrival)?.name ?? null
-  const scheduleTimeLabel =
-    typeof (ferry as any).scheduleTimeLabel === 'string' && (ferry as any).scheduleTimeLabel.trim()
-      ? String((ferry as any).scheduleTimeLabel).slice(0, 100)
-      : null
+  // Phase 4.71 — Compose dari departureTime + arrivalTime (FerryTickets
+  // tidak punya field scheduleTimeLabel; lihat composeTimeLabel helper).
+  const scheduleTimeLabel = composeTimeLabel(
+    (ferry as any).departureTime,
+    (ferry as any).arrivalTime,
+  )
 
   // ── Phase 4.67.2e — Return ferry verify + recompute (round-trip only) ──
   // Semua snapshot ambil dari CMS (never trust hidden input price/class
@@ -375,10 +397,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       resolveLocation((returnFerry as any).originLocation, (returnFerry as any).origin)?.name ?? null
     returnDestinationName =
       resolveLocation((returnFerry as any).arrivalLocation, (returnFerry as any).arrival)?.name ?? null
-    returnScheduleTimeLabel =
-      typeof (returnFerry as any).scheduleTimeLabel === 'string' && (returnFerry as any).scheduleTimeLabel.trim()
-        ? String((returnFerry as any).scheduleTimeLabel).slice(0, 100)
-        : null
+    // Phase 4.71 — Mirror outbound (see composeTimeLabel helper).
+    returnScheduleTimeLabel = composeTimeLabel(
+      (returnFerry as any).departureTime,
+      (returnFerry as any).arrivalTime,
+    )
     returnClassName = typeof rCls.name === 'string' ? rCls.name.slice(0, 100) : null
     returnClassType = typeof rCls.classType === 'string' ? rCls.classType : null
   }

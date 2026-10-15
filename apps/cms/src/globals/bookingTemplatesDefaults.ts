@@ -147,7 +147,7 @@ export const DEFAULT_PAYMENT_EMAIL_BODY_HTML = shell(
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;border-top:1px dashed ${b.border};padding-top:16px;">
         <tr><td style="font-size:12px;color:${b.textMuted};">Route</td><td align="right" style="font-size:14px;font-weight:600;color:${b.text};">{{originLocation}} → {{destinationLocation}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>
-        <tr><td style="font-size:12px;color:${b.textMuted};">Departure</td><td align="right" style="font-size:14px;color:${b.text};">{{departureDate}}</td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Departure</td><td align="right" style="font-size:14px;color:${b.text};">{{departureDisplay}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>
         <tr><td style="font-size:12px;color:${b.textMuted};">Class</td><td align="right" style="font-size:14px;color:${b.text};">{{ferryClassName}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>
@@ -277,7 +277,7 @@ export const DEFAULT_TICKET_EMAIL_BODY_HTML = shell(
         </tr>
       </table>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;border-top:1px dashed ${b.border};padding-top:14px;">
-        <tr><td style="font-size:12px;color:${b.textMuted};">Departure Date</td><td align="right" style="font-size:14px;font-weight:600;color:${b.text};">{{departureDate}}</td></tr>
+        <tr><td style="font-size:12px;color:${b.textMuted};">Departure</td><td align="right" style="font-size:14px;font-weight:600;color:${b.text};">{{departureDisplay}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>
         <tr><td style="font-size:12px;color:${b.textMuted};">Class</td><td align="right" style="font-size:14px;color:${b.text};">{{ferryClassName}}</td></tr>
         <tr><td colspan="2" style="height:6px;"></td></tr>

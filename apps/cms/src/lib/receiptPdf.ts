@@ -60,6 +60,10 @@ export function sanitizeForPdfText(input: string | null | undefined): string {
   let s = String(input)
   // Normalize line endings
   s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  // Phase 4.71 — Convert common pretty-arrows to ASCII fallback BEFORE
+  // the >0xFF strip step below (jika tidak, → jadi "?"). scheduleTimeLabel
+  // disimpan dgn "→" di DB (pretty untuk email/HTML), PDF turunkan ke "->".
+  s = s.replace(/→/g, '->').replace(/←/g, '<-')
   // Strip combining diacritics (é → e, ñ → n)
   s = s.normalize('NFKD').replace(/[̀-ͯ]/g, '')
   // Rebuild: keep ASCII + Latin-1 supplement 0xA0–0xFF, keep \n, drop control chars
