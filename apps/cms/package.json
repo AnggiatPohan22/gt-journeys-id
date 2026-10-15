@@ -26,6 +26,7 @@
     "retention:chat": "tsx src/scripts/chat-retention.ts"
   },
   "dependencies": {
+    "@gt-journeys/shared": "workspace:*",
     "@iconify-json/lucide": "^1.2.127",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/utils": "^3.1.4",

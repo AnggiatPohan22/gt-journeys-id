@@ -10,6 +10,7 @@
  */
 
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
+import { formatPriceAscii } from '@gt-journeys/shared'
 
 export interface ReceiptContext {
   // Header
@@ -414,9 +415,12 @@ export async function generatePaymentReceipt(ctx: ReceiptContext): Promise<Uint8
 }
 
 function formatAmount(amount: number | string, currency: string): string {
+  // Phase 4.72 — Delegate to shared helper so IDR uses dot thousands
+  // ("Rp 250.000") and other currencies get their standard Intl rendering.
+  // ASCII variant normalizes NBSP → space; `sanitizeForPdfText` then handles
+  // any remaining non-WinAnsi char. Keep string input fallback for backwards
+  // compat (callers may pass stringified numbers from CMS fields).
   const n = typeof amount === 'number' ? amount : Number(String(amount).replace(/,/g, ''))
   if (!Number.isFinite(n)) return `${currency} ${amount}`
-  // Thousands separator (Indonesia: titik, atau internasional: koma — pakai en-US biar aman WinAnsi)
-  const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })
-  return `${currency} ${formatted}`
+  return formatPriceAscii(n, currency)
 }

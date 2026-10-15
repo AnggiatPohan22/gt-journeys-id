@@ -10,6 +10,9 @@ importers:
 
   apps/cms:
     dependencies:
+      '@gt-journeys/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@iconify-json/lucide':
         specifier: ^1.2.127
         version: 1.2.127
