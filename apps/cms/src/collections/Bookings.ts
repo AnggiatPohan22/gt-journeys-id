@@ -931,6 +931,45 @@ const sendTicketEndpoint: Endpoint = {
             { status: 409 },
           )
         }
+
+        // Step 1.2 — Server-side 30s rate-limit guard. Reject duplicate
+        // send-ticket attempts within 30 detik dari previous attempt. Pakai
+        // field existing:
+        // - `sentTicketAt`: set di first-send, frozen di resend. Anchor
+        //   "booking ini pernah di-send".
+        // - `updatedAt`: Payload auto-field, bump setiap write (termasuk
+        //   resend). Timestamp "last activity".
+        // Guard aktif HANYA kalau sentTicketAt sudah set (first-send fresh
+        // booking tidak terblokir oleh manual-edit yang bump updatedAt).
+        // previewOnly di-skip per playbook §1.2. Idempotency key per-attempt
+        // tetap dipertahankan (lihat line ~1136) supaya resend setelah
+        // 30 detik atau setelah PDF failure tetap kirim email baru.
+        if (typeof booking.sentTicketAt === 'string') {
+          const sentAtMs = new Date(booking.sentTicketAt).getTime()
+          let lastAttemptMs = Number.isNaN(sentAtMs) ? null : sentAtMs
+          if (typeof booking.updatedAt === 'string') {
+            const updatedAtMs = new Date(booking.updatedAt).getTime()
+            if (!Number.isNaN(updatedAtMs) && (lastAttemptMs === null || updatedAtMs > lastAttemptMs)) {
+              lastAttemptMs = updatedAtMs
+            }
+          }
+          if (lastAttemptMs !== null) {
+            const elapsed = Date.now() - lastAttemptMs
+            if (elapsed < 30_000) {
+              const secondsLeft = Math.ceil((30_000 - elapsed) / 1000)
+              return Response.json(
+                {
+                  ok: false,
+                  error: 'send_ticket_rate_limited',
+                  errors: [
+                    `Receipt baru saja dikirim atau booking baru di-update. Mohon tunggu ${secondsLeft} detik sebelum mencoba lagi (proteksi anti-duplikat).`,
+                  ],
+                },
+                { status: 409 },
+              )
+            }
+          }
+        }
       }
 
       const tpl = await readTemplates(req)

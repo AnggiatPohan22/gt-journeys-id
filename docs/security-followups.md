@@ -25,7 +25,7 @@ berpindah status (planned → in-progress → done).
 |---|---|---|---|---|---|
 | 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | planned | `customerEmail`, `customerWhatsapp`, `contactPhone` **tidak** di-lock — admin biasa harus bisa perbaiki typo. Hanya di-mask di list view |
 | 2 | `send-payment` race on double click | Medium | 1.1, 1.3 | in-progress | Client-side disable DONE (1.1). Server-side optimistic lock pending (1.3) |
-| 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | in-progress | Client-side disable DONE (1.1). Server-side 30s guard pending (1.2). **Pertahankan** per-attempt idempotency key |
+| 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | in-progress | Client-side disable DONE (1.1 VERIFIED). Server-side 30s guard DONE-UNVERIFIED (1.2). **Pertahankan** per-attempt idempotency key — tetap pakai `Date.now()` |
 | 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | planned | Set `access.update: () => false`; endpoint pakai `overrideAccess: true` |
 | 5 | `receiptNumber` / `receiptIssuedAt` unguarded | Low | 2.1 | planned | Sama seperti #4 |
 | 6 | `bookingRef` enumerable (mitigated by 128-bit token) | Info | — | accepted | Token sudah 128-bit; enumeration tidak bisa akses booking |
