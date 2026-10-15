@@ -52,8 +52,9 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.run(sql`ALTER TABLE \`bookings\` ADD \`receipt_issued_at\` text;`)
   await db.run(sql`ALTER TABLE \`bookings\` ADD \`payment_date\` text;`)
   await db.run(sql`ALTER TABLE \`bookings\` ADD \`payment_bank\` text;`)
-  // Phase 4.70.3.1 revision — audit trail untuk resend changes.
-  await db.run(sql`ALTER TABLE \`bookings\` ADD \`payment_audit_log\` text;`)
+  // NOTE: `payment_audit_log` di-split ke migration 20261015_110000_phase_4_70_3_1b
+  // supaya user yang sudah run migrate 100000 (versi awal tanpa audit_log) bisa
+  // dapat kolom tersebut.
 
   // ─── booking_templates columns ───
   await db.run(sql`ALTER TABLE \`booking_templates\` ADD \`receipt_business_name\` text;`)
@@ -114,7 +115,6 @@ export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.run(sql`ALTER TABLE \`booking_templates\` DROP COLUMN \`receipt_business_id\`;`)
   await db.run(sql`ALTER TABLE \`booking_templates\` DROP COLUMN \`receipt_address\`;`)
   await db.run(sql`ALTER TABLE \`booking_templates\` DROP COLUMN \`receipt_business_name\`;`)
-  await db.run(sql`ALTER TABLE \`bookings\` DROP COLUMN \`payment_audit_log\`;`)
   await db.run(sql`ALTER TABLE \`bookings\` DROP COLUMN \`payment_bank\`;`)
   await db.run(sql`ALTER TABLE \`bookings\` DROP COLUMN \`payment_date\`;`)
   await db.run(sql`ALTER TABLE \`bookings\` DROP COLUMN \`receipt_issued_at\`;`)

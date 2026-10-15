@@ -53,6 +53,7 @@ import * as migration_20261014_100000_phase_4_70_2_6_reschedule_confirm_decline 
 import * as migration_20261014_120000_phase_4_70_2_7_one_shot_request from './20261014_120000_phase_4_70_2_7_one_shot_request';
 import * as migration_20261014_140000_phase_4_70_2_8_cancel_confirm_decline from './20261014_140000_phase_4_70_2_8_cancel_confirm_decline';
 import * as migration_20261015_100000_phase_4_70_3_1_payment_receipt from './20261015_100000_phase_4_70_3_1_payment_receipt';
+import * as migration_20261015_110000_phase_4_70_3_1b_payment_audit_log from './20261015_110000_phase_4_70_3_1b_payment_audit_log';
 
 export const migrations = [
   {
@@ -329,5 +330,10 @@ export const migrations = [
     up: migration_20261015_100000_phase_4_70_3_1_payment_receipt.up,
     down: migration_20261015_100000_phase_4_70_3_1_payment_receipt.down,
     name: '20261015_100000_phase_4_70_3_1_payment_receipt',
+  },
+  {
+    up: migration_20261015_110000_phase_4_70_3_1b_payment_audit_log.up,
+    down: migration_20261015_110000_phase_4_70_3_1b_payment_audit_log.down,
+    name: '20261015_110000_phase_4_70_3_1b_payment_audit_log',
   },
 ];
