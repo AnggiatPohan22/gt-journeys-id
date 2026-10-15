@@ -4,5 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "main": "./src/index.ts",
-  "types": "./src/index.ts"
+  "types": "./src/index.ts",
+  "scripts": {
+    "test": "node --import ../../apps/cms/node_modules/tsx/dist/esm/index.mjs --test src/utils/*.test.ts"
+  }
 }
