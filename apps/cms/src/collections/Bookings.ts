@@ -1593,8 +1593,8 @@ export const Bookings: CollectionConfig = {
         {
           type: 'row',
           fields: [
-            { name: 'returnUnitPrice',     type: 'number', admin: { width: '50%', description: 'Harga adult leg return (snapshot).' } },
-            { name: 'returnTotalEstimate', type: 'number', admin: { width: '50%', description: 'Total leg return (adults×unitPrice + children×childPrice).' } },
+            { name: 'returnUnitPrice',     type: 'number', admin: { width: '50%', description: 'Harga adult leg return (snapshot).', components: { Cell: '/admin/cells/PriceCell#default' } } },
+            { name: 'returnTotalEstimate', type: 'number', admin: { width: '50%', description: 'Total leg return (adults×unitPrice + children×childPrice).', components: { Cell: '/admin/cells/PriceCell#default' } } },
           ],
         },
       ],
@@ -1604,9 +1604,9 @@ export const Bookings: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        { name: 'unitPrice',     type: 'number', admin: { width: '33%', description: 'Harga per adult saat booking dibuat.' } },
+        { name: 'unitPrice',     type: 'number', admin: { width: '33%', description: 'Harga per adult saat booking dibuat.', components: { Cell: '/admin/cells/PriceCell#default' } } },
         { name: 'currency',      type: 'text',   defaultValue: 'IDR', admin: { width: '33%' } },
-        { name: 'totalEstimate', type: 'number', admin: { width: '33%', description: 'Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.' } },
+        { name: 'totalEstimate', type: 'number', admin: { width: '33%', description: 'Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.', components: { Cell: '/admin/cells/PriceCell#default' } } },
       ],
     },
 
