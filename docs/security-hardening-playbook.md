@@ -67,8 +67,8 @@ Owner: `USER` = the user does it manually, agent must not. `AGENT` = agent does 
 | 0.3 | AGENT | Add "Deferred" section to docs | n/a | MERGED |
 | 0.4 | AGENT | Create `docs/security-followups.md` tracker | all | MERGED |
 | 1.1 | AGENT | Disable Send buttons while request in flight | #2, #3 | VERIFIED |
-| 1.2 | AGENT | send-ticket server guard against rapid duplicate requests | #3 | DONE-UNVERIFIED |
-| 1.3 | AGENT | send-payment optimistic lock | #2 | TODO |
+| 1.2 | AGENT | send-ticket server guard against rapid duplicate requests | #3 | VERIFIED |
+| 1.3 | AGENT | send-payment optimistic lock | #2 | DONE-UNVERIFIED |
 | 1.4 | AGENT | Disable GraphQL | #15 | TODO |
 | 1.5 | AGENT | Explicit login lockout config | #17 | TODO |
 | 2.1 | AGENT | Lock audit/receipt fields from manual update | #4, #5 | TODO |

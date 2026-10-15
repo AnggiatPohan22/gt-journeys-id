@@ -369,6 +369,50 @@ const sendPaymentEndpoint: Endpoint = {
         )
       }
 
+      // Step 1.3 — Optimistic lock. Lakukan status transition DULU dengan
+      // conditional WHERE (status masih awaiting_review | pending). SQL UPDATE
+      // di D1/libsql serialized → hanya 1 request paralel yang bisa flip
+      // status; yang lain dapat 0 rows → 409 TANPA mengirim email.
+      //
+      // Email di-send SETELAH lock didapat. Kalau sendEmail fail, rollback
+      // status best-effort ke previousStatus. Trade-off: window kecil dimana
+      // booking berstatus `awaiting_payment` padahal email belum sampai; kalau
+      // rollback juga fail (langka — DB error setelah DB sukses), admin bisa
+      // fix manual via status field.
+      //
+      // Idempotency key tetap per-user `payment:${bookingRef}:${userId}` —
+      // beda design dari send-ticket yang per-attempt (karena send-payment
+      // tidak support resend, satu admin satu send).
+      const previousStatus = booking.status as string | undefined
+      const lockNowIso = new Date().toISOString()
+      const lockResult = await req.payload.update({
+        collection: 'bookings',
+        where: {
+          and: [
+            { id: { equals: id } },
+            { status: { in: ['awaiting_review', 'pending'] } },
+          ],
+        },
+        data: {
+          status: 'awaiting_payment',
+          sentPaymentAt: lockNowIso,
+          sentPaymentBy: req.user!.id,
+        },
+        overrideAccess: true,
+      })
+      if (!lockResult?.docs || lockResult.docs.length === 0) {
+        return Response.json(
+          {
+            ok: false,
+            error: 'send_payment_lock_lost',
+            errors: [
+              'Booking sudah di-process oleh request lain. Reload halaman untuk status terbaru.',
+            ],
+          },
+          { status: 409 },
+        )
+      }
+
       const sent = await sendEmail({
         to,
         subject: emailSubjectR.rendered,
@@ -377,22 +421,33 @@ const sendPaymentEndpoint: Endpoint = {
         idempotencyKey: `payment:${booking.bookingRef}:${req.user!.id}`,
       })
       if (!sent.ok) {
+        // Rollback status best-effort. previousStatus dijamin salah satu dari
+        // awaiting_review | pending oleh status gate di atas.
+        try {
+          await req.payload.update({
+            collection: 'bookings',
+            id,
+            data: {
+              status: previousStatus ?? 'awaiting_review',
+              sentPaymentAt: null,
+              sentPaymentBy: null,
+            },
+            overrideAccess: true,
+          })
+        } catch (rollbackErr) {
+          // eslint-disable-next-line no-console
+          console.error('[send-payment] rollback after email failure failed:', rollbackErr)
+        }
         return Response.json(
-          { ok: false, errors: [`Email gagal terkirim: ${sent.error ?? 'unknown'}`] },
+          {
+            ok: false,
+            errors: [
+              `Email gagal terkirim: ${sent.error ?? 'unknown'}. Status booking sudah di-rollback.`,
+            ],
+          },
           { status: 502 },
         )
       }
-
-      await req.payload.update({
-        collection: 'bookings',
-        id,
-        data: {
-          status: 'awaiting_payment',
-          sentPaymentAt: new Date().toISOString(),
-          sentPaymentBy: req.user!.id,
-        },
-        overrideAccess: true,
-      })
 
       return Response.json({
         ok: true,
