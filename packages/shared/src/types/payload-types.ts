@@ -44693,11 +44693,15 @@ export interface BookingTemplate {
    */
   footerDisclaimer?: string | null;
   /**
+   * Window pembayaran dalam JAM dari saat email dikirim. Default 24 (1 hari). Range 1–168 jam. Dipakai menghitung {{paymentDeadline}} dan {{paymentDeadlineDisplay}}.
+   */
+  paymentDeadlineHours?: number | null;
+  /**
    * Headline besar di hero section.
    */
   paymentHeroHeadline?: string | null;
   /**
-   * Sub-text di hero. Variables: {{paymentDeadline}}.
+   * Sub-text di hero. Variables: {{paymentDeadlineDisplay}} (readable) atau {{paymentDeadline}} (raw ISO).
    */
   paymentHeroSubtext?: string | null;
   /**
@@ -44901,10 +44905,6 @@ export interface BookingTemplate {
    * Nama/signature untuk {{adminName}}.
    */
   adminName?: string | null;
-  /**
-   * Window pembayaran dalam JAM. Default 24. Dipakai menghitung {{paymentDeadline}}.
-   */
-  paymentDeadlineHours?: number | null;
   /**
    * Read-only — list variabel yang di-support engine. Variable yang tidak ter-whitelist akan error saat kirim.
    */
@@ -46666,6 +46666,7 @@ export interface BookingTemplatesSelect<T extends boolean = true> {
   brandCompanyName?: T;
   supportEmail?: T;
   footerDisclaimer?: T;
+  paymentDeadlineHours?: T;
   paymentHeroHeadline?: T;
   paymentHeroSubtext?: T;
   paymentSecurityNote?: T;
@@ -46737,7 +46738,6 @@ export interface BookingTemplatesSelect<T extends boolean = true> {
       };
   adminWhatsapp?: T;
   adminName?: T;
-  paymentDeadlineHours?: T;
   variablesReferenceDoc?: T;
   updatedAt?: T;
   createdAt?: T;

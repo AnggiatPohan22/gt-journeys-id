@@ -65,6 +65,29 @@ function pickTemplateFields(tpl: Record<string, unknown>, keys: readonly string[
   return out
 }
 
+/**
+ * Phase 4.71.1 — Narrow pre-render untuk inner deadline vars.
+ *
+ * `renderTemplate` single-pass: HTML template `{{paymentHeroSubtext}}`
+ * di-substitusi dgn nilai subtext yang mungkin isinya
+ * `"...sebelum {{paymentDeadlineDisplay}}."` — inner `{{...}}` TIDAK
+ * ter-render di pass yang sama → customer lihat literal `{{paymentDeadlineDisplay}}`.
+ *
+ * Fix: resolve 2 time-var ini di string sebelum injection ke ctx.
+ * Scope sengaja narrow (hanya paymentDeadline + paymentDeadlineDisplay)
+ * supaya outer renderTemplate tetap validate vars lain seperti biasa.
+ */
+function resolveInnerDeadlineVars(
+  text: string,
+  deadlineDisplay: string,
+  deadlineIso: string,
+): string {
+  if (!text) return text
+  return text
+    .replace(/\{\{\s*paymentDeadlineDisplay\s*\}\}/g, deadlineDisplay)
+    .replace(/\{\{\s*paymentDeadline\s*\}\}/g, deadlineIso)
+}
+
 /** rawVars set yang value-nya trusted HTML (jangan escape saat render). */
 const RAW_VARS = new Set(['brandHeaderHtml', 'departureBlock'])
 
@@ -275,16 +298,31 @@ const sendPaymentEndpoint: Endpoint = {
       // template default (readable). paymentDeadline (raw ISO) tetap valid
       // sebagai backward-compat.
       const deadlineIso = computePaymentDeadline(hours)
+      const paymentDeadlineDisplay = formatPaymentDeadlineDisplay(deadlineIso) ?? deadlineIso
+
+      // Phase 4.71.1 — Pre-resolve inner deadline vars di paymentHeroSubtext
+      // sebelum injection ke HTML template. renderTemplate single-pass, jadi
+      // `{{paymentHeroSubtext}}` di HTML akan substituted BUT inner
+      // `{{paymentDeadlineDisplay}}` tidak ter-render di pass yang sama.
+      // Resolve narrow (hanya 2 time vars) di sini — vars lain tidak di-touch
+      // supaya outer render tetap validate per biasa.
+      const pickedPaymentFields = pickTemplateFields(tpl, ['paymentHeroHeadline', 'paymentHeroSubtext', 'paymentSecurityNote'])
+      pickedPaymentFields.paymentHeroSubtext = resolveInnerDeadlineVars(
+        pickedPaymentFields.paymentHeroSubtext,
+        paymentDeadlineDisplay,
+        deadlineIso,
+      )
+
       const ctx = buildContext(booking as any, {
         bankAccountsBlock: formatBankAccountsBlock(banks),
         paymentDeadline: deadlineIso,
-        paymentDeadlineDisplay: formatPaymentDeadlineDisplay(deadlineIso) ?? deadlineIso,
+        paymentDeadlineDisplay,
         adminName,
         adminWhatsapp,
         confirmationUrl: confirmationUrl ?? undefined,
         // Phase 4.70.2 — brand + per-template editable fields
         ...buildBrandContext(tpl),
-        ...pickTemplateFields(tpl, ['paymentHeroHeadline', 'paymentHeroSubtext', 'paymentSecurityNote']),
+        ...pickedPaymentFields,
       })
 
       const emailSubjectR = renderTemplate(String(tpl.paymentEmailSubject ?? ''), ctx)
