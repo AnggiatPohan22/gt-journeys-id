@@ -146,6 +146,9 @@ const BookingAdminActions: React.FC = () => {
   // Phase 4.70.3.1 (post-review) — in-flight guard untuk prevent double-send
   // race ketika admin klik "Confirm & Send" cepat 2x sebelum `loading` state propagate.
   const inflightRef = useRef<boolean>(false)
+  // Step 1.1 — mirror guard untuk Preview button. previewOnly request tidak kirim
+  // email tapi tetap kena server + wasteful; cegah double-fire via ref sinkronus.
+  const previewInflightRef = useRef<boolean>(false)
 
   const endpointPath = (k: ActionKind) => `/api/bookings/${id}/${kindToPath(k)}`
 
@@ -173,6 +176,9 @@ const BookingAdminActions: React.FC = () => {
 
   const fetchPreview = useCallback(
     async (k: ActionKind, note: string, bank?: string, date?: string) => {
+      // Step 1.1 — ignore re-entry while a preview request is already in flight.
+      if (previewInflightRef.current) return
+      previewInflightRef.current = true
       setLoading(true)
       setError(null)
       setPreview(null)
@@ -199,6 +205,7 @@ const BookingAdminActions: React.FC = () => {
         setError([e?.message ?? 'Network error'])
       } finally {
         setLoading(false)
+        previewInflightRef.current = false
       }
     },
     [id],
@@ -281,6 +288,10 @@ const BookingAdminActions: React.FC = () => {
   }, [activeKind, adminNote, paymentBank, paymentDate, id])
 
   const close = () => {
+    // Step 1.1 — jangan izinkan close ketika "Confirm & Send" sedang in-flight.
+    // Fetch tidak di-abort, jadi menutup modal cuma menyembunyikan state tanpa
+    // mencegah email yang sudah dalam proses dikirim (ghost send dari sisi admin).
+    if (inflightRef.current) return
     setOpen(false)
     setPreview(null)
     setError(null)
@@ -358,6 +369,7 @@ const BookingAdminActions: React.FC = () => {
                 type="button"
                 className="bk-modal__close"
                 onClick={close}
+                disabled={loading}
                 aria-label="Close"
               >
                 ×
@@ -424,6 +436,7 @@ const BookingAdminActions: React.FC = () => {
                           className="bk-modal__btn bk-modal__btn--primary"
                           onClick={refreshPreview}
                           disabled={loading || !paymentBank || !paymentDate}
+                          aria-busy={loading}
                         >
                           {loading ? 'Loading…' : preview ? 'Refresh Preview' : 'Preview'}
                         </button>
@@ -459,6 +472,7 @@ const BookingAdminActions: React.FC = () => {
                       className="bk-modal__btn bk-modal__btn--primary"
                       onClick={refreshPreview}
                       disabled={previewDisabled}
+                      aria-busy={loading}
                     >
                       {loading ? 'Loading…' : preview ? 'Refresh Preview' : 'Preview'}
                     </button>
@@ -561,11 +575,17 @@ const BookingAdminActions: React.FC = () => {
                   className="bk-modal__btn bk-modal__btn--primary"
                   onClick={confirmSend}
                   disabled={loading}
+                  aria-busy={loading}
                 >
                   {loading ? 'Sending…' : 'Confirm & Send'}
                 </button>
               )}
-              <button type="button" className="bk-modal__btn" onClick={close}>
+              <button
+                type="button"
+                className="bk-modal__btn"
+                onClick={close}
+                disabled={loading}
+              >
                 {sent ? 'Close & Reload' : 'Cancel'}
               </button>
             </footer>
