@@ -165,7 +165,7 @@ export const DEFAULT_PAYMENT_EMAIL_BODY_HTML = shell(
         </td>
         <td align="right" style="padding:20px 24px;vertical-align:middle;">
           <div style="font-size:11px;color:rgba(255,255,255,0.75);">Pay before</div>
-          <div style="font-size:14px;color:#fff;font-weight:600;">{{paymentDeadline}}</div>
+          <div style="font-size:14px;color:#fff;font-weight:600;">{{paymentDeadlineDisplay}}</div>
         </td>
       </tr>
     </table>
@@ -580,7 +580,7 @@ export const defaultFieldValues = {
   otpHeroSubtext: 'Confirming your email for a GtJourneysID booking.',
   otpSecurityNote: 'Jika kamu tidak meminta kode ini, abaikan email ini — kode akan kedaluwarsa otomatis. Jangan pernah bagikan kode ini ke siapapun, termasuk staf GtJourneysID.',
   paymentHeroHeadline: 'Please complete your payment',
-  paymentHeroSubtext: 'terima kasih sudah memesan tiket di GtJourneysID. Kursi kamu sudah di-reserve sementara — lengkapi pembayaran sebelum {{paymentDeadline}}.',
+  paymentHeroSubtext: 'terima kasih sudah memesan tiket di GtJourneysID. Kursi kamu sudah di-reserve sementara — lengkapi pembayaran sebelum {{paymentDeadlineDisplay}}.',
   paymentSecurityNote: 'Hanya transfer ke rekening yang tertulis di email ini. GtJourneysID tidak pernah minta OTP, PIN, atau pembayaran via rekening pribadi lain.',
   // Phase 4.70.3.1 — wording shift dari "e-ticket" ke "payment receipt".
   // Platform tidak issue tiket resmi (hukum operator); yang dilampirkan =

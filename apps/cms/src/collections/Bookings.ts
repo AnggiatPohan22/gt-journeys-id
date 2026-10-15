@@ -6,6 +6,7 @@ import {
   computePaymentDeadline,
   formatBankAccountsBlock,
   formatPassengerList,
+  formatPaymentDeadlineDisplay,
   renderTemplate,
 } from '../lib/templateRenderer'
 import { sendEmail } from '../lib/sendEmail'
@@ -270,9 +271,14 @@ const sendPaymentEndpoint: Endpoint = {
           ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
           : null
 
+      // Phase 4.71.1 — paymentDeadlineDisplay = formatted WITA, dipakai di
+      // template default (readable). paymentDeadline (raw ISO) tetap valid
+      // sebagai backward-compat.
+      const deadlineIso = computePaymentDeadline(hours)
       const ctx = buildContext(booking as any, {
         bankAccountsBlock: formatBankAccountsBlock(banks),
-        paymentDeadline: computePaymentDeadline(hours),
+        paymentDeadline: deadlineIso,
+        paymentDeadlineDisplay: formatPaymentDeadlineDisplay(deadlineIso) ?? deadlineIso,
         adminName,
         adminWhatsapp,
         confirmationUrl: confirmationUrl ?? undefined,

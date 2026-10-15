@@ -38,6 +38,8 @@ export const KNOWN_VARIABLES = new Set<string>([
   // Payment
   'bankAccountsBlock',
   'paymentDeadline',
+  // Phase 4.71.1 — Formatted deadline "20 Oct 2026, 14:30 WITA" (Asia/Makassar)
+  'paymentDeadlineDisplay',
   // Admin
   'adminName',
   'adminWhatsapp',
@@ -154,6 +156,8 @@ export const OPTIONAL_VARIABLES = new Set<string>([
   'departureDisplay',
   'originalDepartureDisplay',
   'departureBlock',
+  // Phase 4.71.1 — Formatted payment deadline (optional; hanya payment template yang pakai)
+  'paymentDeadlineDisplay',
 ])
 
 export interface RenderResult {
@@ -306,6 +310,7 @@ export function buildContext(
   extras: Partial<TemplateContext> & {
     bankAccountsBlock?: string
     paymentDeadline?: string
+    paymentDeadlineDisplay?: string
     adminName?: string
     adminWhatsapp?: string
     passengerList?: string
@@ -341,6 +346,39 @@ export function buildContext(
 
 export function computePaymentDeadline(hours: number): string {
   return new Date(Date.now() + Math.max(1, hours) * 60 * 60 * 1000).toISOString()
+}
+
+/**
+ * Phase 4.71.1 — Format payment deadline sebagai readable string di
+ * timezone Asia/Makassar (WITA, UTC+8): "20 Oct 2026, 14:30 WITA".
+ * Return null kalau input invalid.
+ */
+export function formatPaymentDeadlineDisplay(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return null
+  try {
+    // en-GB locale → "DD MMM YYYY, HH:MM"
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Makassar',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(d)
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? ''
+    const day = get('day')
+    const month = get('month')
+    const year = get('year')
+    const hour = get('hour')
+    const minute = get('minute')
+    if (!day || !month || !year) return null
+    return `${day} ${month} ${year}, ${hour}:${minute} WITA`
+  } catch {
+    return null
+  }
 }
 
 /**
