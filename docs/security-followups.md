@@ -37,9 +37,9 @@ berpindah status (planned → in-progress → done).
 | 12 | Logs and PII | Info | — | no-action | Tidak ada tindakan |
 | 13 | Email template HTML escaping | Info | — | no-action | Jangan expand `RAW_VARS` ke customer values |
 | 14 | Receipt PDF content | Info | — | no-action | Konten sudah OK |
-| 15 | GraphQL not disabled | Medium | 1.4 | in-progress | DONE-UNVERIFIED (1.4). Set `graphQL: { disable: true }` di payload.config. Grep: 0 app code pakai `/api/graphql`. Scope persist tetap sampai stage 1 merged |
+| 15 | GraphQL not disabled | Medium | 1.4 | done | VERIFIED (1.4). Set `graphQL: { disable: true }` di payload.config. Grep: 0 app code pakai `/api/graphql` |
 | 16 | `enabled` / `role` field access | Info | — | no-action | Default access sudah cukup |
-| 17 | Login lockout implicit, no 2FA | Low | 1.5 (lockout now), 2FA later | planned | Set `maxLoginAttempts: 5`, `lockTime: 600000` eksplisit. 2FA super-admin → post-launch |
+| 17 | Login lockout implicit, no 2FA | Low | 1.5 (lockout now), 2FA later | in-progress | Lockout DONE-UNVERIFIED (1.5): `maxLoginAttempts: 5`, `lockTime: 600_000` eksplisit di `Users.auth`. 2FA super-admin → post-launch tetap pending |
 | 18 | Media collection public read | Info | — | no-action | Jangan upload passport scans ke Media collection |
 | 19 | `bankAccounts` readable by all admins | Info | — | no-action | Admin dianggap trusted |
 | 20 | Status transition guards | Info | — | no-action | Logic sudah OK |
