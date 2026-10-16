@@ -1376,6 +1376,131 @@ const sendTicketEndpoint: Endpoint = {
   },
 }
 
+/**
+ * Phase 4.74.4.2 (Stage 4.2, finding #11) — Anonymize passport PII
+ * untuk booking yang `departureDate < now - monthsThreshold`.
+ *
+ * Scope anonymize (per passenger): `passportNumber`, `dateOfBirth`,
+ * `passportIssueDate`, `passportExpiryDate` → null.
+ *
+ * TIDAK di-anonymize: nama, email, WhatsApp, phone, bookingRef,
+ * receipt data, payment data — audit keuangan + customer-service window.
+ *
+ * Idempotency: query filter include `passengers.passportNumber: {
+ * not_equals: null }` → booking yang sudah di-anonymize di-skip.
+ *
+ * Dry-run: body `{ dryRun: true }` → log yang akan di-anonymize tanpa
+ * write. Dipakai untuk staging verification.
+ *
+ * Audit trail: append entry ke `paymentAuditLog` tiap booking:
+ *   `{ISO} system | passport PII anonymized ({N}mo retention) |
+ *    passengers: {count}`
+ *
+ * Auth: admin + super-admin + api role (via isApiOrAdmin). Dipanggil
+ * oleh web `/api/cron/anonymize-pii` yang pakai PAYLOAD_API_KEY.
+ */
+const anonymizePiiEndpoint: Endpoint = {
+  path: '/anonymize-pii',
+  method: 'post',
+  handler: async (req) => {
+    if (!req.user || !['admin', 'super-admin', 'api'].includes(req.user.role)) {
+      return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+    }
+
+    let body: { monthsThreshold?: number; dryRun?: boolean; batchSize?: number } = {}
+    try {
+      body = (await (req as any).json?.()) ?? {}
+    } catch {}
+
+    // Default 12 bulan (user decision Stage 4.2). Clamp 1..60 untuk safety.
+    const monthsThreshold = Math.max(1, Math.min(60, body.monthsThreshold ?? 12))
+    const dryRun = body.dryRun === true
+    const batchSize = Math.max(1, Math.min(500, body.batchSize ?? 100))
+
+    const cutoff = new Date()
+    cutoff.setMonth(cutoff.getMonth() - monthsThreshold)
+    const cutoffISO = cutoff.toISOString()
+
+    try {
+      // Find candidates — booking dengan departureDate < cutoff DAN masih
+      // punya passport data (idempotent — sudah di-anonymize di-skip).
+      const result = await req.payload.find({
+        collection: 'bookings',
+        where: {
+          and: [
+            { departureDate: { less_than: cutoffISO } },
+            { 'passengers.passportNumber': { not_equals: null } },
+          ],
+        },
+        limit: batchSize,
+        depth: 0,
+        overrideAccess: true,
+      })
+
+      let anonymized = 0
+      const errors: Array<{ id: string; error: string }> = []
+
+      for (const booking of result.docs) {
+        try {
+          const passengers = Array.isArray((booking as any).passengers)
+            ? (booking as any).passengers
+            : []
+          if (passengers.length === 0) continue
+
+          // Null-out 4 PII fields per passenger.
+          const anonymizedPassengers = passengers.map((p: any) => ({
+            ...p,
+            passportNumber: null,
+            dateOfBirth: null,
+            passportIssueDate: null,
+            passportExpiryDate: null,
+          }))
+
+          // Append audit log entry.
+          const existingLog = typeof (booking as any).paymentAuditLog === 'string'
+            ? (booking as any).paymentAuditLog
+            : ''
+          const auditEntry = `${new Date().toISOString()} system | passport PII anonymized (${monthsThreshold}mo retention) | passengers: ${passengers.length}`
+          const newLog = existingLog ? `${existingLog}\n${auditEntry}` : auditEntry
+
+          if (!dryRun) {
+            await req.payload.update({
+              collection: 'bookings',
+              id: booking.id,
+              data: {
+                passengers: anonymizedPassengers,
+                paymentAuditLog: newLog,
+              },
+              overrideAccess: true,
+              // Skip Step 2.3 manual-edit hook (kita sudah tulis audit log sendiri).
+              context: { skipAuditLogHook: true },
+            })
+          }
+          anonymized++
+        } catch (e) {
+          errors.push({ id: String(booking.id), error: (e as Error).message })
+        }
+      }
+
+      return Response.json({
+        ok: true,
+        dryRun,
+        monthsThreshold,
+        cutoffISO,
+        scanned: result.docs.length,
+        anonymized,
+        hasMore: result.hasNextPage ?? false,
+        errors: errors.length > 0 ? errors : undefined,
+      })
+    } catch (e) {
+      return Response.json(
+        { ok: false, error: (e as Error).message },
+        { status: 500 },
+      )
+    }
+  },
+}
+
 /** Phase 4.70.3.1 — Format departureDate + scheduleTimeLabel ala email templates. */
 function formatDeparture(iso: string | null | undefined, time: string | null | undefined): string {
   if (!iso) return ''
@@ -1450,7 +1575,7 @@ export const Bookings: CollectionConfig = {
   hooks: {
     beforeChange: [auditManualEditHook],
   },
-  endpoints: [sendPaymentEndpoint, sendTicketEndpoint, confirmRescheduleEndpoint, declineRescheduleEndpoint, confirmCancelEndpoint, declineCancelEndpoint, customerRequestEndpoint],
+  endpoints: [sendPaymentEndpoint, sendTicketEndpoint, confirmRescheduleEndpoint, declineRescheduleEndpoint, confirmCancelEndpoint, declineCancelEndpoint, customerRequestEndpoint, anonymizePiiEndpoint],
   fields: [
     // ── Customer Request Alert (Phase 4.70.2.2) ──────────────
     // Banner prominent di PALING ATAS saat booking punya pending request

@@ -33,7 +33,7 @@ berpindah status (planned → in-progress → done).
 | 8 | No CMS-side rate limit on admin endpoints | Medium | — | accepted | Admin trusted; web layer sudah rate-limit customer requests |
 | 9 | `PAYLOAD_API_KEY` belongs to admin-role user | High | Stage 4.1 | code-done | Role baru `api` di Users + `isApiOrAdmin` helper. 3 collection widened (bookings create/update, otp-verifications CRUD, newsletter-subscribers CRU). USER manual: bikin user `api-web@internal.gtjourneys.id` role `api` + enable API key + rotate CF secret. Lihat [`phase-4.1`](phases/phase-4-polish-launch/booking-hardening/stage-4-pre-production/phase-4.1-api-user-role.md) |
 | 10 | OTP cleanup cron must be scheduled | Low | Stage 4 | planned | Verify `cleanup-otp` cron trigger terdaftar di Cloudflare |
-| 11 | No retention / cleanup for booking PII | Medium | Stage 4 (needs legal/business decision) | planned | UU PDP: anonimize passport fields setelah departure + N bulan. Butuh keputusan N dulu |
+| 11 | No retention / cleanup for booking PII | Medium | Stage 4.2 | code-done | 12-month anonymize untuk 4 field passport PII (passportNumber, dateOfBirth, passportIssueDate, passportExpiryDate). Nama/email/WA sengaja tetap. Endpoint `/api/bookings/anonymize-pii` (CMS) + `/api/cron/anonymize-pii` (web proxy). USER manual: staging dry-run + setup cron trigger. Lihat [`phase-4.2`](phases/phase-4-polish-launch/booking-hardening/stage-4-pre-production/phase-4.2-pii-retention.md) |
 | 12 | Logs and PII | Info | — | no-action | Tidak ada tindakan |
 | 13 | Email template HTML escaping | Info | — | no-action | Jangan expand `RAW_VARS` ke customer values |
 | 14 | Receipt PDF content | Info | — | no-action | Konten sudah OK |
