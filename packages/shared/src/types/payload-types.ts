@@ -26922,9 +26922,9 @@ export interface Location {
 export interface User {
   id: number;
   /**
-   * Only super-admin can change roles.
+   * Only super-admin can change roles. API Integration = non-human account yang pakai API key (web→CMS).
    */
-  role: 'editor' | 'admin' | 'super-admin';
+  role: 'editor' | 'admin' | 'super-admin' | 'api';
   /**
    * Uncheck to soft-disable an account without deleting it. Currently used as an audit signal — active enforcement of login lockout should be wired via a beforeLogin hook when required.
    */

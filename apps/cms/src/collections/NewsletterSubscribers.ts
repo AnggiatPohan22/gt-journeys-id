@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdmin, isSuperAdmin } from '../access/roles'
+import { isAdmin, isApiOrAdmin, isSuperAdmin } from '../access/roles'
 
 /**
  * Newsletter Subscribers — Phase 4.33.
@@ -25,13 +25,16 @@ export const NewsletterSubscribers: CollectionConfig = {
     hidden: ({ user }) => !user || user.role === 'editor',
   },
   access: {
-    // Public create is closed. The Astro API endpoint authenticates with
-    // PAYLOAD_API_KEY (users.enableAPIKey) — that request is treated as an
-    // authenticated user matching `isAdmin`. Keeping create restricted here
-    // prevents anon POSTs to /api/newsletter-subscribers.
-    create: isAdmin,
-    read: isAdmin,
-    update: isAdmin,
+    // Phase 4.74.4.1 — widen untuk 'api' role (web→CMS via
+    // PAYLOAD_API_KEY) agar API user tidak perlu admin-role.
+    // Flow: /api/newsletter-subscribe → find-by-email (read) + create
+    // atau update kalau sudah exist.
+    //
+    // Public (unauthenticated) create tetap tertutup — anon POST ke
+    // /api/newsletter-subscribers langsung di-reject.
+    create: isApiOrAdmin,
+    read: isApiOrAdmin,
+    update: isApiOrAdmin,
     delete: isSuperAdmin,
   },
   fields: [

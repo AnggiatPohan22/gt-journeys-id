@@ -1,5 +1,5 @@
 import type { CollectionConfig, Endpoint } from 'payload'
-import { isAdmin, isSuperAdmin } from '../access/roles'
+import { isAdmin, isApiOrAdmin, isSuperAdmin } from '../access/roles'
 
 /**
  * Custom endpoints — workaround karena Payload v3 REST PATCH generic
@@ -160,10 +160,15 @@ export const OtpVerifications: CollectionConfig = {
     hidden: ({ user }) => !user || user.role === 'editor',
   },
   access: {
-    create: isAdmin,
-    read: isAdmin,
-    update: isAdmin,
-    delete: isSuperAdmin,
+    // Phase 4.74.4.1 — widen untuk 'api' role (web→CMS lewat
+    // PAYLOAD_API_KEY). Flow web yang perlu:
+    //   - /api/checkout/verify/email-send → create
+    //   - /api/checkout/verify (otpStore) → read + update (increment attempts)
+    //   - /api/cron/cleanup-otp → delete expired
+    create: isApiOrAdmin,
+    read: isApiOrAdmin,
+    update: isApiOrAdmin,
+    delete: isApiOrAdmin,
   },
   fields: [
     {
