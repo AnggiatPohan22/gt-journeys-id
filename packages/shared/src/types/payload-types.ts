@@ -405,7 +405,7 @@ export interface Booking {
    */
   preRequestStatus?: string | null;
   /**
-   * Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case.
+   * Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case (confirm modal — Step 3.4).
    */
   hasRequestedChange?: boolean | null;
   /**
@@ -417,11 +417,11 @@ export interface Booking {
    */
   receiptIssuedAt?: string | null;
   /**
-   * Tanggal customer transfer (admin pick di modal Confirm Payment).
+   * Tanggal customer transfer (admin pick di modal Confirm Payment). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).
    */
   paymentDate?: string | null;
   /**
-   * Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown).
+   * Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).
    */
   paymentBank?: string | null;
   /**
