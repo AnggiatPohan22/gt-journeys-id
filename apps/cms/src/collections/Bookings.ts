@@ -1741,10 +1741,22 @@ export const Bookings: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        { name: 'departureDate', type: 'date', required: true, admin: { width: '33%', date: { pickerAppearance: 'dayOnly' } } },
+        { name: 'departureDate', type: 'date', required: true, admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Ubah pada booking confirmed+ akan ter-prompt (Step 3.4) dan ter-audit (Step 2.3).' } },
         { name: 'adults',        type: 'number', required: true, defaultValue: 1, min: 0, admin: { width: '33%' } },
         { name: 'children',      type: 'number', defaultValue: 0, min: 0, admin: { width: '33%' } },
       ],
+    },
+    // Step 3.4 — UI sibling: watches departureDate + status, shows
+    // confirm modal when editing a confirmed+ booking. Renders null
+    // most of the time; mounts the modal only when triggered.
+    {
+      name: 'departureDateConfirmGuard',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/admin/fields/DepartureDateConfirmGuard#default',
+        },
+      },
     },
     {
       name: 'originLocation',
@@ -1984,6 +1996,17 @@ export const Bookings: CollectionConfig = {
           defaultValue: false,
           admin: {
             description: 'Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case (confirm modal — Step 3.4).',
+          },
+        },
+        // Step 3.4 — UI sibling: intercepts un-check (true → false)
+        // dan tampilkan confirm modal.
+        {
+          name: 'hasRequestedChangeConfirmGuard',
+          type: 'ui',
+          admin: {
+            components: {
+              Field: '/admin/fields/HasRequestedChangeConfirmGuard#default',
+            },
           },
         },
       ],
