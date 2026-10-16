@@ -214,7 +214,7 @@ export interface Booking {
    */
   bookingRef: string;
   /**
-   * 128-bit random capability token. Never share screenshot yang mengandung ini.
+   * 128-bit random capability token. Never share screenshot yang mengandung ini. List view: masked + click-to-reveal + copy (Step 3.1).
    */
   accessToken: string;
   /**
@@ -266,19 +266,28 @@ export interface Booking {
         nationality?: string | null;
         firstName: string;
         lastName: string;
+        /**
+         * Update dibatasi super-admin (Step 2.2).
+         */
         dateOfBirth?: string | null;
         /**
          * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.
          */
         passportNumber?: string | null;
+        /**
+         * Update dibatasi super-admin (Step 2.2).
+         */
         passportIssueDate?: string | null;
         /**
-         * Minimal 6 bulan setelah departureDate.
+         * Minimal 6 bulan setelah departureDate. Update dibatasi super-admin (Step 2.2).
          */
         passportExpiryDate?: string | null;
         id?: string | null;
       }[]
     | null;
+  /**
+   * Ubah pada booking confirmed+ akan ter-prompt (Step 3.4) dan ter-audit (Step 2.3).
+   */
   departureDate: string;
   adults: number;
   children?: number | null;
@@ -399,23 +408,23 @@ export interface Booking {
    */
   preRequestStatus?: string | null;
   /**
-   * Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case.
+   * Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case (confirm modal — Step 3.4).
    */
   hasRequestedChange?: boolean | null;
   /**
-   * Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1.
+   * Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1. Server-side immutable (Step 2.1).
    */
   receiptNumber?: string | null;
   /**
-   * Timestamp first receipt issue (Asia/Makassar). FROZEN on first send.
+   * Timestamp first receipt issue (Asia/Makassar). FROZEN on first send. Server-side immutable (Step 2.1).
    */
   receiptIssuedAt?: string | null;
   /**
-   * Tanggal customer transfer (admin pick di modal Confirm Payment).
+   * Tanggal customer transfer (admin pick di modal Confirm Payment). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).
    */
   paymentDate?: string | null;
   /**
-   * Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown).
+   * Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).
    */
   paymentBank?: string | null;
   /**
@@ -443,7 +452,7 @@ export interface Booking {
    */
   sentTicketBy?: (number | null) | User;
   /**
-   * Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only.
+   * Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only. Server-side immutable (Step 2.1).
    */
   paymentAuditLog?: string | null;
   updatedAt: string;

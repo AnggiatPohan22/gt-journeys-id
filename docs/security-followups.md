@@ -23,13 +23,13 @@ berpindah status (planned → in-progress → done).
 
 | # | Finding | Severity | Planned step | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | in-progress | 2.2 DONE-UNVERIFIED: `dateOfBirth`, `passportIssueDate`, `passportExpiryDate` → `superAdminFieldAccess`. `customerEmail`/`customerWhatsapp`/`contactPhone` **tidak** di-lock (sengaja, step 3.2 mask di UI) |
+| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | done-unverified | 2.2: passport dates + DOB → `superAdminFieldAccess`. 3.2: `customerEmail` (`j••@gmail.com`), `customerWhatsapp` + `contactPhone` (`+62•••••••90`) masked di list view via `MaskedEmailCell` + `MaskedPhoneCell`. Full value tetap di detail view (sengaja — admin perlu edit) |
 | 2 | `send-payment` race on double click | Medium | 1.1, 1.3 | done | 1.1 + 1.3 MERGED |
 | 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | done | 1.1 + 1.2 MERGED. **Pertahankan** per-attempt idempotency key — tetap pakai `Date.now()` |
 | 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | done | 2.1 VERIFIED (REST attack test): `access.update: () => false`; endpoint pakai `overrideAccess: true` |
 | 5 | `receiptNumber` / `receiptIssuedAt` unguarded | Low | 2.1 | done | 2.1 VERIFIED: sama seperti #4 |
 | 6 | `bookingRef` enumerable (mitigated by 128-bit token) | Info | — | accepted | Token sudah 128-bit; enumeration tidak bisa akses booking |
-| 7 | `accessToken` shown in plaintext in admin list | Low | 3.1 | planned | Mask + click-to-reveal + copy button di cell |
+| 7 | `accessToken` shown in plaintext in admin list | Low | 3.1 | done-unverified | Step 3.1: `AccessTokenCell` mask (`••••••••••••{last4}`) + click-to-reveal (per-row, non-persistent) + copy button (full token). Non-telemetric |
 | 8 | No CMS-side rate limit on admin endpoints | Medium | — | accepted | Admin trusted; web layer sudah rate-limit customer requests |
 | 9 | `PAYLOAD_API_KEY` belongs to admin-role user | High | Stage 4 (pre-production) | planned | Buat dedicated API user dengan scoped access; rotate key |
 | 10 | OTP cleanup cron must be scheduled | Low | Stage 4 | planned | Verify `cleanup-otp` cron trigger terdaftar di Cloudflare |

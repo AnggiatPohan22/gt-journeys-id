@@ -1502,9 +1502,12 @@ export const Bookings: CollectionConfig = {
       unique: true,
       index: true,
       admin: {
-        description: '128-bit random capability token. Never share screenshot yang mengandung ini.',
+        description: '128-bit random capability token. Never share screenshot yang mengandung ini. List view: masked + click-to-reveal + copy (Step 3.1).',
         readOnly: true,
         hidden: false,
+        components: {
+          Cell: '/admin/cells/AccessTokenCell#default',
+        },
       },
     },
     {
@@ -1566,7 +1569,15 @@ export const Bookings: CollectionConfig = {
       type: 'row',
       fields: [
         { name: 'customerName',  type: 'text',  required: true, admin: { width: '50%' } },
-        { name: 'customerEmail', type: 'email',                  admin: { width: '50%' } },
+        {
+          name: 'customerEmail',
+          type: 'email',
+          admin: {
+            width: '50%',
+            // Step 3.2 — list view masked, full value di detail view.
+            components: { Cell: '/admin/cells/MaskedEmailCell#default' },
+          },
+        },
       ],
     },
     // ── Contact phone (Phase 4.63) — region + number + WA flag ─────────
@@ -1577,14 +1588,33 @@ export const Bookings: CollectionConfig = {
       type: 'row',
       fields: [
         { name: 'contactPhoneRegion', type: 'text', admin: { width: '20%', description: 'Kode negara telepon (mis. +62, +65).' } },
-        { name: 'contactPhone',       type: 'text', admin: { width: '50%', description: 'Nomor telepon tanpa kode negara.' } },
+        {
+          name: 'contactPhone',
+          type: 'text',
+          admin: {
+            width: '50%',
+            description: 'Nomor telepon tanpa kode negara.',
+            // Step 3.2 — list view masked (region/head + bullets + last 2).
+            components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
+          },
+        },
         { name: 'contactPhoneIsWhatsapp', type: 'checkbox', defaultValue: true, admin: { width: '30%', description: 'Nomor ini juga WhatsApp.' } },
       ],
     },
     {
       type: 'row',
       fields: [
-        { name: 'customerWhatsapp', type: 'text', required: true, admin: { width: '50%', description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.' } },
+        {
+          name: 'customerWhatsapp',
+          type: 'text',
+          required: true,
+          admin: {
+            width: '50%',
+            description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.',
+            // Step 3.2 — list view masked (region + bullets + last 2).
+            components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
+          },
+        },
         { name: 'customerCountry',  type: 'text',                  admin: { width: '50%', description: 'Negara asal (opsional).' } },
       ],
     },
@@ -1711,10 +1741,22 @@ export const Bookings: CollectionConfig = {
     {
       type: 'row',
       fields: [
-        { name: 'departureDate', type: 'date', required: true, admin: { width: '33%', date: { pickerAppearance: 'dayOnly' } } },
+        { name: 'departureDate', type: 'date', required: true, admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Ubah pada booking confirmed+ akan ter-prompt (Step 3.4) dan ter-audit (Step 2.3).' } },
         { name: 'adults',        type: 'number', required: true, defaultValue: 1, min: 0, admin: { width: '33%' } },
         { name: 'children',      type: 'number', defaultValue: 0, min: 0, admin: { width: '33%' } },
       ],
+    },
+    // Step 3.4 — UI sibling: watches departureDate + status, shows
+    // confirm modal when editing a confirmed+ booking. Renders null
+    // most of the time; mounts the modal only when triggered.
+    {
+      name: 'departureDateConfirmGuard',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/admin/fields/DepartureDateConfirmGuard#default',
+        },
+      },
     },
     {
       name: 'originLocation',
@@ -1796,13 +1838,23 @@ export const Bookings: CollectionConfig = {
       ],
     },
 
-    // ── Pricing (snapshot) ───────────────────────────────────
+    // ── Pricing (snapshot) — Step 3.3 collapsible wrapper ──────
     {
-      type: 'row',
+      type: 'collapsible',
+      label: 'Pricing',
+      admin: {
+        initCollapsed: false,
+        description: 'Snapshot harga saat booking dibuat. Grand total round-trip = outbound + return.',
+      },
       fields: [
-        { name: 'unitPrice',     type: 'number', admin: { width: '33%', description: 'Harga per adult saat booking dibuat.', components: { Cell: '/admin/cells/PriceCell#default' } } },
-        { name: 'currency',      type: 'text',   defaultValue: 'IDR', admin: { width: '33%' } },
-        { name: 'totalEstimate', type: 'number', admin: { width: '33%', description: 'Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.', components: { Cell: '/admin/cells/PriceCell#default' } } },
+        {
+          type: 'row',
+          fields: [
+            { name: 'unitPrice',     type: 'number', admin: { width: '33%', description: 'Harga per adult saat booking dibuat.', components: { Cell: '/admin/cells/PriceCell#default' } } },
+            { name: 'currency',      type: 'text',   defaultValue: 'IDR', admin: { width: '33%' } },
+            { name: 'totalEstimate', type: 'number', admin: { width: '33%', description: 'Estimasi total GRAND. Round-trip: outbound + return. One-way: outbound saja.', components: { Cell: '/admin/cells/PriceCell#default' } } },
+          ],
+        },
       ],
     },
 
@@ -1870,131 +1922,146 @@ export const Bookings: CollectionConfig = {
       },
     },
 
-    // ── Customer Request fields (Phase 4.69.9, hidden Phase 4.70.2.2) ──
-    // Fields disimpan di DB untuk audit + banner alert (BookingRequestAlert
-    // reads via form context). UI hidden karena banner di atas sudah
-    // nampilkan info ini dengan presentasi yang lebih user-friendly.
-    // Super-admin bisa un-hide sementara kalau butuh edit manual.
+    // ── Request History ─ Step 3.3 collapsible wrapper ───────
+    // Dulu `hidden: true` (Phase 4.70.2.2) karena banner alert
+    // sudah menampilkan info ini. Step 3.3 un-hide dan group di
+    // satu collapsible (initCollapsed: true) untuk audit visibility
+    // tanpa clutter default view. Semua field readOnly kecuali
+    // `hasRequestedChange` (super-admin boleh toggle untuk exceptional
+    // case — confirm modal datang di Step 3.4).
     {
-      name: 'customerRequestKind',
-      type: 'select',
-      options: [
-        { label: 'Reschedule', value: 'reschedule' },
-        { label: 'Cancel', value: 'cancel' },
+      type: 'collapsible',
+      label: 'Request History',
+      admin: {
+        initCollapsed: true,
+        description: 'Catatan request reschedule / cancel dari customer + snapshot untuk restore flow. Banner di atas menampilkan info aktif; section ini untuk audit lengkap.',
+      },
+      fields: [
+        {
+          name: 'customerRequestKind',
+          type: 'select',
+          options: [
+            { label: 'Reschedule', value: 'reschedule' },
+            { label: 'Cancel', value: 'cancel' },
+          ],
+          admin: { readOnly: true, description: 'Dibaca oleh BookingRequestAlert banner.' },
+        },
+        {
+          name: 'customerRequestedAt',
+          type: 'date',
+          admin: {
+            date: { pickerAppearance: 'dayAndTime' },
+            readOnly: true,
+          },
+        },
+        {
+          name: 'customerRequestReason',
+          type: 'textarea',
+          admin: {
+            readOnly: true,
+            rows: 4,
+          },
+        },
+        // Phase 4.70.2.4 — snapshot original departure (reschedule flow).
+        {
+          name: 'originalDepartureDate',
+          type: 'date',
+          admin: {
+            readOnly: true,
+            date: { pickerAppearance: 'dayOnly' },
+            description: 'Snapshot departureDate sebelum reschedule — Phase 4.70.2.4.',
+          },
+        },
+        {
+          name: 'originalScheduleTimeLabel',
+          type: 'text',
+          admin: {
+            readOnly: true,
+            description: 'Snapshot scheduleTimeLabel sebelum reschedule — Phase 4.70.2.4.',
+          },
+        },
+        // Phase 4.70.2.6 — Snapshot status asli (sebelum customer request).
+        {
+          name: 'preRequestStatus',
+          type: 'text',
+          admin: {
+            readOnly: true,
+            description: 'Snapshot status asli sebelum customer request change — Phase 4.70.2.6.',
+          },
+        },
+        // Phase 4.70.2.7 — One-shot flag. Confirm modal via Step 3.4.
+        {
+          name: 'hasRequestedChange',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case (confirm modal — Step 3.4).',
+          },
+        },
+        // Step 3.4 — UI sibling: intercepts un-check (true → false)
+        // dan tampilkan confirm modal.
+        {
+          name: 'hasRequestedChangeConfirmGuard',
+          type: 'ui',
+          admin: {
+            components: {
+              Field: '/admin/fields/HasRequestedChangeConfirmGuard#default',
+            },
+          },
+        },
       ],
-      admin: { hidden: true, readOnly: true, description: 'Dibaca oleh BookingRequestAlert banner.' },
     },
+    // ── Payment ─ Step 3.3 collapsible wrapper ───────────────
+    // Dulu `hidden: true` (Phase 4.70.3.1) — di-set otomatis saat admin
+    // klik "Confirm Payment & Send Receipt". Step 3.3 un-hide dan group:
+    // - receiptNumber + receiptIssuedAt: server-side immutable (Step 2.1).
+    // - paymentDate + paymentBank: boleh di-update admin pada resend
+    //   (confirm modal + enhanced warning — Step 3.4/3.5).
     {
-      name: 'customerRequestedAt',
-      type: 'date',
+      type: 'collapsible',
+      label: 'Payment',
       admin: {
-        hidden: true,
-        date: { pickerAppearance: 'dayAndTime' },
-        readOnly: true,
+        initCollapsed: true,
+        description: 'Metadata receipt + payment. receiptNumber & receiptIssuedAt FROZEN on first send. paymentDate & paymentBank boleh di-update admin (akan trigger audit log — Step 2.3).',
       },
-    },
-    {
-      name: 'customerRequestReason',
-      type: 'textarea',
-      admin: {
-        hidden: true,
-        readOnly: true,
-        rows: 4,
-      },
-    },
-    // Phase 4.70.2.4 — snapshot original departure (reschedule flow).
-    // Hidden di UI; dibaca otomatis saat send reschedule response untuk
-    // render "Previous → New departure" di email.
-    {
-      name: 'originalDepartureDate',
-      type: 'date',
-      admin: {
-        hidden: true,
-        readOnly: true,
-        date: { pickerAppearance: 'dayOnly' },
-        description: 'Snapshot departureDate sebelum reschedule — Phase 4.70.2.4.',
-      },
-    },
-    {
-      name: 'originalScheduleTimeLabel',
-      type: 'text',
-      admin: {
-        hidden: true,
-        readOnly: true,
-        description: 'Snapshot scheduleTimeLabel sebelum reschedule — Phase 4.70.2.4.',
-      },
-    },
-    // Phase 4.70.2.6 — Snapshot status asli (sebelum customer request)
-    // untuk restore setelah admin confirm/decline reschedule atau cancel.
-    {
-      name: 'preRequestStatus',
-      type: 'text',
-      admin: {
-        hidden: true,
-        readOnly: true,
-        description: 'Snapshot status asli sebelum customer request change — Phase 4.70.2.6.',
-      },
-    },
-    // Phase 4.70.2.7 — One-shot flag. Customer hanya bisa 1x request
-    // reschedule/cancel seumur hidup booking. TIDAK di-reset saat admin
-    // confirm/decline — supaya tidak jadi spam. Admin bisa un-check manual
-    // via CMS kalau exceptional case (misal customer edge case yang perlu
-    // request ulang).
-    {
-      name: 'hasRequestedChange',
-      type: 'checkbox',
-      defaultValue: false,
-      admin: {
-        hidden: true,
-        description: 'Set true saat customer pertama kali request reschedule/cancel. Prevent spam di confirmation page. Admin boleh un-check manual untuk exceptional case.',
-      },
-    },
-    // Phase 4.70.3.1 — Payment Receipt PDF metadata.
-    // Semua hidden; di-set otomatis saat admin klik "Confirm Payment & Send Receipt".
-    // receiptNumber + receiptIssuedAt FROZEN on first send (resend reuse).
-    // paymentDate + paymentBank boleh di-update pada resend (admin boleh koreksi).
-    {
-      name: 'receiptNumber',
-      type: 'text',
-      // Step 2.1 — Server-side immutable. `readOnly: true` di admin UI
-      // hanya block admin panel; REST/GraphQL update tetap bisa ubah
-      // tanpa access guard. Endpoint send-ticket pakai `overrideAccess: true`
-      // yang bypass guard ini → tetap jalan.
-      access: { update: () => false },
-      admin: {
-        hidden: true,
-        readOnly: true,
-        description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1. Server-side immutable (Step 2.1).',
-      },
-    },
-    {
-      name: 'receiptIssuedAt',
-      type: 'date',
-      // Step 2.1 — Server-side immutable (same alasan dengan receiptNumber).
-      access: { update: () => false },
-      admin: {
-        hidden: true,
-        readOnly: true,
-        date: { pickerAppearance: 'dayAndTime' },
-        description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send. Server-side immutable (Step 2.1).',
-      },
-    },
-    {
-      name: 'paymentDate',
-      type: 'date',
-      admin: {
-        hidden: true,
-        date: { pickerAppearance: 'dayOnly' },
-        description: 'Tanggal customer transfer (admin pick di modal Confirm Payment).',
-      },
-    },
-    {
-      name: 'paymentBank',
-      type: 'text',
-      admin: {
-        hidden: true,
-        description: 'Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown).',
-      },
+      fields: [
+        {
+          name: 'receiptNumber',
+          type: 'text',
+          // Step 2.1 — Server-side immutable (lihat komentar lama).
+          access: { update: () => false },
+          admin: {
+            readOnly: true,
+            description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1. Server-side immutable (Step 2.1).',
+          },
+        },
+        {
+          name: 'receiptIssuedAt',
+          type: 'date',
+          // Step 2.1 — Server-side immutable (same alasan dengan receiptNumber).
+          access: { update: () => false },
+          admin: {
+            readOnly: true,
+            date: { pickerAppearance: 'dayAndTime' },
+            description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send. Server-side immutable (Step 2.1).',
+          },
+        },
+        {
+          name: 'paymentDate',
+          type: 'date',
+          admin: {
+            date: { pickerAppearance: 'dayOnly' },
+            description: 'Tanggal customer transfer (admin pick di modal Confirm Payment). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).',
+          },
+        },
+        {
+          name: 'paymentBank',
+          type: 'text',
+          admin: {
+            description: 'Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).',
+          },
+        },
+      ],
     },
 
     // ── Admin-handoff audit (Phase 4.69.5) ─────────────
