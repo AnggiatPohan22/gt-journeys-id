@@ -214,7 +214,7 @@ export interface Booking {
    */
   bookingRef: string;
   /**
-   * 128-bit random capability token. Never share screenshot yang mengandung ini.
+   * 128-bit random capability token. Never share screenshot yang mengandung ini. List view: masked + click-to-reveal + copy (Step 3.1).
    */
   accessToken: string;
   /**
@@ -266,14 +266,20 @@ export interface Booking {
         nationality?: string | null;
         firstName: string;
         lastName: string;
+        /**
+         * Update dibatasi super-admin (Step 2.2).
+         */
         dateOfBirth?: string | null;
         /**
          * Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.
          */
         passportNumber?: string | null;
+        /**
+         * Update dibatasi super-admin (Step 2.2).
+         */
         passportIssueDate?: string | null;
         /**
-         * Minimal 6 bulan setelah departureDate.
+         * Minimal 6 bulan setelah departureDate. Update dibatasi super-admin (Step 2.2).
          */
         passportExpiryDate?: string | null;
         id?: string | null;
@@ -403,11 +409,11 @@ export interface Booking {
    */
   hasRequestedChange?: boolean | null;
   /**
-   * Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1.
+   * Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1. Server-side immutable (Step 2.1).
    */
   receiptNumber?: string | null;
   /**
-   * Timestamp first receipt issue (Asia/Makassar). FROZEN on first send.
+   * Timestamp first receipt issue (Asia/Makassar). FROZEN on first send. Server-side immutable (Step 2.1).
    */
   receiptIssuedAt?: string | null;
   /**
@@ -443,7 +449,7 @@ export interface Booking {
    */
   sentTicketBy?: (number | null) | User;
   /**
-   * Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only.
+   * Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only. Server-side immutable (Step 2.1).
    */
   paymentAuditLog?: string | null;
   updatedAt: string;

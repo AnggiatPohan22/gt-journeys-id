@@ -1502,9 +1502,12 @@ export const Bookings: CollectionConfig = {
       unique: true,
       index: true,
       admin: {
-        description: '128-bit random capability token. Never share screenshot yang mengandung ini.',
+        description: '128-bit random capability token. Never share screenshot yang mengandung ini. List view: masked + click-to-reveal + copy (Step 3.1).',
         readOnly: true,
         hidden: false,
+        components: {
+          Cell: '/admin/cells/AccessTokenCell#default',
+        },
       },
     },
     {

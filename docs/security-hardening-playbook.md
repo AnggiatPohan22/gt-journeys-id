@@ -75,7 +75,7 @@ Owner: `USER` = the user does it manually, agent must not. `AGENT` = agent does 
 | 2.2 | AGENT | Super-admin-only update for passport dates and dateOfBirth | #1 (partial) | VERIFIED |
 | 2.3 | AGENT | Auto audit log on manual edits of payment/departure fields | audit gap | DONE-UNVERIFIED |
 | 3.0 | AGENT | Booking UI design BRIEF only (no code) | #1, #7 | TODO |
-| 3.1 | AGENT | accessToken cell: mask + click-to-reveal + copy | #7 | TODO |
+| 3.1 | AGENT | accessToken cell: mask + click-to-reveal + copy | #7 | DONE-UNVERIFIED |
 | 3.2 | AGENT | List view masking for email/WhatsApp/passport | #1 | TODO |
 | 3.3 | AGENT | Friendlier detail layout (grouped sections) | UX | TODO |
 | 3.4 | AGENT | Confirmation modals for risky actions | audit sec. D | TODO |

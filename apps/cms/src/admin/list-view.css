@@ -199,3 +199,53 @@ html[data-theme='dark'] .collection-list .table td.cell-title a:hover {
 html[data-theme='dark'] .step-nav > a:hover {
   color: var(--dnj-accent, #8bd6b6);
 }
+
+/* ─────────────────────────────────────────────────────────────
+   N. ACCESS TOKEN CELL (Step 3.1)
+   Mask + click-to-reveal + copy for `bookings.accessToken`.
+   ───────────────────────────────────────────────────────────── */
+.dnj-token-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+.dnj-token-cell--empty {
+  color: var(--theme-elevation-400, #999);
+  font-style: italic;
+}
+.dnj-token-cell__value {
+  all: unset;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--theme-text, #111);
+  letter-spacing: 0.5px;
+  user-select: all;
+  white-space: nowrap;
+}
+.dnj-token-cell__value:hover {
+  background: var(--theme-elevation-100, rgba(0, 0, 0, 0.05));
+}
+.dnj-token-cell__value:focus-visible {
+  outline: 2px solid var(--dnj-accent, #1b3a4b);
+  outline-offset: 1px;
+}
+.dnj-token-cell__copy {
+  all: unset;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--theme-elevation-500, #666);
+}
+.dnj-token-cell__copy:hover {
+  background: var(--theme-elevation-100, rgba(0, 0, 0, 0.05));
+  color: var(--theme-text, #111);
+}
+.dnj-token-cell__copy:focus-visible {
+  outline: 2px solid var(--dnj-accent, #1b3a4b);
+  outline-offset: 1px;
+}
