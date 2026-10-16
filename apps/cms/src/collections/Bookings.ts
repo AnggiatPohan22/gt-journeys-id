@@ -1606,50 +1606,87 @@ export const Bookings: CollectionConfig = {
         },
       },
     },
+    // ── Booking Reference ── (Phase 4.73 — UI grouping)
+    // Collapsible wrapper visual: bookingRef + accessToken + serviceType +
+    // ferryTicket relationship. Tidak merubah data schema — field name tetap
+    // top-level di document (Payload `collapsible` type bersifat presentational).
     {
-      name: 'bookingRef',
-      type: 'text',
-      required: true,
-      unique: true,
-      index: true,
+      type: 'collapsible',
+      label: 'Booking Reference',
       admin: {
-        description: 'Auto-generated reference, mis. "FT-20260927-A1B2C3". Jangan diubah manual.',
-        readOnly: true,
+        initCollapsed: false,
+        description: 'Identitas booking + layanan.',
       },
-    },
-    // Phase 4.66.5 (finding S-02) — random 128-bit access token untuk
-    // mengunci halaman confirmation. bookingRef pendek (6 hex/day) mudah
-    // ditebak; token ini menyediakan capability yang unguessable. URL
-    // konfirmasi = /checkout/.../confirmation/<bookingRef>?t=<token>.
-    // Server compare constant-time. Token disembunyikan dari list default;
-    // admin dapat melihatnya di edit view untuk regenerate/resend jika
-    // customer kehilangan URL.
-    {
-      name: 'accessToken',
-      type: 'text',
-      required: true,
-      unique: true,
-      index: true,
-      admin: {
-        description: '128-bit random capability token. Never share screenshot yang mengandung ini. List view: masked + click-to-reveal + copy (Step 3.1).',
-        readOnly: true,
-        hidden: false,
-        components: {
-          Cell: '/admin/cells/AccessTokenCell#default',
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'bookingRef',
+              type: 'text',
+              required: true,
+              unique: true,
+              index: true,
+              admin: {
+                width: '50%',
+                description: 'Auto-generated reference, mis. "FT-20260927-A1B2C3". Jangan diubah manual.',
+                readOnly: true,
+              },
+            },
+            // Phase 4.66.5 (finding S-02) — random 128-bit access token untuk
+            // mengunci halaman confirmation. bookingRef pendek (6 hex/day) mudah
+            // ditebak; token ini menyediakan capability yang unguessable. URL
+            // konfirmasi = /checkout/.../confirmation/<bookingRef>?t=<token>.
+            // Server compare constant-time. Token disembunyikan dari list default;
+            // admin dapat melihatnya di edit view untuk regenerate/resend jika
+            // customer kehilangan URL.
+            {
+              name: 'accessToken',
+              type: 'text',
+              required: true,
+              unique: true,
+              index: true,
+              admin: {
+                width: '50%',
+                description: '128-bit random capability token. Never share screenshot yang mengandung ini. List view: masked + click-to-reveal + copy (Step 3.1).',
+                readOnly: true,
+                hidden: false,
+                components: {
+                  Cell: '/admin/cells/AccessTokenCell#default',
+                },
+              },
+            },
+          ],
         },
-      },
-    },
-    {
-      name: 'serviceType',
-      type: 'select',
-      required: true,
-      defaultValue: 'ferry-ticket',
-      options: [
-        { label: 'Ferry Ticket', value: 'ferry-ticket' },
-        // Extensible — bisa nambah 'tour', 'accommodation', 'rental', dst tanpa migration
-        // baru (Payload select enum). Nilai baru → migrate.
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'serviceType',
+              type: 'select',
+              required: true,
+              defaultValue: 'ferry-ticket',
+              options: [
+                { label: 'Ferry Ticket', value: 'ferry-ticket' },
+                // Extensible — bisa nambah 'tour', 'accommodation', 'rental', dst tanpa migration
+                // baru (Payload select enum). Nilai baru → migrate.
+              ],
+              admin: { width: '30%', description: 'Jenis layanan yang di-booking.' },
+            },
+            // ── Relationship + snapshot (Ferry Ticket) ───────────────
+            {
+              name: 'ferryTicket',
+              type: 'relationship',
+              relationTo: 'ferry-tickets',
+              admin: {
+                width: '70%',
+                description: 'Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.',
+                condition: (data) => data?.serviceType === 'ferry-ticket',
+              },
+            },
+          ],
+        },
       ],
-      admin: { description: 'Jenis layanan yang di-booking.' },
     },
     // Phase 4.67.2a — tripType membedakan one-way vs round-trip. Default
     // `one-way` supaya semua booking existing (1-leg) tetap valid tanpa
@@ -1682,75 +1719,75 @@ export const Bookings: CollectionConfig = {
       },
     },
 
-    // ── Relationship + snapshot (Ferry Ticket) ───────────────
-    {
-      name: 'ferryTicket',
-      type: 'relationship',
-      relationTo: 'ferry-tickets',
-      admin: {
-        description: 'Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.',
-        condition: (data) => data?.serviceType === 'ferry-ticket',
-      },
-    },
-
-    // ── Customer ─────────────────────────────────────────────
-    {
-      type: 'row',
-      fields: [
-        { name: 'customerName',  type: 'text',  required: true, admin: { width: '50%' } },
-        {
-          name: 'customerEmail',
-          type: 'email',
-          admin: {
-            width: '50%',
-            // Step 3.2 — list view masked, full value di detail view.
-            components: { Cell: '/admin/cells/MaskedEmailCell#default' },
-          },
-        },
-      ],
-    },
-    // ── Contact phone (Phase 4.63) — region + number + WA flag ─────────
+    // ── Contact Information ── (Phase 4.73 — UI grouping)
+    // Semua data kontak customer utama dalam satu box visual: nama + email,
+    // telepon (region/nomor/WA flag), WA snapshot final + country, dan notes.
     // customerWhatsapp tetap dipertahankan sebagai kolom SNAPSHOT FINAL
     // (auto-compose {region}{phone} di endpoint) supaya konsumen (WA
     // channel, payment gateway nanti) punya 1 field siap-pakai.
     {
-      type: 'row',
-      fields: [
-        { name: 'contactPhoneRegion', type: 'text', admin: { width: '20%', description: 'Kode negara telepon (mis. +62, +65).' } },
-        {
-          name: 'contactPhone',
-          type: 'text',
-          admin: {
-            width: '50%',
-            description: 'Nomor telepon tanpa kode negara.',
-            // Step 3.2 — list view masked (region/head + bullets + last 2).
-            components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
-          },
-        },
-        { name: 'contactPhoneIsWhatsapp', type: 'checkbox', defaultValue: true, admin: { width: '30%', description: 'Nomor ini juga WhatsApp.' } },
-      ],
-    },
-    {
-      type: 'row',
+      type: 'collapsible',
+      label: 'Contact Information',
+      admin: {
+        initCollapsed: false,
+        description: 'Data kontak customer utama (dipakai untuk komunikasi WA & email).',
+      },
       fields: [
         {
-          name: 'customerWhatsapp',
-          type: 'text',
-          required: true,
-          admin: {
-            width: '50%',
-            description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.',
-            // Step 3.2 — list view masked (region + bullets + last 2).
-            components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
-          },
+          type: 'row',
+          fields: [
+            { name: 'customerName',  type: 'text',  required: true, admin: { width: '50%' } },
+            {
+              name: 'customerEmail',
+              type: 'email',
+              admin: {
+                width: '50%',
+                // Step 3.2 — list view masked, full value di detail view.
+                components: { Cell: '/admin/cells/MaskedEmailCell#default' },
+              },
+            },
+          ],
         },
-        { name: 'customerCountry',  type: 'text',                  admin: { width: '50%', description: 'Negara asal (opsional).' } },
+        {
+          type: 'row',
+          fields: [
+            { name: 'contactPhoneRegion', type: 'text', admin: { width: '20%', description: 'Kode negara telepon (mis. +62, +65).' } },
+            {
+              name: 'contactPhone',
+              type: 'text',
+              admin: {
+                width: '50%',
+                description: 'Nomor telepon tanpa kode negara.',
+                // Step 3.2 — list view masked (region/head + bullets + last 2).
+                components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
+              },
+            },
+            { name: 'contactPhoneIsWhatsapp', type: 'checkbox', defaultValue: true, admin: { width: '30%', description: 'Nomor ini juga WhatsApp.' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'customerWhatsapp',
+              type: 'text',
+              required: true,
+              admin: {
+                width: '50%',
+                description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.',
+                // Step 3.2 — list view masked (region + bullets + last 2).
+                components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
+              },
+            },
+            { name: 'customerCountry',  type: 'text',                  admin: { width: '50%', description: 'Negara asal (opsional).' } },
+          ],
+        },
+        {
+          name: 'customerNotes',
+          type: 'textarea',
+          admin: { description: 'Catatan tambahan dari customer (opsional).' },
+        },
       ],
-    },
-    {
-      name: 'customerNotes',
-      type: 'textarea',
-      admin: { description: 'Catatan tambahan dari customer (opsional).' },
     },
 
     // ── Passengers array (Phase 4.63) ──────────────────────────────────
@@ -1866,18 +1903,68 @@ export const Bookings: CollectionConfig = {
       ],
     },
 
-    // ── Booking details (snapshot) ───────────────────────────
+    // ── Outbound Trip ── (Phase 4.73 — UI grouping)
+    // Snapshot leg utama (keberangkatan). Dibungkus collapsible biar paralel
+    // visual dengan "Return Trip" di bawah (sudah collapsible existing).
+    // Field names tetap top-level — collapsible hanya presentational.
     {
-      type: 'row',
+      type: 'collapsible',
+      label: 'Outbound Trip',
+      admin: {
+        initCollapsed: false,
+        description: 'Snapshot leg keberangkatan (origin → destination). Round-trip? Isi juga "Return Trip" di bawah.',
+      },
       fields: [
-        { name: 'departureDate', type: 'date', required: true, admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Ubah pada booking confirmed+ akan ter-prompt (Step 3.4) dan ter-audit (Step 2.3).' } },
-        { name: 'adults',        type: 'number', required: true, defaultValue: 1, min: 0, admin: { width: '33%' } },
-        { name: 'children',      type: 'number', defaultValue: 0, min: 0, admin: { width: '33%' } },
+        {
+          type: 'row',
+          fields: [
+            { name: 'departureDate', type: 'date', required: true, admin: { width: '34%', date: { pickerAppearance: 'dayOnly' }, description: 'Ubah pada booking confirmed+ akan ter-prompt (Step 3.4) dan ter-audit (Step 2.3).' } },
+            { name: 'adults',        type: 'number', required: true, defaultValue: 1, min: 0, admin: { width: '33%' } },
+            { name: 'children',      type: 'number', defaultValue: 0, min: 0, admin: { width: '33%' } },
+          ],
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'originLocation',
+              type: 'text',
+              admin: { width: '50%', description: 'Snapshot nama lokasi asal saat booking dibuat.' },
+            },
+            {
+              name: 'destinationLocation',
+              type: 'text',
+              admin: { width: '50%', description: 'Snapshot nama lokasi tujuan saat booking dibuat.' },
+            },
+          ],
+        },
+        {
+          name: 'scheduleTimeLabel',
+          type: 'text',
+          admin: { description: 'Snapshot jadwal (mis. "08:20 → 09:10"). Opsional.' },
+        },
+        {
+          type: 'row',
+          fields: [
+            {
+              name: 'ferryClassName',
+              type: 'text',
+              admin: { width: '50%', description: 'Snapshot nama kelas (mis. "Ekonomi", "Emerald").' },
+            },
+            {
+              name: 'ferryClassType',
+              type: 'text',
+              admin: { width: '50%', description: 'Snapshot classType (ekonomi/emerald).' },
+            },
+          ],
+        },
       ],
     },
     // Step 3.4 — UI sibling: watches departureDate + status, shows
     // confirm modal when editing a confirmed+ booking. Renders null
     // most of the time; mounts the modal only when triggered.
+    // Diletakkan di luar collapsible supaya modal selalu mounted meski
+    // section Outbound Trip collapsed (Phase 4.73).
     {
       name: 'departureDateConfirmGuard',
       type: 'ui',
@@ -1886,31 +1973,6 @@ export const Bookings: CollectionConfig = {
           Field: '/admin/fields/DepartureDateConfirmGuard#default',
         },
       },
-    },
-    {
-      name: 'originLocation',
-      type: 'text',
-      admin: { description: 'Snapshot nama lokasi asal saat booking dibuat.' },
-    },
-    {
-      name: 'destinationLocation',
-      type: 'text',
-      admin: { description: 'Snapshot nama lokasi tujuan saat booking dibuat.' },
-    },
-    {
-      name: 'scheduleTimeLabel',
-      type: 'text',
-      admin: { description: 'Snapshot jadwal (mis. "08:20 → 09:10"). Opsional.' },
-    },
-    {
-      name: 'ferryClassName',
-      type: 'text',
-      admin: { description: 'Snapshot nama kelas (mis. "Ekonomi", "Emerald").' },
-    },
-    {
-      name: 'ferryClassType',
-      type: 'text',
-      admin: { description: 'Snapshot classType (ekonomi/emerald).' },
     },
 
     // ── Return trip snapshot (Phase 4.67.2a) ─────────────────

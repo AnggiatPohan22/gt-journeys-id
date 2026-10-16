@@ -222,13 +222,13 @@ export interface Booking {
    */
   serviceType: 'ferry-ticket';
   /**
-   * Round Trip = 2 leg (outbound + return). Isi "Return trip" di bawah.
-   */
-  tripType: 'one-way' | 'round-trip';
-  /**
    * Rujukan ke Ferry Ticket. Data teks disnapshot ke field terpisah supaya booking tidak berubah kalau ticket diedit.
    */
   ferryTicket?: (number | null) | FerryTicket;
+  /**
+   * Round Trip = 2 leg (outbound + return). Isi "Return trip" di bawah.
+   */
+  tripType: 'one-way' | 'round-trip';
   customerName: string;
   customerEmail?: string | null;
   /**
@@ -30251,8 +30251,8 @@ export interface BookingsSelect<T extends boolean = true> {
   bookingRef?: T;
   accessToken?: T;
   serviceType?: T;
-  tripType?: T;
   ferryTicket?: T;
+  tripType?: T;
   customerName?: T;
   customerEmail?: T;
   contactPhoneRegion?: T;
