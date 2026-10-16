@@ -71,8 +71,8 @@ Owner: `USER` = the user does it manually, agent must not. `AGENT` = agent does 
 | 1.3 | AGENT | send-payment optimistic lock | #2 | MERGED |
 | 1.4 | AGENT | Disable GraphQL | #15 | MERGED |
 | 1.5 | AGENT | Explicit login lockout config | #17 | MERGED |
-| 2.1 | AGENT | Lock audit/receipt fields from manual update | #4, #5 | DONE-UNVERIFIED |
-| 2.2 | AGENT | Super-admin-only update for passport dates and dateOfBirth | #1 (partial) | TODO |
+| 2.1 | AGENT | Lock audit/receipt fields from manual update | #4, #5 | VERIFIED |
+| 2.2 | AGENT | Super-admin-only update for passport dates and dateOfBirth | #1 (partial) | DONE-UNVERIFIED |
 | 2.3 | AGENT | Auto audit log on manual edits of payment/departure fields | audit gap | TODO |
 | 3.0 | AGENT | Booking UI design BRIEF only (no code) | #1, #7 | TODO |
 | 3.1 | AGENT | accessToken cell: mask + click-to-reveal + copy | #7 | TODO |

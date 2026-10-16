@@ -1576,7 +1576,16 @@ export const Bookings: CollectionConfig = {
         {
           type: 'row',
           fields: [
-            { name: 'dateOfBirth',        type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' } } },
+            {
+              name: 'dateOfBirth',
+              type: 'date',
+              // Step 2.2 — PII sensitif setingkat passport. Update dibatasi
+              // super-admin (collection-level `update: isAdmin` sudah ketat,
+              // tapi field access memberi tambahan defense: admin biasa
+              // tidak bisa ubah tanpa naik ke super-admin dulu).
+              access: { update: superAdminFieldAccess },
+              admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Update dibatasi super-admin (Step 2.2).' },
+            },
             {
               name: 'passportNumber',
               type: 'text',
@@ -1593,13 +1602,27 @@ export const Bookings: CollectionConfig = {
                 description: 'Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.',
               },
             },
-            { name: 'passportIssueDate',  type: 'date', admin: { width: '17%', date: { pickerAppearance: 'dayOnly' } } },
+            {
+              name: 'passportIssueDate',
+              type: 'date',
+              // Step 2.2 — bagian dari passport bundle. Konsisten dengan
+              // passportNumber: super-admin only untuk update.
+              access: { update: superAdminFieldAccess },
+              admin: { width: '17%', date: { pickerAppearance: 'dayOnly' }, description: 'Update dibatasi super-admin (Step 2.2).' },
+            },
           ],
         },
         {
           type: 'row',
           fields: [
-            { name: 'passportExpiryDate', type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Minimal 6 bulan setelah departureDate.' } },
+            {
+              name: 'passportExpiryDate',
+              type: 'date',
+              // Step 2.2 — bagian dari passport bundle. Konsisten dengan
+              // passportNumber: super-admin only untuk update.
+              access: { update: superAdminFieldAccess },
+              admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Minimal 6 bulan setelah departureDate. Update dibatasi super-admin (Step 2.2).' },
+            },
           ],
         },
       ],

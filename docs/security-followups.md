@@ -23,11 +23,11 @@ berpindah status (planned → in-progress → done).
 
 | # | Finding | Severity | Planned step | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | planned | `customerEmail`, `customerWhatsapp`, `contactPhone` **tidak** di-lock — admin biasa harus bisa perbaiki typo. Hanya di-mask di list view |
+| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | in-progress | 2.2 DONE-UNVERIFIED: `dateOfBirth`, `passportIssueDate`, `passportExpiryDate` → `superAdminFieldAccess`. `customerEmail`/`customerWhatsapp`/`contactPhone` **tidak** di-lock (sengaja, step 3.2 mask di UI) |
 | 2 | `send-payment` race on double click | Medium | 1.1, 1.3 | done | 1.1 + 1.3 MERGED |
 | 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | done | 1.1 + 1.2 MERGED. **Pertahankan** per-attempt idempotency key — tetap pakai `Date.now()` |
-| 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | in-progress | DONE-UNVERIFIED (2.1): `access.update: () => false`; endpoint pakai `overrideAccess: true` |
-| 5 | `receiptNumber` / `receiptIssuedAt` unguarded | Low | 2.1 | in-progress | DONE-UNVERIFIED (2.1): sama seperti #4 |
+| 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | done | 2.1 VERIFIED (REST attack test): `access.update: () => false`; endpoint pakai `overrideAccess: true` |
+| 5 | `receiptNumber` / `receiptIssuedAt` unguarded | Low | 2.1 | done | 2.1 VERIFIED: sama seperti #4 |
 | 6 | `bookingRef` enumerable (mitigated by 128-bit token) | Info | — | accepted | Token sudah 128-bit; enumeration tidak bisa akses booking |
 | 7 | `accessToken` shown in plaintext in admin list | Low | 3.1 | planned | Mask + click-to-reveal + copy button di cell |
 | 8 | No CMS-side rate limit on admin endpoints | Medium | — | accepted | Admin trusted; web layer sudah rate-limit customer requests |
