@@ -1569,7 +1569,15 @@ export const Bookings: CollectionConfig = {
       type: 'row',
       fields: [
         { name: 'customerName',  type: 'text',  required: true, admin: { width: '50%' } },
-        { name: 'customerEmail', type: 'email',                  admin: { width: '50%' } },
+        {
+          name: 'customerEmail',
+          type: 'email',
+          admin: {
+            width: '50%',
+            // Step 3.2 — list view masked, full value di detail view.
+            components: { Cell: '/admin/cells/MaskedEmailCell#default' },
+          },
+        },
       ],
     },
     // ── Contact phone (Phase 4.63) — region + number + WA flag ─────────
@@ -1580,14 +1588,33 @@ export const Bookings: CollectionConfig = {
       type: 'row',
       fields: [
         { name: 'contactPhoneRegion', type: 'text', admin: { width: '20%', description: 'Kode negara telepon (mis. +62, +65).' } },
-        { name: 'contactPhone',       type: 'text', admin: { width: '50%', description: 'Nomor telepon tanpa kode negara.' } },
+        {
+          name: 'contactPhone',
+          type: 'text',
+          admin: {
+            width: '50%',
+            description: 'Nomor telepon tanpa kode negara.',
+            // Step 3.2 — list view masked (region/head + bullets + last 2).
+            components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
+          },
+        },
         { name: 'contactPhoneIsWhatsapp', type: 'checkbox', defaultValue: true, admin: { width: '30%', description: 'Nomor ini juga WhatsApp.' } },
       ],
     },
     {
       type: 'row',
       fields: [
-        { name: 'customerWhatsapp', type: 'text', required: true, admin: { width: '50%', description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.' } },
+        {
+          name: 'customerWhatsapp',
+          type: 'text',
+          required: true,
+          admin: {
+            width: '50%',
+            description: 'Snapshot WA final ({region}{phone}). Dipakai channel WA & gateway.',
+            // Step 3.2 — list view masked (region + bullets + last 2).
+            components: { Cell: '/admin/cells/MaskedPhoneCell#default' },
+          },
+        },
         { name: 'customerCountry',  type: 'text',                  admin: { width: '50%', description: 'Negara asal (opsional).' } },
       ],
     },

@@ -249,3 +249,20 @@ html[data-theme='dark'] .step-nav > a:hover {
   outline: 2px solid var(--dnj-accent, #1b3a4b);
   outline-offset: 1px;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   N+1. MASKED PII CELL (Step 3.2)
+   Shared styling untuk email + phone/WA cells.
+   ───────────────────────────────────────────────────────────── */
+.dnj-masked-cell {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.25px;
+  color: var(--theme-text, #111);
+  cursor: help;
+}
+.dnj-masked-cell--empty {
+  color: var(--theme-elevation-400, #999);
+  font-style: italic;
+  cursor: default;
+}

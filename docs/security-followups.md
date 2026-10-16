@@ -23,7 +23,7 @@ berpindah status (planned → in-progress → done).
 
 | # | Finding | Severity | Planned step | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | in-progress | 2.2 DONE-UNVERIFIED: `dateOfBirth`, `passportIssueDate`, `passportExpiryDate` → `superAdminFieldAccess`. `customerEmail`/`customerWhatsapp`/`contactPhone` **tidak** di-lock (sengaja, step 3.2 mask di UI) |
+| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | done-unverified | 2.2: passport dates + DOB → `superAdminFieldAccess`. 3.2: `customerEmail` (`j••@gmail.com`), `customerWhatsapp` + `contactPhone` (`+62•••••••90`) masked di list view via `MaskedEmailCell` + `MaskedPhoneCell`. Full value tetap di detail view (sengaja — admin perlu edit) |
 | 2 | `send-payment` race on double click | Medium | 1.1, 1.3 | done | 1.1 + 1.3 MERGED |
 | 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | done | 1.1 + 1.2 MERGED. **Pertahankan** per-attempt idempotency key — tetap pakai `Date.now()` |
 | 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | done | 2.1 VERIFIED (REST attack test): `access.update: () => false`; endpoint pakai `overrideAccess: true` |
