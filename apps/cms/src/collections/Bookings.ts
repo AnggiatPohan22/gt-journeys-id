@@ -1854,20 +1854,27 @@ export const Bookings: CollectionConfig = {
     {
       name: 'receiptNumber',
       type: 'text',
+      // Step 2.1 — Server-side immutable. `readOnly: true` di admin UI
+      // hanya block admin panel; REST/GraphQL update tetap bisa ubah
+      // tanpa access guard. Endpoint send-ticket pakai `overrideAccess: true`
+      // yang bypass guard ini → tetap jalan.
+      access: { update: () => false },
       admin: {
         hidden: true,
         readOnly: true,
-        description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1.',
+        description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1. Server-side immutable (Step 2.1).',
       },
     },
     {
       name: 'receiptIssuedAt',
       type: 'date',
+      // Step 2.1 — Server-side immutable (same alasan dengan receiptNumber).
+      access: { update: () => false },
       admin: {
         hidden: true,
         readOnly: true,
         date: { pickerAppearance: 'dayAndTime' },
-        description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send.',
+        description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send. Server-side immutable (Step 2.1).',
       },
     },
     {
@@ -1922,10 +1929,15 @@ export const Bookings: CollectionConfig = {
         {
           name: 'paymentAuditLog',
           type: 'textarea',
+          // Step 2.1 — Server-side immutable append-only. `readOnly: true`
+          // UI tidak cukup; sebelum ini super-admin masih bisa edit via
+          // REST/GraphQL. Endpoint send-ticket pakai `overrideAccess: true`
+          // untuk append entry → tetap jalan. Finding #4 di security audit.
+          access: { update: () => false },
           admin: {
             readOnly: true,
             rows: 6,
-            description: 'Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only.',
+            description: 'Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only. Server-side immutable (Step 2.1).',
           },
         },
       ],
