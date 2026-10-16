@@ -23,11 +23,11 @@ berpindah status (planned → in-progress → done).
 
 | # | Finding | Severity | Planned step | Status | Notes |
 |---|---|---|---|---|---|
-| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | planned | `customerEmail`, `customerWhatsapp`, `contactPhone` **tidak** di-lock — admin biasa harus bisa perbaiki typo. Hanya di-mask di list view |
-| 2 | `send-payment` race on double click | Medium | 1.1, 1.3 | done | Client-side disable DONE (1.1 VERIFIED). Server-side optimistic lock DONE (1.3 VERIFIED) |
-| 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | in-progress | Client-side disable DONE (1.1 VERIFIED). Server-side 30s guard DONE (1.2 VERIFIED). **Pertahankan** per-attempt idempotency key — tetap pakai `Date.now()` |
-| 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | planned | Set `access.update: () => false`; endpoint pakai `overrideAccess: true` |
-| 5 | `receiptNumber` / `receiptIssuedAt` unguarded | Low | 2.1 | planned | Sama seperti #4 |
+| 1 | No field access on `customer*` / passport dates | Medium | 2.2 (dates) + 3.2 (UI masking email/WA/phone) | in-progress | 2.2 DONE-UNVERIFIED: `dateOfBirth`, `passportIssueDate`, `passportExpiryDate` → `superAdminFieldAccess`. `customerEmail`/`customerWhatsapp`/`contactPhone` **tidak** di-lock (sengaja, step 3.2 mask di UI) |
+| 2 | `send-payment` race on double click | Medium | 1.1, 1.3 | done | 1.1 + 1.3 MERGED |
+| 3 | `send-ticket` per-attempt idempotency — double click = 2 emails | High | 1.1, 1.2 | done | 1.1 + 1.2 MERGED. **Pertahankan** per-attempt idempotency key — tetap pakai `Date.now()` |
+| 4 | `paymentAuditLog` editable by super-admin | Medium | 2.1 | done | 2.1 VERIFIED (REST attack test): `access.update: () => false`; endpoint pakai `overrideAccess: true` |
+| 5 | `receiptNumber` / `receiptIssuedAt` unguarded | Low | 2.1 | done | 2.1 VERIFIED: sama seperti #4 |
 | 6 | `bookingRef` enumerable (mitigated by 128-bit token) | Info | — | accepted | Token sudah 128-bit; enumeration tidak bisa akses booking |
 | 7 | `accessToken` shown in plaintext in admin list | Low | 3.1 | planned | Mask + click-to-reveal + copy button di cell |
 | 8 | No CMS-side rate limit on admin endpoints | Medium | — | accepted | Admin trusted; web layer sudah rate-limit customer requests |
@@ -37,9 +37,9 @@ berpindah status (planned → in-progress → done).
 | 12 | Logs and PII | Info | — | no-action | Tidak ada tindakan |
 | 13 | Email template HTML escaping | Info | — | no-action | Jangan expand `RAW_VARS` ke customer values |
 | 14 | Receipt PDF content | Info | — | no-action | Konten sudah OK |
-| 15 | GraphQL not disabled | Medium | 1.4 | done | VERIFIED (1.4). Set `graphQL: { disable: true }` di payload.config. Grep: 0 app code pakai `/api/graphql` |
+| 15 | GraphQL not disabled | Medium | 1.4 | done | 1.4 MERGED. Set `graphQL: { disable: true }` di payload.config. Grep: 0 app code pakai `/api/graphql` |
 | 16 | `enabled` / `role` field access | Info | — | no-action | Default access sudah cukup |
-| 17 | Login lockout implicit, no 2FA | Low | 1.5 (lockout now), 2FA later | in-progress | Lockout DONE-UNVERIFIED (1.5): `maxLoginAttempts: 5`, `lockTime: 600_000` eksplisit di `Users.auth`. 2FA super-admin → post-launch tetap pending |
+| 17 | Login lockout implicit, no 2FA | Low | 1.5 (lockout now), 2FA later | in-progress | Lockout DONE (1.5 MERGED): `maxLoginAttempts: 5`, `lockTime: 600_000` eksplisit di `Users.auth`. 2FA super-admin → post-launch tetap pending |
 | 18 | Media collection public read | Info | — | no-action | Jangan upload passport scans ke Media collection |
 | 19 | `bankAccounts` readable by all admins | Info | — | no-action | Admin dianggap trusted |
 | 20 | Status transition guards | Info | — | no-action | Logic sudah OK |

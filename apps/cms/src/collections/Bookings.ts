@@ -1,4 +1,4 @@
-import type { CollectionConfig, Endpoint } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from 'payload'
 import { isAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
 import {
   buildContext,
@@ -242,6 +242,76 @@ async function readBody(req: Parameters<Endpoint['handler']>[0]): Promise<Handof
   } catch {
     return {}
   }
+}
+
+/**
+ * Step 2.3 — Audit log untuk manual edit field sensitif pada booking yang
+ * sudah `confirmed` atau later. Hook `beforeChange` menambahkan 1 entry ke
+ * `paymentAuditLog` ketika admin mengubah `paymentBank`, `paymentDate`,
+ * atau `departureDate` lewat admin UI atau REST biasa.
+ *
+ * Guard terhadap duplikasi:
+ * - `req.context.skipAuditLogHook: true` di-set oleh send-ticket endpoint
+ *   yang punya logika audit sendiri (resend flow). Hook skip supaya tidak
+ *   append 2 entry untuk satu transisi.
+ *
+ * Scope: HANYA 3 field tersebut. Tidak log perubahan PII lain (nama,
+ * email, phone, passport) — scope sengaja sempit per playbook §2.3.
+ *
+ * Status yang trigger hook: post-payment states ("confirmed or later")
+ * — tidak termasuk `awaiting_review`/`awaiting_payment`/`payment_review`/
+ * `pending` di mana paymentBank/paymentDate memang belum ter-set.
+ */
+const AUDIT_TRIGGER_STATUSES = new Set<string>([
+  'confirmed',
+  'reschedule_request',
+  'cancel_request',
+  'cancelled',
+  'expired',
+])
+
+const normalizeDate = (v: unknown): string =>
+  typeof v === 'string' && v ? v.slice(0, 10) : ''
+
+const normalizeStr = (v: unknown): string => (typeof v === 'string' ? v : '')
+
+const auditManualEditHook: CollectionBeforeChangeHook = ({ data, originalDoc, req, operation }) => {
+  if (operation !== 'update' || !originalDoc) return data
+  if (req?.context?.skipAuditLogHook) return data
+
+  const prevStatus = typeof originalDoc.status === 'string' ? originalDoc.status : ''
+  if (!AUDIT_TRIGGER_STATUSES.has(prevStatus)) return data
+
+  const changes: string[] = []
+
+  // paymentBank: text comparison
+  if (data.paymentBank !== undefined) {
+    const oldV = normalizeStr(originalDoc.paymentBank)
+    const newV = normalizeStr(data.paymentBank)
+    if (oldV !== newV) changes.push(`paymentBank: ${oldV || '(none)'} -> ${newV || '(none)'}`)
+  }
+  // paymentDate + departureDate: compare YYYY-MM-DD (ignore time portion
+  // supaya "2026-10-15T00:00:00.000Z" vs "2026-10-15" tidak jadi perubahan).
+  for (const key of ['paymentDate', 'departureDate'] as const) {
+    if ((data as Record<string, unknown>)[key] !== undefined) {
+      const oldV = normalizeDate((originalDoc as Record<string, unknown>)[key])
+      const newV = normalizeDate((data as Record<string, unknown>)[key])
+      if (oldV !== newV) changes.push(`${key}: ${oldV || '(none)'} -> ${newV || '(none)'}`)
+    }
+  }
+
+  if (changes.length === 0) return data
+
+  const user = req?.user as { email?: string; id?: number | string } | null | undefined
+  const userLabel = user?.email ?? (user?.id != null ? `user#${user.id}` : 'unknown')
+  const nowIso = new Date().toISOString()
+  const entry = `${nowIso} ${userLabel} | ${changes.join(' | ')} | manual-edit`
+  const prevLog =
+    typeof (originalDoc as Record<string, unknown>).paymentAuditLog === 'string'
+      ? ((originalDoc as Record<string, unknown>).paymentAuditLog as string)
+      : ''
+  ;(data as Record<string, unknown>).paymentAuditLog = prevLog ? `${prevLog}\n${entry}` : entry
+  return data
 }
 
 const sendPaymentEndpoint: Endpoint = {
@@ -1276,6 +1346,10 @@ const sendTicketEndpoint: Endpoint = {
         id,
         data: updateData,
         overrideAccess: true,
+        // Step 2.3 — Skip beforeChange audit hook: send-ticket resend
+        // sudah tulis entry audit sendiri (lihat updateData.paymentAuditLog
+        // di atas). Tanpa flag ini akan dapat 2 entry per resend.
+        context: { skipAuditLogHook: true },
       })
 
       const response: HandoffResponse = {
@@ -1366,6 +1440,11 @@ export const Bookings: CollectionConfig = {
     read: isAdmin,
     update: isAdmin,
     delete: isSuperAdmin,
+  },
+  // Step 2.3 — Audit hook untuk manual edit paymentBank/paymentDate/
+  // departureDate pada booking status confirmed-or-later.
+  hooks: {
+    beforeChange: [auditManualEditHook],
   },
   endpoints: [sendPaymentEndpoint, sendTicketEndpoint, confirmRescheduleEndpoint, declineRescheduleEndpoint, confirmCancelEndpoint, declineCancelEndpoint, customerRequestEndpoint],
   fields: [
@@ -1576,7 +1655,16 @@ export const Bookings: CollectionConfig = {
         {
           type: 'row',
           fields: [
-            { name: 'dateOfBirth',        type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' } } },
+            {
+              name: 'dateOfBirth',
+              type: 'date',
+              // Step 2.2 — PII sensitif setingkat passport. Update dibatasi
+              // super-admin (collection-level `update: isAdmin` sudah ketat,
+              // tapi field access memberi tambahan defense: admin biasa
+              // tidak bisa ubah tanpa naik ke super-admin dulu).
+              access: { update: superAdminFieldAccess },
+              admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Update dibatasi super-admin (Step 2.2).' },
+            },
             {
               name: 'passportNumber',
               type: 'text',
@@ -1593,13 +1681,27 @@ export const Bookings: CollectionConfig = {
                 description: 'Disimpan penuh di CMS; di frontend hanya 4 digit terakhir yang terlihat. Update dibatasi super-admin.',
               },
             },
-            { name: 'passportIssueDate',  type: 'date', admin: { width: '17%', date: { pickerAppearance: 'dayOnly' } } },
+            {
+              name: 'passportIssueDate',
+              type: 'date',
+              // Step 2.2 — bagian dari passport bundle. Konsisten dengan
+              // passportNumber: super-admin only untuk update.
+              access: { update: superAdminFieldAccess },
+              admin: { width: '17%', date: { pickerAppearance: 'dayOnly' }, description: 'Update dibatasi super-admin (Step 2.2).' },
+            },
           ],
         },
         {
           type: 'row',
           fields: [
-            { name: 'passportExpiryDate', type: 'date', admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Minimal 6 bulan setelah departureDate.' } },
+            {
+              name: 'passportExpiryDate',
+              type: 'date',
+              // Step 2.2 — bagian dari passport bundle. Konsisten dengan
+              // passportNumber: super-admin only untuk update.
+              access: { update: superAdminFieldAccess },
+              admin: { width: '33%', date: { pickerAppearance: 'dayOnly' }, description: 'Minimal 6 bulan setelah departureDate. Update dibatasi super-admin (Step 2.2).' },
+            },
           ],
         },
       ],
@@ -1854,20 +1956,27 @@ export const Bookings: CollectionConfig = {
     {
       name: 'receiptNumber',
       type: 'text',
+      // Step 2.1 — Server-side immutable. `readOnly: true` di admin UI
+      // hanya block admin panel; REST/GraphQL update tetap bisa ubah
+      // tanpa access guard. Endpoint send-ticket pakai `overrideAccess: true`
+      // yang bypass guard ini → tetap jalan.
+      access: { update: () => false },
       admin: {
         hidden: true,
         readOnly: true,
-        description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1.',
+        description: 'Format: RCPT-{bookingRef}-{YYYYMMDD(Makassar)}. FROZEN on first send — Phase 4.70.3.1. Server-side immutable (Step 2.1).',
       },
     },
     {
       name: 'receiptIssuedAt',
       type: 'date',
+      // Step 2.1 — Server-side immutable (same alasan dengan receiptNumber).
+      access: { update: () => false },
       admin: {
         hidden: true,
         readOnly: true,
         date: { pickerAppearance: 'dayAndTime' },
-        description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send.',
+        description: 'Timestamp first receipt issue (Asia/Makassar). FROZEN on first send. Server-side immutable (Step 2.1).',
       },
     },
     {
@@ -1922,10 +2031,15 @@ export const Bookings: CollectionConfig = {
         {
           name: 'paymentAuditLog',
           type: 'textarea',
+          // Step 2.1 — Server-side immutable append-only. `readOnly: true`
+          // UI tidak cukup; sebelum ini super-admin masih bisa edit via
+          // REST/GraphQL. Endpoint send-ticket pakai `overrideAccess: true`
+          // untuk append entry → tetap jalan. Finding #4 di security audit.
+          access: { update: () => false },
           admin: {
             readOnly: true,
             rows: 6,
-            description: 'Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only.',
+            description: 'Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only. Server-side immutable (Step 2.1).',
           },
         },
       ],
