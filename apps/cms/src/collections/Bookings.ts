@@ -1,4 +1,4 @@
-import type { CollectionConfig, Endpoint } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from 'payload'
 import { isAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
 import {
   buildContext,
@@ -242,6 +242,76 @@ async function readBody(req: Parameters<Endpoint['handler']>[0]): Promise<Handof
   } catch {
     return {}
   }
+}
+
+/**
+ * Step 2.3 — Audit log untuk manual edit field sensitif pada booking yang
+ * sudah `confirmed` atau later. Hook `beforeChange` menambahkan 1 entry ke
+ * `paymentAuditLog` ketika admin mengubah `paymentBank`, `paymentDate`,
+ * atau `departureDate` lewat admin UI atau REST biasa.
+ *
+ * Guard terhadap duplikasi:
+ * - `req.context.skipAuditLogHook: true` di-set oleh send-ticket endpoint
+ *   yang punya logika audit sendiri (resend flow). Hook skip supaya tidak
+ *   append 2 entry untuk satu transisi.
+ *
+ * Scope: HANYA 3 field tersebut. Tidak log perubahan PII lain (nama,
+ * email, phone, passport) — scope sengaja sempit per playbook §2.3.
+ *
+ * Status yang trigger hook: post-payment states ("confirmed or later")
+ * — tidak termasuk `awaiting_review`/`awaiting_payment`/`payment_review`/
+ * `pending` di mana paymentBank/paymentDate memang belum ter-set.
+ */
+const AUDIT_TRIGGER_STATUSES = new Set<string>([
+  'confirmed',
+  'reschedule_request',
+  'cancel_request',
+  'cancelled',
+  'expired',
+])
+
+const normalizeDate = (v: unknown): string =>
+  typeof v === 'string' && v ? v.slice(0, 10) : ''
+
+const normalizeStr = (v: unknown): string => (typeof v === 'string' ? v : '')
+
+const auditManualEditHook: CollectionBeforeChangeHook = ({ data, originalDoc, req, operation }) => {
+  if (operation !== 'update' || !originalDoc) return data
+  if (req?.context?.skipAuditLogHook) return data
+
+  const prevStatus = typeof originalDoc.status === 'string' ? originalDoc.status : ''
+  if (!AUDIT_TRIGGER_STATUSES.has(prevStatus)) return data
+
+  const changes: string[] = []
+
+  // paymentBank: text comparison
+  if (data.paymentBank !== undefined) {
+    const oldV = normalizeStr(originalDoc.paymentBank)
+    const newV = normalizeStr(data.paymentBank)
+    if (oldV !== newV) changes.push(`paymentBank: ${oldV || '(none)'} -> ${newV || '(none)'}`)
+  }
+  // paymentDate + departureDate: compare YYYY-MM-DD (ignore time portion
+  // supaya "2026-10-15T00:00:00.000Z" vs "2026-10-15" tidak jadi perubahan).
+  for (const key of ['paymentDate', 'departureDate'] as const) {
+    if ((data as Record<string, unknown>)[key] !== undefined) {
+      const oldV = normalizeDate((originalDoc as Record<string, unknown>)[key])
+      const newV = normalizeDate((data as Record<string, unknown>)[key])
+      if (oldV !== newV) changes.push(`${key}: ${oldV || '(none)'} -> ${newV || '(none)'}`)
+    }
+  }
+
+  if (changes.length === 0) return data
+
+  const user = req?.user as { email?: string; id?: number | string } | null | undefined
+  const userLabel = user?.email ?? (user?.id != null ? `user#${user.id}` : 'unknown')
+  const nowIso = new Date().toISOString()
+  const entry = `${nowIso} ${userLabel} | ${changes.join(' | ')} | manual-edit`
+  const prevLog =
+    typeof (originalDoc as Record<string, unknown>).paymentAuditLog === 'string'
+      ? ((originalDoc as Record<string, unknown>).paymentAuditLog as string)
+      : ''
+  ;(data as Record<string, unknown>).paymentAuditLog = prevLog ? `${prevLog}\n${entry}` : entry
+  return data
 }
 
 const sendPaymentEndpoint: Endpoint = {
@@ -1276,6 +1346,10 @@ const sendTicketEndpoint: Endpoint = {
         id,
         data: updateData,
         overrideAccess: true,
+        // Step 2.3 — Skip beforeChange audit hook: send-ticket resend
+        // sudah tulis entry audit sendiri (lihat updateData.paymentAuditLog
+        // di atas). Tanpa flag ini akan dapat 2 entry per resend.
+        context: { skipAuditLogHook: true },
       })
 
       const response: HandoffResponse = {
@@ -1366,6 +1440,11 @@ export const Bookings: CollectionConfig = {
     read: isAdmin,
     update: isAdmin,
     delete: isSuperAdmin,
+  },
+  // Step 2.3 — Audit hook untuk manual edit paymentBank/paymentDate/
+  // departureDate pada booking status confirmed-or-later.
+  hooks: {
+    beforeChange: [auditManualEditHook],
   },
   endpoints: [sendPaymentEndpoint, sendTicketEndpoint, confirmRescheduleEndpoint, declineRescheduleEndpoint, confirmCancelEndpoint, declineCancelEndpoint, customerRequestEndpoint],
   fields: [
