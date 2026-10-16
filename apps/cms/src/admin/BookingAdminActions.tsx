@@ -53,6 +53,11 @@ interface BankAccount {
 function statusToKinds(status: string | undefined): ActionKind[] {
   if (status === 'awaiting_review' || status === 'pending') return ['payment']
   if (status === 'payment_review' || status === 'awaiting_payment') return ['ticket']
+  // Step 3.5 — expose resend from confirmed. Backend sudah support
+  // (lihat Bookings.ts send-ticket endpoint Phase 4.70.3.1 — reuse
+  // receiptNumber + receiptIssuedAt). Sebelum ini tidak ada entry
+  // point UI → warning resend tidak pernah reachable.
+  if (status === 'confirmed') return ['ticket']
   if (status === 'reschedule_request') return ['rescheduleConfirm', 'rescheduleDecline']
   if (status === 'cancel_request') return ['cancelConfirm', 'cancelDecline']
   return []
