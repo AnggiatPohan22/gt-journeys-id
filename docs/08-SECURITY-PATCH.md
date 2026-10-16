@@ -73,6 +73,39 @@ Severity vocab (match standar industri):
 
 ---
 
+### Phase 4.74 — Booking Hardening Series: Stage 1 → 3 (2026-10-15 → 2026-10-16)
+
+**Context:** Audit kedua terhadap collection Bookings (22 finding, Oct 2026) — [`docs/security-followups.md`](security-followups.md). Playbook: [`docs/security-hardening-playbook.md`](security-hardening-playbook.md). Dibagi 4 stage; Stage 1→3 selesai, Stage 4 pending.
+
+**Status series:** 15 phase report (3 stage README + 12 step) di [`docs/phases/phase-4-polish-launch/booking-hardening/`](phases/phase-4-polish-launch/booking-hardening/). 3 PR MERGED ke main (#3, #4, #5).
+
+| # | Finding | Severity | Phase report | Ringkas | Status |
+|---|---|---|---|---|---|
+| #2 | send-payment race on double click | Medium | [1.1](phases/phase-4-polish-launch/booking-hardening/stage-1-quick-wins/phase-1.1-admin-send-button-inflight-guard.md) + [1.3](phases/phase-4-polish-launch/booking-hardening/stage-1-quick-wins/phase-1.3-send-payment-optimistic-lock.md) | Client inflight guard + server optimistic lock + rollback-on-email-fail | ✅ |
+| #3 | send-ticket per-attempt idempotency — double click = 2 emails | High | [1.1](phases/phase-4-polish-launch/booking-hardening/stage-1-quick-wins/phase-1.1-admin-send-button-inflight-guard.md) + [1.2](phases/phase-4-polish-launch/booking-hardening/stage-1-quick-wins/phase-1.2-send-ticket-rate-limit.md) | Client inflight guard + server 30s rate-limit via `max(sentTicketAt, updatedAt)` | ✅ |
+| #15 | GraphQL not disabled | Medium | [1.4](phases/phase-4-polish-launch/booking-hardening/stage-1-quick-wins/phase-1.4-disable-graphql.md) | `graphQL: { disable: true }` di payload.config. 0 app code pakai `/api/graphql` | ✅ |
+| #17 | Login lockout implicit, no 2FA | Low | [1.5](phases/phase-4-polish-launch/booking-hardening/stage-1-quick-wins/phase-1.5-login-lockout-config.md) | `maxLoginAttempts: 5` + `lockTime: 600_000` eksplisit. 2FA super-admin deferred post-launch | ⚠️ partial |
+| #4 | paymentAuditLog editable by super-admin | Medium | [2.1](phases/phase-4-polish-launch/booking-hardening/stage-2-field-locks/phase-2.1-lock-receipt-audit-fields.md) | `access.update: () => false`; send-ticket endpoint pakai `overrideAccess: true` | ✅ |
+| #5 | receiptNumber / receiptIssuedAt unguarded | Low | [2.1](phases/phase-4-polish-launch/booking-hardening/stage-2-field-locks/phase-2.1-lock-receipt-audit-fields.md) | Same pattern dengan #4 | ✅ |
+| #1 | No field access on customer*/passport dates | Medium | [2.2](phases/phase-4-polish-launch/booking-hardening/stage-2-field-locks/phase-2.2-superadmin-passport-dates.md) + [3.2](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.2-list-masking.md) | 2.2 server lock untuk DOB + passport dates (`superAdminFieldAccess`); 3.2 UI mask untuk email/WA/phone (sengaja tidak dilock untuk fix-typo flow) | ✅ |
+| — | Audit gap: manual admin edits untracked | — | [2.3](phases/phase-4-polish-launch/booking-hardening/stage-2-field-locks/phase-2.3-auto-audit-log-manual-edits.md) | `beforeChange` hook append `paymentAuditLog` entry saat admin ubah paymentBank/paymentDate/departureDate pada booking confirmed+. Guard duplikasi via `context.skipAuditLogHook` | ✅ |
+| — | Stage 3 design brief | — | [3.0](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.0-design-brief.md) | `docs/booking-ui-redesign-brief.md` approved by user dengan defaults | ✅ |
+| #7 | accessToken plaintext in admin list | Low | [3.1](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.1-accesstoken-cell.md) | `AccessTokenCell`: mask + click-to-reveal + copy; reload re-masks; no telemetry | ✅ |
+| — | UX finding: detail view 40+ field flat, 11 hidden | — | [3.3](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.3-detail-view-grouping.md) | 3 collapsible baru (Pricing/Payment/Request History) + un-hide 11 field. Customer/Trip wrap scope-reduced | ✅ |
+| — | UX finding: risky-action tanpa confirm | — | [3.4](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.4-confirmation-modals.md) | `DepartureDateConfirmGuard` + `HasRequestedChangeConfirmGuard` sibling-UI pattern. Delete-booking confirm skip (admin trusted) | ✅ |
+| — | Audit gap: resend expectation unclear | — | [3.5](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.5-resend-notice-copy.md) + [3.5.1](phases/phase-4-polish-launch/booking-hardening/stage-3-ui-redesign/phase-3.5.1-expose-resend-ui-entry.md) | Enhanced warning dengan live interpolate (email + receiptNumber + issuedAt Asia/Makassar) + button rename. 3.5.1 patch expose UI entry (`statusToKinds` gap) | ✅ |
+
+**Follow-up (Stage 4 — pre-production checklist, mostly NOT agent code):**
+- Phase 4.74.4.1 — Dedicated API user untuk web→CMS calls dengan scoped access + rotate `PAYLOAD_API_KEY` (#9 High).
+- Phase 4.74.4.2 — Data retention policy untuk passenger PII (UU PDP; butuh keputusan bisnis — #11 Medium).
+- Phase 4.74.4.3 — Fix type error `not-found.tsx:12`.
+- Phase 4.74.4.4 — Replace `https://example.com` placeholder.
+- Phase 4.74.4.5 — Verifikasi OTP cleanup cron (#10 Low).
+
+**Accepted risk / no-action:** #6, #8, #12, #13, #14, #16, #18, #19, #20, #21, #22. Detail di [`docs/security-followups.md`](security-followups.md).
+
+---
+
 ## Template entry untuk series berikutnya
 
 Saat ada perintah security baru (mis. "audit chat widget", "patch CVE X", "pengetatan RBAC"), tambahkan section baru di bawah dengan struktur:
