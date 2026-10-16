@@ -79,7 +79,7 @@ Owner: `USER` = the user does it manually, agent must not. `AGENT` = agent does 
 | 3.2 | AGENT | List view masking for email/WhatsApp/passport | #1 | DONE-UNVERIFIED |
 | 3.3 | AGENT | Friendlier detail layout (grouped sections) | UX | DONE-UNVERIFIED |
 | 3.4 | AGENT | Confirmation modals for risky actions | audit sec. D | DONE-UNVERIFIED |
-| 3.5 | AGENT | Resend notice: customer receives a second receipt | audit gap | TODO |
+| 3.5 | AGENT | Resend notice: customer receives a second receipt | audit gap | DONE-UNVERIFIED |
 | 4.x | MIXED | Pre-production checklist (section 4) | #9, #10, #11 | TODO |
 
 When you complete or change a step, update this table in the same commit.

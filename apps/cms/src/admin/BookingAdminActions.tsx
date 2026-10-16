@@ -129,6 +129,20 @@ const BookingAdminActions: React.FC = () => {
   const status =
     (typeof fields?.status?.value === 'string' && fields.status.value) || ''
   const kinds = statusToKinds(status)
+  // Step 3.5 — read receipt + customer fields untuk enhanced resend
+  // notice (frozen receiptNumber/issuedAt dari first send; email tujuan).
+  const customerEmailValue =
+    typeof fields?.customerEmail?.value === 'string' ? fields.customerEmail.value : ''
+  const receiptNumberValue =
+    typeof fields?.receiptNumber?.value === 'string' ? fields.receiptNumber.value : ''
+  const receiptIssuedAtValue =
+    typeof fields?.receiptIssuedAt?.value === 'string' ? fields.receiptIssuedAt.value : ''
+  const formatReceiptIssuedAt = (iso: string): string => {
+    if (!iso) return '(unset)'
+    const d = new Date(iso)
+    if (Number.isNaN(d.getTime())) return iso
+    return d.toLocaleString('id-ID', { timeZone: 'Asia/Makassar', dateStyle: 'medium', timeStyle: 'short' })
+  }
 
   const [open, setOpen] = useState(false)
   const [activeKind, setActiveKind] = useState<ActionKind | null>(null)
@@ -381,9 +395,35 @@ const BookingAdminActions: React.FC = () => {
                 <section className="bk-modal__section">
                   {status === 'confirmed' && (
                     <div className="bk-modal__warning bk-modal__warning--resend" role="alert">
-                      <strong>Resend mode:</strong> Booking ini sudah pernah dikonfirmasi.
-                      Submit akan mengirim <strong>receipt KEDUA</strong> ke customer dengan nomor &amp; tanggal terbit yang sama.
-                      Perubahan Payment Bank atau Payment Date akan dicatat di <code>paymentAuditLog</code> untuk audit.
+                      <strong>⚠ RESEND NOTICE</strong> — booking sudah confirmed.
+                      <br />
+                      <br />
+                      Mengirim ulang akan:
+                      <ul style={{ margin: '0.4rem 0 0.4rem 1.2rem', padding: 0 }}>
+                        <li>
+                          Kirim <strong>email receipt kedua</strong> ke customer
+                          {customerEmailValue ? (
+                            <> (<code>{customerEmailValue}</code>)</>
+                          ) : null}
+                          .
+                        </li>
+                        <li>
+                          Pakai <code>receiptNumber</code> yang <strong>SAMA</strong>
+                          {receiptNumberValue ? (
+                            <> (<code>{receiptNumberValue}</code>)</>
+                          ) : null}
+                          {' '}dan tanggal issue yang <strong>SAMA</strong>
+                          {receiptIssuedAtValue ? (
+                            <> (<code>{formatReceiptIssuedAt(receiptIssuedAtValue)}</code>)</>
+                          ) : null}
+                          . Tidak ada receipt baru dibuat.
+                        </li>
+                        <li>
+                          Append entry ke <code>paymentAuditLog</code> kalau
+                          Payment Bank / Payment Date diubah di modal ini.
+                        </li>
+                      </ul>
+                      Lanjutkan hanya kalau customer memang perlu salinan ulang.
                     </div>
                   )}
                   <div className="bk-modal__warning bk-modal__warning--ticket" role="status">
@@ -577,7 +617,11 @@ const BookingAdminActions: React.FC = () => {
                   disabled={loading}
                   aria-busy={loading}
                 >
-                  {loading ? 'Sending…' : 'Confirm & Send'}
+                  {loading
+                    ? 'Sending…'
+                    : activeKind === 'ticket' && status === 'confirmed'
+                      ? 'Confirm & Send Receipt (Resend)'
+                      : 'Confirm & Send'}
                 </button>
               )}
               <button

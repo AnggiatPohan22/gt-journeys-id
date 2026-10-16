@@ -285,6 +285,9 @@ export interface Booking {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Ubah pada booking confirmed+ akan ter-prompt (Step 3.4) dan ter-audit (Step 2.3).
+   */
   departureDate: string;
   adults: number;
   children?: number | null;
