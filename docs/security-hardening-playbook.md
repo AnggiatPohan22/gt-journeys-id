@@ -65,12 +65,12 @@ Owner: `USER` = the user does it manually, agent must not. `AGENT` = agent does 
 | 0.1 | USER | Decide GitHub branch protection (allow merge commits, keep PR required) | n/a | VERIFIED |
 | 0.2 | USER | Run typecheck (cms, web), shared tests, run migration 4.72 on local D1, check price display | n/a | VERIFIED |
 | 0.3 | AGENT | Add "Deferred" section to docs | n/a | MERGED |
-| 0.4 | AGENT | Create `docs/security-followups.md` tracker | all | DONE-UNVERIFIED |
-| 1.1 | AGENT | Disable Send buttons while request in flight | #2, #3 | TODO |
-| 1.2 | AGENT | send-ticket server guard against rapid duplicate requests | #3 | TODO |
-| 1.3 | AGENT | send-payment optimistic lock | #2 | TODO |
-| 1.4 | AGENT | Disable GraphQL | #15 | TODO |
-| 1.5 | AGENT | Explicit login lockout config | #17 | TODO |
+| 0.4 | AGENT | Create `docs/security-followups.md` tracker | all | MERGED |
+| 1.1 | AGENT | Disable Send buttons while request in flight | #2, #3 | VERIFIED |
+| 1.2 | AGENT | send-ticket server guard against rapid duplicate requests | #3 | VERIFIED |
+| 1.3 | AGENT | send-payment optimistic lock | #2 | VERIFIED |
+| 1.4 | AGENT | Disable GraphQL | #15 | VERIFIED |
+| 1.5 | AGENT | Explicit login lockout config | #17 | DONE-UNVERIFIED |
 | 2.1 | AGENT | Lock audit/receipt fields from manual update | #4, #5 | TODO |
 | 2.2 | AGENT | Super-admin-only update for passport dates and dateOfBirth | #1 (partial) | TODO |
 | 2.3 | AGENT | Auto audit log on manual edits of payment/departure fields | audit gap | TODO |

@@ -106,6 +106,16 @@ export default buildConfig({
   }),
   sharp, // auto resize gambar
 
+  // ── GraphQL (Step 1.4 — security hardening) ─
+  // Disable Payload's GraphQL endpoint + playground. Zero app code calls
+  // `/api/graphql` across apps/cms + apps/web (verified via grep). Admin
+  // panel pakai REST + internal RPC, tidak terpengaruh. Mengurangi attack
+  // surface: query introspection, complexity DoS, auth bypass via alias
+  // batching. Finding #15 di docs/security-followups.md.
+  graphQL: {
+    disable: true,
+  },
+
   // ── Folders (Phase 4.60) ────────────────────
   // Native Payload folder organization. Only Media opts in (folders: true).
   // `collectionSpecific: true` scopes each folder to the collection(s) it

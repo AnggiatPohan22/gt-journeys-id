@@ -28,7 +28,17 @@ export const Users: CollectionConfig = {
   // bookings) bisa authenticate ke Payload REST via
   // `Authorization: users API-Key <key>`. Tanpa flag ini, DB tidak punya
   // kolom `api_key` / `enable_api_key` dan admin UI tak menampilkan toggle.
-  auth: { useAPIKey: true },
+  //
+  // Step 1.5 — Explicit login lockout. Payload default: 5 attempts /
+  // 10 menit (600_000 ms), tapi tidak di-set berarti rely pada default yang
+  // bisa berubah antar versi. Explicit supaya tingkah lockout stabil dan
+  // ter-audit. Setelah 5 kali gagal, akun di-lock 10 menit; super-admin
+  // bisa force-unlock via Security tab button (sudah ada).
+  auth: {
+    useAPIKey: true,
+    maxLoginAttempts: 5,
+    lockTime: 600_000,
+  },
   admin: {
     useAsTitle: 'name',
     group: 'System',
