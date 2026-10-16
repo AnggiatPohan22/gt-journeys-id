@@ -5,11 +5,11 @@ Phase 4.66 (checkout security v0.1 — baseline). Series ini meng-cover
 22 finding audit (Oct 2026), dibagi menjadi 4 stage per
 [`docs/security-hardening-playbook.md`](../../../security-hardening-playbook.md).
 
-Status series:
+Status series: **✅ All AGENT scope complete** (lihat [CLOSING-SUMMARY.md](CLOSING-SUMMARY.md)).
 - **Stage 1 — Quick wins (idempotency / rate-limit / GraphQL / lockout):** ✅ 5 step MERGED
 - **Stage 2 — Field-level data integrity locks:** ✅ 3 step MERGED
 - **Stage 3 — Admin UI redesign (masking / grouping / modals / resend notice):** ✅ 7 commit MERGED
-- **Stage 4 — Pre-production checklist (API user, PII retention, dsb):** 📋 planned
+- **Stage 4 — Pre-production (API user, PII retention, hygiene fixes):** ✅ 4 AGENT item MERGED · ⏳ USER manual steps + USER-only items pending
 
 Tracker lengkap finding + status: [`docs/security-followups.md`](../../../security-followups.md).
 
@@ -22,12 +22,14 @@ Tracker lengkap finding + status: [`docs/security-followups.md`](../../../securi
 
 ## Index
 
-| Stage | Scope | Branch | Merge PR |
-|---|---|---|---|
-| [1](stage-1-quick-wins/README.md) | Idempotency + rate-limit guard + GraphQL off + login lockout | `fix/booking-security-quick` | [#3](https://github.com/AnggiatPohan22/gt-journeys-id/pull/3) |
-| [2](stage-2-field-locks/README.md) | Server-side lock receipt/audit/passport-dates + manual-edit audit hook | `fix/booking-field-locks` | [#4](https://github.com/AnggiatPohan22/gt-journeys-id/pull/4) |
-| [3](stage-3-ui-redesign/README.md) | AccessToken cell + list masking + detail collapsibles + confirm modals + resend copy | `feat/booking-ui-redesign` | [#5](https://github.com/AnggiatPohan22/gt-journeys-id/pull/5) |
-| 4 | API user rotate, PII retention, pre-deploy checklist | TBD | — |
+| Stage | Scope | Merge PR |
+|---|---|---|
+| [1](stage-1-quick-wins/README.md) | Idempotency + rate-limit guard + GraphQL off + login lockout | [#3](https://github.com/AnggiatPohan22/gt-journeys-id/pull/3) |
+| [2](stage-2-field-locks/README.md) | Server-side lock receipt/audit/passport-dates + manual-edit audit hook | [#4](https://github.com/AnggiatPohan22/gt-journeys-id/pull/4) |
+| [3](stage-3-ui-redesign/README.md) | AccessToken cell + list masking + detail collapsibles + confirm modals + resend copy | [#5](https://github.com/AnggiatPohan22/gt-journeys-id/pull/5) |
+| [4](stage-4-pre-production/README.md) | Scoped `api` role (4.1) + PII retention (4.2) + admin scaffold TS fix (4.3) + production domain (4.4) | [#7](https://github.com/AnggiatPohan22/gt-journeys-id/pull/7), [#8](https://github.com/AnggiatPohan22/gt-journeys-id/pull/8), [#9](https://github.com/AnggiatPohan22/gt-journeys-id/pull/9), [#10](https://github.com/AnggiatPohan22/gt-journeys-id/pull/10) |
+
+Backfill docs: [#6](https://github.com/AnggiatPohan22/gt-journeys-id/pull/6).
 
 ## Updates ke master log
 
