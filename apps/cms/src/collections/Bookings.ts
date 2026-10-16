@@ -1,5 +1,5 @@
 import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from 'payload'
-import { isAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
+import { isAdmin, isApiOrAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
 import {
   buildContext,
   buildWaLink,
@@ -1436,9 +1436,13 @@ export const Bookings: CollectionConfig = {
     },
   },
   access: {
-    create: isAdmin,
+    // Phase 4.74.4.1 — widen create+update to accept 'api' role (web→CMS
+    // via PAYLOAD_API_KEY: /api/bookings/create + /api/bookings/request-change).
+    // Read + delete tetap admin-only (API user tidak perlu list booking
+    // atau delete; endpoint send-* dsb pakai `overrideAccess` internally).
+    create: isApiOrAdmin,
     read: isAdmin,
-    update: isAdmin,
+    update: isApiOrAdmin,
     delete: isSuperAdmin,
   },
   // Step 2.3 — Audit hook untuk manual edit paymentBank/paymentDate/

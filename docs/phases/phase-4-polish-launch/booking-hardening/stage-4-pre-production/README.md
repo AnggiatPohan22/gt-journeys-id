@@ -9,7 +9,7 @@ Playbook: [`../../../../security-hardening-playbook.md`](../../../../security-ha
 
 | # | Item | Owner | Status |
 |---|---|---|---|
-| 4.1 | Dedicated API user + rotate `PAYLOAD_API_KEY` (#9 High) | AGENT after USER decision | 📋 planned |
+| 4.1 | Dedicated API user + rotate `PAYLOAD_API_KEY` (#9 High) | AGENT (code) + USER (admin UI steps post-merge) | ✅ CODE DONE (PR TBD) · ⏳ USER steps pending |
 | 4.2 | Data retention policy passenger PII (#11 Medium) | USER decision then AGENT | 📋 planned |
 | 4.3 | Fix type error `[[...segments]]/not-found.tsx:12` | AGENT | ✅ MERGED (TBD) |
 | 4.4 | Replace `https://example.com` placeholder → `https://gtjourneys.id` | AGENT | ✅ MERGED (TBD) |
@@ -22,5 +22,6 @@ Playbook: [`../../../../security-hardening-playbook.md`](../../../../security-ha
 
 ## Phase reports
 
+- [4.1 Dedicated API user role](phase-4.1-api-user-role.md)
 - [4.3 Fix admin scaffold types](phase-4.3-fix-admin-scaffold-types.md)
 - [4.4 Set production domain](phase-4.4-set-production-domain.md)

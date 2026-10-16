@@ -77,13 +77,19 @@ export const Users: CollectionConfig = {
           { label: 'Editor', value: 'editor' },
           { label: 'Admin', value: 'admin' },
           { label: 'Super Admin', value: 'super-admin' },
+          // Phase 4.74.4.1 (Stage 4.1, finding #9) — dedicated role
+          // untuk web→CMS API key user. JANGAN assign ke manusia:
+          // tidak punya admin UI akses (lihat admin.hidden gate di
+          // Users collection). Scope: lihat `isApiOrAdmin` di
+          // apps/cms/src/access/roles.ts.
+          { label: 'API Integration (web→CMS, non-human)', value: 'api' },
         ],
         access: {
           update: superAdminFieldAccess,
         },
         admin: {
           position: 'sidebar',
-          description: 'Only super-admin can change roles.',
+          description: 'Only super-admin can change roles. API Integration = non-human account yang pakai API key (web→CMS).',
         },
       },
       'general',

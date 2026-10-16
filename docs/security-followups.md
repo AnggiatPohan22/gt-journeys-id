@@ -31,7 +31,7 @@ berpindah status (planned → in-progress → done).
 | 6 | `bookingRef` enumerable (mitigated by 128-bit token) | Info | — | accepted | Token sudah 128-bit; enumeration tidak bisa akses booking |
 | 7 | `accessToken` shown in plaintext in admin list | Low | 3.1 | done-unverified | Step 3.1: `AccessTokenCell` mask (`••••••••••••{last4}`) + click-to-reveal (per-row, non-persistent) + copy button (full token). Non-telemetric |
 | 8 | No CMS-side rate limit on admin endpoints | Medium | — | accepted | Admin trusted; web layer sudah rate-limit customer requests |
-| 9 | `PAYLOAD_API_KEY` belongs to admin-role user | High | Stage 4 (pre-production) | planned | Buat dedicated API user dengan scoped access; rotate key |
+| 9 | `PAYLOAD_API_KEY` belongs to admin-role user | High | Stage 4.1 | code-done | Role baru `api` di Users + `isApiOrAdmin` helper. 3 collection widened (bookings create/update, otp-verifications CRUD, newsletter-subscribers CRU). USER manual: bikin user `api-web@internal.gtjourneys.id` role `api` + enable API key + rotate CF secret. Lihat [`phase-4.1`](phases/phase-4-polish-launch/booking-hardening/stage-4-pre-production/phase-4.1-api-user-role.md) |
 | 10 | OTP cleanup cron must be scheduled | Low | Stage 4 | planned | Verify `cleanup-otp` cron trigger terdaftar di Cloudflare |
 | 11 | No retention / cleanup for booking PII | Medium | Stage 4 (needs legal/business decision) | planned | UU PDP: anonimize passport fields setelah departure + N bulan. Butuh keputusan N dulu |
 | 12 | Logs and PII | Info | — | no-action | Tidak ada tindakan |
