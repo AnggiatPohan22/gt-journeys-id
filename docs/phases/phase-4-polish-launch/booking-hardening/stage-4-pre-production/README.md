@@ -12,7 +12,7 @@ Playbook: [`../../../../security-hardening-playbook.md`](../../../../security-ha
 | 4.1 | Dedicated API user + rotate `PAYLOAD_API_KEY` (#9 High) | AGENT after USER decision | 📋 planned |
 | 4.2 | Data retention policy passenger PII (#11 Medium) | USER decision then AGENT | 📋 planned |
 | 4.3 | Fix type error `[[...segments]]/not-found.tsx:12` | AGENT | ✅ MERGED (TBD) |
-| 4.4 | Replace `https://example.com` placeholder | AGENT after USER provides domain | 📋 planned |
+| 4.4 | Replace `https://example.com` placeholder → `https://gtjourneys.id` | AGENT | ✅ MERGED (TBD) |
 | 4.5 | Build + test `opennextjs-cloudflare build && preview` on Linux/WSL2/CI | USER | 📋 planned |
 | 4.6 | Test 55+ migrations from EMPTY DB on staging | USER | 📋 planned |
 | 4.7 | Set Cloudflare secrets + verify `cleanup-otp` cron (#10 Low) | USER | 📋 planned |
@@ -23,3 +23,4 @@ Playbook: [`../../../../security-hardening-playbook.md`](../../../../security-ha
 ## Phase reports
 
 - [4.3 Fix admin scaffold types](phase-4.3-fix-admin-scaffold-types.md)
+- [4.4 Set production domain](phase-4.4-set-production-domain.md)

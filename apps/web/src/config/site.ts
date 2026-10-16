@@ -8,7 +8,7 @@
 export const siteConfig = {
   name: 'GtJourneysID',
   tagline: 'Explore Indonesia with Local Expertise',
-  url: 'https://example.com', // TODO: set production domain
+  url: 'https://gtjourneys.id',
 
   contact: {
     email: 'hello@example.com',
