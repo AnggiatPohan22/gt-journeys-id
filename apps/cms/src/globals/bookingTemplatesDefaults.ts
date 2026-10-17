@@ -195,17 +195,24 @@ export const DEFAULT_PAYMENT_EMAIL_BODY_HTML = shell(
         <td style="width:8px;"></td>
         <td style="width:33%;vertical-align:top;padding:12px;background:${b.surfaceAlt};border-radius:10px;">
           <div style="width:24px;height:24px;background:{{brandAccentColor}};color:#fff;border-radius:999px;text-align:center;line-height:24px;font-size:12px;font-weight:700;">3</div>
-          <div style="margin-top:8px;font-size:13px;font-weight:600;color:${b.text};">Kirim ke Admin</div>
-          <div style="margin-top:4px;font-size:12px;color:${b.textMuted};line-height:18px;">Via WhatsApp verifikasi di bawah.</div>
+          <div style="margin-top:8px;font-size:13px;font-weight:600;color:${b.text};">Upload Bukti</div>
+          <div style="margin-top:4px;font-size:12px;color:${b.textMuted};line-height:18px;">Klik tombol di bawah untuk upload bukti transfer.</div>
         </td>
       </tr>
     </table>
   </div>
 
-  <div style="padding:16px 28px 24px;text-align:center;">
-    <p style="margin:0 0 12px;font-size:13px;color:${b.text};">Sudah transfer? Kirim bukti ke:</p>
-    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%20GtJourneysID%2C%20saya%20sudah%20transfer%20untuk%20booking%20{{bookingRef}}" style="display:inline-block;background:#25D366;color:#fff;padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;box-shadow:0 4px 12px rgba(37,211,102,0.3);">💬 Kirim Bukti via WhatsApp</a>
-    <p style="margin:12px 0 0;font-size:11px;color:${b.textFaint};">WhatsApp verifikasi: <strong>{{adminWhatsapp}}</strong></p>
+  <!-- Phase 4.74.6a — Primary CTA: upload page (replaces WA primary) -->
+  <div style="padding:20px 28px 8px;text-align:center;">
+    <p style="margin:0 0 14px;font-size:14px;color:${b.text};font-weight:600;">Sudah transfer? Upload bukti di sini:</p>
+    <a href="{{paymentUploadUrl}}" style="display:inline-block;background:{{brandAccentColor}};color:#fff;padding:16px 36px;border-radius:10px;font-size:15px;font-weight:700;text-decoration:none;box-shadow:0 6px 16px rgba(14,165,233,0.35);letter-spacing:0.3px;">📤 Upload Bukti Transfer</a>
+    <p style="margin:12px 0 0;font-size:11px;color:${b.textFaint};line-height:16px;">Form upload aman — PDF/JPG/PNG, max 5MB.<br>Admin review dalam 1x24 jam.</p>
+  </div>
+
+  <!-- Secondary: WhatsApp for more information only -->
+  <div style="padding:4px 28px 24px;text-align:center;">
+    <p style="margin:0 0 8px;font-size:12px;color:${b.textMuted};">Butuh bantuan atau info lebih lanjut?</p>
+    <a href="https://wa.me/{{adminWhatsapp}}?text=Halo%20GtJourneysID%2C%20saya%20butuh%20bantuan%20untuk%20booking%20{{bookingRef}}" style="display:inline-block;background:${b.surface};border:1px solid #25D366;color:#128C7E;padding:9px 20px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">💬 Hubungi Admin via WhatsApp</a>
   </div>
 
   <!-- Change plan — reschedule / cancel (visible SEBELUM payment) -->

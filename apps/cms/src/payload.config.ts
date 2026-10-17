@@ -48,6 +48,8 @@ import { ChatMessages } from './collections/ChatMessages'
 import { ChatBlockedEvents } from './collections/ChatBlockedEvents'
 import { Bookings } from './collections/Bookings'
 import { OtpVerifications } from './collections/OtpVerifications'
+import { PaymentProofs } from './collections/PaymentProofs'
+import { AdminNotifications } from './collections/AdminNotifications'
 
 // Globals
 import { SiteSettings } from './globals/SiteSettings'
@@ -191,6 +193,8 @@ export default buildConfig({
     // ── BOOKINGS group ──────────────────────────
     Bookings,
     OtpVerifications,
+    PaymentProofs,       // Phase 4.74.1 — bukti transfer self-service
+    AdminNotifications,  // Phase 4.74.1 — feed bell top-bar admin
     // ── SERVICES group ──────────────────────────
     Tours,
     Accommodations,
@@ -284,6 +288,8 @@ export default buildConfig({
       // Panel bawah sidebar (sticky, selalu terlihat): profil user + logout +
       // toggle tema, lalu accordion default-collapse (Phase 4.5).
       afterNavLinks: [
+        // Phase 4.74.5 — bell notif admin (polling 30s, side-panel list).
+        '/admin/BellNotifications#default',
         '/admin/SidebarFooter#default',
         '/admin/NavAccordion#default',
       ],

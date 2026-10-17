@@ -18,6 +18,8 @@ export const KNOWN_VARIABLES = new Set<string>([
   'bookingRef',
   'accessToken',
   'confirmationUrl',
+  // Phase 4.74.3 — token-gated upload bukti transfer page
+  'paymentUploadUrl',
   // Customer
   'customerName',
   'customerEmail',
@@ -110,6 +112,9 @@ export const OPTIONAL_VARIABLES = new Set<string>([
   'customerWhatsapp',
   'confirmationUrl',
   'accessToken',
+  // Phase 4.74.3 — token-gated upload bukti transfer page (optional di
+  // template non-payment supaya tidak break reschedule/cancel renders).
+  'paymentUploadUrl',
   // Phase 4.70.2 — Brand + per-template fields semua OPTIONAL (template
   // non-HTML tidak mereferensi; HTML default pakai). Kalau admin kosongkan,
   // render string kosong (fallback-safe).

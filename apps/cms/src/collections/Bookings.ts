@@ -1,4 +1,4 @@
-import type { CollectionBeforeChangeHook, CollectionConfig, Endpoint } from 'payload'
+import type { CollectionAfterChangeHook, CollectionBeforeChangeHook, CollectionConfig, Endpoint } from 'payload'
 import { isAdmin, isApiOrAdmin, isSuperAdmin, superAdminFieldAccess } from '../access/roles'
 import {
   buildContext,
@@ -222,7 +222,15 @@ async function readTemplates(req: Parameters<Endpoint['handler']>[0]) {
 }
 
 function requireAdmin(req: Parameters<Endpoint['handler']>[0]): Response | null {
-  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super-admin')) {
+  // Phase 4.74.6c — widen untuk 'api' role supaya internal self-call dari
+  // server-side hook (PaymentProofs.approve → send-ticket) jalan. API-key
+  // user sudah scoped per 4.74.4.1 (dedicated api role, bukan admin shared);
+  // kebocoran key tetap terbatas ke endpoint yg widen `isApiOrAdmin` saja.
+  // Attack surface eksternal via API-key: attacker butuh booking id + paymentBank
+  // valid di template, dan email kirim ke customer booking itu sendiri — bukan
+  // arbitrary. Minimal practical impact.
+  const allowed = ['admin', 'super-admin', 'api']
+  if (!req.user || !allowed.includes(req.user.role as string)) {
     return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 })
   }
   return null
@@ -314,6 +322,46 @@ const auditManualEditHook: CollectionBeforeChangeHook = ({ data, originalDoc, re
   return data
 }
 
+/**
+ * Phase 4.74.2 — afterChange hook: on create, buat AdminNotifications
+ * record type `booking_new` supaya bell top-bar admin terupdate real-time.
+ *
+ * Scope: HANYA operation=create. Update sudah di-handle oleh workflow lain
+ * (reschedule_request/cancel_request bikin notif terpisah di 4.74.7).
+ *
+ * Best-effort: kalau create AdminNotif gagal, booking create tetap sukses
+ * (log error only). Supaya satu error di sistem notif tidak block flow
+ * booking utama.
+ */
+const notifyAdminOnBookingCreateHook: CollectionAfterChangeHook = async ({
+  doc,
+  operation,
+  req,
+}) => {
+  if (operation !== 'create') return doc
+  try {
+    const ref = String((doc as { bookingRef?: string }).bookingRef ?? '')
+    const origin = String((doc as { originLocation?: string }).originLocation ?? '')
+    const dest = String((doc as { destinationLocation?: string }).destinationLocation ?? '')
+    const customer = String((doc as { customerName?: string }).customerName ?? '')
+    const route = origin && dest ? `${origin} → ${dest}` : 'route pending'
+    await req.payload.create({
+      collection: 'admin-notifications',
+      data: {
+        type: 'booking_new',
+        title: `New booking ${ref} — ${route}`,
+        body: `Customer: ${customer}. Status: awaiting review.`,
+        severity: 'info',
+        booking: (doc as { id?: number }).id,
+      },
+      overrideAccess: true,
+    })
+  } catch (e) {
+    req.payload.logger?.error?.(`[Phase 4.74.2] notifyAdminOnBookingCreateHook failed: ${(e as Error).message}`)
+  }
+  return doc
+}
+
 const sendPaymentEndpoint: Endpoint = {
   path: '/:id/send-payment',
   method: 'post',
@@ -363,6 +411,13 @@ const sendPaymentEndpoint: Endpoint = {
         booking.bookingRef && booking.accessToken
           ? `${siteUrl}/checkout/ferry-tickets/confirmation/${booking.bookingRef}?t=${booking.accessToken}`
           : null
+      // Phase 4.74.3 — tombol "Upload Bukti Pembayaran" di email/WA customer.
+      // Token-gated page `/payment/<ref>?t=<token>` menerima bukti transfer
+      // self-service (menggantikan jalur "kirim ke WA admin" yg human-error).
+      const paymentUploadUrl =
+        booking.bookingRef && booking.accessToken
+          ? `${siteUrl}/payment/${booking.bookingRef}?t=${booking.accessToken}`
+          : null
 
       // Phase 4.71.1 — paymentDeadlineDisplay = formatted WITA, dipakai di
       // template default (readable). paymentDeadline (raw ISO) tetap valid
@@ -390,6 +445,7 @@ const sendPaymentEndpoint: Endpoint = {
         adminName,
         adminWhatsapp,
         confirmationUrl: confirmationUrl ?? undefined,
+        paymentUploadUrl: paymentUploadUrl ?? undefined,
         // Phase 4.70.2 — brand + per-template editable fields
         ...buildBrandContext(tpl),
         ...pickedPaymentFields,
@@ -1017,7 +1073,11 @@ const declineCancelEndpoint: Endpoint = {
     }),
 }
 
-const sendTicketEndpoint: Endpoint = {
+// Phase 4.74.6c — Exported supaya PaymentProofs.afterChange (approve) bisa
+// invoke handler-nya langsung tanpa HTTP self-call. Dgn direct call: (a) tak
+// perlu PAYLOAD_API_KEY di CMS env, (b) admin user context dari hook di-reuse
+// (sentTicketBy = admin yg approve, bukan api user), (c) no network overhead.
+export const sendTicketEndpoint: Endpoint = {
   path: '/:id/send-ticket',
   method: 'post',
   handler: async (req) => {
@@ -1574,6 +1634,8 @@ export const Bookings: CollectionConfig = {
   // departureDate pada booking status confirmed-or-later.
   hooks: {
     beforeChange: [auditManualEditHook],
+    // Phase 4.74.2 — bell notif admin on booking create.
+    afterChange: [notifyAdminOnBookingCreateHook],
   },
   endpoints: [sendPaymentEndpoint, sendTicketEndpoint, confirmRescheduleEndpoint, declineRescheduleEndpoint, confirmCancelEndpoint, declineCancelEndpoint, customerRequestEndpoint, anonymizePiiEndpoint],
   fields: [
@@ -2298,6 +2360,30 @@ export const Bookings: CollectionConfig = {
             readOnly: true,
             rows: 6,
             description: 'Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only. Server-side immutable (Step 2.1).',
+          },
+        },
+        // Phase 4.74.1 — Pointer ke bukti transfer terbaru dari customer
+        // (self-service upload /payment/<ref>). Auto-sync oleh hook afterChange
+        // di PaymentProofs collection (sub-phase 4.74.2). Admin UI only.
+        {
+          name: 'latestPaymentProof',
+          type: 'relationship',
+          relationTo: 'payment-proofs',
+          admin: {
+            readOnly: true,
+            description:
+              'Phase 4.74.1 — PaymentProof terbaru untuk booking ini. Auto-synced; jangan edit manual. Full history: lihat list PaymentProofs filter booking=<this>.',
+          },
+        },
+        {
+          name: 'paymentProofAttempts',
+          type: 'number',
+          defaultValue: 0,
+          min: 0,
+          admin: {
+            readOnly: true,
+            description:
+              'Phase 4.74.1 — jumlah kali customer upload bukti (termasuk yang rejected + resubmit). Rate-guard: >3 attempts → force admin manual follow-up via WA.',
           },
         },
       ],

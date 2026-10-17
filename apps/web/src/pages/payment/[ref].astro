@@ -1,0 +1,276 @@
+---
+/**
+ * Payment proof upload page — Phase 4.74.3.
+ *
+ * Self-service halaman untuk customer upload bukti transfer (menggantikan
+ * jalur manual "kirim ke WA admin"). Token-gated reuse pola 4.66.5.
+ *
+ * Flow:
+ *   1. SSR verify token → fetch booking.
+ *   2. Status gate: hanya `awaiting_payment` / `payment_review` yg render form.
+ *      Status lain → redirect ke confirmation page dgn alert banner.
+ *   3. Soft-cap `paymentProofAttempts >= 3` → render blocker "hubungi admin".
+ *   4. Form multipart submit ke `/api/bookings/[ref]/submit-payment-proof?t=<token>`.
+ *   5. On success response (JSON): redirect ke /payment/<ref>/success?t=<token>.
+ *
+ * No-store headers + noindex (reuse pola 4.66.6).
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import { getBookingByRefAndToken } from '@lib/checkout/store'
+import { formatPrice } from '@shared/utils/format-price'
+
+export const prerender = false
+
+const { ref } = Astro.params
+if (!ref) return Astro.redirect('/404')
+
+const token = new URL(Astro.request.url).searchParams.get('t') ?? ''
+const booking = await getBookingByRefAndToken(ref, token)
+if (!booking) return Astro.redirect('/404')
+
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate')
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+
+const status = String((booking as { status?: string }).status ?? '')
+const attempts = Number((booking as { paymentProofAttempts?: number }).paymentProofAttempts ?? 0)
+const totalEstimate = Number((booking as { totalEstimate?: number }).totalEstimate ?? 0)
+const currency = ((booking as { currency?: string }).currency ?? 'IDR') as 'IDR' | 'USD'
+const totalFmt = totalEstimate > 0 ? formatPrice(totalEstimate, currency) : '—'
+
+const customerName = String((booking as { customerName?: string }).customerName ?? 'Pelanggan')
+const confirmationUrl = `/checkout/ferry-tickets/confirmation/${encodeURIComponent(ref)}?t=${encodeURIComponent(token)}`
+
+const canUpload = (status === 'awaiting_payment' || status === 'payment_review') && attempts < 3
+const blockerReason = !canUpload
+  ? attempts >= 3
+    ? 'Anda sudah 3x upload bukti. Mohon hubungi admin via WhatsApp untuk follow-up manual.'
+    : status === 'confirmed'
+      ? 'Pembayaran sudah dikonfirmasi — tidak perlu upload bukti lagi.'
+      : status === 'cancelled' || status === 'expired'
+        ? `Booking ini berstatus ${status}. Upload bukti tidak diterima.`
+        : `Booking belum siap menerima bukti (status: ${status}).`
+  : null
+
+---
+
+<PageLayout title={`Upload Bukti Pembayaran — Booking ${ref}`}>
+  <main class="min-h-screen bg-slate-50 py-10 px-4">
+    <div class="mx-auto max-w-2xl">
+      <!-- Header card -->
+      <div class="rounded-2xl bg-gradient-to-br from-ocean to-ocean-dark text-white p-6 shadow-lg">
+        <div class="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
+          <Icon name="receipt_long" class="w-3.5 h-3.5" />
+          Upload Bukti Transfer
+        </div>
+        <h1 class="mt-3 text-2xl font-bold">Halo {customerName}</h1>
+        <p class="mt-1 text-sm text-white/90">
+          Booking <strong>{ref}</strong> · Total <strong>{totalFmt}</strong>
+        </p>
+      </div>
+
+      {blockerReason && (
+        <div class="mt-6 rounded-xl border-l-4 border-coral bg-coral/5 p-5">
+          <div class="flex gap-3">
+            <Icon name="warning" class="w-5 h-5 text-coral shrink-0 mt-0.5" />
+            <div>
+              <p class="font-semibold text-coral-dark">Form tidak tersedia</p>
+              <p class="mt-1 text-sm text-slate-700">{blockerReason}</p>
+              <a href={confirmationUrl} class="mt-3 inline-block text-sm font-semibold text-ocean hover:underline">
+                ← Kembali ke halaman booking
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {canUpload && (
+        <form
+          id="paymentProofForm"
+          method="POST"
+          action={`/api/bookings/${encodeURIComponent(ref)}/submit-payment-proof?t=${encodeURIComponent(token)}`}
+          enctype="multipart/form-data"
+          class="mt-6 rounded-2xl bg-white p-6 shadow-md space-y-5"
+        >
+          <div>
+            <label for="senderName" class="block text-sm font-semibold text-slate-800">
+              Nama Pengirim <span class="text-coral">*</span>
+            </label>
+            <input
+              type="text"
+              id="senderName"
+              name="senderName"
+              required
+              maxlength="100"
+              placeholder="Nama di rekening sumber transfer"
+              class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-ocean focus:ring-2 focus:ring-ocean/20 outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="senderBank" class="block text-sm font-semibold text-slate-800">
+              Bank Asal <span class="text-coral">*</span>
+            </label>
+            <input
+              type="text"
+              id="senderBank"
+              name="senderBank"
+              required
+              maxlength="80"
+              placeholder="Contoh: BCA, Mandiri, OVO"
+              class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-ocean focus:ring-2 focus:ring-ocean/20 outline-none"
+            />
+          </div>
+
+          <div>
+            <label for="amountDisplay" class="block text-sm font-semibold text-slate-800">
+              Nominal Transfer <span class="text-coral">*</span>
+            </label>
+            <div class="mt-1 relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 font-semibold pointer-events-none">Rp</span>
+              <input
+                type="text"
+                id="amountDisplay"
+                inputmode="numeric"
+                autocomplete="off"
+                required
+                value={totalEstimate > 0 ? totalEstimate.toLocaleString('id-ID') : ''}
+                placeholder="0"
+                class="w-full rounded-lg border border-slate-300 pl-9 pr-4 py-2.5 text-sm focus:border-ocean focus:ring-2 focus:ring-ocean/20 outline-none"
+              />
+              <!-- Hidden raw numeric value yg di-submit ke endpoint -->
+              <input type="hidden" id="amount" name="amount" value={totalEstimate > 0 ? totalEstimate : ''} />
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Pre-filled dari total booking. Boleh beda ±20% untuk akomodasi biaya transfer.</p>
+          </div>
+
+          <div class="rounded-lg bg-slate-50 border border-slate-200 px-4 py-3 text-xs text-slate-600">
+            <strong class="text-slate-800">ℹ Tanggal & jam transfer otomatis</strong><br>
+            Waktu submit akan dicatat server (WITA). Pastikan upload setelah transfer berhasil supaya waktu match dgn mutasi bank.
+          </div>
+
+          <div>
+            <label for="proofFile" class="block text-sm font-semibold text-slate-800">
+              File Bukti Transfer <span class="text-coral">*</span>
+            </label>
+            <input
+              type="file"
+              id="proofFile"
+              name="proofFile"
+              required
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2 text-sm file:mr-3 file:py-1.5 file:px-4 file:rounded-md file:border-0 file:bg-ocean file:text-white file:text-xs file:font-semibold hover:file:bg-ocean-dark"
+            />
+            <p class="mt-1 text-xs text-slate-500">JPG, PNG, WebP, atau PDF — max 5MB.</p>
+          </div>
+
+          <div>
+            <label for="customerNote" class="block text-sm font-semibold text-slate-800">
+              Catatan <span class="text-slate-400 font-normal">(opsional, max 500 char)</span>
+            </label>
+            <textarea
+              id="customerNote"
+              name="customerNote"
+              maxlength="500"
+              rows="3"
+              placeholder="Mis. transfer dari rekening suami, atau split 2x transfer"
+              class="mt-1 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-ocean focus:ring-2 focus:ring-ocean/20 outline-none resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Alert area -->
+          <div id="formAlert" class="hidden rounded-lg border-l-4 border-coral bg-coral/5 p-4 text-sm text-coral-dark"></div>
+
+          <div class="flex gap-3 pt-2">
+            <a
+              href={confirmationUrl}
+              class="flex-1 text-center rounded-lg border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Batal
+            </a>
+            <button
+              type="submit"
+              id="submitBtn"
+              class="flex-[2] rounded-lg bg-leaf hover:bg-leaf-dark text-white px-4 py-3 text-sm font-semibold shadow transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              Kirim Bukti Transfer
+            </button>
+          </div>
+
+          <p class="text-xs text-slate-500 text-center">
+            Dengan submit, Anda konfirmasi bahwa data transfer akurat. Admin akan verifikasi dalam 1x24 jam.
+          </p>
+        </form>
+      )}
+    </div>
+  </main>
+</PageLayout>
+
+<script is:inline>
+  (function () {
+    const form = document.getElementById('paymentProofForm');
+    if (!form) return;
+    const alertEl = document.getElementById('formAlert');
+    const submitBtn = document.getElementById('submitBtn');
+    const amountDisplay = document.getElementById('amountDisplay');
+    const amountHidden = document.getElementById('amount');
+
+    // Phase 4.74.6c — Format nominal ke "1.234.567" (id-ID separator) saat
+    // user mengetik. Hidden input selalu simpan raw integer utk submit.
+    function formatIdNumber(n) {
+      try { return Number(n).toLocaleString('id-ID'); } catch { return String(n); }
+    }
+    if (amountDisplay && amountHidden) {
+      amountDisplay.addEventListener('input', function (e) {
+        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+        if (!raw) {
+          amountHidden.value = '';
+          e.target.value = '';
+          return;
+        }
+        const n = parseInt(raw, 10);
+        amountHidden.value = String(n);
+        // Reformat display + preserve cursor at end (simple pattern).
+        e.target.value = formatIdNumber(n);
+      });
+      // Blur: pastikan hidden sinkron.
+      amountDisplay.addEventListener('blur', function (e) {
+        const raw = String(e.target.value || '').replace(/[^\d]/g, '');
+        amountHidden.value = raw;
+      });
+    }
+
+    function showAlert(msg) {
+      if (!alertEl) return;
+      alertEl.textContent = msg;
+      alertEl.classList.remove('hidden');
+      alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (alertEl) alertEl.classList.add('hidden');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengirim...';
+      }
+      try {
+        const fd = new FormData(form);
+        const res = await fetch(form.action, { method: 'POST', body: fd });
+        const data = await res.json().catch(() => ({ ok: false, message: 'Response tidak valid.' }));
+        if (res.ok && data.ok && data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+          return;
+        }
+        showAlert(data.message || `Submit gagal (${res.status}). Coba lagi.`);
+      } catch (err) {
+        showAlert('Koneksi gagal. Periksa internet lalu coba lagi.');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Kirim Bukti Transfer';
+        }
+      }
+    });
+  })();
+</script>

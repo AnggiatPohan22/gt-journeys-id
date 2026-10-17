@@ -2,16 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "web-dev",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@gt-journeys/web", "dev"],
-      "port": 4321,
-      "url": "http://localhost:4321"
-    },
-    {
       "name": "cms",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "cms", "dev"],
+      "runtimeArgs": ["--filter", "@gt-journeys/cms", "dev"],
       "port": 3030
     }
   ]
