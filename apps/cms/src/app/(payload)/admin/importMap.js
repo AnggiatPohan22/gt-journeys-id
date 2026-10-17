@@ -62,7 +62,6 @@ import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../co
 import { default as default_717e86c8ff0d6e16710fe7573de37930 } from '../../../admin/ServiceModulesManager'
 import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
 import { default as default_88541c286955dbac4d90fb5ed606381c } from '../../../admin/graphics/Logo'
-import { default as default_e111912befe633318add78c48af3e8e1 } from '../../../admin/BellNotifications'
 import { default as default_64c2e44a9325dc37c881505671c0a779 } from '../../../admin/SidebarFooter'
 import { default as default_792c0d3ac257e3b6841a35f0f9e3982d } from '../../../admin/NavAccordion'
 import { default as default_fafa156b7e0b046667cba8c807e70577 } from '../../../admin/DashboardStats'
@@ -72,6 +71,7 @@ import { default as default_63426120d5a18e206c5d223aa70a260c } from '../../../ad
 import { default as default_901f7f3b3bb38a7ce0b6851f39b0b655 } from '../../../admin/AdminStyles'
 import { default as default_59e5997061b2252debbddcc96648def1 } from '../../../admin/MediaListEnhancer'
 import { default as default_bd18a6d6300bc040c70a2d345f4c6906 } from '../../../admin/MediaFolderSidebar'
+import { default as default_221aa89c265ed7083431377bedc911f2 } from '../../../admin/BellMount'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -140,7 +140,6 @@ export const importMap = {
   "/admin/ServiceModulesManager#default": default_717e86c8ff0d6e16710fe7573de37930,
   "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,
   "/admin/graphics/Logo#default": default_88541c286955dbac4d90fb5ed606381c,
-  "/admin/BellNotifications#default": default_e111912befe633318add78c48af3e8e1,
   "/admin/SidebarFooter#default": default_64c2e44a9325dc37c881505671c0a779,
   "/admin/NavAccordion#default": default_792c0d3ac257e3b6841a35f0f9e3982d,
   "/admin/DashboardStats#default": default_fafa156b7e0b046667cba8c807e70577,
@@ -150,5 +149,6 @@ export const importMap = {
   "/admin/AdminStyles#default": default_901f7f3b3bb38a7ce0b6851f39b0b655,
   "/admin/MediaListEnhancer#default": default_59e5997061b2252debbddcc96648def1,
   "/admin/MediaFolderSidebar#default": default_bd18a6d6300bc040c70a2d345f4c6906,
+  "/admin/BellMount#default": default_221aa89c265ed7083431377bedc911f2,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }
