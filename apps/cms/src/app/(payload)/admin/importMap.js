@@ -1,5 +1,6 @@
 import { default as default_fc6d56327bdeaacca57c2d3b4a2fac23 } from '../../../admin/BookingRequestAlert'
 import { default as default_c886095dba6d6143039705c2acf0c68c } from '../../../admin/BookingAdminActions'
+import { default as default_f5e6ea52b11becc19d577266fd01a247 } from '../../../admin/BookingPaymentProofButton'
 import { default as default_51c5691c8668eb70515cf2eda0535e58 } from '../../../admin/cells/AccessTokenCell'
 import { default as default_1778b80ae55b00790d6509f50c01c196 } from '../../../admin/cells/MaskedEmailCell'
 import { default as default_723edc1fcd2ef1b461eab22e4b14b7c7 } from '../../../admin/cells/MaskedPhoneCell'
@@ -7,6 +8,7 @@ import { default as default_29bb3de8e969a741ff856cf32a3ae32e } from '../../../ad
 import { default as default_89e1373e9d75473f75a7c5e015d32ddc } from '../../../admin/cells/PriceCell'
 import { default as default_1b6323999da17bdedfb5d82a5dca03e8 } from '../../../admin/fields/HasRequestedChangeConfirmGuard'
 import { default as default_1cc38f346512d4f7f75add2738bb7fb4 } from '../../../admin/BookingStatusFilterBar'
+import { default as default_c741a3932566b38ee8ac2783a0d7aba7 } from '../../../admin/PaymentProofApproveRedirect'
 import { default as default_71206546ade6f3e51000b567a053879f } from '../../../admin/SidebarTabs'
 import { default as default_51a6c3a6d17463139b3a0c8a76281abf } from '../../../admin/cells/StatusCell'
 import { default as default_646f34edcebed27cce5af4613beb5f20 } from '../../../admin/cells/RelativeDateCell'
@@ -78,6 +80,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 export const importMap = {
   "/admin/BookingRequestAlert#default": default_fc6d56327bdeaacca57c2d3b4a2fac23,
   "/admin/BookingAdminActions#default": default_c886095dba6d6143039705c2acf0c68c,
+  "/admin/BookingPaymentProofButton#default": default_f5e6ea52b11becc19d577266fd01a247,
   "/admin/cells/AccessTokenCell#default": default_51c5691c8668eb70515cf2eda0535e58,
   "/admin/cells/MaskedEmailCell#default": default_1778b80ae55b00790d6509f50c01c196,
   "/admin/cells/MaskedPhoneCell#default": default_723edc1fcd2ef1b461eab22e4b14b7c7,
@@ -85,6 +88,7 @@ export const importMap = {
   "/admin/cells/PriceCell#default": default_89e1373e9d75473f75a7c5e015d32ddc,
   "/admin/fields/HasRequestedChangeConfirmGuard#default": default_1b6323999da17bdedfb5d82a5dca03e8,
   "/admin/BookingStatusFilterBar#default": default_1cc38f346512d4f7f75add2738bb7fb4,
+  "/admin/PaymentProofApproveRedirect#default": default_c741a3932566b38ee8ac2783a0d7aba7,
   "/admin/SidebarTabs#default": default_71206546ade6f3e51000b567a053879f,
   "/admin/cells/StatusCell#default": default_51a6c3a6d17463139b3a0c8a76281abf,
   "/admin/cells/RelativeDateCell#default": default_646f34edcebed27cce5af4613beb5f20,

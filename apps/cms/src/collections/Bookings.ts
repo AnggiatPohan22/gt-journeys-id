@@ -1205,6 +1205,30 @@ export const sendTicketEndpoint: Endpoint = {
             { status: 400 },
           )
         }
+
+        // Phase 4.75 — E-ticket guard (first-send only). Resend (isResend=true)
+        // di-skip: e-ticket sudah pernah terkirim di first-send, tidak masuk
+        // akal mewajibkan ulang. Guard di PaymentProofs beforeChange sudah
+        // cover alur approve → auto-send; guard di sini untuk kasus admin
+        // manually klik "Confirm & Send" dari booking status payment_review
+        // tanpa approve via payment proof terlebih dahulu.
+        if (!isResend) {
+          const eTickets = Array.isArray(booking.eTickets)
+            ? (booking.eTickets as unknown[])
+            : []
+          if (eTickets.length === 0) {
+            return Response.json(
+              {
+                ok: false,
+                error: 'eticket_missing',
+                errors: [
+                  'Phase 4.75: Upload e-ticket di section Payment → "E-Tickets" dulu sebelum send receipt. E-ticket akan di-attach ke email customer bersama receipt PDF.',
+                ],
+              },
+              { status: 400 },
+            )
+          }
+        }
       }
 
       const siteUrl = process.env.SITE_URL ?? 'http://localhost:4321'
@@ -1342,13 +1366,68 @@ export const sendTicketEndpoint: Endpoint = {
       }
 
       // Phase 4.70.3.1 — Email attachments (opsional, hanya kalau PDF berhasil).
-      const attachments = pdfBytes
-        ? [{
-            filename: `${receiptNumber}.pdf`,
-            content: uint8ArrayToBase64(pdfBytes),
-            content_type: 'application/pdf',
-          }]
-        : undefined
+      const attachments: Array<{ filename: string; content: string; content_type?: string }> = []
+      if (pdfBytes) {
+        attachments.push({
+          filename: `${receiptNumber}.pdf`,
+          content: uint8ArrayToBase64(pdfBytes),
+          content_type: 'application/pdf',
+        })
+      }
+
+      // Phase 4.75 — Attach e-ticket operator (multi-file, roundtrip-ready).
+      // eTickets stored as hasMany upload → array of media ids atau populated
+      // objects (depth-dependent). Depth=0 di findByID di atas → array of ids.
+      // Fetch tiap media doc untuk dapat url + mimeType, lalu fetch binary dari
+      // R2/local storage dan base64 encode.
+      let eticketFetchErrors = 0
+      const rawEtickets = Array.isArray(booking.eTickets)
+        ? (booking.eTickets as Array<number | string | { id?: number | string }>)
+        : []
+      for (const item of rawEtickets) {
+        const mediaId = typeof item === 'object' && item !== null
+          ? (item as { id?: number | string }).id
+          : item
+        if (mediaId == null) continue
+        try {
+          const mediaDoc = await req.payload.findByID({
+            collection: 'media',
+            id: mediaId as number,
+            depth: 0,
+            overrideAccess: true,
+          }) as { url?: string; filename?: string; mimeType?: string }
+          const mediaUrl = mediaDoc.url
+          const filename = mediaDoc.filename ?? `eticket-${mediaId}`
+          const mimeType = mediaDoc.mimeType ?? 'application/octet-stream'
+          if (!mediaUrl) {
+            // eslint-disable-next-line no-console
+            console.warn(`[send-ticket 4.75] e-ticket media #${mediaId} tidak punya url, skip`)
+            eticketFetchErrors++
+            continue
+          }
+          // Absolute URL kalau Payload return relative path.
+          const absUrl = mediaUrl.startsWith('http')
+            ? mediaUrl
+            : `${process.env.CMS_PUBLIC_URL ?? siteUrl}${mediaUrl.startsWith('/') ? '' : '/'}${mediaUrl}`
+          const r = await fetch(absUrl)
+          if (!r.ok) {
+            // eslint-disable-next-line no-console
+            console.error(`[send-ticket 4.75] e-ticket fetch failed ${r.status} for ${absUrl}`)
+            eticketFetchErrors++
+            continue
+          }
+          const buf = new Uint8Array(await r.arrayBuffer())
+          attachments.push({
+            filename,
+            content: uint8ArrayToBase64(buf),
+            content_type: mimeType,
+          })
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error(`[send-ticket 4.75] e-ticket attach failed for #${mediaId}:`, (e as Error).message)
+          eticketFetchErrors++
+        }
+      }
 
       // Idempotency key per-attempt (Date.now ms) supaya resend tidak dedup.
       const sent = await sendEmail({
@@ -1356,7 +1435,7 @@ export const sendTicketEndpoint: Endpoint = {
         subject: emailSubjectR.rendered,
         text: emailBodyR.rendered,
         html: emailBodyHtmlR.rendered,
-        attachments,
+        attachments: attachments.length > 0 ? attachments : undefined,
         idempotencyKey: `ticket:${booking.bookingRef}:${Date.now()}`,
       })
       if (!sent.ok) {
@@ -1377,6 +1456,9 @@ export const sendTicketEndpoint: Endpoint = {
         receiptIssuedAt,
         paymentBank: paymentBankInput,
         paymentDate: paymentDateInput,
+        // Phase 4.75 — Mark e-ticket as sent (first-send only; resend doesn't
+        // overwrite since e-ticket set yg sama tetap terkirim).
+        eTicketSentAt: isResend && booking.eTicketSentAt ? booking.eTicketSentAt : nowIso,
       }
 
       // Phase 4.70.3.1 (post-review) — Audit log untuk resend changes.
@@ -1425,6 +1507,10 @@ export const sendTicketEndpoint: Endpoint = {
       }
       if (pdfError) {
         response.warning = `pdf_generation_failed: ${pdfError}. Email terkirim tanpa attachment. Admin bisa klik "Confirm & Send" lagi untuk retry.`
+      }
+      if (eticketFetchErrors > 0) {
+        const prev = response.warning ? `${response.warning} ` : ''
+        response.warning = `${prev}eticket_fetch_partial: ${eticketFetchErrors} e-ticket gagal di-attach (file fetch error). Receipt + e-ticket lain tetap terkirim. Admin bisa resend untuk retry.`
       }
       return Response.json(response)
     } catch (e) {
@@ -1665,6 +1751,22 @@ export const Bookings: CollectionConfig = {
           !!user && (user.role === 'admin' || user.role === 'super-admin'),
         components: {
           Field: '/admin/BookingAdminActions#default',
+        },
+      },
+    },
+    // ── Phase 4.75 — Payment Proof Shortcut ──────────────────
+    // Context button saat status=payment_review: route langsung ke
+    // Payment Proof terkait (approve/reject) atau create form manual
+    // (case WA/offline). Mencegah admin lompat-lompat antara Bookings
+    // ↔ PaymentProofs; alur reservasi → review → confirm jalan linear.
+    {
+      name: 'paymentProofShortcut',
+      type: 'ui',
+      admin: {
+        condition: (_data, _siblingData, { user }) =>
+          !!user && (user.role === 'admin' || user.role === 'super-admin'),
+        components: {
+          Field: '/admin/BookingPaymentProofButton#default',
         },
       },
     },
@@ -2312,6 +2414,32 @@ export const Bookings: CollectionConfig = {
           type: 'text',
           admin: {
             description: 'Nama bank tujuan transfer (admin pick dari global bankAccounts dropdown). Edit manual pada booking confirmed+ akan ter-audit (Step 2.3).',
+          },
+        },
+        // ── Phase 4.75 — E-ticket dari operator ─────────
+        // Upload WAJIB sebelum admin bisa approve payment proof. Guard di
+        // paymentProofGuardHook (beforeChange) + sendTicketEndpoint (first-send).
+        // Multi-file supaya booking roundtrip bisa carry 2 e-ticket (outbound+return).
+        // PDF/JPG/PNG/WebP semua di-attach ke email receipt saat approve.
+        {
+          name: 'eTickets',
+          type: 'upload',
+          relationTo: 'media',
+          hasMany: true,
+          admin: {
+            description:
+              'Phase 4.75 — E-ticket dari operator ferry (PDF/JPG/PNG). WAJIB upload sebelum approve payment proof. Multi-file untuk roundtrip (upload outbound + return). Attached ke email receipt customer saat approve.',
+          },
+        },
+        {
+          name: 'eTicketSentAt',
+          type: 'date',
+          access: { update: () => false },
+          admin: {
+            readOnly: true,
+            date: { pickerAppearance: 'dayAndTime' },
+            description:
+              'Phase 4.75 — Timestamp e-ticket (bundled dgn receipt) terkirim ke customer. Auto-filled oleh send-ticket endpoint. Server-side immutable.',
           },
         },
       ],

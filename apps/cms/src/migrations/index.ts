@@ -58,6 +58,7 @@ import * as migration_20261016_100000_phase_4_71_checkout_sync from './20261016_
 import * as migration_20261016_120000_phase_4_71_1_payment_deadline from './20261016_120000_phase_4_71_1_payment_deadline';
 import * as migration_20261016_170815_phase_4_74_1_payment_proofs from './20261016_170815_phase_4_74_1_payment_proofs';
 import * as migration_20261017_100000_phase_4_72_price_display from './20261017_100000_phase_4_72_price_display';
+import * as migration_20261017_134700_phase_4_75_etickets from './20261017_134700_phase_4_75_etickets';
 
 export const migrations = [
   {
@@ -358,6 +359,11 @@ export const migrations = [
   {
     up: migration_20261017_100000_phase_4_72_price_display.up,
     down: migration_20261017_100000_phase_4_72_price_display.down,
-    name: '20261017_100000_phase_4_72_price_display'
+    name: '20261017_100000_phase_4_72_price_display',
+  },
+  {
+    up: migration_20261017_134700_phase_4_75_etickets.up,
+    down: migration_20261017_134700_phase_4_75_etickets.down,
+    name: '20261017_134700_phase_4_75_etickets'
   },
 ];

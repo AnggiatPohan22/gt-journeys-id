@@ -13,7 +13,7 @@ import { sendTicketEndpoint } from './Bookings'
  *   - On update + status transition pending→approved/rejected: set
  *     `reviewedAt=now` + `reviewedBy=req.user.id`.
  */
-const paymentProofGuardHook: CollectionBeforeChangeHook = ({
+const paymentProofGuardHook: CollectionBeforeChangeHook = async ({
   data,
   originalDoc,
   operation,
@@ -31,6 +31,42 @@ const paymentProofGuardHook: CollectionBeforeChangeHook = ({
       throw new Error(
         '`rejectedReason` wajib diisi saat set status=rejected (dikirim ke customer).',
       )
+    }
+  }
+
+  // Phase 4.75 — approve guard: booking.eTickets WAJIB terisi sebelum approve.
+  // Rationale: approve auto-trigger send-ticket (hook afterChange di sini) yg
+  // kirim receipt + e-ticket bundled. Tanpa e-ticket di booking, customer
+  // hanya dapat receipt kosong — alur tidak lengkap. Guard di sini supaya
+  // approve ditolak di layer DB (atomic), bukan di layer send-ticket (yang
+  // bakal flip proof.status ke approved dulu lalu send gagal).
+  if (prevStatus === 'pending' && nextStatus === 'approved') {
+    const bookingRel = (originalDoc as { booking?: unknown }).booking
+    const bookingId = typeof bookingRel === 'number'
+      ? bookingRel
+      : Number((bookingRel as { id?: number } | null | undefined)?.id ?? 0)
+    if (bookingId) {
+      try {
+        const booking = await req.payload.findByID({
+          collection: 'bookings',
+          id: bookingId,
+          depth: 0,
+          overrideAccess: true,
+        })
+        const eTickets = (booking as { eTickets?: unknown }).eTickets
+        const count = Array.isArray(eTickets) ? eTickets.length : 0
+        if (count === 0) {
+          throw new Error(
+            'Phase 4.75: Upload e-ticket di booking dulu sebelum approve. Buka booking edit → section Payment → field "E-Tickets" → upload PDF/JPG dari operator. Approve akan auto-kirim receipt + e-ticket bundled ke customer.',
+          )
+        }
+      } catch (e) {
+        // Re-throw guard error; wrap foreign error dengan context.
+        if ((e as Error).message?.includes('Phase 4.75')) throw e
+        throw new Error(
+          `Gagal validate e-ticket requirement: ${(e as Error).message}. Hubungi developer.`,
+        )
+      }
     }
   }
 
@@ -380,6 +416,18 @@ export const PaymentProofs: CollectionConfig = {
     afterChange: [paymentProofsLifecycleHook],
   },
   fields: [
+    // Phase 4.75 — Headless redirect helper: setelah save status=approved,
+    // redirect ke booking edit view supaya admin bisa confirm status
+    // booking jadi `confirmed`. Zero visual.
+    {
+      name: 'approveRedirect',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/admin/PaymentProofApproveRedirect#default',
+        },
+      },
+    },
     // ── Relation + denormalized snapshot ───────────────────
     {
       name: 'booking',
