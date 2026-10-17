@@ -432,6 +432,14 @@ export interface Booking {
    */
   paymentBank?: string | null;
   /**
+   * Phase 4.75 — E-ticket dari operator ferry (PDF/JPG/PNG). WAJIB upload sebelum approve payment proof. Multi-file untuk roundtrip (upload outbound + return). Attached ke email receipt customer saat approve.
+   */
+  eTickets?: (number | Media)[] | null;
+  /**
+   * Phase 4.75 — Timestamp e-ticket (bundled dgn receipt) terkirim ke customer. Auto-filled oleh send-ticket endpoint. Server-side immutable.
+   */
+  eTicketSentAt?: string | null;
+  /**
    * Di-set saat booking dibuat dengan email verified token valid (Phase 4.69.3).
    */
   emailVerifiedAt?: string | null;
@@ -30460,6 +30468,8 @@ export interface BookingsSelect<T extends boolean = true> {
   receiptIssuedAt?: T;
   paymentDate?: T;
   paymentBank?: T;
+  eTickets?: T;
+  eTicketSentAt?: T;
   emailVerifiedAt?: T;
   whatsappVerifiedAt?: T;
   sentPaymentAt?: T;
