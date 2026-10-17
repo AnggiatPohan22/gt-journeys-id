@@ -116,6 +116,64 @@ const cleanupEndpoint: Endpoint = {
   },
 }
 
+/**
+ * Phase 4.74.7a — bulk mark-all-read.
+ * POST /api/admin-notifications/mark-all-read → scan 500 notif terbaru,
+ * push `{user: req.user.id, readAt: now}` ke readBy[] untuk notif yg
+ * user ini belum baca. Idempotent per-notif.
+ */
+const markAllReadEndpoint: Endpoint = {
+  path: '/mark-all-read',
+  method: 'post',
+  handler: async (req) => {
+    if (!req.user || !['admin', 'super-admin'].includes(req.user.role as string)) {
+      return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+    }
+    const userId = req.user.id
+    const nowIso = new Date().toISOString()
+    try {
+      const result = await req.payload.find({
+        collection: 'admin-notifications',
+        limit: 500,
+        sort: '-createdAt',
+        depth: 0,
+        overrideAccess: true,
+      })
+      let marked = 0
+      for (const doc of result.docs) {
+        const rawReadBy = (doc as unknown as { readBy?: unknown }).readBy
+        const readBy = Array.isArray(rawReadBy)
+          ? (rawReadBy as Array<{ user?: number | string | { id?: number | string }; readAt?: string }>)
+          : []
+        const already = readBy.some((r) => {
+          const uid = typeof r?.user === 'object' && r.user !== null
+            ? (r.user as { id?: number | string }).id
+            : r?.user
+          return String(uid) === String(userId)
+        })
+        if (already) continue
+        try {
+          await req.payload.update({
+            collection: 'admin-notifications',
+            id: doc.id,
+            data: {
+              readBy: [...readBy, { user: userId as number, readAt: nowIso }],
+            },
+            overrideAccess: true,
+          })
+          marked++
+        } catch {}
+      }
+      return Response.json({ ok: true, marked, scanned: result.docs.length })
+    } catch (e) {
+      return Response.json(
+        { ok: false, error: (e as Error).message },
+        { status: 500 },
+      )
+    }
+  },
+}
+
 const markReadEndpoint: Endpoint = {
   path: '/:id/read',
   method: 'post',
@@ -202,7 +260,7 @@ export const AdminNotifications: CollectionConfig = {
     update: isAdmin,
     delete: isSuperAdmin,
   },
-  endpoints: [unreadCountEndpoint, markReadEndpoint, cleanupEndpoint],
+  endpoints: [unreadCountEndpoint, markReadEndpoint, markAllReadEndpoint, cleanupEndpoint],
   fields: [
     {
       name: 'type',

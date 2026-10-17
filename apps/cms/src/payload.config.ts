@@ -277,6 +277,10 @@ export default buildConfig({
         '/admin/MediaListEnhancer#default',
         // Phase 4.61 — FileBird-style folder sidebar on the media list route.
         '/admin/MediaFolderSidebar#default',
+        // Phase 4.74.7 — top-bar bell notif admin (fixed top-right).
+        // Dipindah dari afterNavLinks (sidebar) ke sini supaya tetap terlihat
+        // di semua route admin & tidak terkubur di menu.
+        '/admin/BellMount#default',
       ],
       // Brand mark menggantikan logo/icon default Payload (login + sidebar).
       graphics: {
@@ -287,9 +291,9 @@ export default buildConfig({
       beforeNavLinks: ['/admin/Giattech#default', '/admin/NavDashboardLink#default'],
       // Panel bawah sidebar (sticky, selalu terlihat): profil user + logout +
       // toggle tema, lalu accordion default-collapse (Phase 4.5).
+      // Phase 4.74.7 — BellNotifications dipindah ke providers (fixed
+      // top-right) supaya tidak terkubur di sidebar.
       afterNavLinks: [
-        // Phase 4.74.5 — bell notif admin (polling 30s, side-panel list).
-        '/admin/BellNotifications#default',
         '/admin/SidebarFooter#default',
         '/admin/NavAccordion#default',
       ],
