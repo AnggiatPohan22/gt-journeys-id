@@ -106,6 +106,43 @@ Severity vocab (match standar industri):
 
 ---
 
+### Phase 4.74 Series B — Payment & Receipt Management Flow (2026-10-17)
+
+**Context:** Menggantikan jalur manual "customer kirim bukti transfer ke WA admin" (human-error prone, tidak audit-able, status real-time admin tidak tersedia) dengan **self-service upload page token-gated** + **admin verify workflow** di CMS + **real-time bell notifications** untuk admin dashboard. Dibagi 6 sub-phase (4.74.1 schema → 4.74.6 hardening). Series ini **feature-driven dengan security attached**, bukan audit-driven seperti 4.66 / Booking Hardening — tapi semua guard di-port dari playbook security existing (4.66.5 token gate, 4.66.9 rate-limit salted hash, 4.66.6 no-store, 4.66.7 field-level access).
+
+**Baseline / scope:** [phase-4.74-payment-receipt-mgmt-analysis.md](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74-payment-receipt-mgmt-analysis.md). 2 collection baru (PaymentProofs + AdminNotifications), 1 endpoint customer-facing + 3 endpoint admin, 2 route Astro customer, 1 React component admin, 2 hooks lifecycle.
+
+**Status series:** 6 sub-phase code selesai. Zero endpoint data leak path baru. Migration applied batch 59 lokal. Deploy pending.
+
+| # | Guard | Severity | Phase report | Ringkas | Status |
+|---|---|---|---|---|---|
+| PR-G1 | Token gate `/payment/<ref>?t=<token>` reuse constant-time compare | High | [4.74.3](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.3-upload-page-ui.md) | SSR `getBookingByRefAndToken` → mismatch redirect `/404` (indistinguishable). Pola identik dgn confirmation page 4.66.5. | ✅ |
+| PR-G2 | Rate-limit 3 submissions / 15min per IP+ref | Medium | [4.74.2](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.2-submit-endpoint.md) | Bucket key `payment_proof:<ipHash>:<ref>` isolated dari booking-create bucket. Reuse `checkBookingRateLimit` + salted-hash IP (4.66.9). | ✅ |
+| PR-G3 | File MIME whitelist + size max 5MB | Medium | [4.74.2](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.2-submit-endpoint.md) | Server-side strict: jpeg/jpg/png/webp/pdf only. Reject .exe double-ext, oversized file. | ✅ |
+| PR-G4 | EXIF strip JPEG (drop GPS + device PII) | Medium | [4.74.6](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.6-hardening-closing.md) | Pure-JS JPEG marker scan, drop APP1 segment (EXIF/XMP). Workers-runtime safe (zero npm dep). Non-JPEG passthrough. Fail-safe return original kalau parse error. | ✅ |
+| PR-G5 | Soft-cap `paymentProofAttempts >= 3` | Low | [4.74.2](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.2-submit-endpoint.md) | Return 429 `too_many_attempts` → force customer hubungi admin via WA (bukan brute-force upload). | ✅ |
+| PR-G6 | Amount sanity tolerance ±20% vs totalEstimate | Low | [4.74.2](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.2-submit-endpoint.md) | Reject typo besar sebelum admin reconcile. 20% toleransi akomodasi biaya transfer/kembalian. | ✅ |
+| PR-G7 | Field-level super-admin only untuk sensitif | Medium | [4.74.1](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.1-schema.md) | `submittedFromIpHash` + `submittedUserAgent` + `internalNote` di `payment-proofs` collection. Pola 4.66.7 passportNumber. | ✅ |
+| PR-G8 | `rejectedReason` wajib saat status=rejected | Low | [4.74.4](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.4-approve-reject.md) | beforeChange hook throw error kalau kosong. Pastikan customer selalu dapat alasan reject via email. | ✅ |
+| PR-G9 | Admin+ gate di 3 custom endpoints AdminNotifications | Medium | [4.74.5](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.5-bell-notifications.md) + [4.74.6](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.6-hardening-closing.md) | `/unread-count` + `/:id/read` + `/cleanup` return 401 kalau user bukan admin/super-admin. | ✅ |
+| PR-G10 | No-store + noindex headers di upload + success page | Low | [4.74.3](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.3-upload-page-ui.md) | Reuse pola 4.66.6 (triple defense: _headers + Astro.response + runtime). | ✅ |
+| PR-G11 | TTL cleanup AdminNotifications > 60 hari | Low | [4.74.6](phases/phase-4-polish-launch/checkout-flow/payment-receipt-management/phase-4.74.6-hardening-closing.md) | Endpoint `/cleanup` admin-only, batch 1000. Dipanggil cron external (mirror pola OTP 4.69.10). | ✅ |
+
+**Deferred follow-up:**
+- Phase 4.74.7 — Auto-expire booking cron (status=awaiting_payment > deadline → expired + email reminder H-2jam).
+- Phase 4.74.7 — Admin WA/Telegram relay notif (sebagai supplement bell in-app).
+- Phase 4.74.8 — R2 bucket terpisah `gt-journeys-payment-proofs` dgn 12-month lifecycle (butuh provisioning CF R2 + wrangler config, saat ini pakai `media` bucket existing).
+- Phase 4.74.8 — HTML template polish email reject (saat ini text-only).
+- Phase 5.0 — Payment gateway (Xendit/Midtrans) replace manual flow.
+
+**Accepted risk / interim:**
+- EXIF strip JPEG saja — PNG tidak scan (biasanya tidak carry EXIF, benign). PDF metadata (author/producer) tidak di-strip — assumed tidak sensitif untuk receipt scan.
+- Multi-attempt 3x: nominal attack vector; soft-cap + rate-limit cukup untuk interim.
+- Polling 30s bell (bukan SSE/DO): acceptable load untuk admin < 10 concurrent; swap kalau justified.
+- `payment_proofs` + `admin_notifications` tetap di `media` bucket shared — proof file access di CMS admin-only (collection access `isApiOrAdmin`). Signed URL R2 terpisah = defense-in-depth defer.
+
+---
+
 ## Template entry untuk series berikutnya
 
 Saat ada perintah security baru (mis. "audit chat widget", "patch CVE X", "pengetatan RBAC"), tambahkan section baru di bawah dengan struktur:

@@ -1,0 +1,212 @@
+---
+/**
+ * Payment proof upload — success + post-payment journey info — Phase 4.74.6b.
+ *
+ * Fokus ke informasi "apa yang terjadi setelah payment":
+ *   - Timeline visual (bukti terkirim → admin review → e-ticket kirim → H keberangkatan)
+ *   - FAQ singkat (berapa lama, kalau reject apa, kapan tiket keluar)
+ *   - CTA sekunder: WA bantuan + link kecil ke detail booking
+ *
+ * Ganti perilaku lama yang CTA utamanya "Lihat halaman booking" — karena
+ * halaman booking adalah info yg sudah customer tahu, bukan info post-payment.
+ */
+import PageLayout from '@layouts/PageLayout.astro'
+import Icon from '@components/common/Icon.astro'
+import { getBookingByRefAndToken } from '@lib/checkout/store'
+
+export const prerender = false
+
+const { ref } = Astro.params
+if (!ref) return Astro.redirect('/404')
+
+const token = new URL(Astro.request.url).searchParams.get('t') ?? ''
+const booking = await getBookingByRefAndToken(ref, token)
+if (!booking) return Astro.redirect('/404')
+
+Astro.response.headers.set('Cache-Control', 'private, no-store, max-age=0, must-revalidate')
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive')
+
+const customerName = String((booking as { customerName?: string }).customerName ?? 'Pelanggan')
+const customerEmail = String((booking as { customerEmail?: string }).customerEmail ?? '')
+const departureDate = String((booking as { departureDate?: string }).departureDate ?? '').slice(0, 10)
+const originLocation = String((booking as { originLocation?: string }).originLocation ?? '')
+const destinationLocation = String((booking as { destinationLocation?: string }).destinationLocation ?? '')
+const route = originLocation && destinationLocation ? `${originLocation} → ${destinationLocation}` : null
+
+const depDateFmt = (() => {
+  if (!departureDate) return ''
+  try {
+    return new Date(departureDate).toLocaleDateString('id-ID', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      timeZone: 'Asia/Makassar',
+    })
+  } catch { return departureDate }
+})()
+
+const confirmationUrl = `/checkout/ferry-tickets/confirmation/${encodeURIComponent(ref)}?t=${encodeURIComponent(token)}`
+
+// Admin WA (sementara hardcoded fallback — tersedia di template admin,
+// tapi kita tak fetch global dari web layer. Pakai env atau skip.)
+const adminWa = (import.meta.env.PUBLIC_ADMIN_WHATSAPP as string | undefined) ?? ''
+---
+
+<PageLayout title={`Bukti Terkirim — Booking ${ref}`}>
+  <main class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-6 sm:py-10 px-3 sm:px-4">
+    <div class="mx-auto max-w-2xl">
+      <!-- Hero success card -->
+      <div class="rounded-2xl bg-white p-5 sm:p-8 shadow-lg text-center border-t-4 border-leaf">
+        <div class="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-leaf/15 flex items-center justify-center">
+          <Icon name="check_circle" class="w-10 h-10 sm:w-12 sm:h-12 text-leaf" />
+        </div>
+        <h1 class="mt-4 text-xl sm:text-2xl font-bold text-slate-900 leading-tight">Bukti transfer terkirim ✓</h1>
+        <p class="mt-2 text-sm text-slate-600 break-words">
+          Terima kasih <strong>{customerName}</strong><br class="sm:hidden">
+          <span class="hidden sm:inline"> — </span>booking <strong class="font-mono">{ref}</strong>
+        </p>
+        {route && (
+          <p class="mt-1.5 text-xs text-slate-500 break-words leading-relaxed">
+            {route}{depDateFmt && <><br class="sm:hidden"><span class="hidden sm:inline"> · </span>{depDateFmt}</>}
+          </p>
+        )}
+      </div>
+
+      <!-- Timeline post-payment journey -->
+      <div class="mt-4 sm:mt-6 rounded-2xl bg-white p-4 sm:p-6 shadow-md">
+        <h2 class="text-sm sm:text-base font-bold text-slate-900 mb-4 sm:mb-5 flex items-center gap-2">
+          <Icon name="route" class="w-5 h-5 text-ocean shrink-0" />
+          <span>Apa yang terjadi selanjutnya</span>
+        </h2>
+
+        <ol class="relative border-l-2 border-slate-200 ml-2.5 space-y-4 sm:space-y-5">
+          <!-- Step 1: DONE -->
+          <li class="pl-5 sm:pl-6">
+            <span class="absolute -left-[11px] w-5 h-5 rounded-full bg-leaf flex items-center justify-center ring-4 ring-white">
+              <Icon name="check" class="w-3 h-3 text-white" />
+            </span>
+            <div class="text-sm font-semibold text-slate-900">Bukti terkirim</div>
+            <div class="text-xs text-slate-500 mt-0.5">Baru saja · masuk antrian review</div>
+          </li>
+
+          <!-- Step 2: IN PROGRESS -->
+          <li class="pl-5 sm:pl-6">
+            <span class="absolute -left-[11px] w-5 h-5 rounded-full bg-coral flex items-center justify-center animate-pulse ring-4 ring-white">
+              <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+            </span>
+            <div class="text-sm font-semibold text-slate-900">Admin review bukti pembayaran</div>
+            <div class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Estimasi <strong class="text-coral">1–24 jam kerja</strong>
+              <span class="block sm:inline mt-0.5 sm:mt-0">(Senin–Jumat, 09:00–18:00 WITA)</span>
+            </div>
+          </li>
+
+          <!-- Step 3: PENDING -->
+          <li class="pl-5 sm:pl-6 opacity-70">
+            <span class="absolute -left-[11px] w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center ring-4 ring-white">
+              <span class="text-slate-500 text-[10px] font-bold">3</span>
+            </span>
+            <div class="text-sm font-semibold text-slate-700">E-ticket & Payment Receipt dikirim</div>
+            <div class="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
+              Via email ke <strong class="break-all">{customerEmail || 'email yg Anda daftarkan'}</strong>
+              setelah admin approve. Payment Receipt PDF terlampir.
+            </div>
+          </li>
+
+          <!-- Step 4: PENDING -->
+          <li class="pl-5 sm:pl-6 opacity-50">
+            <span class="absolute -left-[11px] w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center ring-4 ring-white">
+              <span class="text-slate-500 text-[10px] font-bold">4</span>
+            </span>
+            <div class="text-sm font-semibold text-slate-700">Hari H keberangkatan</div>
+            <div class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Tiba terminal 60 menit sebelum keberangkatan dgn passport fisik.
+              Tiket resmi diterbitkan operator saat check-in.
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- FAQ singkat -->
+      <div class="mt-4 sm:mt-6 rounded-2xl bg-white p-4 sm:p-6 shadow-md">
+        <h2 class="text-sm sm:text-base font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
+          <Icon name="help" class="w-5 h-5 text-ocean shrink-0" />
+          <span>Pertanyaan yang sering ditanya</span>
+        </h2>
+        <div class="space-y-2.5 sm:space-y-3 text-sm">
+          <details class="group rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+            <summary class="cursor-pointer px-4 py-3 font-semibold text-slate-800 flex justify-between items-center hover:bg-slate-100">
+              <span>Berapa lama proses verifikasi?</span>
+              <Icon name="chevron_down" class="w-4 h-4 text-slate-500 group-open:rotate-180 transition" />
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-xs text-slate-600 leading-relaxed">
+              Rata-rata <strong>1–3 jam</strong> di jam kerja (Senin–Jumat 09:00–18:00 WITA).
+              Di luar jam kerja atau akhir pekan, bisa sampai 24 jam. Peak season bisa lebih lama.
+            </div>
+          </details>
+
+          <details class="group rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+            <summary class="cursor-pointer px-4 py-3 font-semibold text-slate-800 flex justify-between items-center hover:bg-slate-100">
+              <span>Bagaimana kalau bukti saya ditolak admin?</span>
+              <Icon name="chevron_down" class="w-4 h-4 text-slate-500 group-open:rotate-180 transition" />
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-xs text-slate-600 leading-relaxed">
+              Anda akan menerima <strong>email dgn alasan reject</strong> + link untuk upload ulang.
+              Pastikan bukti transfer jelas (nominal, tanggal, nama penerima terbaca).
+              Max 3x upload — kalau masih gagal, hubungi admin via WhatsApp.
+            </div>
+          </details>
+
+          <details class="group rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+            <summary class="cursor-pointer px-4 py-3 font-semibold text-slate-800 flex justify-between items-center hover:bg-slate-100">
+              <span>Kapan e-ticket resmi diterima?</span>
+              <Icon name="chevron_down" class="w-4 h-4 text-slate-500 group-open:rotate-180 transition" />
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-xs text-slate-600 leading-relaxed">
+              Setelah bukti pembayaran di-approve, email berisi <strong>konfirmasi booking + Payment Receipt PDF</strong>
+              otomatis terkirim ke email Anda. <strong>Tiket resmi</strong> (boarding pass) diterbitkan
+              oleh operator ferry saat check-in di terminal — tunjukkan booking reference <strong>{ref}</strong> + passport.
+            </div>
+          </details>
+
+          <details class="group rounded-lg border border-slate-200 bg-slate-50 overflow-hidden">
+            <summary class="cursor-pointer px-4 py-3 font-semibold text-slate-800 flex justify-between items-center hover:bg-slate-100">
+              <span>Saya tidak dapat email, apa yang harus dilakukan?</span>
+              <Icon name="chevron_down" class="w-4 h-4 text-slate-500 group-open:rotate-180 transition" />
+            </summary>
+            <div class="px-4 pb-4 pt-1 text-xs text-slate-600 leading-relaxed">
+              1. Cek folder <strong>Spam / Promotions / Tab Updates</strong> di email Anda.<br>
+              2. Pastikan email <strong>{customerEmail || 'yang Anda daftarkan'}</strong> benar.<br>
+              3. Belum masuk setelah 24 jam? Hubungi admin via WhatsApp (tombol di bawah) dengan menyebut booking <strong>{ref}</strong>.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- CTA WhatsApp bantuan (sekunder) -->
+      {adminWa && (
+        <div class="mt-4 sm:mt-6 rounded-2xl bg-leaf/5 border border-leaf/30 p-4 sm:p-5 text-center">
+          <p class="text-xs sm:text-sm text-slate-700">Butuh bantuan atau ada pertanyaan?</p>
+          <a
+            href={`https://wa.me/${adminWa}?text=${encodeURIComponent(`Halo GtJourneysID, saya baru upload bukti untuk booking ${ref}`)}`}
+            class="mt-2 inline-flex items-center gap-2 rounded-lg bg-leaf hover:bg-leaf-dark text-white px-4 sm:px-5 py-2.5 text-sm font-semibold shadow transition w-full sm:w-auto justify-center"
+          >
+            <Icon name="whatsapp" class="w-4 h-4 shrink-0" />
+            <span>Chat Admin via WhatsApp</span>
+          </a>
+        </div>
+      )}
+
+      <!-- Link kecil ke detail booking (tersier) -->
+      <div class="mt-4 sm:mt-5 text-center">
+        <a href={confirmationUrl} class="text-xs text-slate-500 hover:text-ocean hover:underline inline-block py-2 px-3">
+          Lihat detail booking →
+        </a>
+      </div>
+
+      <!-- Footer kecil -->
+      <p class="mt-4 sm:mt-6 text-center text-[11px] text-slate-400 leading-relaxed px-2">
+        GtJourneysID · Simpan email ini sebagai pengingat.<br>
+        Pembayaran dicatat waktu server (WITA).
+      </p>
+    </div>
+  </main>
+</PageLayout>

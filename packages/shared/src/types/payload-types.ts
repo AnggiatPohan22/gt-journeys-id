@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     bookings: Booking;
     'otp-verifications': OtpVerification;
+    'payment-proofs': PaymentProof;
+    'admin-notifications': AdminNotification;
     tours: Tour;
     accommodations: Accommodation;
     'water-activities': WaterActivity;
@@ -110,6 +112,8 @@ export interface Config {
   collectionsSelect: {
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     'otp-verifications': OtpVerificationsSelect<false> | OtpVerificationsSelect<true>;
+    'payment-proofs': PaymentProofsSelect<false> | PaymentProofsSelect<true>;
+    'admin-notifications': AdminNotificationsSelect<false> | AdminNotificationsSelect<true>;
     tours: ToursSelect<false> | ToursSelect<true>;
     accommodations: AccommodationsSelect<false> | AccommodationsSelect<true>;
     'water-activities': WaterActivitiesSelect<false> | WaterActivitiesSelect<true>;
@@ -455,6 +459,14 @@ export interface Booking {
    * Phase 4.70.3.1 — audit trail setiap kali admin resend receipt (status already confirmed) dan ubah paymentBank / paymentDate. Append-only. Server-side immutable (Step 2.1).
    */
   paymentAuditLog?: string | null;
+  /**
+   * Phase 4.74.1 — PaymentProof terbaru untuk booking ini. Auto-synced; jangan edit manual. Full history: lihat list PaymentProofs filter booking=<this>.
+   */
+  latestPaymentProof?: (number | null) | PaymentProof;
+  /**
+   * Phase 4.74.1 — jumlah kali customer upload bukti (termasuk yang rejected + resubmit). Rate-guard: >3 attempts → force admin manual follow-up via WA.
+   */
+  paymentProofAttempts?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -26969,6 +26981,89 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Bukti transfer dari customer. Edit view: ubah status → approved/rejected (reject wajib isi rejectedReason). Reject auto-kirim email customer dgn link upload ulang.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-proofs".
+ */
+export interface PaymentProof {
+  id: number;
+  /**
+   * Booking yang bukti ini milik. 1 booking bisa punya banyak proof (resubmit).
+   */
+  booking: number | Booking;
+  /**
+   * Snapshot `bookings.bookingRef` saat submit — dipakai di list view supaya tak perlu join.
+   */
+  bookingRefSnapshot?: string | null;
+  /**
+   * Nama pengirim di rekening sumber transfer.
+   */
+  senderName: string;
+  /**
+   * Bank asal transfer (free text — customer bisa pilih dari dropdown atau isi manual).
+   */
+  senderBank: string;
+  /**
+   * Nominal transfer (IDR). Pre-filled dari booking.totalEstimate di form customer.
+   */
+  amount: number;
+  /**
+   * Konsisten dgn booking.currency. MVP: IDR only.
+   */
+  currency?: string | null;
+  /**
+   * Tanggal transfer dilakukan (max = hari ini).
+   */
+  transferDate: string;
+  /**
+   * Jam transfer (HH:MM). Optional — bantu admin reconcile mutasi.
+   */
+  transferTime?: string | null;
+  /**
+   * Bukti transfer (JPG/PNG/WebP/PDF, max 5MB). EXIF akan di-strip di endpoint-layer sebelum simpan.
+   */
+  proofFile: number | Media;
+  /**
+   * Catatan opsional dari customer (max 500 char).
+   */
+  customerNote?: string | null;
+  /**
+   * Timestamp submission dari endpoint (bukan createdAt — supaya audit terpisah).
+   */
+  submittedAt?: string | null;
+  /**
+   * SHA-256(ip || BOOKING_RL_SALT). Super-admin only — audit abuse/fraud.
+   */
+  submittedFromIpHash?: string | null;
+  /**
+   * User-agent header saat submit. Super-admin only — audit bot/scripted upload.
+   */
+  submittedUserAgent?: string | null;
+  /**
+   * Workflow: pending → approved (auto booking.status=confirmed, admin lanjut Send Ticket) atau rejected (auto email customer + revert booking.status=awaiting_payment).
+   */
+  status: 'pending' | 'approved' | 'rejected';
+  /**
+   * Timestamp admin set status != pending. Auto-filled oleh hook.
+   */
+  reviewedAt?: string | null;
+  /**
+   * Admin yang approve/reject. Auto-filled oleh hook.
+   */
+  reviewedBy?: (number | null) | User;
+  /**
+   * Alasan reject yang dikirim ke customer (via email). WAJIB saat status=rejected (guard di beforeChange).
+   */
+  rejectedReason?: string | null;
+  /**
+   * Catatan internal admin (PII hygiene — super-admin only). Tidak dikirim ke customer.
+   */
+  internalNote?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Ephemeral OTP records (email/WA). Semua nilai sensitif di-hash. Auto-cleanup via cron.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -27004,6 +27099,52 @@ export interface OtpVerification {
    * Hash IP pengirim untuk rate-limit audit (jangan pernah raw IP).
    */
   ipHash?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Feed in-app untuk top-bar bell admin. Auto-created oleh hook; manual edit tidak disarankan.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-notifications".
+ */
+export interface AdminNotification {
+  id: number;
+  /**
+   * Jenis event. Dipakai untuk icon + filter di side-panel bell.
+   */
+  type:
+    'booking_new' | 'payment_proof_submitted' | 'payment_rejected' | 'reschedule_request' | 'cancel_request' | 'other';
+  /**
+   * Short title untuk bell row. E.g. "New booking #BK-xxxx — Batam → Singapore".
+   */
+  title: string;
+  /**
+   * Short preview body (max ~140 char). Detail lengkap di deep-link ke booking.
+   */
+  body?: string | null;
+  /**
+   * Color coding bell row. Default info.
+   */
+  severity?: ('info' | 'warning' | 'critical') | null;
+  /**
+   * Deep-link target (optional).
+   */
+  booking?: (number | null) | Booking;
+  /**
+   * Deep-link target (optional, untuk type=payment_proof_submitted).
+   */
+  paymentProof?: (number | null) | PaymentProof;
+  /**
+   * Per-user read tracker. Record di-mark read PER-USER (bukan global) supaya shift admin bisa lihat unread shift sebelumnya.
+   */
+  readBy?:
+    | {
+        user: number | User;
+        readAt: string;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -30090,6 +30231,14 @@ export interface PayloadLockedDocument {
         value: number | OtpVerification;
       } | null)
     | ({
+        relationTo: 'payment-proofs';
+        value: number | PaymentProof;
+      } | null)
+    | ({
+        relationTo: 'admin-notifications';
+        value: number | AdminNotification;
+      } | null)
+    | ({
         relationTo: 'tours';
         value: number | Tour;
       } | null)
@@ -30318,6 +30467,8 @@ export interface BookingsSelect<T extends boolean = true> {
   sentTicketAt?: T;
   sentTicketBy?: T;
   paymentAuditLog?: T;
+  latestPaymentProof?: T;
+  paymentProofAttempts?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -30333,6 +30484,53 @@ export interface OtpVerificationsSelect<T extends boolean = true> {
   expiresAt?: T;
   verifiedAt?: T;
   ipHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payment-proofs_select".
+ */
+export interface PaymentProofsSelect<T extends boolean = true> {
+  booking?: T;
+  bookingRefSnapshot?: T;
+  senderName?: T;
+  senderBank?: T;
+  amount?: T;
+  currency?: T;
+  transferDate?: T;
+  transferTime?: T;
+  proofFile?: T;
+  customerNote?: T;
+  submittedAt?: T;
+  submittedFromIpHash?: T;
+  submittedUserAgent?: T;
+  status?: T;
+  reviewedAt?: T;
+  reviewedBy?: T;
+  rejectedReason?: T;
+  internalNote?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "admin-notifications_select".
+ */
+export interface AdminNotificationsSelect<T extends boolean = true> {
+  type?: T;
+  title?: T;
+  body?: T;
+  severity?: T;
+  booking?: T;
+  paymentProof?: T;
+  readBy?:
+    | T
+    | {
+        user?: T;
+        readAt?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

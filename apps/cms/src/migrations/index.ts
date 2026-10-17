@@ -56,6 +56,7 @@ import * as migration_20261015_100000_phase_4_70_3_1_payment_receipt from './202
 import * as migration_20261015_110000_phase_4_70_3_1b_payment_audit_log from './20261015_110000_phase_4_70_3_1b_payment_audit_log';
 import * as migration_20261016_100000_phase_4_71_checkout_sync from './20261016_100000_phase_4_71_checkout_sync';
 import * as migration_20261016_120000_phase_4_71_1_payment_deadline from './20261016_120000_phase_4_71_1_payment_deadline';
+import * as migration_20261016_170815_phase_4_74_1_payment_proofs from './20261016_170815_phase_4_74_1_payment_proofs';
 import * as migration_20261017_100000_phase_4_72_price_display from './20261017_100000_phase_4_72_price_display';
 
 export const migrations = [
@@ -277,7 +278,7 @@ export const migrations = [
   {
     up: migration_20261007_061355_phase_4_67_2a_bookings_roundtrip.up,
     down: migration_20261007_061355_phase_4_67_2a_bookings_roundtrip.down,
-    name: '20261007_061355_phase_4_67_2a_bookings_roundtrip'
+    name: '20261007_061355_phase_4_67_2a_bookings_roundtrip',
   },
   {
     up: migration_20261009_094925_phase_4_69_2_otp_verifications.up,
@@ -350,8 +351,13 @@ export const migrations = [
     name: '20261016_120000_phase_4_71_1_payment_deadline',
   },
   {
+    up: migration_20261016_170815_phase_4_74_1_payment_proofs.up,
+    down: migration_20261016_170815_phase_4_74_1_payment_proofs.down,
+    name: '20261016_170815_phase_4_74_1_payment_proofs',
+  },
+  {
     up: migration_20261017_100000_phase_4_72_price_display.up,
     down: migration_20261017_100000_phase_4_72_price_display.down,
-    name: '20261017_100000_phase_4_72_price_display',
+    name: '20261017_100000_phase_4_72_price_display'
   },
 ];

@@ -62,6 +62,7 @@ import { default as default_2d7391d3e6c490e87ec696da441ef264 } from '../../../co
 import { default as default_717e86c8ff0d6e16710fe7573de37930 } from '../../../admin/ServiceModulesManager'
 import { default as default_48a75e37b0630d5b8c8066e180c0e6ef } from '../../../admin/graphics/Icon'
 import { default as default_88541c286955dbac4d90fb5ed606381c } from '../../../admin/graphics/Logo'
+import { default as default_e111912befe633318add78c48af3e8e1 } from '../../../admin/BellNotifications'
 import { default as default_64c2e44a9325dc37c881505671c0a779 } from '../../../admin/SidebarFooter'
 import { default as default_792c0d3ac257e3b6841a35f0f9e3982d } from '../../../admin/NavAccordion'
 import { default as default_fafa156b7e0b046667cba8c807e70577 } from '../../../admin/DashboardStats'
@@ -139,6 +140,7 @@ export const importMap = {
   "/admin/ServiceModulesManager#default": default_717e86c8ff0d6e16710fe7573de37930,
   "/admin/graphics/Icon#default": default_48a75e37b0630d5b8c8066e180c0e6ef,
   "/admin/graphics/Logo#default": default_88541c286955dbac4d90fb5ed606381c,
+  "/admin/BellNotifications#default": default_e111912befe633318add78c48af3e8e1,
   "/admin/SidebarFooter#default": default_64c2e44a9325dc37c881505671c0a779,
   "/admin/NavAccordion#default": default_792c0d3ac257e3b6841a35f0f9e3982d,
   "/admin/DashboardStats#default": default_fafa156b7e0b046667cba8c807e70577,
